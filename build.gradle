@@ -1,0 +1,12 @@
+// Top-level build file
+plugins {
+    id 'com.android.application' version '8.2.0' apply false
+}
+
+allprojects {
+    // Configuration for all projects
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
