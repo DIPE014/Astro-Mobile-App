@@ -31,8 +31,8 @@ Astro-Mobile-App/
 │   │   │   │   │   ├── math/     # Vector3, Matrix, coordinates
 │   │   │   │   │   ├── layers/   # Star/constellation data layers
 │   │   │   │   │   └── renderer/ # OpenGL sky renderer
-│   │   │   │   ├── data/         # [BACKEND] Repositories
-│   │   │   │   ├── ml/           # [BACKEND] AI constellation recognition
+│   │   │   │   ├── data/         # [DATABASE] Repositories, star catalogs
+│   │   │   │   ├── ml/           # [AI/ML] Constellation recognition
 │   │   │   │   └── common/       # [SHARED] Models, interfaces
 │   │   │   │       └── model/    # StarData, Pointing, etc.
 │   │   │   ├── assets/           # Binary data files
@@ -54,13 +54,15 @@ Astro-Mobile-App/
 └── README.md                     # This file
 ```
 
-## Team Work Division
+## Work Division
 
-| Role | Person | Folders | Language |
-|------|--------|---------|----------|
-| Frontend | Person A | `ui/`, `res/` | Java + XML |
-| Backend | Person B | `core/`, `data/`, `ml/` | Java |
-| Shared | Both | `common/model/` | Java |
+| Role | Folders | Language |
+|------|---------|----------|
+| Frontend | `ui/`, `res/` | Java + XML |
+| Backend | `core/` | Java |
+| Database | `data/` | Java |
+| AI/ML | `ml/` | Java |
+| Shared | `common/model/` | Java |
 
 ## Getting Started
 

@@ -179,7 +179,7 @@ assets/models/constellation.tflite   - ML model file
 
 ## Shared Interfaces (Define First)
 
-Both frontend and backend should agree on these:
+All roles should agree on these data models:
 
 ```java
 // common/model/StarData.java
@@ -209,23 +209,39 @@ public class RecognizedConstellation {
 
 ## Work Assignment
 
-### Frontend Person (Person A)
-**Phase focus**: 3, 4 (UI parts), 6
+### Frontend
 **Folders**: `ui/`, `res/`
 
-Week 1-2: Basic layouts, SkyMapActivity shell
-Week 3-4: Camera preview, overlay view
-Week 5-6: Touch interactions, StarInfoActivity
-Week 7+: Polish, night mode, settings
+- XML layouts and themes
+- SkyMapActivity, StarInfoActivity
+- Camera preview display
+- Touch interactions (pan, zoom, tap)
+- Night mode UI
 
-### Backend Person (Person B)
-**Phase focus**: 1, 2, 4 (renderer), 5
-**Folders**: `core/`, `data/`, `ml/`
+### Backend
+**Folders**: `core/`
 
-Week 1-2: Copy stardroid code, set up math utilities
-Week 3-4: AstronomerModel, sensors, location
-Week 5-6: Star data loading, coordinate calculations
-Week 7+: ML constellation recognition
+- Copy and adapt stardroid math utilities
+- AstronomerModel (coordinate transformation)
+- SensorController (device orientation)
+- LocationController (GPS)
+- SkyRenderer (OpenGL rendering)
+
+### Database
+**Folders**: `data/`
+
+- StarRepository (load star catalogs)
+- Binary data file parsing (protobuf)
+- Star search functionality
+- Caching and data management
+
+### AI/ML
+**Folders**: `ml/`
+
+- ConstellationRecognizer (TFLite inference)
+- ImageProcessor (camera frame preprocessing)
+- Train/obtain constellation model
+- Integration with camera feed
 
 ---
 

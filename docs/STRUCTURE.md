@@ -24,7 +24,7 @@ com/astro/app/
 ├── AstroApplication.java       # App entry point, Dagger setup
 ├── MainActivity.java           # Main activity
 │
-├── ui/                         # [FRONTEND - Person A]
+├── ui/                         # [FRONTEND]
 │   ├── skymap/                 # Main AR sky view screen
 │   │   ├── SkyMapActivity.java
 │   │   ├── SkyMapFragment.java
@@ -34,7 +34,7 @@ com/astro/app/
 │   └── settings/               # Settings screen
 │       └── SettingsActivity.java
 │
-├── core/                       # [BACKEND - Person B]
+├── core/                       # [BACKEND]
 │   ├── control/                # Controllers
 │   │   ├── AstronomerModel.java      # Core coordinate math
 │   │   ├── LocationController.java   # GPS handling
@@ -51,10 +51,10 @@ com/astro/app/
 │   └── renderer/               # Sky rendering
 │       └── SkyRenderer.java
 │
-├── data/                       # [BACKEND - Person B]
+├── data/                       # [DATABASE]
 │   └── StarRepository.java     # Load and manage star data
 │
-├── ml/                         # [BACKEND - Person B]
+├── ml/                         # [AI/ML]
 │   ├── ConstellationRecognizer.java  # ML inference
 │   └── ImageProcessor.java           # Image preprocessing
 │
@@ -75,19 +75,19 @@ com/astro/app/
 
 ```
 res/
-├── layout/                     # [FRONTEND - Person A]
+├── layout/                     # [FRONTEND]
 │   ├── activity_main.xml
 │   ├── activity_sky_map.xml
 │   ├── activity_star_info.xml
 │   └── fragment_sky_map.xml
 │
-├── values/                     # [FRONTEND - Person A]
+├── values/                     # [FRONTEND]
 │   ├── colors.xml              # Color definitions
 │   ├── strings.xml             # Text strings
 │   ├── themes.xml              # App themes
 │   └── dimens.xml              # Dimensions
 │
-└── drawable/                   # [FRONTEND - Person A]
+└── drawable/                   # [FRONTEND]
     └── (icons, images)
 ```
 
@@ -133,60 +133,68 @@ datamodel/
 
 ## Who Works Where
 
-### Frontend Person (Person A)
+### Frontend
 ```
-EDIT THESE:
 ├── ui/**/*.java           # All UI code
 ├── res/layout/*.xml       # All layouts
 ├── res/values/*.xml       # Colors, strings, themes
 └── res/drawable/*         # Images, icons
 ```
 
-### Backend Person (Person B)
+### Backend
 ```
-EDIT THESE:
-├── core/**/*.java         # Astronomy engine
-├── data/**/*.java         # Data handling
-├── ml/**/*.java           # ML code
-└── assets/*               # Binary data files
+├── core/**/*.java         # Astronomy engine, sensors, location
+└── core/renderer/*.java   # Sky rendering
 ```
 
-### Both (Define Together)
+### Database
+```
+├── data/**/*.java         # Repositories, data loading
+└── assets/*.binary        # Star catalog files
+```
+
+### AI/ML
+```
+├── ml/**/*.java           # ML inference code
+└── assets/models/*.tflite # ML model files
+```
+
+### Shared (All roles)
 ```
 ├── common/model/*.java    # Shared data models
-├── di/*.java              # Dependency injection
 └── MainActivity.java      # May need coordination
 ```
 
 ---
 
-## Key Interfaces Between Frontend & Backend
+## Key Interfaces Between Roles
 
-Frontend calls these (Backend implements):
-
+### Backend provides (Frontend uses):
 ```java
-// Backend provides star data
-public interface StarDataProvider {
-    List<StarData> getVisibleStars();
-    StarData getStarAtPosition(float screenX, float screenY);
-}
-
-// Backend provides device pointing
 public interface PointingProvider {
     Pointing getCurrentPointing();
     void addPointingListener(PointingListener listener);
 }
+```
 
-// Backend provides ML recognition
+### Database provides (Frontend/Backend use):
+```java
+public interface StarDataProvider {
+    List<StarData> getVisibleStars();
+    StarData getStarAtPosition(float screenX, float screenY);
+    StarData searchByName(String name);
+}
+```
+
+### AI/ML provides (Frontend uses):
+```java
 public interface ConstellationRecognizer {
     RecognizedConstellation recognize(Bitmap cameraFrame);
 }
 ```
 
-Frontend provides these (Backend uses):
-
+### Frontend provides (All use):
 ```java
-// Frontend tells backend about screen
 public interface ScreenInfo {
     int getScreenWidth();
     int getScreenHeight();
