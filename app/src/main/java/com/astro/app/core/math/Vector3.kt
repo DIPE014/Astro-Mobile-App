@@ -164,9 +164,13 @@ data class Vector3(@JvmField var x : Float, @JvmField var y : Float, @JvmField v
     ))
 
     companion object Factory {
+        @JvmStatic
         fun zero() = Vector3(0f, 0f, 0f)
+        @JvmStatic
         fun unitX() = Vector3(1f, 0f, 0f)
+        @JvmStatic
         fun unitY() = Vector3(0f, 1f, 0f)
+        @JvmStatic
         fun unitZ() = Vector3(0f, 0f, 1f)
     }
 }

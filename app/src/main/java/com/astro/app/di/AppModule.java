@@ -3,7 +3,11 @@ package com.astro.app.di;
 import android.content.Context;
 import android.content.res.AssetManager;
 
+import com.astro.app.core.control.AstronomerModel;
+import com.astro.app.core.control.AstronomerModelImpl;
 import com.astro.app.core.control.LocationController;
+import com.astro.app.core.control.MagneticDeclinationCalculator;
+import com.astro.app.core.control.RealMagneticDeclinationCalculator;
 import com.astro.app.core.control.SensorController;
 
 import javax.inject.Singleton;
@@ -78,5 +82,31 @@ public class AppModule {
     @Singleton
     AssetManager provideAssetManager(Context context) {
         return context.getAssets();
+    }
+
+    /**
+     * Provides the MagneticDeclinationCalculator for calculating the difference
+     * between magnetic north and true north.
+     *
+     * @return the MagneticDeclinationCalculator instance
+     */
+    @Provides
+    @Singleton
+    MagneticDeclinationCalculator provideMagneticDeclinationCalculator() {
+        return new RealMagneticDeclinationCalculator();
+    }
+
+    /**
+     * Provides the AstronomerModel for calculating celestial coordinates
+     * from device sensor data.
+     * Singleton to ensure consistent state across the app.
+     *
+     * @param magneticDeclinationCalculator the calculator for magnetic declination
+     * @return the AstronomerModel instance
+     */
+    @Provides
+    @Singleton
+    AstronomerModel provideAstronomerModel(MagneticDeclinationCalculator magneticDeclinationCalculator) {
+        return new AstronomerModelImpl(magneticDeclinationCalculator);
     }
 }

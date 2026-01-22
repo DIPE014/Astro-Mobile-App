@@ -123,6 +123,14 @@ data class Matrix3x3(
         this.yx * v.x + this.yy * v.y + this.yz * v.z,
         this.zx * v.x + this.zy * v.y + this.zz * v.z)
 
+    /**
+     * Java can't call Kotlin's copy() method due to not supporting default params.
+     * Temporary shim until Java is all gone.
+     */
+    fun copyForJ() : Matrix3x3 {
+        return copy()
+    }
+
     companion object {
         @JvmStatic
         val identity: Matrix3x3 = Matrix3x3(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f)
