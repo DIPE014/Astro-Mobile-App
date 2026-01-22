@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App Name -->
+    <string name="app_name">Astro</string>
+
+    <!-- Common UI Strings -->
+    <string name="start">Start</string>
+    <string name="settings">Settings</string>
+    <string name="back">Back</string>
+    <string name="close">Close</string>
+    <string name="search">Search</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="done">Done</string>
+    <string name="retry">Retry</string>
+    <string name="continue_text">Continue</string>
+    <string name="loading">Loading…</string>
+    <string name="refresh">Refresh</string>
+    <string name="share">Share</string>
+    <string name="favorites">Favorites</string>
+    <string name="help">Help</string>
+    <string name="about">About</string>
+    <string name="home">Home</string>
+    <string name="explore">Explore</string>
+
+    <!-- Navigation -->
+    <string name="nav_sky_map">Sky Map</string>
+    <string name="nav_search">Search</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Star Info Labels -->
+    <string name="star_name">Name</string>
+    <string name="star_magnitude">Magnitude</string>
+    <string name="star_distance">Distance</string>
+    <string name="star_distance_light_years">%1$s light years</string>
+    <string name="star_constellation">Constellation</string>
+    <string name="star_right_ascension">Right Ascension</string>
+    <string name="star_declination">Declination</string>
+    <string name="star_spectral_type">Spectral Type</string>
+    <string name="star_apparent_magnitude">Apparent Magnitude</string>
+    <string name="star_absolute_magnitude">Absolute Magnitude</string>
+    <string name="star_luminosity">Luminosity</string>
+    <string name="star_temperature">Temperature</string>
+    <string name="star_radius">Radius</string>
+    <string name="star_mass">Mass</string>
+    <string name="star_info">Star Information</string>
+    <string name="star_details">Star Details</string>
+
+    <!-- Celestial Objects -->
+    <string name="object_star">Star</string>
+    <string name="object_planet">Planet</string>
+    <string name="object_moon">Moon</string>
+    <string name="object_sun">Sun</string>
+    <string name="object_galaxy">Galaxy</string>
+    <string name="object_nebula">Nebula</string>
+    <string name="object_cluster">Star Cluster</string>
+    <string name="object_constellation">Constellation</string>
+    <string name="object_satellite">Satellite</string>
+    <string name="object_comet">Comet</string>
+    <string name="object_asteroid">Asteroid</string>
+
+    <!-- Constellation Names -->
+    <string name="constellation_info">Constellation Information</string>
+    <string name="constellation_stars">Stars in Constellation</string>
+    <string name="constellation_mythology">Mythology</string>
+    <string name="constellation_best_visible">Best Visible</string>
+
+    <!-- Sky Map -->
+    <string name="sky_map">Sky Map</string>
+    <string name="sky_map_loading">Loading star data…</string>
+    <string name="sky_map_calibrating">Calibrating sensors…</string>
+    <string name="sky_map_point_device">Point your device at the sky</string>
+    <string name="sky_map_no_data">No star data available</string>
+    <string name="show_constellations">Show Constellations</string>
+    <string name="show_constellation_lines">Show Constellation Lines</string>
+    <string name="show_constellation_names">Show Constellation Names</string>
+    <string name="show_stars">Show Stars</string>
+    <string name="show_planets">Show Planets</string>
+    <string name="show_grid">Show Grid</string>
+    <string name="show_horizon">Show Horizon</string>
+    <string name="night_mode">Night Mode</string>
+    <string name="auto_rotate">Auto Rotate</string>
+    <string name="time_travel">Time Travel</string>
+    <string name="reset_view">Reset View</string>
+    <string name="zoom_in">Zoom In</string>
+    <string name="zoom_out">Zoom Out</string>
+
+    <!-- Search -->
+    <string name="search_hint">Search stars, constellations…</string>
+    <string name="search_no_results">No results found</string>
+    <string name="search_results">Search Results</string>
+    <string name="recent_searches">Recent Searches</string>
+    <string name="clear_history">Clear History</string>
+
+    <!-- Settings -->
+    <string name="settings_display">Display</string>
+    <string name="settings_location">Location</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_data">Data</string>
+    <string name="settings_about">About</string>
+    <string name="settings_night_mode">Night Mode</string>
+    <string name="settings_night_mode_summary">Use red tint to preserve night vision</string>
+    <string name="settings_brightness">Brightness</string>
+    <string name="settings_star_labels">Star Labels</string>
+    <string name="settings_star_labels_summary">Show names on bright stars</string>
+    <string name="settings_magnitude_limit">Magnitude Limit</string>
+    <string name="settings_magnitude_limit_summary">Show stars up to magnitude %1$s</string>
+    <string name="settings_location_auto">Auto-detect Location</string>
+    <string name="settings_location_auto_summary">Use GPS to determine your location</string>
+    <string name="settings_location_manual">Set Location Manually</string>
+    <string name="settings_units">Units</string>
+    <string name="settings_units_metric">Metric</string>
+    <string name="settings_units_imperial">Imperial</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_cache">Cache Size</string>
+    <string name="settings_clear_cache">Clear Cache</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_privacy">Privacy Policy</string>
+    <string name="settings_terms">Terms of Service</string>
+    <string name="settings_licenses">Open Source Licenses</string>
+
+    <!-- Permission Strings -->
+    <string name="permission_camera_title">Camera Permission Required</string>
+    <string name="permission_camera_message">Astro needs camera access to overlay the sky map on your camera view for augmented reality features.</string>
+    <string name="permission_camera_rationale">Camera permission is required for AR sky viewing</string>
+    <string name="permission_camera_denied">Camera permission denied. AR features will be unavailable.</string>
+
+    <string name="permission_location_title">Location Permission Required</string>
+    <string name="permission_location_message">Astro needs your location to accurately show the night sky from where you are standing.</string>
+    <string name="permission_location_rationale">Location permission is required for accurate sky positioning</string>
+    <string name="permission_location_denied">Location permission denied. Using default location.</string>
+    <string name="permission_location_background_title">Background Location</string>
+    <string name="permission_location_background_message">Allow background location for continuous sky tracking?</string>
+
+    <string name="permission_go_to_settings">Go to Settings</string>
+    <string name="permission_not_now">Not Now</string>
+    <string name="permission_grant">Grant Permission</string>
+
+    <!-- Error Messages -->
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="error_network">Network error. Please check your connection.</string>
+    <string name="error_network_unavailable">No internet connection available.</string>
+    <string name="error_timeout">Request timed out. Please try again.</string>
+    <string name="error_server">Server error. Please try again later.</string>
+    <string name="error_data_load">Failed to load data.</string>
+    <string name="error_star_data">Failed to load star data.</string>
+    <string name="error_location">Unable to determine your location.</string>
+    <string name="error_location_services">Location services are disabled.</string>
+    <string name="error_sensor">Sensor not available on this device.</string>
+    <string name="error_sensor_calibration">Please calibrate your device sensors.</string>
+    <string name="error_compass">Compass not available.</string>
+    <string name="error_gyroscope">Gyroscope not available.</string>
+    <string name="error_accelerometer">Accelerometer not available.</string>
+    <string name="error_camera">Camera not available.</string>
+    <string name="error_storage">Storage error.</string>
+    <string name="error_file_not_found">File not found.</string>
+    <string name="error_parse">Failed to parse data.</string>
+    <string name="error_unknown">An unknown error occurred.</string>
+    <string name="error_no_results">No results found.</string>
+    <string name="error_invalid_input">Invalid input.</string>
+    <string name="error_not_supported">This feature is not supported on your device.</string>
+
+    <!-- Accessibility -->
+    <string name="cd_star_icon">Star icon</string>
+    <string name="cd_planet_icon">Planet icon</string>
+    <string name="cd_constellation_icon">Constellation icon</string>
+    <string name="cd_settings_icon">Settings icon</string>
+    <string name="cd_search_icon">Search icon</string>
+    <string name="cd_back_button">Navigate back</string>
+    <string name="cd_close_button">Close dialog</string>
+    <string name="cd_favorite_button">Add to favorites</string>
+    <string name="cd_share_button">Share</string>
+    <string name="cd_night_mode_toggle">Toggle night mode</string>
+    <string name="cd_zoom_controls">Zoom controls</string>
+
+    <!-- Time and Date -->
+    <string name="time_now">Now</string>
+    <string name="time_sunrise">Sunrise</string>
+    <string name="time_sunset">Sunset</string>
+    <string name="time_dawn">Dawn</string>
+    <string name="time_dusk">Dusk</string>
+    <string name="time_midnight">Midnight</string>
+    <string name="time_noon">Noon</string>
+    <string name="date_today">Today</string>
+    <string name="date_tonight">Tonight</string>
+
+    <!-- Compass Directions -->
+    <string name="direction_north">North</string>
+    <string name="direction_south">South</string>
+    <string name="direction_east">East</string>
+    <string name="direction_west">West</string>
+    <string name="direction_north_short">N</string>
+    <string name="direction_south_short">S</string>
+    <string name="direction_east_short">E</string>
+    <string name="direction_west_short">W</string>
+    <string name="direction_zenith">Zenith</string>
+    <string name="direction_nadir">Nadir</string>
+    <string name="direction_horizon">Horizon</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_events">Celestial Events</string>
+    <string name="notification_channel_events_description">Notifications about upcoming celestial events</string>
+    <string name="notification_event_title">Celestial Event Tonight</string>
+    <string name="notification_iss_pass">ISS Pass Visible</string>
+
+    <!-- Empty States -->
+    <string name="empty_favorites">No favorites yet</string>
+    <string name="empty_favorites_description">Tap the star icon on any celestial object to add it to your favorites.</string>
+    <string name="empty_search">Start searching</string>
+    <string name="empty_search_description">Search for stars, planets, constellations, and more.</string>
+</resources>

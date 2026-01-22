@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".ui.MainActivity">
+
+    <!-- Settings Icon Button - Top Right -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSettings"
+        style="@style/Widget.Material3.Button.IconButton"
+        android:layout_width="@dimen/touch_target_min"
+        android:layout_height="@dimen/touch_target_min"
+        android:layout_marginTop="@dimen/margin_medium"
+        android:layout_marginEnd="@dimen/margin_medium"
+        android:contentDescription="@string/cd_settings_icon"
+        app:icon="@android:drawable/ic_menu_preferences"
+        app:iconTint="@color/icon_primary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:rippleColor="@color/ripple_primary" />
+
+    <!-- Centered Content Container -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/centerContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.4">
+
+        <!-- App Logo Container -->
+        <FrameLayout
+            android:id="@+id/logoContainer"
+            android:layout_width="@dimen/image_thumbnail_large"
+            android:layout_height="@dimen/image_thumbnail_large"
+            android:background="@drawable/circle_primary_container"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <!-- Star Icon Placeholder -->
+            <ImageView
+                android:id="@+id/ivAppLogo"
+                android:layout_width="@dimen/icon_size_huge"
+                android:layout_height="@dimen/icon_size_huge"
+                android:layout_gravity="center"
+                android:contentDescription="@string/app_name"
+                android:src="@android:drawable/btn_star_big_on"
+                app:tint="@color/star_highlight" />
+
+        </FrameLayout>
+
+        <!-- App Name -->
+        <TextView
+            android:id="@+id/tvAppName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_large"
+            android:fontFamily="sans-serif-light"
+            android:letterSpacing="0.15"
+            android:text="@string/app_name"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_size_display_medium"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/logoContainer" />
+
+        <!-- Tagline -->
+        <TextView
+            android:id="@+id/tvTagline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:fontFamily="sans-serif-light"
+            android:text="@string/sky_map_point_device"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_size_body"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvAppName" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Start Sky Map Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnStartSkyMap"
+        style="@style/Widget.AstroApp.Button"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/button_height_large"
+        android:layout_marginStart="@dimen/margin_huge"
+        android:layout_marginEnd="@dimen/margin_huge"
+        android:layout_marginBottom="@dimen/margin_massive"
+        android:text="@string/nav_sky_map"
+        android:textAllCaps="false"
+        android:textSize="@dimen/text_size_large"
+        app:cornerRadius="@dimen/button_corner_radius"
+        app:icon="@android:drawable/ic_menu_compass"
+        app:iconGravity="textStart"
+        app:iconPadding="@dimen/button_icon_padding"
+        app:iconSize="@dimen/icon_size_medium"
+        app:iconTint="@color/on_primary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:rippleColor="@color/ripple" />
+
+    <!-- Decorative Star Elements - Top Left -->
+    <ImageView
+        android:layout_width="@dimen/star_size_large"
+        android:layout_height="@dimen/star_size_large"
+        android:layout_marginStart="@dimen/margin_extra_large"
+        android:layout_marginTop="@dimen/margin_huge"
+        android:alpha="0.4"
+        android:contentDescription="@null"
+        android:src="@android:drawable/btn_star_big_on"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/star_class_a" />
+
+    <!-- Decorative Star Elements - Top Center-Right -->
+    <ImageView
+        android:layout_width="@dimen/star_size_medium"
+        android:layout_height="@dimen/star_size_medium"
+        android:layout_marginTop="@dimen/margin_extra_large"
+        android:alpha="0.3"
+        android:contentDescription="@null"
+        android:src="@android:drawable/btn_star_big_on"
+        app:layout_constraintEnd_toStartOf="@id/btnSettings"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/star_class_f" />
+
+    <!-- Decorative Star Elements - Bottom Left -->
+    <ImageView
+        android:layout_width="@dimen/star_size_bright"
+        android:layout_height="@dimen/star_size_bright"
+        android:layout_marginStart="@dimen/margin_huge"
+        android:layout_marginBottom="@dimen/margin_huge"
+        android:alpha="0.5"
+        android:contentDescription="@null"
+        android:src="@android:drawable/btn_star_big_on"
+        app:layout_constraintBottom_toTopOf="@id/btnStartSkyMap"
+        app:layout_constraintStart_toStartOf="parent"
+        app:tint="@color/star_class_g" />
+
+    <!-- Decorative Star Elements - Right Side -->
+    <ImageView
+        android:layout_width="@dimen/star_size_small"
+        android:layout_height="@dimen/star_size_small"
+        android:layout_marginEnd="@dimen/margin_large"
+        android:alpha="0.35"
+        android:contentDescription="@null"
+        android:src="@android:drawable/btn_star_big_on"
+        app:layout_constraintBottom_toTopOf="@id/btnStartSkyMap"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/centerContent"
+        app:tint="@color/star_class_b" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

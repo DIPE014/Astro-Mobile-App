@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Colors - Deep Blue/Purple Tones -->
+    <color name="primary">#BB86FC</color>
+    <color name="primary_variant">#3700B3</color>
+    <color name="primary_dark">#1A1A2E</color>
+    <color name="primary_light">#D4BBFF</color>
+    <color name="on_primary">#1C1B1F</color>
+    <color name="on_primary_variant">#FFFFFF</color>
+
+    <!-- Secondary Colors -->
+    <color name="secondary">#03DAC6</color>
+    <color name="secondary_variant">#018786</color>
+    <color name="secondary_dark">#00574B</color>
+    <color name="on_secondary">#000000</color>
+
+    <!-- Tertiary Colors -->
+    <color name="tertiary">#7FCFFF</color>
+    <color name="tertiary_variant">#4A90D9</color>
+    <color name="on_tertiary">#003549</color>
+
+    <!-- Surface Colors - Dark Backgrounds -->
+    <color name="surface">#121212</color>
+    <color name="surface_variant">#1E1E2E</color>
+    <color name="surface_elevated">#1F1F1F</color>
+    <color name="surface_elevated_high">#2D2D2D</color>
+    <color name="on_surface">#E6E1E5</color>
+    <color name="on_surface_variant">#CAC4D0</color>
+
+    <!-- Background Colors -->
+    <color name="background">#0D0D1A</color>
+    <color name="background_dark">#000005</color>
+    <color name="background_variant">#16162B</color>
+    <color name="on_background">#E6E1E5</color>
+
+    <!-- Night Mode Colors - Red Tints for Preserving Night Vision -->
+    <color name="night_mode_primary">#CC3333</color>
+    <color name="night_mode_primary_variant">#8B0000</color>
+    <color name="night_mode_secondary">#A52A2A</color>
+    <color name="night_mode_background">#1A0000</color>
+    <color name="night_mode_surface">#2D0A0A</color>
+    <color name="night_mode_surface_variant">#3D1515</color>
+    <color name="night_mode_on_surface">#FF9999</color>
+    <color name="night_mode_text_primary">#FF6666</color>
+    <color name="night_mode_text_secondary">#CC5555</color>
+    <color name="night_mode_accent">#FF4444</color>
+    <color name="night_mode_icon">#FF7777</color>
+    <color name="night_mode_divider">#4D1A1A</color>
+    <color name="night_mode_overlay">#80000000</color>
+
+    <!-- Star Colors - Based on Spectral Classification -->
+    <color name="star_class_o">#9BB0FF</color>
+    <color name="star_class_b">#AABFFF</color>
+    <color name="star_class_a">#CAD7FF</color>
+    <color name="star_class_f">#F8F7FF</color>
+    <color name="star_class_g">#FFF4EA</color>
+    <color name="star_class_k">#FFD2A1</color>
+    <color name="star_class_m">#FFCC6F</color>
+    <color name="star_default">#FFFFFF</color>
+    <color name="star_highlight">#FFD700</color>
+    <color name="star_selected">#00FFFF</color>
+
+    <!-- Planet Colors -->
+    <color name="planet_mercury">#B0B0B0</color>
+    <color name="planet_venus">#E6E6CC</color>
+    <color name="planet_mars">#FF6347</color>
+    <color name="planet_jupiter">#D4A574</color>
+    <color name="planet_saturn">#F4D59E</color>
+    <color name="planet_uranus">#AFDBF5</color>
+    <color name="planet_neptune">#5B5DDF</color>
+    <color name="planet_moon">#F4F4F4</color>
+    <color name="planet_sun">#FFD700</color>
+
+    <!-- Constellation Colors -->
+    <color name="constellation_line">#4A90D9</color>
+    <color name="constellation_line_highlight">#7FCFFF</color>
+    <color name="constellation_name">#87CEEB</color>
+    <color name="constellation_boundary">#333366</color>
+    <color name="constellation_fill">#1A1A4D</color>
+
+    <!-- Sky Map UI Colors -->
+    <color name="sky_map_grid">#336699</color>
+    <color name="sky_map_horizon">#4A4A4A</color>
+    <color name="sky_map_zenith">#666699</color>
+    <color name="sky_map_compass">#FFFFFF</color>
+    <color name="sky_map_info_panel">#CC1E1E2E</color>
+    <color name="sky_map_crosshair">#80FFFFFF</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_primary_variant">#F0F0F0</color>
+    <color name="text_secondary">#B3B3B3</color>
+    <color name="text_tertiary">#808080</color>
+    <color name="text_disabled">#4D4D4D</color>
+    <color name="text_hint">#666666</color>
+    <color name="text_link">#BB86FC</color>
+    <color name="text_error">#CF6679</color>
+
+    <!-- Error/Warning/Success Colors -->
+    <color name="error">#CF6679</color>
+    <color name="error_variant">#B00020</color>
+    <color name="on_error">#000000</color>
+    <color name="warning">#FFB74D</color>
+    <color name="on_warning">#000000</color>
+    <color name="success">#4CAF50</color>
+    <color name="on_success">#000000</color>
+    <color name="info">#29B6F6</color>
+    <color name="on_info">#000000</color>
+
+    <!-- UI Element Colors -->
+    <color name="divider">#2D2D3D</color>
+    <color name="divider_light">#3D3D4D</color>
+    <color name="outline">#938F99</color>
+    <color name="outline_variant">#49454F</color>
+    <color name="ripple">#40FFFFFF</color>
+    <color name="ripple_primary">#40BB86FC</color>
+    <color name="scrim">#80000000</color>
+    <color name="overlay_dark">#B3000000</color>
+    <color name="overlay_light">#33FFFFFF</color>
+
+    <!-- Button Colors -->
+    <color name="button_primary">#BB86FC</color>
+    <color name="button_primary_disabled">#4DBB86FC</color>
+    <color name="button_secondary">#03DAC6</color>
+    <color name="button_text">#FFFFFF</color>
+    <color name="button_text_disabled">#80FFFFFF</color>
+
+    <!-- Card and Container Colors -->
+    <color name="card_background">#1E1E2E</color>
+    <color name="card_background_elevated">#252536</color>
+    <color name="card_stroke">#3D3D4D</color>
+    <color name="bottom_sheet_background">#1C1B1F</color>
+    <color name="dialog_background">#1E1E2E</color>
+    <color name="toolbar_background">#121212</color>
+    <color name="status_bar">#000000</color>
+    <color name="navigation_bar">#121212</color>
+
+    <!-- Icon Colors -->
+    <color name="icon_primary">#E6E1E5</color>
+    <color name="icon_secondary">#CAC4D0</color>
+    <color name="icon_tertiary">#938F99</color>
+    <color name="icon_disabled">#4D4D4D</color>
+    <color name="icon_active">#BB86FC</color>
+    <color name="icon_inactive">#666666</color>
+
+    <!-- Material Design 3 Color Tokens -->
+    <color name="md_theme_dark_primary">#BB86FC</color>
+    <color name="md_theme_dark_onPrimary">#1C1B1F</color>
+    <color name="md_theme_dark_primaryContainer">#3700B3</color>
+    <color name="md_theme_dark_onPrimaryContainer">#E8DEF8</color>
+    <color name="md_theme_dark_secondary">#03DAC6</color>
+    <color name="md_theme_dark_onSecondary">#000000</color>
+    <color name="md_theme_dark_secondaryContainer">#018786</color>
+    <color name="md_theme_dark_onSecondaryContainer">#CCF8F3</color>
+    <color name="md_theme_dark_tertiary">#7FCFFF</color>
+    <color name="md_theme_dark_onTertiary">#003549</color>
+    <color name="md_theme_dark_tertiaryContainer">#004D67</color>
+    <color name="md_theme_dark_onTertiaryContainer">#C2E8FF</color>
+    <color name="md_theme_dark_error">#CF6679</color>
+    <color name="md_theme_dark_onError">#000000</color>
+    <color name="md_theme_dark_errorContainer">#93000A</color>
+    <color name="md_theme_dark_onErrorContainer">#FFDAD6</color>
+    <color name="md_theme_dark_background">#0D0D1A</color>
+    <color name="md_theme_dark_onBackground">#E6E1E5</color>
+    <color name="md_theme_dark_surface">#121212</color>
+    <color name="md_theme_dark_onSurface">#E6E1E5</color>
+    <color name="md_theme_dark_surfaceVariant">#1E1E2E</color>
+    <color name="md_theme_dark_onSurfaceVariant">#CAC4D0</color>
+    <color name="md_theme_dark_outline">#938F99</color>
+    <color name="md_theme_dark_outlineVariant">#49454F</color>
+    <color name="md_theme_dark_inverseSurface">#E6E1E5</color>
+    <color name="md_theme_dark_inverseOnSurface">#1C1B1F</color>
+    <color name="md_theme_dark_inversePrimary">#6750A4</color>
+    <color name="md_theme_dark_surfaceTint">#BB86FC</color>
+
+    <!-- Transparent Colors -->
+    <color name="transparent">#00000000</color>
+    <color name="white_alpha_10">#1AFFFFFF</color>
+    <color name="white_alpha_20">#33FFFFFF</color>
+    <color name="white_alpha_50">#80FFFFFF</color>
+    <color name="black_alpha_50">#80000000</color>
+    <color name="black_alpha_70">#B3000000</color>
+</resources>

@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Margins -->
+    <dimen name="margin_tiny">2dp</dimen>
+    <dimen name="margin_extra_small">4dp</dimen>
+    <dimen name="margin_small">8dp</dimen>
+    <dimen name="margin_medium">16dp</dimen>
+    <dimen name="margin_large">24dp</dimen>
+    <dimen name="margin_extra_large">32dp</dimen>
+    <dimen name="margin_huge">48dp</dimen>
+    <dimen name="margin_massive">64dp</dimen>
+
+    <!-- Padding -->
+    <dimen name="padding_tiny">2dp</dimen>
+    <dimen name="padding_extra_small">4dp</dimen>
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+    <dimen name="padding_extra_large">32dp</dimen>
+    <dimen name="padding_huge">48dp</dimen>
+    <dimen name="padding_massive">64dp</dimen>
+
+    <!-- Screen Padding -->
+    <dimen name="screen_padding_horizontal">16dp</dimen>
+    <dimen name="screen_padding_vertical">16dp</dimen>
+    <dimen name="screen_padding_top">24dp</dimen>
+    <dimen name="screen_padding_bottom">24dp</dimen>
+
+    <!-- Text Sizes -->
+    <dimen name="text_size_tiny">10sp</dimen>
+    <dimen name="text_size_extra_small">11sp</dimen>
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_body">14sp</dimen>
+    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_large">18sp</dimen>
+    <dimen name="text_size_extra_large">20sp</dimen>
+    <dimen name="text_size_title">22sp</dimen>
+    <dimen name="text_size_headline">24sp</dimen>
+    <dimen name="text_size_display_small">28sp</dimen>
+    <dimen name="text_size_display_medium">36sp</dimen>
+    <dimen name="text_size_display_large">45sp</dimen>
+
+    <!-- Sky Map Text Sizes -->
+    <dimen name="text_size_star_label">10sp</dimen>
+    <dimen name="text_size_constellation_label">14sp</dimen>
+    <dimen name="text_size_compass_direction">12sp</dimen>
+    <dimen name="text_size_grid_label">9sp</dimen>
+    <dimen name="text_size_info_panel_title">16sp</dimen>
+    <dimen name="text_size_info_panel_body">14sp</dimen>
+
+    <!-- Icon Sizes -->
+    <dimen name="icon_size_tiny">12dp</dimen>
+    <dimen name="icon_size_extra_small">16dp</dimen>
+    <dimen name="icon_size_small">20dp</dimen>
+    <dimen name="icon_size_medium">24dp</dimen>
+    <dimen name="icon_size_large">32dp</dimen>
+    <dimen name="icon_size_extra_large">40dp</dimen>
+    <dimen name="icon_size_huge">48dp</dimen>
+    <dimen name="icon_size_massive">56dp</dimen>
+    <dimen name="icon_size_giant">64dp</dimen>
+
+    <!-- Navigation Icons -->
+    <dimen name="nav_icon_size">24dp</dimen>
+    <dimen name="toolbar_icon_size">24dp</dimen>
+    <dimen name="bottom_nav_icon_size">24dp</dimen>
+
+    <!-- Star and Celestial Object Sizes -->
+    <dimen name="star_size_min">1dp</dimen>
+    <dimen name="star_size_small">2dp</dimen>
+    <dimen name="star_size_medium">4dp</dimen>
+    <dimen name="star_size_large">6dp</dimen>
+    <dimen name="star_size_bright">8dp</dimen>
+    <dimen name="star_size_max">12dp</dimen>
+    <dimen name="planet_size_small">8dp</dimen>
+    <dimen name="planet_size_medium">12dp</dimen>
+    <dimen name="planet_size_large">16dp</dimen>
+    <dimen name="constellation_line_width">1dp</dimen>
+    <dimen name="constellation_line_width_highlight">2dp</dimen>
+
+    <!-- Corner Radius -->
+    <dimen name="corner_radius_none">0dp</dimen>
+    <dimen name="corner_radius_extra_small">4dp</dimen>
+    <dimen name="corner_radius_small">8dp</dimen>
+    <dimen name="corner_radius_medium">12dp</dimen>
+    <dimen name="corner_radius_large">16dp</dimen>
+    <dimen name="corner_radius_extra_large">24dp</dimen>
+    <dimen name="corner_radius_full">50dp</dimen>
+    <dimen name="corner_radius_circle">100dp</dimen>
+
+    <!-- Card Corner Radius -->
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_corner_radius_large">16dp</dimen>
+
+    <!-- Bottom Sheet Corner Radius -->
+    <dimen name="bottom_sheet_corner_radius">24dp</dimen>
+
+    <!-- Elevation -->
+    <dimen name="elevation_none">0dp</dimen>
+    <dimen name="elevation_tiny">1dp</dimen>
+    <dimen name="elevation_small">2dp</dimen>
+    <dimen name="elevation_medium">4dp</dimen>
+    <dimen name="elevation_large">8dp</dimen>
+    <dimen name="elevation_extra_large">12dp</dimen>
+    <dimen name="elevation_huge">16dp</dimen>
+
+    <!-- Card Elevation -->
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="card_elevation_pressed">8dp</dimen>
+
+    <!-- Button Dimensions -->
+    <dimen name="button_height">48dp</dimen>
+    <dimen name="button_height_small">36dp</dimen>
+    <dimen name="button_height_large">56dp</dimen>
+    <dimen name="button_min_width">88dp</dimen>
+    <dimen name="button_padding_horizontal">24dp</dimen>
+    <dimen name="button_padding_vertical">12dp</dimen>
+    <dimen name="button_corner_radius">24dp</dimen>
+    <dimen name="button_icon_size">18dp</dimen>
+    <dimen name="button_icon_padding">8dp</dimen>
+
+    <!-- FAB Dimensions -->
+    <dimen name="fab_size">56dp</dimen>
+    <dimen name="fab_size_mini">40dp</dimen>
+    <dimen name="fab_size_extended_height">48dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="fab_elevation">6dp</dimen>
+
+    <!-- Toolbar Dimensions -->
+    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="toolbar_elevation">4dp</dimen>
+    <dimen name="toolbar_title_margin_start">16dp</dimen>
+
+    <!-- Bottom Navigation -->
+    <dimen name="bottom_nav_height">80dp</dimen>
+    <dimen name="bottom_nav_elevation">8dp</dimen>
+    <dimen name="bottom_nav_item_padding">8dp</dimen>
+    <dimen name="bottom_nav_label_size">12sp</dimen>
+
+    <!-- Search Bar -->
+    <dimen name="search_bar_height">56dp</dimen>
+    <dimen name="search_bar_corner_radius">28dp</dimen>
+    <dimen name="search_bar_padding_horizontal">16dp</dimen>
+
+    <!-- List Item Dimensions -->
+    <dimen name="list_item_height">56dp</dimen>
+    <dimen name="list_item_height_two_line">72dp</dimen>
+    <dimen name="list_item_height_three_line">88dp</dimen>
+    <dimen name="list_item_padding_horizontal">16dp</dimen>
+    <dimen name="list_item_padding_vertical">8dp</dimen>
+    <dimen name="list_item_icon_margin_end">16dp</dimen>
+    <dimen name="list_item_avatar_size">40dp</dimen>
+
+    <!-- Divider -->
+    <dimen name="divider_height">1dp</dimen>
+    <dimen name="divider_inset_start">16dp</dimen>
+    <dimen name="divider_inset_end">16dp</dimen>
+
+    <!-- Dialog Dimensions -->
+    <dimen name="dialog_min_width">280dp</dimen>
+    <dimen name="dialog_max_width">560dp</dimen>
+    <dimen name="dialog_padding">24dp</dimen>
+    <dimen name="dialog_corner_radius">28dp</dimen>
+
+    <!-- Bottom Sheet Dimensions -->
+    <dimen name="bottom_sheet_peek_height">256dp</dimen>
+    <dimen name="bottom_sheet_handle_width">32dp</dimen>
+    <dimen name="bottom_sheet_handle_height">4dp</dimen>
+    <dimen name="bottom_sheet_handle_margin_top">8dp</dimen>
+    <dimen name="bottom_sheet_content_padding">16dp</dimen>
+
+    <!-- Image Dimensions -->
+    <dimen name="image_thumbnail_small">48dp</dimen>
+    <dimen name="image_thumbnail_medium">72dp</dimen>
+    <dimen name="image_thumbnail_large">96dp</dimen>
+    <dimen name="image_avatar_small">32dp</dimen>
+    <dimen name="image_avatar_medium">40dp</dimen>
+    <dimen name="image_avatar_large">56dp</dimen>
+
+    <!-- Progress Indicator -->
+    <dimen name="progress_indicator_size">48dp</dimen>
+    <dimen name="progress_indicator_stroke_width">4dp</dimen>
+    <dimen name="progress_linear_height">4dp</dimen>
+
+    <!-- Chip Dimensions -->
+    <dimen name="chip_height">32dp</dimen>
+    <dimen name="chip_padding_horizontal">12dp</dimen>
+    <dimen name="chip_icon_size">18dp</dimen>
+    <dimen name="chip_spacing">8dp</dimen>
+
+    <!-- Sky Map UI Dimensions -->
+    <dimen name="sky_map_control_button_size">48dp</dimen>
+    <dimen name="sky_map_control_margin">16dp</dimen>
+    <dimen name="sky_map_info_panel_width">280dp</dimen>
+    <dimen name="sky_map_info_panel_padding">16dp</dimen>
+    <dimen name="sky_map_compass_size">80dp</dimen>
+    <dimen name="sky_map_compass_margin">16dp</dimen>
+    <dimen name="sky_map_crosshair_size">24dp</dimen>
+    <dimen name="sky_map_crosshair_stroke">2dp</dimen>
+    <dimen name="sky_map_grid_stroke">0.5dp</dimen>
+    <dimen name="sky_map_horizon_stroke">1dp</dimen>
+    <dimen name="sky_map_touch_target_min">48dp</dimen>
+
+    <!-- Spacing for Flexbox/Grid -->
+    <dimen name="grid_spacing">8dp</dimen>
+    <dimen name="grid_spacing_large">16dp</dimen>
+    <dimen name="flex_item_spacing">8dp</dimen>
+
+    <!-- Touch Target Sizes (Accessibility) -->
+    <dimen name="touch_target_min">48dp</dimen>
+    <dimen name="touch_target_recommended">56dp</dimen>
+
+    <!-- Stroke Widths -->
+    <dimen name="stroke_width_thin">0.5dp</dimen>
+    <dimen name="stroke_width_normal">1dp</dimen>
+    <dimen name="stroke_width_medium">1.5dp</dimen>
+    <dimen name="stroke_width_thick">2dp</dimen>
+    <dimen name="stroke_width_extra_thick">3dp</dimen>
+
+    <!-- Animation Durations (in milliseconds as integers) -->
+    <integer name="animation_duration_instant">100</integer>
+    <integer name="animation_duration_fast">150</integer>
+    <integer name="animation_duration_normal">250</integer>
+    <integer name="animation_duration_slow">350</integer>
+    <integer name="animation_duration_slower">500</integer>
+
+    <!-- Swipe Refresh -->
+    <dimen name="swipe_refresh_trigger_distance">64dp</dimen>
+    <dimen name="swipe_refresh_indicator_size">40dp</dimen>
+
+</resources>

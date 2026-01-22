@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Star/Compass design for Astro app -->
+    <!-- Main 8-point star -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20
+                         L58,44 L72,27 L62,48
+                         L88,54
+                         L62,60 L72,81 L58,64
+                         L54,88
+                         L50,64 L36,81 L46,60
+                         L20,54
+                         L46,48 L36,27 L50,44
+                         Z" />
+
+    <!-- Inner circle -->
+    <path
+        android:fillColor="#1A237E"
+        android:pathData="M54,54m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0" />
+
+    <!-- Center dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,54m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+
+    <!-- Compass cardinal points accent lines -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M54,26 L54,32" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M54,76 L54,82" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M26,54 L32,54" />
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M76,54 L82,54" />
+</vector>

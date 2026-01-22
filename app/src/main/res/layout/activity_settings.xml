@@ -1,0 +1,744 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fitsSystemWindows="true"
+    tools:context=".ui.SettingsActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        app:elevation="@dimen/elevation_none">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationContentDescription="@string/cd_back_button"
+            app:navigationIcon="@android:drawable/ic_menu_revert"
+            app:navigationIconTint="@color/icon_primary"
+            app:title="@string/settings"
+            app:titleTextAppearance="@style/TextAppearance.AstroApp.TitleLarge"
+            app:titleTextColor="@color/text_primary" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/padding_extra_large">
+
+            <!-- Display Settings Section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                android:paddingTop="@dimen/padding_large"
+                android:paddingBottom="@dimen/padding_small"
+                android:text="@string/settings_display"
+                android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                android:textColor="@color/primary" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AstroApp.CardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/margin_medium"
+                app:cardCornerRadius="@dimen/card_corner_radius">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Star Brightness Slider -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="@dimen/padding_medium"
+                        android:paddingVertical="@dimen/padding_medium">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/settings_brightness"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:id="@+id/tvBrightnessValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                                android:textColor="@color/text_secondary"
+                                tools:text="75%" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.slider.Slider
+                            android:id="@+id/sliderBrightness"
+                            style="@style/Widget.AstroApp.Slider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:stepSize="5.0"
+                            android:value="75"
+                            android:valueFrom="0"
+                            android:valueTo="100" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginStart="@dimen/divider_inset_start"
+                        android:background="@color/divider" />
+
+                    <!-- Magnitude Limit Slider -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="@dimen/padding_medium"
+                        android:paddingVertical="@dimen/padding_medium">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/settings_magnitude_limit"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:id="@+id/tvMagnitudeValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                                android:textColor="@color/text_secondary"
+                                tools:text="6.0" />
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:text="Show stars brighter than this magnitude"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+                            android:textColor="@color/text_tertiary" />
+
+                        <com.google.android.material.slider.Slider
+                            android:id="@+id/sliderMagnitude"
+                            style="@style/Widget.AstroApp.Slider"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_small"
+                            android:stepSize="0.5"
+                            android:value="6"
+                            android:valueFrom="1"
+                            android:valueTo="8" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginStart="@dimen/divider_inset_start"
+                        android:background="@color/divider" />
+
+                    <!-- Star Labels Switch -->
+                    <LinearLayout
+                        android:id="@+id/rowStarLabels"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/list_item_height_two_line"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/padding_medium">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_star_labels"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_star_labels_summary"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+                                android:textColor="@color/text_secondary" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchStarLabels"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginStart="@dimen/divider_inset_start"
+                        android:background="@color/divider" />
+
+                    <!-- Constellation Lines Switch -->
+                    <LinearLayout
+                        android:id="@+id/rowConstellationLines"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/list_item_height_two_line"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/padding_medium">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/show_constellation_lines"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Draw lines connecting constellation stars"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+                                android:textColor="@color/text_secondary" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchConstellationLines"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginStart="@dimen/divider_inset_start"
+                        android:background="@color/divider" />
+
+                    <!-- Constellation Names Switch -->
+                    <LinearLayout
+                        android:id="@+id/rowConstellationNames"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/list_item_height_two_line"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/padding_medium">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/show_constellation_names"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Show constellation name labels"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+                                android:textColor="@color/text_secondary" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchConstellationNames"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Night Mode Section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                android:paddingTop="@dimen/padding_large"
+                android:paddingBottom="@dimen/padding_small"
+                android:text="@string/settings_night_mode"
+                android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                android:textColor="@color/primary" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AstroApp.CardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/margin_medium"
+                app:cardCornerRadius="@dimen/card_corner_radius">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Night Mode Switch -->
+                    <LinearLayout
+                        android:id="@+id/rowNightMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/list_item_height_two_line"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/padding_medium">
+
+                        <ImageView
+                            android:layout_width="@dimen/icon_size_medium"
+                            android:layout_height="@dimen/icon_size_medium"
+                            android:layout_marginEnd="@dimen/margin_medium"
+                            android:contentDescription="@null"
+                            android:src="@android:drawable/ic_menu_view"
+                            app:tint="@color/night_mode_primary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/night_mode"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_night_mode_summary"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+                                android:textColor="@color/text_secondary" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchNightMode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="false" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginStart="@dimen/divider_inset_start"
+                        android:background="@color/divider" />
+
+                    <!-- Auto Night Mode -->
+                    <LinearLayout
+                        android:id="@+id/rowAutoNightMode"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/list_item_height_two_line"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/padding_medium">
+
+                        <View
+                            android:layout_width="@dimen/icon_size_medium"
+                            android:layout_height="@dimen/icon_size_medium"
+                            android:layout_marginEnd="@dimen/margin_medium" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Auto Night Mode"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Enable automatically after sunset"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+                                android:textColor="@color/text_secondary" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchAutoNightMode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="false" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Location Section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                android:paddingTop="@dimen/padding_large"
+                android:paddingBottom="@dimen/padding_small"
+                android:text="@string/settings_location"
+                android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                android:textColor="@color/primary" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AstroApp.CardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/margin_medium"
+                app:cardCornerRadius="@dimen/card_corner_radius">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Auto Location Switch -->
+                    <LinearLayout
+                        android:id="@+id/rowAutoLocation"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/list_item_height_two_line"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/padding_medium">
+
+                        <ImageView
+                            android:layout_width="@dimen/icon_size_medium"
+                            android:layout_height="@dimen/icon_size_medium"
+                            android:layout_marginEnd="@dimen/margin_medium"
+                            android:contentDescription="@null"
+                            android:src="@android:drawable/ic_menu_mylocation"
+                            app:tint="@color/icon_primary" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_location_auto"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_location_auto_summary"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+                                android:textColor="@color/text_secondary" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchAutoLocation"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="true" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginStart="@dimen/divider_inset_start"
+                        android:background="@color/divider" />
+
+                    <!-- Manual Location -->
+                    <LinearLayout
+                        android:id="@+id/rowManualLocation"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/list_item_height_two_line"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/padding_medium">
+
+                        <View
+                            android:layout_width="@dimen/icon_size_medium"
+                            android:layout_height="@dimen/icon_size_medium"
+                            android:layout_marginEnd="@dimen/margin_medium" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_location_manual"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:id="@+id/tvCurrentLocation"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+                                android:textColor="@color/text_secondary"
+                                tools:text="37.7749, -122.4194" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="@dimen/icon_size_medium"
+                            android:layout_height="@dimen/icon_size_medium"
+                            android:contentDescription="@null"
+                            android:src="@android:drawable/ic_menu_more"
+                            app:tint="@color/icon_tertiary" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- About Section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                android:paddingTop="@dimen/padding_large"
+                android:paddingBottom="@dimen/padding_small"
+                android:text="@string/settings_about"
+                android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                android:textColor="@color/primary" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AstroApp.CardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/margin_medium"
+                app:cardCornerRadius="@dimen/card_corner_radius">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Version -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/list_item_height"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/padding_medium">
+
+                        <ImageView
+                            android:layout_width="@dimen/icon_size_medium"
+                            android:layout_height="@dimen/icon_size_medium"
+                            android:layout_marginEnd="@dimen/margin_medium"
+                            android:contentDescription="@null"
+                            android:src="@android:drawable/ic_menu_info_details"
+                            app:tint="@color/icon_primary" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/settings_version"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:id="@+id/tvVersion"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_secondary"
+                            tools:text="1.0.0" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginStart="@dimen/divider_inset_start"
+                        android:background="@color/divider" />
+
+                    <!-- Privacy Policy -->
+                    <LinearLayout
+                        android:id="@+id/rowPrivacy"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/list_item_height"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/padding_medium">
+
+                        <View
+                            android:layout_width="@dimen/icon_size_medium"
+                            android:layout_height="@dimen/icon_size_medium"
+                            android:layout_marginEnd="@dimen/margin_medium" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/settings_privacy"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:layout_width="@dimen/icon_size_medium"
+                            android:layout_height="@dimen/icon_size_medium"
+                            android:contentDescription="@null"
+                            android:src="@android:drawable/ic_menu_more"
+                            app:tint="@color/icon_tertiary" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginStart="@dimen/divider_inset_start"
+                        android:background="@color/divider" />
+
+                    <!-- Terms of Service -->
+                    <LinearLayout
+                        android:id="@+id/rowTerms"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/list_item_height"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/padding_medium">
+
+                        <View
+                            android:layout_width="@dimen/icon_size_medium"
+                            android:layout_height="@dimen/icon_size_medium"
+                            android:layout_marginEnd="@dimen/margin_medium" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/settings_terms"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:layout_width="@dimen/icon_size_medium"
+                            android:layout_height="@dimen/icon_size_medium"
+                            android:contentDescription="@null"
+                            android:src="@android:drawable/ic_menu_more"
+                            app:tint="@color/icon_tertiary" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginStart="@dimen/divider_inset_start"
+                        android:background="@color/divider" />
+
+                    <!-- Open Source Licenses -->
+                    <LinearLayout
+                        android:id="@+id/rowLicenses"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/list_item_height"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/padding_medium">
+
+                        <View
+                            android:layout_width="@dimen/icon_size_medium"
+                            android:layout_height="@dimen/icon_size_medium"
+                            android:layout_marginEnd="@dimen/margin_medium" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/settings_licenses"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary" />
+
+                        <ImageView
+                            android:layout_width="@dimen/icon_size_medium"
+                            android:layout_height="@dimen/icon_size_medium"
+                            android:contentDescription="@null"
+                            android:src="@android:drawable/ic_menu_more"
+                            app:tint="@color/icon_tertiary" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
