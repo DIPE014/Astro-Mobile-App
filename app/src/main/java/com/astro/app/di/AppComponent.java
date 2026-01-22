@@ -1,0 +1,46 @@
+package com.astro.app.di;
+
+import com.astro.app.AstroApplication;
+
+import javax.inject.Singleton;
+
+import dagger.Component;
+
+/**
+ * Main Dagger component for the Astro application.
+ * This component is the root of the dependency graph.
+ */
+@Singleton
+@Component(modules = {AppModule.class})
+public interface AppComponent {
+
+    /**
+     * Injects dependencies into the AstroApplication.
+     *
+     * @param application the application instance to inject into
+     */
+    void inject(AstroApplication application);
+
+    /**
+     * Builder interface for creating AppComponent instances.
+     * Uses the application context to initialize the dependency graph.
+     */
+    @Component.Builder
+    interface Builder {
+
+        /**
+         * Sets the AppModule for this component.
+         *
+         * @param appModule the module providing application-level dependencies
+         * @return the builder instance for chaining
+         */
+        Builder appModule(AppModule appModule);
+
+        /**
+         * Builds the AppComponent instance.
+         *
+         * @return the constructed AppComponent
+         */
+        AppComponent build();
+    }
+}
