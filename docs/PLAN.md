@@ -201,17 +201,29 @@ core/renderer/
 
 ## Phase 5: UI Layer (Frontend Role)
 
+**IMPORTANT**: Build original, attractive UI. Do NOT copy stardroid UI.
+
+### Design Goals
+- Modern Material Design 3
+- Dark theme optimized for night viewing
+- Smooth animations and transitions
+- Clean, minimalist interface
+- Intuitive gesture controls
+
 ### Tasks
+- [ ] Design app color scheme and typography
 - [ ] Create MainActivity as navigation host
 - [ ] Create SkyMapActivity with camera preview
 - [ ] Create SkyMapFragment for sky rendering
 - [ ] Implement SkyOverlayView custom view
-- [ ] Create StarInfoActivity for star details
+- [ ] Create StarInfoActivity with attractive star details card
 - [ ] Create SettingsActivity
-- [ ] Implement touch gesture handling (pan, zoom, tap)
-- [ ] Create XML layouts with proper styling
-- [ ] Implement night mode theme
-- [ ] Add loading states and error handling UI
+- [ ] Implement smooth touch gestures (pan, zoom, tap)
+- [ ] Create XML layouts with modern styling
+- [ ] Implement night mode theme (red tint)
+- [ ] Add loading animations
+- [ ] Add transition animations between screens
+- [ ] Add error handling with friendly UI
 
 ### Key Files
 ```
