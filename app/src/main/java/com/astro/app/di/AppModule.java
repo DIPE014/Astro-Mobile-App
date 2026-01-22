@@ -9,6 +9,11 @@ import com.astro.app.core.control.LocationController;
 import com.astro.app.core.control.MagneticDeclinationCalculator;
 import com.astro.app.core.control.RealMagneticDeclinationCalculator;
 import com.astro.app.core.control.SensorController;
+import com.astro.app.data.parser.ProtobufParser;
+import com.astro.app.data.repository.ConstellationRepository;
+import com.astro.app.data.repository.ConstellationRepositoryImpl;
+import com.astro.app.data.repository.StarRepository;
+import com.astro.app.data.repository.StarRepositoryImpl;
 
 import javax.inject.Singleton;
 
@@ -108,5 +113,31 @@ public class AppModule {
     @Singleton
     AstronomerModel provideAstronomerModel(MagneticDeclinationCalculator magneticDeclinationCalculator) {
         return new AstronomerModelImpl(magneticDeclinationCalculator);
+    }
+
+    /**
+     * Provides the StarRepository for accessing star data.
+     * Uses StarRepositoryImpl which loads data from binary protobuf files.
+     *
+     * @param protobufParser the parser for reading binary star data
+     * @return the StarRepository instance
+     */
+    @Provides
+    @Singleton
+    StarRepository provideStarRepository(ProtobufParser protobufParser) {
+        return new StarRepositoryImpl(protobufParser);
+    }
+
+    /**
+     * Provides the ConstellationRepository for accessing constellation data.
+     * Uses ConstellationRepositoryImpl which loads data from binary protobuf files.
+     *
+     * @param protobufParser the parser for reading binary constellation data
+     * @return the ConstellationRepository instance
+     */
+    @Provides
+    @Singleton
+    ConstellationRepository provideConstellationRepository(ProtobufParser protobufParser) {
+        return new ConstellationRepositoryImpl(protobufParser);
     }
 }
