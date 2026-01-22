@@ -2,50 +2,73 @@
 
 ## Overview
 
-Build an Android astronomy AR app by adapting core features from `stardroid` (Sky Map) and adding AI constellation recognition.
+Build an Android astronomy AR app by adapting core features from `stardroid` (Sky Map).
+
+**Note**: AI/ML constellation recognition is excluded from this phase. Focus on GPS-based star positioning first.
+
+---
+
+## Tech Stack
+
+- **Language**: Java (primary), Kotlin where beneficial
+- **UI**: XML Layouts with Material Design 3
+- **DI**: Dagger 2
+- **Camera**: CameraX for AR preview
+- **Data**: Protocol Buffers (reuse stardroid's star catalogs)
+- **Min SDK**: 26 (Android 8.0)
 
 ---
 
 ## Phase 1: Project Setup
 
 ### Tasks
-- [ ] Set up Android project in Android Studio
-- [ ] Configure build.gradle with dependencies
-- [ ] Copy math utilities from stardroid (`stardroid/app/.../math/`)
-- [ ] Copy binary data files (`stars.binary`, `constellations.binary`)
-- [ ] Copy protocol buffer definition (`source.proto`)
-- [ ] Create basic MainActivity
+- [ ] Configure build.gradle with all dependencies
+- [ ] Set up Dagger 2 dependency injection
+- [ ] Copy math utilities from stardroid
+- [ ] Copy binary data files (stars.binary, constellations.binary, messier.binary)
+- [ ] Copy and configure protocol buffer definition
+- [ ] Create AndroidManifest with required permissions
+- [ ] Verify project compiles and runs
 
 ### Files to Copy from Stardroid
+
+**Math Utilities** (copy to `core/math/`):
 ```
-FROM: stardroid/app/src/main/java/com/google/android/stardroid/math/
-  - Vector3.kt
-  - Matrix3x3.kt
-  - Matrix4x4.kt
-  - RaDec.kt
-  - LatLong.kt
-  - Astronomy.kt
-  - CoordinateManipulations.kt
-  - Geometry.kt
-TO: app/src/main/java/com/astro/app/core/math/
-
-FROM: stardroid/app/src/main/assets/
-  - stars.binary
-  - constellations.binary
-  - messier.binary
-TO: app/src/main/assets/
-
-FROM: stardroid/datamodel/src/main/proto/
-  - source.proto
-TO: datamodel/src/main/proto/
+stardroid/app/src/main/java/com/google/android/stardroid/math/
+├── Vector3.kt
+├── Matrix3x3.kt
+├── Matrix4x4.kt
+├── RaDec.kt
+├── LatLong.kt
+├── Astronomy.kt
+├── CoordinateManipulations.kt
+├── Geometry.kt
+└── MathUtils.kt
 ```
 
-### Dependencies (build.gradle)
+**Binary Data** (copy to `assets/`):
+```
+stardroid/app/src/main/assets/
+├── stars.binary
+├── constellations.binary
+└── messier.binary
+```
+
+**Proto Definition** (copy to `datamodel/src/main/proto/`):
+```
+stardroid/datamodel/src/main/proto/source.proto
+```
+
+### Dependencies
 ```groovy
 dependencies {
     // Core Android
     implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
     implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     // Dagger 2
     implementation 'com.google.dagger:dagger:2.50'
@@ -59,197 +82,317 @@ dependencies {
     // Location
     implementation 'com.google.android.gms:play-services-location:21.1.0'
 
-    // ML
-    implementation 'org.tensorflow:tensorflow-lite:2.14.0'
-
     // Protocol Buffers
     implementation 'com.google.protobuf:protobuf-javalite:3.25.1'
 
     // Utilities
     implementation 'com.google.guava:guava:33.0.0-android'
+
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
 ```
 
 ---
 
-## Phase 2: Core Astronomy Engine (Backend)
+## Phase 2: Data Layer (Database Role)
+
+### Tasks
+- [ ] Create StarData model class
+- [ ] Create Constellation model class
+- [ ] Create Pointing model class
+- [ ] Implement ProtobufParser to read binary files
+- [ ] Implement StarRepository
+- [ ] Implement ConstellationRepository
+- [ ] Add star search functionality
+- [ ] Write unit tests for data layer
+
+### Key Files
+```
+data/
+├── model/
+│   ├── StarData.java
+│   ├── Constellation.java
+│   └── CelestialObject.java
+├── parser/
+│   └── ProtobufParser.java
+├── repository/
+│   ├── StarRepository.java
+│   └── ConstellationRepository.java
+└── source/
+    └── AssetDataSource.java
+```
+
+---
+
+## Phase 3: Core Astronomy Engine (Backend Role)
 
 ### Tasks
 - [ ] Adapt AstronomerModel from stardroid
-- [ ] Implement LocationController (GPS)
-- [ ] Implement SensorController (accelerometer, gyroscope, magnetometer)
-- [ ] Create StarRepository to load binary data
-- [ ] Calculate visible stars based on device pointing
+- [ ] Implement LocationController with FusedLocationProvider
+- [ ] Implement SensorController for device orientation
+- [ ] Create coordinate transformation utilities
+- [ ] Implement pointing calculation (device orientation → sky coordinates)
+- [ ] Create Layer interface and base implementation
+- [ ] Implement StarsLayer
+- [ ] Implement ConstellationsLayer
+- [ ] Write unit tests for core calculations
 
-### Key Files to Create
+### Key Files
 ```
-core/control/AstronomerModel.java    - Coordinate transformation
-core/control/LocationController.java - GPS location
-core/control/SensorController.java   - Device orientation
-data/StarRepository.java             - Load star data
+core/
+├── control/
+│   ├── AstronomerModel.java
+│   ├── AstronomerModelImpl.java
+│   ├── LocationController.java
+│   └── SensorController.java
+├── math/
+│   └── (copied from stardroid)
+├── layers/
+│   ├── Layer.java
+│   ├── AbstractLayer.java
+│   ├── StarsLayer.java
+│   └── ConstellationsLayer.java
+└── util/
+    └── TimeUtils.java
 ```
 
 ### Adapt from Stardroid
 ```
 stardroid/app/.../control/AstronomerModelImpl.kt → Simplify, convert to Java
-stardroid/app/.../control/LocationController.java → Modernize with FusedLocationProvider
+stardroid/app/.../control/LocationController.java → Use FusedLocationProvider
 stardroid/app/.../control/SensorOrientationController.java → Simplify
+stardroid/app/.../layers/StarsLayer.kt → Adapt
+stardroid/app/.../layers/ConstellationsLayer.kt → Adapt
 ```
 
 ---
 
-## Phase 3: Basic UI (Frontend)
+## Phase 4: Sky Renderer (Backend Role)
 
 ### Tasks
-- [ ] Create SkyMapActivity (main screen)
-- [ ] Create XML layout with camera preview area
-- [ ] Add basic Canvas overlay for star rendering
-- [ ] Implement touch gestures (pan, zoom)
+- [ ] Create SkyRenderer with OpenGL ES
+- [ ] Implement star point rendering
+- [ ] Implement constellation line rendering
+- [ ] Implement text label rendering
+- [ ] Add view matrix transformations
+- [ ] Implement zoom and pan support
+- [ ] Add night mode (red tint) rendering option
+- [ ] Write rendering tests
+
+### Key Files
+```
+core/renderer/
+├── SkyRenderer.java
+├── SkyGLSurfaceView.java
+├── RendererController.java
+├── primitive/
+│   ├── PointPrimitive.java
+│   ├── LinePrimitive.java
+│   └── TextPrimitive.java
+└── shader/
+    ├── PointShader.java
+    └── LineShader.java
+```
+
+---
+
+## Phase 5: UI Layer (Frontend Role)
+
+### Tasks
+- [ ] Create MainActivity as navigation host
+- [ ] Create SkyMapActivity with camera preview
+- [ ] Create SkyMapFragment for sky rendering
+- [ ] Implement SkyOverlayView custom view
 - [ ] Create StarInfoActivity for star details
+- [ ] Create SettingsActivity
+- [ ] Implement touch gesture handling (pan, zoom, tap)
+- [ ] Create XML layouts with proper styling
+- [ ] Implement night mode theme
+- [ ] Add loading states and error handling UI
 
-### Key Files to Create
+### Key Files
 ```
-ui/skymap/SkyMapActivity.java
-ui/skymap/SkyOverlayView.java        - Custom view for star overlay
-ui/starinfo/StarInfoActivity.java
-res/layout/activity_sky_map.xml
-res/layout/activity_star_info.xml
+ui/
+├── skymap/
+│   ├── SkyMapActivity.java
+│   ├── SkyMapFragment.java
+│   ├── SkyOverlayView.java
+│   └── SkyMapViewModel.java
+├── starinfo/
+│   ├── StarInfoActivity.java
+│   └── StarInfoViewModel.java
+├── settings/
+│   └── SettingsActivity.java
+└── common/
+    ├── BaseActivity.java
+    └── ViewUtils.java
+
+res/layout/
+├── activity_main.xml
+├── activity_sky_map.xml
+├── activity_star_info.xml
+├── activity_settings.xml
+├── fragment_sky_map.xml
+└── item_star.xml
+
+res/values/
+├── colors.xml
+├── strings.xml
+├── themes.xml
+├── themes_night.xml
+└── dimens.xml
 ```
 
 ---
 
-## Phase 4: Camera AR Integration
+## Phase 6: Camera AR Integration
 
 ### Tasks
-- [ ] Add CameraX preview
-- [ ] Overlay star rendering on camera feed
-- [ ] Align camera FOV with sky coordinates
-- [ ] Add tap-to-select star interaction
+- [ ] Implement CameraManager with CameraX
+- [ ] Set up camera preview in SkyMapActivity
+- [ ] Overlay sky renderer on camera feed
+- [ ] Calibrate camera FOV with sky coordinates
+- [ ] Implement tap-to-select star on camera view
+- [ ] Show star info popup on selection
+- [ ] Handle camera permissions properly
+- [ ] Add camera toggle (AR mode vs map mode)
 
-### Key Files to Create
+### Key Files
 ```
-ui/skymap/CameraManager.java         - CameraX setup
-core/renderer/SkyRenderer.java       - OpenGL or Canvas rendering
+ui/skymap/
+├── CameraManager.java
+└── CameraPermissionHandler.java
 ```
 
 ---
 
-## Phase 5: AI Constellation Recognition (Backend)
-
-### Target Constellations (5-10)
-1. Orion
-2. Big Dipper (Ursa Major)
-3. Cassiopeia
-4. Scorpius
-5. Leo
-6. Cygnus
-7. Southern Cross
-8. Gemini
+## Phase 7: Polish & Testing
 
 ### Tasks
-- [ ] Set up TensorFlow Lite
-- [ ] Create ImageProcessor for camera frames
-- [ ] Create ConstellationRecognizer class
-- [ ] Obtain/train constellation classifier model
-- [ ] Add UI toggle: GPS Mode / AI Mode
-
-### Key Files to Create
-```
-ml/ConstellationRecognizer.java      - TFLite inference
-ml/ImageProcessor.java               - Preprocess camera frames
-assets/models/constellation.tflite   - ML model file
-```
-
-### ML Model Options
-1. **Use pre-trained**: Search TensorFlow Hub for star/constellation models
-2. **Train custom**: Use Stellarium screenshots as training data
-
----
-
-## Phase 6: Polish
-
-### Tasks
-- [ ] Night mode (red theme for dark adaptation)
-- [ ] Settings screen
-- [ ] Error handling
+- [ ] Add proper error handling throughout
+- [ ] Implement loading indicators
+- [ ] Add offline support verification
 - [ ] Performance optimization
-- [ ] Testing
+- [ ] Memory leak testing
+- [ ] UI/UX refinements
+- [ ] Code cleanup and documentation
+- [ ] Final integration testing
 
 ---
 
-## Shared Interfaces (Define First)
+## Shared Interfaces
 
-All roles should agree on these data models:
+All roles should implement/use these:
 
 ```java
 // common/model/StarData.java
 public class StarData {
-    public String name;
-    public float ra;           // Right Ascension (backend)
-    public float dec;          // Declination (backend)
-    public float screenX;      // Screen position (frontend uses)
-    public float screenY;
-    public float magnitude;    // Brightness
+    private String id;
+    private String name;
+    private float ra;           // Right Ascension
+    private float dec;          // Declination
+    private float magnitude;    // Brightness
+    private int color;          // Display color
+    // getters, setters, builder
 }
 
 // common/model/Pointing.java
 public class Pointing {
-    public float azimuth;      // Compass direction
-    public float altitude;     // Angle above horizon
+    private float azimuth;      // Compass direction (0-360)
+    private float altitude;     // Angle above horizon (-90 to 90)
+    private float roll;         // Device roll
+    // getters, setters
 }
 
-// common/model/RecognizedConstellation.java
-public class RecognizedConstellation {
-    public String name;
-    public float confidence;   // 0.0 to 1.0
+// common/model/Constellation.java
+public class Constellation {
+    private String id;
+    private String name;
+    private List<StarData> stars;
+    private List<int[]> lineIndices;  // Which stars to connect
+    // getters, setters
+}
+```
+
+### Repository Interfaces
+```java
+public interface StarRepository {
+    List<StarData> getAllStars();
+    List<StarData> getVisibleStars(Pointing pointing, float fov);
+    StarData getStarById(String id);
+    List<StarData> searchByName(String query);
+}
+
+public interface ConstellationRepository {
+    List<Constellation> getAllConstellations();
+    Constellation getConstellationById(String id);
+}
+```
+
+### Controller Interfaces
+```java
+public interface PointingProvider {
+    Pointing getCurrentPointing();
+    void addPointingListener(PointingListener listener);
+    void removePointingListener(PointingListener listener);
+}
+
+public interface LocationProvider {
+    LatLong getCurrentLocation();
+    void addLocationListener(LocationListener listener);
 }
 ```
 
 ---
 
-## Work Assignment
+## Work Assignment by Role
 
 ### Frontend
-**Folders**: `ui/`, `res/`
-
-- XML layouts and themes
-- SkyMapActivity, StarInfoActivity
-- Camera preview display
-- Touch interactions (pan, zoom, tap)
-- Night mode UI
+- Phase 5 (UI Layer)
+- Phase 6 (Camera AR - UI parts)
+- Phase 7 (UI polish)
 
 ### Backend
-**Folders**: `core/`
-
-- Copy and adapt stardroid math utilities
-- AstronomerModel (coordinate transformation)
-- SensorController (device orientation)
-- LocationController (GPS)
-- SkyRenderer (OpenGL rendering)
+- Phase 1 (Project Setup - build config, DI)
+- Phase 3 (Core Astronomy Engine)
+- Phase 4 (Sky Renderer)
 
 ### Database
-**Folders**: `data/`
+- Phase 1 (Copy data files, proto setup)
+- Phase 2 (Data Layer)
 
-- StarRepository (load star catalogs)
-- Binary data file parsing (protobuf)
-- Star search functionality
-- Caching and data management
-
-### AI/ML
-**Folders**: `ml/`
-
-- ConstellationRecognizer (TFLite inference)
-- ImageProcessor (camera frame preprocessing)
-- Train/obtain constellation model
-- Integration with camera feed
+### Shared
+- `common/model/` classes
+- Interface definitions
+- Integration testing
 
 ---
 
 ## Testing Checkpoints
 
-1. **After Phase 1**: App compiles and runs
-2. **After Phase 2**: Logs show correct RA/Dec when moving phone
-3. **After Phase 3**: Stars appear on screen
-4. **After Phase 4**: Camera preview with stars overlaid
-5. **After Phase 5**: ML can identify Orion constellation
-6. **Final**: Full demo with both GPS and AI modes
+1. **After Phase 1**: App compiles, shows empty MainActivity
+2. **After Phase 2**: Unit tests pass, can load star data from binary files
+3. **After Phase 3**: Logs show correct RA/Dec when moving phone
+4. **After Phase 4**: Stars render on GLSurfaceView
+5. **After Phase 5**: Full UI navigation works
+6. **After Phase 6**: Camera preview with stars overlaid
+7. **After Phase 7**: All tests pass, app is polished
+
+---
+
+## File References from Stardroid
+
+Key files to study/adapt:
+
+| Purpose | Stardroid Path |
+|---------|----------------|
+| Coordinate math | `app/.../control/AstronomerModelImpl.kt` |
+| Location | `app/.../control/LocationController.java` |
+| Sensors | `app/.../control/SensorOrientationController.java` |
+| Star rendering | `app/.../renderer/PointObjectManager.java` |
+| Line rendering | `app/.../renderer/LineObjectManager.java` |
+| Data loading | `app/.../layers/AbstractFileBasedLayer.kt` |
+| Proto parsing | `app/.../source/ProtobufAstronomicalSource.kt` |
