@@ -54,6 +54,17 @@
             app:iconTint="@color/icon_primary"
             app:rippleColor="@color/ripple" />
 
+        <!-- AR Mode Toggle Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnArToggle"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:contentDescription="@string/cd_ar_toggle"
+            app:icon="@android:drawable/ic_menu_camera"
+            app:iconTint="@color/icon_primary"
+            app:rippleColor="@color/ripple" />
+
         <!-- Spacer -->
         <View
             android:layout_width="0dp"

@@ -126,8 +126,10 @@
     <!-- Permission Strings -->
     <string name="permission_camera_title">Camera Permission Required</string>
     <string name="permission_camera_message">Astro needs camera access to overlay the sky map on your camera view for augmented reality features.</string>
-    <string name="permission_camera_rationale">Camera permission is required for AR sky viewing</string>
+    <string name="permission_camera_rationale">Camera permission is required for AR sky viewing. This allows you to see stars and constellations overlaid on your camera view when pointing at the night sky.</string>
     <string name="permission_camera_denied">Camera permission denied. AR features will be unavailable.</string>
+    <string name="permission_camera_denied_fallback">Camera permission denied. Falling back to map-only mode.</string>
+    <string name="permission_camera_settings">Camera permission has been permanently denied. Please enable it in Settings to use AR features.</string>
 
     <string name="permission_location_title">Location Permission Required</string>
     <string name="permission_location_message">Astro needs your location to accurately show the night sky from where you are standing.</string>
@@ -138,7 +140,19 @@
 
     <string name="permission_go_to_settings">Go to Settings</string>
     <string name="permission_not_now">Not Now</string>
-    <string name="permission_grant">Grant Permission</string>
+    <string name="permission_grant">Grant</string>
+    <string name="permission_deny">Deny</string>
+    <string name="permission_settings">Settings</string>
+    <string name="permission_cancel">Cancel</string>
+
+    <!-- AR Mode -->
+    <string name="ar_mode">AR Mode</string>
+    <string name="ar_mode_on">AR mode enabled</string>
+    <string name="ar_mode_off">AR mode disabled</string>
+    <string name="camera_error">Camera error: %1$s</string>
+    <string name="star_type_format">Star - %1$s</string>
+    <string name="star_details_coming_soon">Details for %1$s coming soon</string>
+    <string name="unknown">Unknown</string>
 
     <!-- Error Messages -->
     <string name="error_generic">Something went wrong. Please try again.</string>
@@ -176,6 +190,7 @@
     <string name="cd_share_button">Share</string>
     <string name="cd_night_mode_toggle">Toggle night mode</string>
     <string name="cd_zoom_controls">Zoom controls</string>
+    <string name="cd_ar_toggle">Toggle AR camera mode</string>
 
     <!-- Time and Date -->
     <string name="time_now">Now</string>

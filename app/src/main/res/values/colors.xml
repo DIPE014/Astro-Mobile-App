@@ -34,6 +34,7 @@
     <color name="on_background">#E6E1E5</color>
 
     <!-- Night Mode Colors - Red Tints for Preserving Night Vision -->
+    <color name="night_mode_red">#CC3333</color>
     <color name="night_mode_primary">#CC3333</color>
     <color name="night_mode_primary_variant">#8B0000</color>
     <color name="night_mode_secondary">#A52A2A</color>
