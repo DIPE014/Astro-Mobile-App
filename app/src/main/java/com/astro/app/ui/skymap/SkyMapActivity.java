@@ -116,7 +116,9 @@ public class SkyMapActivity extends AppCompatActivity {
     private GridLayer gridLayer;
 
     // State
-    private boolean isARModeEnabled = true;
+    // Default to MAP mode (AR disabled) for better emulator compatibility
+    // On devices without camera or on emulator, this ensures stars are visible
+    private boolean isARModeEnabled = false;
     private boolean isConstellationsEnabled = true;
     private boolean isGridEnabled = false;
     @Nullable
@@ -293,9 +295,16 @@ public class SkyMapActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));
 
-        // Make the GL surface transparent to show camera behind
-        skyGLSurfaceView.setZOrderOnTop(true);
-        skyGLSurfaceView.getHolder().setFormat(android.graphics.PixelFormat.TRANSLUCENT);
+        // Configure GL surface transparency based on AR mode
+        // In MAP mode (default), use opaque surface to show dark blue background
+        // In AR mode, use transparent surface to show camera behind
+        if (isARModeEnabled) {
+            skyGLSurfaceView.setZOrderOnTop(true);
+            skyGLSurfaceView.getHolder().setFormat(android.graphics.PixelFormat.TRANSLUCENT);
+        } else {
+            skyGLSurfaceView.setZOrderOnTop(false);
+            skyGLSurfaceView.getHolder().setFormat(android.graphics.PixelFormat.OPAQUE);
+        }
 
         skyOverlayContainer.addView(skyGLSurfaceView);
     }
@@ -469,12 +478,17 @@ public class SkyMapActivity extends AppCompatActivity {
                 cameraManager.getVerticalFov()
         );
 
-        // Start camera if in AR mode
+        // Start camera if in AR mode, otherwise set up map-only mode
         if (isARModeEnabled) {
             startCameraPreview();
         } else {
             arOverlayManager.setARModeEnabled(false);
+            // Hide camera preview container for map-only mode
+            cameraPreviewContainer.setVisibility(View.GONE);
         }
+
+        // Update AR toggle button to reflect current state
+        updateARToggleButton();
 
         showLoading(false);
     }
@@ -593,6 +607,11 @@ public class SkyMapActivity extends AppCompatActivity {
         gridLayer.initialize();
 
         renderer.requestLayerUpdate();
+
+        // Debug logging to verify layer initialization
+        Log.d(TAG, "Layers initialized - Stars: " + starsLayer.getPoints().size() +
+                " points, Constellations: " + constellationsLayer.getLines().size() +
+                " lines, Grid visible: " + gridLayer.isVisible());
     }
 
     /**
@@ -647,6 +666,19 @@ public class SkyMapActivity extends AppCompatActivity {
      */
     private void setARModeEnabled(boolean enabled) {
         isARModeEnabled = enabled;
+
+        // Update GL surface transparency based on mode
+        if (skyGLSurfaceView != null) {
+            if (enabled) {
+                // AR mode: transparent surface to show camera behind
+                skyGLSurfaceView.setZOrderOnTop(true);
+                skyGLSurfaceView.getHolder().setFormat(android.graphics.PixelFormat.TRANSLUCENT);
+            } else {
+                // MAP mode: opaque surface to show dark blue background
+                skyGLSurfaceView.setZOrderOnTop(false);
+                skyGLSurfaceView.getHolder().setFormat(android.graphics.PixelFormat.OPAQUE);
+            }
+        }
 
         if (enabled) {
             if (permissionHandler.hasCameraPermission()) {

@@ -94,10 +94,11 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     // Night mode
     private boolean nightMode = false;
 
-    // Background color
-    private float bgRed = 0.0f;
-    private float bgGreen = 0.0f;
-    private float bgBlue = 0.0f;
+    // Background color - dark blue by default for better visibility
+    // This provides a nice night sky background when not in AR mode
+    private float bgRed = 0.02f;
+    private float bgGreen = 0.02f;
+    private float bgBlue = 0.08f;
     private float bgAlpha = 1.0f;
 
     // Render callbacks
@@ -179,7 +180,8 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
             renderCallback.onPreRender(this);
         }
 
-        // Clear buffers
+        // Update and clear with current background color
+        GLES20.glClearColor(bgRed, bgGreen, bgBlue, bgAlpha);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
         // Update view matrix if needed
@@ -440,9 +442,10 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
             bgGreen = 0.0f;
             bgBlue = 0.0f;
         } else {
-            bgRed = 0.0f;
-            bgGreen = 0.0f;
-            bgBlue = 0.0f;
+            // Dark blue background for normal mode
+            bgRed = 0.02f;
+            bgGreen = 0.02f;
+            bgBlue = 0.08f;
         }
     }
 
