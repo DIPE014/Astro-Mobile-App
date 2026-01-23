@@ -287,6 +287,7 @@ public class SkyMapActivity extends AppCompatActivity {
         cameraPreviewContainer.addView(cameraPreview);
 
         // Create SkyGLSurfaceView programmatically
+        // Note: EGL config is now set inside SkyGLSurfaceView.init() before setRenderer()
         skyGLSurfaceView = new SkyGLSurfaceView(this, (android.util.AttributeSet) null);
         skyGLSurfaceView.setLayoutParams(new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -295,7 +296,6 @@ public class SkyMapActivity extends AppCompatActivity {
         // Make the GL surface transparent to show camera behind
         skyGLSurfaceView.setZOrderOnTop(true);
         skyGLSurfaceView.getHolder().setFormat(android.graphics.PixelFormat.TRANSLUCENT);
-        skyGLSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
 
         skyOverlayContainer.addView(skyGLSurfaceView);
     }

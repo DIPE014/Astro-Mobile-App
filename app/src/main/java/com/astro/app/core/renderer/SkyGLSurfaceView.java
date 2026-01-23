@@ -171,6 +171,10 @@ public class SkyGLSurfaceView extends GLSurfaceView {
         // Set OpenGL ES 2.0 context
         setEGLContextClientVersion(2);
 
+        // Configure for transparent background (required for AR overlay)
+        // IMPORTANT: setEGLConfigChooser must be called BEFORE setRenderer
+        setEGLConfigChooser(8, 8, 8, 8, 16, 0);  // RGBA8888 with 16-bit depth, no stencil
+
         // Set the renderer
         setRenderer(renderer);
 
