@@ -135,7 +135,10 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        Log.d(TAG, "onSurfaceCreated");
+        Log.d(TAG, "onSurfaceCreated - OpenGL surface is ready!");
+        Log.d(TAG, "GL_VENDOR: " + GLES20.glGetString(GLES20.GL_VENDOR));
+        Log.d(TAG, "GL_RENDERER: " + GLES20.glGetString(GLES20.GL_RENDERER));
+        Log.d(TAG, "GL_VERSION: " + GLES20.glGetString(GLES20.GL_VERSION));
 
         // Set background color
         GLES20.glClearColor(bgRed, bgGreen, bgBlue, bgAlpha);
@@ -173,14 +176,23 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
         updateProjectionMatrix();
     }
 
+    private static int frameCount = 0;
+
     @Override
     public void onDrawFrame(GL10 gl) {
+        frameCount++;
+        // Log every 60 frames to avoid spam
+        if (frameCount % 60 == 1) {
+            Log.d(TAG, "onDrawFrame called - frame #" + frameCount);
+        }
+
         // Pre-render callback
         if (renderCallback != null) {
             renderCallback.onPreRender(this);
         }
 
         // DIAGNOSTIC: Temporarily set bright red to verify GL is working
+        // If you see RED, OpenGL is working. If you see the View background color, it's not.
         GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);  // Bright red
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 

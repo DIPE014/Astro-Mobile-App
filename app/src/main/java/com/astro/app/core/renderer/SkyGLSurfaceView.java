@@ -168,18 +168,26 @@ public class SkyGLSurfaceView extends GLSurfaceView {
      * Initializes the view.
      */
     private void init(Context context) {
-        // Set OpenGL ES 2.0 context
+        android.util.Log.d(TAG, "init() called - starting GLSurfaceView initialization");
+
+        // Set OpenGL ES 2.0 context - MUST be called BEFORE setRenderer()
         setEGLContextClientVersion(2);
+        android.util.Log.d(TAG, "setEGLContextClientVersion(2) called");
 
-        // Configure for transparent background (required for AR overlay)
+        // Configure EGL - use simple config for maximum compatibility
         // IMPORTANT: setEGLConfigChooser must be called BEFORE setRenderer
-        setEGLConfigChooser(8, 8, 8, 8, 16, 0);  // RGBA8888 with 16-bit depth, no stencil
+        // Using default config (no alpha) for better compatibility
+        // AR transparency will be handled via setZOrderOnTop() instead
+        setEGLConfigChooser(8, 8, 8, 0, 16, 0);  // RGB888 with 16-bit depth, no alpha, no stencil
+        android.util.Log.d(TAG, "setEGLConfigChooser called");
 
-        // Set the renderer
+        // Set the renderer - MUST be called AFTER setEGLContextClientVersion and setEGLConfigChooser
         setRenderer(renderer);
+        android.util.Log.d(TAG, "setRenderer() called with renderer: " + renderer);
 
-        // Use continuous rendering
+        // Use continuous rendering to ensure onDrawFrame is called repeatedly
         setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+        android.util.Log.d(TAG, "setRenderMode(RENDERMODE_CONTINUOUSLY) called");
 
         // Initialize gesture detectors
         gestureDetector = new GestureDetector(context, new GestureHandler());
@@ -187,6 +195,8 @@ public class SkyGLSurfaceView extends GLSurfaceView {
 
         // Update initial orientation
         updateViewOrientation();
+
+        android.util.Log.d(TAG, "init() complete - GLSurfaceView should now render");
     }
 
     @Override

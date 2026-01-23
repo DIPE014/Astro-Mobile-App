@@ -291,27 +291,32 @@ public class SkyMapActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT));
         cameraPreviewContainer.addView(cameraPreview);
 
-        // Create SkyGLSurfaceView programmatically
-        // Note: EGL config is now set inside SkyGLSurfaceView.init() before setRenderer()
-        skyGLSurfaceView = new SkyGLSurfaceView(this, (android.util.AttributeSet) null);
+        // Create SkyGLSurfaceView programmatically using the renderer constructor
+        // This ensures proper initialization order: EGL version -> EGL config -> setRenderer
+        SkyRenderer renderer = new SkyRenderer();
+        skyGLSurfaceView = new SkyGLSurfaceView(this, renderer);
         skyGLSurfaceView.setLayoutParams(new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));
 
-        // DIAGNOSTIC: Set green background as fallback to see if GLSurfaceView is visible
-        skyGLSurfaceView.setBackgroundColor(0xFF00FF00);  // Green background as fallback
+        // DIAGNOSTIC: Set cyan background to detect if OpenGL isn't rendering
+        // If you see cyan, OpenGL's onDrawFrame() isn't being called
+        // If you see red, OpenGL IS rendering (diagnostic glClearColor in SkyRenderer)
+        skyGLSurfaceView.setBackgroundColor(0xFF00FFFF);  // Cyan background as diagnostic
 
-        // Configure GL surface transparency based on AR mode
-        // In MAP mode (default), use opaque surface to show dark blue background
+        // Configure GL surface for MAP mode (opaque) or AR mode (transparent)
+        // In MAP mode (default), use opaque surface to show dark blue sky background
         // In AR mode, use transparent surface to show camera behind
         if (isARModeEnabled) {
             skyGLSurfaceView.setZOrderOnTop(true);
             skyGLSurfaceView.getHolder().setFormat(android.graphics.PixelFormat.TRANSLUCENT);
         } else {
+            // MAP mode: keep it simple with OPAQUE format
             skyGLSurfaceView.setZOrderOnTop(false);
             skyGLSurfaceView.getHolder().setFormat(android.graphics.PixelFormat.OPAQUE);
         }
 
+        Log.d(TAG, "SkyGLSurfaceView created and configured");
         skyOverlayContainer.addView(skyGLSurfaceView);
     }
 
