@@ -141,6 +141,9 @@ public class SkyMapActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_sky_map);
 
+        // Diagnostic toast to verify activity is running
+        android.widget.Toast.makeText(this, "SkyMap Started", android.widget.Toast.LENGTH_LONG).show();
+
         // Initialize ViewModels
         viewModel = new ViewModelProvider(this).get(SkyMapViewModel.class);
         settingsViewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
@@ -294,6 +297,9 @@ public class SkyMapActivity extends AppCompatActivity {
         skyGLSurfaceView.setLayoutParams(new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));
+
+        // DIAGNOSTIC: Set green background as fallback to see if GLSurfaceView is visible
+        skyGLSurfaceView.setBackgroundColor(0xFF00FF00);  // Green background as fallback
 
         // Configure GL surface transparency based on AR mode
         // In MAP mode (default), use opaque surface to show dark blue background

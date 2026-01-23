@@ -180,8 +180,8 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
             renderCallback.onPreRender(this);
         }
 
-        // Update and clear with current background color
-        GLES20.glClearColor(bgRed, bgGreen, bgBlue, bgAlpha);
+        // DIAGNOSTIC: Temporarily set bright red to verify GL is working
+        GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);  // Bright red
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
         // Update view matrix if needed
