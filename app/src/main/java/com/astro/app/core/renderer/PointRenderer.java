@@ -132,15 +132,15 @@ public class PointRenderer {
     private float pointSizeFactor = 1.0f;
     private boolean nightMode = false;
 
-    // Attribute and uniform locations
-    private int positionHandle;
-    private int colorHandle;
-    private int texCoordHandle;
-    private int pointSizeHandle;
-    private int mvpMatrixHandle;
-    private int pointSizeFactorHandle;
-    private int shapeHandle;
-    private int nightModeHandle;
+    // Attribute and uniform locations (initialized to -1 = invalid)
+    private int positionHandle = -1;
+    private int colorHandle = -1;
+    private int texCoordHandle = -1;
+    private int pointSizeHandle = -1;
+    private int mvpMatrixHandle = -1;
+    private int pointSizeFactorHandle = -1;
+    private int shapeHandle = -1;
+    private int nightModeHandle = -1;
 
     /**
      * Creates a new PointRenderer.
@@ -156,9 +156,11 @@ public class PointRenderer {
             return;
         }
 
+        Log.d(TAG, "Initializing PointRenderer...");
+
         shaderProgram = new ShaderProgram(VERTEX_SHADER_CODE, FRAGMENT_SHADER_CODE);
         if (!shaderProgram.isValid()) {
-            Log.e(TAG, "Failed to create shader program");
+            Log.e(TAG, "Failed to create shader program - PointRenderer will not render");
             return;
         }
 
@@ -172,11 +174,20 @@ public class PointRenderer {
         shapeHandle = shaderProgram.getUniformLocation("uShape");
         nightModeHandle = shaderProgram.getUniformLocation("uNightMode");
 
+        // Log attribute/uniform locations for debugging
+        Log.d(TAG, "Attribute locations: aPosition=" + positionHandle +
+                ", aColor=" + colorHandle + ", aTexCoord=" + texCoordHandle +
+                ", aPointSize=" + pointSizeHandle);
+        Log.d(TAG, "Uniform locations: uMVPMatrix=" + mvpMatrixHandle +
+                ", uPointSizeFactor=" + pointSizeFactorHandle +
+                ", uShape=" + shapeHandle + ", uNightMode=" + nightModeHandle);
+
         // Generate VBOs
         GLES20.glGenBuffers(2, vboIds, 0);
+        ShaderProgram.checkGLError("glGenBuffers");
 
         initialized = true;
-        Log.d(TAG, "PointRenderer initialized");
+        Log.d(TAG, "PointRenderer initialized successfully");
     }
 
     /**
@@ -343,50 +354,80 @@ public class PointRenderer {
             return;
         }
 
+        // Check if shader program is valid before using
+        if (shaderProgram == null || !shaderProgram.isValid()) {
+            Log.w(TAG, "Shader program is not valid, skipping draw");
+            return;
+        }
+
         shaderProgram.use();
 
         // Enable blending for transparency
         GLES20.glEnable(GLES20.GL_BLEND);
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
-        // Set uniforms
-        GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0);
-        GLES20.glUniform1f(pointSizeFactorHandle, pointSizeFactor);
-        GLES20.glUniform1i(shapeHandle, shapeToInt(shape));
-        GLES20.glUniform1i(nightModeHandle, nightMode ? 1 : 0);
+        // Set uniforms (only if handles are valid)
+        if (mvpMatrixHandle >= 0) {
+            GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0);
+        }
+        if (pointSizeFactorHandle >= 0) {
+            GLES20.glUniform1f(pointSizeFactorHandle, pointSizeFactor);
+        }
+        if (shapeHandle >= 0) {
+            GLES20.glUniform1i(shapeHandle, shapeToInt(shape));
+        }
+        if (nightModeHandle >= 0) {
+            GLES20.glUniform1i(nightModeHandle, nightMode ? 1 : 0);
+        }
 
         // Bind VBOs
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vboIds[0]);
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, vboIds[1]);
 
-        // Position attribute
-        GLES20.glEnableVertexAttribArray(positionHandle);
-        GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false, STRIDE, 0);
+        // Position attribute (only enable if handle is valid)
+        if (positionHandle >= 0) {
+            GLES20.glEnableVertexAttribArray(positionHandle);
+            GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false, STRIDE, 0);
+        }
 
         // Color attribute
-        GLES20.glEnableVertexAttribArray(colorHandle);
-        GLES20.glVertexAttribPointer(colorHandle, 4, GLES20.GL_FLOAT, false, STRIDE,
-                3 * BYTES_PER_FLOAT);
+        if (colorHandle >= 0) {
+            GLES20.glEnableVertexAttribArray(colorHandle);
+            GLES20.glVertexAttribPointer(colorHandle, 4, GLES20.GL_FLOAT, false, STRIDE,
+                    3 * BYTES_PER_FLOAT);
+        }
 
         // Texture coordinate attribute
-        GLES20.glEnableVertexAttribArray(texCoordHandle);
-        GLES20.glVertexAttribPointer(texCoordHandle, 2, GLES20.GL_FLOAT, false, STRIDE,
-                7 * BYTES_PER_FLOAT);
+        if (texCoordHandle >= 0) {
+            GLES20.glEnableVertexAttribArray(texCoordHandle);
+            GLES20.glVertexAttribPointer(texCoordHandle, 2, GLES20.GL_FLOAT, false, STRIDE,
+                    7 * BYTES_PER_FLOAT);
+        }
 
         // Point size attribute
-        GLES20.glEnableVertexAttribArray(pointSizeHandle);
-        GLES20.glVertexAttribPointer(pointSizeHandle, 1, GLES20.GL_FLOAT, false, STRIDE,
-                9 * BYTES_PER_FLOAT);
+        if (pointSizeHandle >= 0) {
+            GLES20.glEnableVertexAttribArray(pointSizeHandle);
+            GLES20.glVertexAttribPointer(pointSizeHandle, 1, GLES20.GL_FLOAT, false, STRIDE,
+                    9 * BYTES_PER_FLOAT);
+        }
 
         // Draw
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, pointCount * INDICES_PER_POINT,
                 GLES20.GL_UNSIGNED_SHORT, 0);
 
-        // Cleanup
-        GLES20.glDisableVertexAttribArray(positionHandle);
-        GLES20.glDisableVertexAttribArray(colorHandle);
-        GLES20.glDisableVertexAttribArray(texCoordHandle);
-        GLES20.glDisableVertexAttribArray(pointSizeHandle);
+        // Cleanup (only disable if handles are valid)
+        if (positionHandle >= 0) {
+            GLES20.glDisableVertexAttribArray(positionHandle);
+        }
+        if (colorHandle >= 0) {
+            GLES20.glDisableVertexAttribArray(colorHandle);
+        }
+        if (texCoordHandle >= 0) {
+            GLES20.glDisableVertexAttribArray(texCoordHandle);
+        }
+        if (pointSizeHandle >= 0) {
+            GLES20.glDisableVertexAttribArray(pointSizeHandle);
+        }
 
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
         GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -441,6 +482,15 @@ public class PointRenderer {
      */
     public int getPointCount() {
         return pointCount;
+    }
+
+    /**
+     * Checks if the renderer is ready to draw.
+     *
+     * @return true if the renderer is initialized and has a valid shader program
+     */
+    public boolean isReady() {
+        return initialized && shaderProgram != null && shaderProgram.isValid();
     }
 
     /**

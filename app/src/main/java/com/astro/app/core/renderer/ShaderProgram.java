@@ -257,20 +257,25 @@ public class ShaderProgram {
      * @return The program ID, or 0 on failure
      */
     private static int createProgram(@NonNull String vertexSource, @NonNull String fragmentSource) {
+        Log.d(TAG, "Creating shader program...");
+
         int vertexShader = compileShader(GLES20.GL_VERTEX_SHADER, vertexSource);
         if (vertexShader == 0) {
+            Log.e(TAG, "Vertex shader compilation failed, cannot create program");
             return 0;
         }
 
         int fragmentShader = compileShader(GLES20.GL_FRAGMENT_SHADER, fragmentSource);
         if (fragmentShader == 0) {
+            Log.e(TAG, "Fragment shader compilation failed, cannot create program");
             GLES20.glDeleteShader(vertexShader);
             return 0;
         }
 
         int program = GLES20.glCreateProgram();
         if (program == 0) {
-            Log.e(TAG, "Could not create program");
+            Log.e(TAG, "Could not create program (glCreateProgram returned 0)");
+            checkGLError("glCreateProgram");
             GLES20.glDeleteShader(vertexShader);
             GLES20.glDeleteShader(fragmentShader);
             return 0;
@@ -283,14 +288,19 @@ public class ShaderProgram {
         checkGLError("glAttachShader fragment");
 
         GLES20.glLinkProgram(program);
+        checkGLError("glLinkProgram");
 
         int[] linkStatus = new int[1];
         GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
         if (linkStatus[0] != GLES20.GL_TRUE) {
             String infoLog = GLES20.glGetProgramInfoLog(program);
             Log.e(TAG, "Could not link program: " + infoLog);
+            Log.e(TAG, "Vertex shader source:\n" + vertexSource);
+            Log.e(TAG, "Fragment shader source:\n" + fragmentSource);
             GLES20.glDeleteProgram(program);
             program = 0;
+        } else {
+            Log.d(TAG, "Shader program linked successfully (id=" + program + ")");
         }
 
         // Shaders can be deleted after linking
@@ -308,25 +318,33 @@ public class ShaderProgram {
      * @return The shader ID, or 0 on failure
      */
     private static int compileShader(int type, @NonNull String source) {
+        String typeStr = (type == GLES20.GL_VERTEX_SHADER) ? "vertex" : "fragment";
+        Log.d(TAG, "Compiling " + typeStr + " shader...");
+
         int shader = GLES20.glCreateShader(type);
         if (shader == 0) {
-            Log.e(TAG, "Could not create shader type " + type);
+            Log.e(TAG, "Could not create shader type " + type + " (" + typeStr + ")");
+            checkGLError("glCreateShader");
             return 0;
         }
 
         GLES20.glShaderSource(shader, source);
+        checkGLError("glShaderSource");
+
         GLES20.glCompileShader(shader);
+        checkGLError("glCompileShader");
 
         int[] compileStatus = new int[1];
         GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
         if (compileStatus[0] != GLES20.GL_TRUE) {
             String infoLog = GLES20.glGetShaderInfoLog(shader);
-            String typeStr = (type == GLES20.GL_VERTEX_SHADER) ? "vertex" : "fragment";
             Log.e(TAG, "Could not compile " + typeStr + " shader: " + infoLog);
+            Log.e(TAG, "Shader source:\n" + source);
             GLES20.glDeleteShader(shader);
             return 0;
         }
 
+        Log.d(TAG, typeStr + " shader compiled successfully");
         return shader;
     }
 
