@@ -291,6 +291,49 @@ public class SkyMapActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT));
         cameraPreviewContainer.addView(cameraPreview);
 
+        // ============================================================
+        // MINIMAL OPENGL TEST - Replace custom SkyGLSurfaceView with
+        // a basic GLSurfaceView to test if OpenGL works on this emulator
+        // ============================================================
+        // If this shows RED, the emulator supports OpenGL and the issue is in our custom SkyGLSurfaceView.
+        // If this shows nothing/cyan, the emulator has OpenGL issues.
+
+        android.opengl.GLSurfaceView testGLView = new android.opengl.GLSurfaceView(this);
+        testGLView.setEGLContextClientVersion(2);
+        testGLView.setRenderer(new android.opengl.GLSurfaceView.Renderer() {
+            @Override
+            public void onSurfaceCreated(javax.microedition.khronos.opengles.GL10 gl, javax.microedition.khronos.egl.EGLConfig config) {
+                android.util.Log.d("TEST_GL", "onSurfaceCreated called!");
+            }
+
+            @Override
+            public void onSurfaceChanged(javax.microedition.khronos.opengles.GL10 gl, int width, int height) {
+                android.opengl.GLES20.glViewport(0, 0, width, height);
+                android.util.Log.d("TEST_GL", "onSurfaceChanged: " + width + "x" + height);
+            }
+
+            @Override
+            public void onDrawFrame(javax.microedition.khronos.opengles.GL10 gl) {
+                android.opengl.GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);  // RED
+                android.opengl.GLES20.glClear(android.opengl.GLES20.GL_COLOR_BUFFER_BIT);
+            }
+        });
+
+        // Set cyan background - if you see cyan, OpenGL rendering is NOT working
+        testGLView.setBackgroundColor(0xFF00FFFF);  // Cyan diagnostic background
+
+        // Add test GLSurfaceView to container
+        FrameLayout container = findViewById(R.id.skyOverlayContainer);
+        container.addView(testGLView, new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT));
+
+        Log.d(TAG, "MINIMAL TEST: Basic GLSurfaceView created - expecting RED screen");
+
+        // ============================================================
+        // COMMENTED OUT: Original SkyGLSurfaceView code
+        // ============================================================
+        /*
         // Create SkyGLSurfaceView programmatically using the renderer constructor
         // This ensures proper initialization order: EGL version -> EGL config -> setRenderer
         SkyRenderer renderer = new SkyRenderer();
@@ -318,6 +361,12 @@ public class SkyMapActivity extends AppCompatActivity {
 
         Log.d(TAG, "SkyGLSurfaceView created and configured");
         skyOverlayContainer.addView(skyGLSurfaceView);
+        */
+
+        // Create a dummy SkyGLSurfaceView for compatibility (won't be displayed)
+        // This prevents null pointer exceptions in other parts of the code
+        SkyRenderer renderer = new SkyRenderer();
+        skyGLSurfaceView = new SkyGLSurfaceView(this, renderer);
     }
 
     /**
