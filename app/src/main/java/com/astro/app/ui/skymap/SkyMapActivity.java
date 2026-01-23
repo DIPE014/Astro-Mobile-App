@@ -287,7 +287,7 @@ public class SkyMapActivity extends AppCompatActivity {
         cameraPreviewContainer.addView(cameraPreview);
 
         // Create SkyGLSurfaceView programmatically
-        skyGLSurfaceView = new SkyGLSurfaceView(this, null);
+        skyGLSurfaceView = new SkyGLSurfaceView(this, (android.util.AttributeSet) null);
         skyGLSurfaceView.setLayoutParams(new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));

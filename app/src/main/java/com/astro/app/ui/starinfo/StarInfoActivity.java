@@ -2,15 +2,12 @@ package com.astro.app.ui.starinfo;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.astro.app.AstroApplication;
 import com.astro.app.R;
@@ -18,9 +15,6 @@ import com.astro.app.data.model.ConstellationData;
 import com.astro.app.data.model.StarData;
 import com.astro.app.data.repository.ConstellationRepository;
 import com.astro.app.data.repository.StarRepository;
-import com.google.android.material.button.MaterialButton;
-
-import java.util.List;
 
 import javax.inject.Inject;
 
@@ -64,19 +58,11 @@ public class StarInfoActivity extends AppCompatActivity {
     private TextView tvStarName;
     private TextView tvStarAlternateNames;
     private TextView tvRightAscension;
-    private TextView tvRightAscensionHms;
     private TextView tvDeclination;
-    private TextView tvDeclinationDms;
     private TextView tvMagnitude;
     private TextView tvSpectralType;
     private TextView tvDistance;
-    private TextView tvVisibleToNakedEye;
-    private TextView tvConstellationName;
-    private View constellationSection;
-    private View relatedStarsSection;
-    private RecyclerView rvRelatedStars;
-    private ProgressBar progressBar;
-    private View starColorIndicator;
+    private TextView tvConstellation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,47 +92,21 @@ public class StarInfoActivity extends AppCompatActivity {
         tvStarName = findViewById(R.id.tvStarName);
         tvStarAlternateNames = findViewById(R.id.tvStarAlternateNames);
         tvRightAscension = findViewById(R.id.tvRightAscension);
-        tvRightAscensionHms = findViewById(R.id.tvRightAscensionHms);
         tvDeclination = findViewById(R.id.tvDeclination);
-        tvDeclinationDms = findViewById(R.id.tvDeclinationDms);
         tvMagnitude = findViewById(R.id.tvMagnitude);
         tvSpectralType = findViewById(R.id.tvSpectralType);
         tvDistance = findViewById(R.id.tvDistance);
-        tvVisibleToNakedEye = findViewById(R.id.tvVisibleToNakedEye);
-        tvConstellationName = findViewById(R.id.tvConstellationName);
-        constellationSection = findViewById(R.id.constellationSection);
-        relatedStarsSection = findViewById(R.id.relatedStarsSection);
-        rvRelatedStars = findViewById(R.id.rvRelatedStars);
-        progressBar = findViewById(R.id.progressBar);
-        starColorIndicator = findViewById(R.id.starColorIndicator);
-
-        // Setup RecyclerView for related stars
-        if (rvRelatedStars != null) {
-            rvRelatedStars.setLayoutManager(new LinearLayoutManager(this));
-        }
+        tvConstellation = findViewById(R.id.tvConstellation);
     }
 
     /**
      * Sets up click listeners for UI elements.
      */
     private void setupClickListeners() {
-        // Back button
-        MaterialButton btnBack = findViewById(R.id.btnBack);
-        if (btnBack != null) {
-            btnBack.setOnClickListener(v -> finish());
-        }
-
-        // Constellation section click - could navigate to constellation details
-        if (constellationSection != null) {
-            constellationSection.setOnClickListener(v -> {
-                ConstellationData constellation = viewModel.getConstellation().getValue();
-                if (constellation != null) {
-                    // TODO: Navigate to constellation details
-                    Toast.makeText(this,
-                            getString(R.string.constellation_info, constellation.getName()),
-                            Toast.LENGTH_SHORT).show();
-                }
-            });
+        // Setup toolbar navigation
+        com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> finish());
         }
     }
 
@@ -159,16 +119,6 @@ public class StarInfoActivity extends AppCompatActivity {
 
         // Observe constellation
         viewModel.getConstellation().observe(this, this::displayConstellation);
-
-        // Observe related stars
-        viewModel.getRelatedStars().observe(this, this::displayRelatedStars);
-
-        // Observe loading state
-        viewModel.isLoading().observe(this, loading -> {
-            if (progressBar != null) {
-                progressBar.setVisibility(loading != null && loading ? View.VISIBLE : View.GONE);
-            }
-        });
 
         // Observe errors
         viewModel.getErrorMessage().observe(this, error -> {
@@ -226,18 +176,12 @@ public class StarInfoActivity extends AppCompatActivity {
 
         // Right Ascension
         if (tvRightAscension != null) {
-            tvRightAscension.setText(details.getFormattedRa());
-        }
-        if (tvRightAscensionHms != null) {
-            tvRightAscensionHms.setText(details.getFormattedRaHms());
+            tvRightAscension.setText(details.getFormattedRaHms());
         }
 
         // Declination
         if (tvDeclination != null) {
-            tvDeclination.setText(details.getFormattedDec());
-        }
-        if (tvDeclinationDms != null) {
-            tvDeclinationDms.setText(details.getFormattedDecDms());
+            tvDeclination.setText(details.getFormattedDecDms());
         }
 
         // Magnitude
@@ -250,19 +194,9 @@ public class StarInfoActivity extends AppCompatActivity {
             tvSpectralType.setText(details.getFormattedSpectralType());
         }
 
-        // Star color indicator
-        if (starColorIndicator != null) {
-            starColorIndicator.setBackgroundColor(details.getSpectralColor());
-        }
-
         // Distance
         if (tvDistance != null) {
             tvDistance.setText(details.getFormattedDistance());
-        }
-
-        // Visible to naked eye
-        if (tvVisibleToNakedEye != null) {
-            tvVisibleToNakedEye.setText(details.getVisibleToNakedEye());
         }
     }
 
@@ -271,100 +205,11 @@ public class StarInfoActivity extends AppCompatActivity {
      */
     private void displayConstellation(@Nullable ConstellationData constellation) {
         if (constellation == null) {
-            if (constellationSection != null) {
-                constellationSection.setVisibility(View.GONE);
-            }
             return;
         }
 
-        if (constellationSection != null) {
-            constellationSection.setVisibility(View.VISIBLE);
-        }
-
-        if (tvConstellationName != null) {
-            tvConstellationName.setText(constellation.getName());
-        }
-    }
-
-    /**
-     * Displays related stars in the same constellation.
-     */
-    private void displayRelatedStars(@Nullable List<StarData> relatedStars) {
-        if (relatedStars == null || relatedStars.isEmpty()) {
-            if (relatedStarsSection != null) {
-                relatedStarsSection.setVisibility(View.GONE);
-            }
-            return;
-        }
-
-        if (relatedStarsSection != null) {
-            relatedStarsSection.setVisibility(View.VISIBLE);
-        }
-
-        // Setup adapter for related stars
-        if (rvRelatedStars != null) {
-            RelatedStarsAdapter adapter = new RelatedStarsAdapter(relatedStars, star -> {
-                // Navigate to selected star
-                viewModel.loadStarById(star.getId());
-            });
-            rvRelatedStars.setAdapter(adapter);
-        }
-    }
-
-    /**
-     * Adapter for displaying related stars in a RecyclerView.
-     */
-    private static class RelatedStarsAdapter extends RecyclerView.Adapter<RelatedStarsAdapter.ViewHolder> {
-
-        private final List<StarData> stars;
-        private final OnStarClickListener listener;
-
-        interface OnStarClickListener {
-            void onStarClick(StarData star);
-        }
-
-        RelatedStarsAdapter(List<StarData> stars, OnStarClickListener listener) {
-            this.stars = stars;
-            this.listener = listener;
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(android.view.ViewGroup parent, int viewType) {
-            View view = android.view.LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_related_star, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            StarData star = stars.get(position);
-            holder.bind(star, listener);
-        }
-
-        @Override
-        public int getItemCount() {
-            return stars.size();
-        }
-
-        static class ViewHolder extends RecyclerView.ViewHolder {
-            private final TextView tvName;
-            private final TextView tvMagnitude;
-
-            ViewHolder(View itemView) {
-                super(itemView);
-                tvName = itemView.findViewById(R.id.tvRelatedStarName);
-                tvMagnitude = itemView.findViewById(R.id.tvRelatedStarMagnitude);
-            }
-
-            void bind(StarData star, OnStarClickListener listener) {
-                if (tvName != null) {
-                    tvName.setText(star.getName());
-                }
-                if (tvMagnitude != null) {
-                    tvMagnitude.setText(String.format("Mag: %.2f", star.getMagnitude()));
-                }
-                itemView.setOnClickListener(v -> listener.onStarClick(star));
-            }
+        if (tvConstellation != null) {
+            tvConstellation.setText(constellation.getName());
         }
     }
 }

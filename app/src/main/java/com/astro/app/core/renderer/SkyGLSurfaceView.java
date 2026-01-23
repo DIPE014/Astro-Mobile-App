@@ -235,17 +235,16 @@ public class SkyGLSurfaceView extends GLSurfaceView {
             float rightZ = lookX * upY - lookY * upX;
 
             // Rotate up around look direction
-            float newUpX = upX * cosRoll + rightX * sinRoll;
-            float newUpY = upY * cosRoll + rightY * sinRoll;
-            float newUpZ = upZ * cosRoll + rightZ * sinRoll;
-
-            upX = newUpX;
-            upY = newUpY;
-            upZ = newUpZ;
+            upX = upX * cosRoll + rightX * sinRoll;
+            upY = upY * cosRoll + rightY * sinRoll;
+            upZ = upZ * cosRoll + rightZ * sinRoll;
         }
 
-        // Update renderer
-        queueEvent(() -> renderer.setViewOrientation(lookX, lookY, lookZ, upX, upY, upZ));
+        // Update renderer - use final variables for lambda
+        final float finalUpX = upX;
+        final float finalUpY = upY;
+        final float finalUpZ = upZ;
+        queueEvent(() -> renderer.setViewOrientation(lookX, lookY, lookZ, finalUpX, finalUpY, finalUpZ));
     }
 
     /**

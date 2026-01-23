@@ -44,9 +44,6 @@
         <item name="colorOutline">@color/md_theme_dark_outline</item>
         <item name="colorOutlineVariant">@color/md_theme_dark_outlineVariant</item>
 
-        <!-- Surface Tint -->
-        <item name="colorSurfaceTint">@color/md_theme_dark_surfaceTint</item>
-
         <!-- Status Bar and Navigation Bar -->
         <item name="android:statusBarColor">@color/status_bar</item>
         <item name="android:navigationBarColor">@color/navigation_bar</item>
@@ -130,9 +127,6 @@
         <!-- Night Mode Outline -->
         <item name="colorOutline">@color/night_mode_divider</item>
         <item name="colorOutlineVariant">@color/night_mode_divider</item>
-
-        <!-- Night Mode Surface Tint -->
-        <item name="colorSurfaceTint">@color/night_mode_primary</item>
 
         <!-- Night Mode Window Background -->
         <item name="android:windowBackground">@color/night_mode_background</item>
