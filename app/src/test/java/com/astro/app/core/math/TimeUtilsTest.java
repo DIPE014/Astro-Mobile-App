@@ -195,7 +195,7 @@ public class TimeUtilsTest {
         double jd = 2451545.0; // J2000.0
 
         Date date = TimeUtilsKt.gregorianDate(jd);
-        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UT"));
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("GMT"));
         cal.setTime(date);
 
         assertEquals(2000, cal.get(Calendar.YEAR));
@@ -447,8 +447,8 @@ public class TimeUtilsTest {
 
         double jd = TimeUtilsKt.julianDay(solstice);
 
-        // Expected JD is around 2459020.41
-        assertEquals(2459020.41, jd, 0.01);
+        // Expected JD is around 2459021.41 (21:44 UT = 0.906 day fraction)
+        assertEquals(2459021.41, jd, 0.01);
     }
 
     @Test

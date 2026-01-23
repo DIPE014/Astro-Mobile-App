@@ -127,9 +127,9 @@ public class AstronomerModelImpl implements AstronomerModel {
     private Vector3 trueEastCelestial = AXIS_OF_EARTHS_ROTATION.copyForJ();
 
     // Transformation matrices
-    private Matrix3x3 axesPhoneInverseMatrix = Matrix3x3.getIdentity();
-    private Matrix3x3 axesMagneticCelestialMatrix = Matrix3x3.getIdentity();
-    private Matrix3x3 transformationMatrix = Matrix3x3.getIdentity();
+    private Matrix3x3 axesPhoneInverseMatrix = Matrix3x3.identity.copyForJ();
+    private Matrix3x3 axesMagneticCelestialMatrix = Matrix3x3.identity.copyForJ();
+    private Matrix3x3 transformationMatrix = Matrix3x3.identity.copyForJ();
 
     // Listeners for pointing changes
     private final List<PointingListener> pointingListeners = new CopyOnWriteArrayList<>();

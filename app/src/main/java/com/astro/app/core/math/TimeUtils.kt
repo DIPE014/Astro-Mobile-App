@@ -63,28 +63,41 @@ fun julianDay(date: Date): Double {
 
 /**
  * Converts the given Julian Day to Gregorian Date (in UT time zone).
- * Based on the formula given in the Explanatory Supplement to the
- * Astronomical Almanac, pg 604.
+ * Uses the algorithm from Jean Meeus "Astronomical Algorithms" (2nd ed.)
  */
 fun gregorianDate(julianDay: Double): Date {
-    var l = julianDay.toInt() + 68569
-    val n = 4 * l / 146097
-    l -= (146097 * n + 3) / 4
-    val i = 4000 * (l + 1) / 1461001
-    l -= 1461 * i / 4 + 31
-    val j = 80 * l / 2447
-    val d = l - 2447 * j / 80
-    l = j / 11
-    val m = j + 2 - 12 * l
-    val y = 100 * (n - 49) + i + l
-    val fraction = julianDay - floor(julianDay)
-    val dHours = fraction * 24.0
+    // Add 0.5 to convert from noon-based JD to midnight-based
+    val jdPlusHalf = julianDay + 0.5
+    val z = floor(jdPlusHalf).toInt()
+    val f = jdPlusHalf - z
+
+    val a: Int
+    if (z < 2299161) {
+        a = z
+    } else {
+        val alpha = ((z - 1867216.25) / 36524.25).toInt()
+        a = z + 1 + alpha - alpha / 4
+    }
+
+    val b = a + 1524
+    val c = ((b - 122.1) / 365.25).toInt()
+    val d = (365.25 * c).toInt()
+    val e = ((b - d) / 30.6001).toInt()
+
+    val dayOfMonth = b - d - (30.6001 * e).toInt()
+    val month = if (e < 14) e - 1 else e - 13
+    val year = if (month > 2) c - 4716 else c - 4715
+
+    // Convert fractional day to hours, minutes, seconds
+    val dHours = f * 24.0
     val hours = dHours.toInt()
     val dMinutes = (dHours - hours) * 60.0
     val minutes = dMinutes.toInt()
     val seconds = ((dMinutes - minutes) * 60.0).toInt()
-    val cal = Calendar.getInstance(TimeZone.getTimeZone("UT"))
-    cal[y, m - 1, d, hours + 12, minutes] = seconds
+
+    val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
+    cal[year, month - 1, dayOfMonth, hours, minutes] = seconds
+    cal[Calendar.MILLISECOND] = 0
     return cal.time
 }
 

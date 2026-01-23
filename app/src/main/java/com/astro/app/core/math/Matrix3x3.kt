@@ -34,9 +34,9 @@ import kotlin.jvm.JvmOverloads
  * @param zz row 3, col 3
  */
 data class Matrix3x3(
-    var xx: Float, var xy: Float, var xz: Float,
-    var yx: Float, var yy: Float, var yz: Float,
-    var zx: Float, var zy: Float, var zz: Float
+    @JvmField var xx: Float, @JvmField var xy: Float, @JvmField var xz: Float,
+    @JvmField var yx: Float, @JvmField var yy: Float, @JvmField var yz: Float,
+    @JvmField var zx: Float, @JvmField var zy: Float, @JvmField var zz: Float
 ) {
 
     /**
@@ -132,7 +132,7 @@ data class Matrix3x3(
     }
 
     companion object {
-        @JvmStatic
+        @JvmField
         val identity: Matrix3x3 = Matrix3x3(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f)
     }
 }

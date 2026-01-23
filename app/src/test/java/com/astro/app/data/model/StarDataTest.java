@@ -726,7 +726,7 @@ public class StarDataTest {
         assertTrue(sirius.isNakedEyeVisible());
         assertTrue(sirius.hasKnownDistance());
         assertTrue(sirius.hasConstellation());
-        assertEquals(0xFFAABFFF, sirius.getSpectralColor()); // B-type color (A is close)
+        assertEquals(0xFFCAD7FF, sirius.getSpectralColor()); // A-type white color
     }
 
     @Test

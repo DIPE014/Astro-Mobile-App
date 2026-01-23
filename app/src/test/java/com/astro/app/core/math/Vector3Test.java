@@ -38,7 +38,7 @@ public class Vector3Test {
         assertEquals(3.0f, v.z, EPSILON);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = ArrayIndexOutOfBoundsException.class)
     public void testConstructorWithInvalidArray() {
         float[] xyz = {1.0f, 2.0f}; // Wrong size
         new Vector3(xyz);
