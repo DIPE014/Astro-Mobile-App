@@ -1,7 +1,9 @@
 package com.astro.app.di;
 
 import com.astro.app.AstroApplication;
+import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.skymap.SkyMapActivity;
+import com.astro.app.ui.starinfo.StarInfoActivity;
 
 import javax.inject.Singleton;
 
@@ -28,6 +30,20 @@ public interface AppComponent {
      * @param activity the activity instance to inject into
      */
     void inject(SkyMapActivity activity);
+
+    /**
+     * Injects dependencies into the StarInfoActivity.
+     *
+     * @param activity the activity instance to inject into
+     */
+    void inject(StarInfoActivity activity);
+
+    /**
+     * Injects dependencies into the SettingsActivity.
+     *
+     * @param activity the activity instance to inject into
+     */
+    void inject(SettingsActivity activity);
 
     /**
      * Builder interface for creating AppComponent instances.

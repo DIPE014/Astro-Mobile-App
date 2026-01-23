@@ -3,7 +3,6 @@ package com.astro.app.ui.settings;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CompoundButton;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.astro.app.R;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.slider.Slider;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
 /**
@@ -33,11 +33,11 @@ public class SettingsActivity extends AppCompatActivity {
     private SettingsViewModel viewModel;
 
     // Display settings views
-    private SeekBar seekBarBrightness;
+    private Slider sliderBrightness;
     private TextView tvBrightnessValue;
-    private SeekBar seekBarMagnitude;
+    private Slider sliderMagnitude;
     private TextView tvMagnitudeValue;
-    private SeekBar seekBarLabelMagnitude;
+    private Slider sliderLabelMagnitude;
     private TextView tvLabelMagnitudeValue;
     private SwitchMaterial switchNightMode;
 
@@ -49,12 +49,12 @@ public class SettingsActivity extends AppCompatActivity {
 
     // Sensor settings views
     private SwitchMaterial switchAutoRotate;
-    private SeekBar seekBarSensorSmoothing;
+    private Slider sliderSensorSmoothing;
     private TextView tvSensorSmoothingValue;
     private SwitchMaterial switchMagneticCorrection;
 
     // Field of view
-    private SeekBar seekBarFieldOfView;
+    private Slider sliderFieldOfView;
     private TextView tvFieldOfViewValue;
 
     // Prevent recursive updates
@@ -78,11 +78,11 @@ public class SettingsActivity extends AppCompatActivity {
      */
     private void initializeViews() {
         // Display settings
-        seekBarBrightness = findViewById(R.id.seekBarBrightness);
+        sliderBrightness = findViewById(R.id.sliderBrightness);
         tvBrightnessValue = findViewById(R.id.tvBrightnessValue);
-        seekBarMagnitude = findViewById(R.id.seekBarMagnitude);
+        sliderMagnitude = findViewById(R.id.sliderMagnitude);
         tvMagnitudeValue = findViewById(R.id.tvMagnitudeValue);
-        seekBarLabelMagnitude = findViewById(R.id.seekBarLabelMagnitude);
+        sliderLabelMagnitude = findViewById(R.id.sliderLabelMagnitude);
         tvLabelMagnitudeValue = findViewById(R.id.tvLabelMagnitudeValue);
         switchNightMode = findViewById(R.id.switchNightMode);
 
@@ -94,29 +94,39 @@ public class SettingsActivity extends AppCompatActivity {
 
         // Sensor settings
         switchAutoRotate = findViewById(R.id.switchAutoRotate);
-        seekBarSensorSmoothing = findViewById(R.id.seekBarSensorSmoothing);
+        sliderSensorSmoothing = findViewById(R.id.sliderSensorSmoothing);
         tvSensorSmoothingValue = findViewById(R.id.tvSensorSmoothingValue);
         switchMagneticCorrection = findViewById(R.id.switchMagneticCorrection);
 
         // Field of view
-        seekBarFieldOfView = findViewById(R.id.seekBarFieldOfView);
+        sliderFieldOfView = findViewById(R.id.sliderFieldOfView);
         tvFieldOfViewValue = findViewById(R.id.tvFieldOfViewValue);
 
-        // Configure SeekBar ranges
-        if (seekBarBrightness != null) {
-            seekBarBrightness.setMax(150); // 0.5 to 2.0 in 0.01 steps
+        // Configure Slider ranges (Sliders are configured via XML, but we can adjust programmatically if needed)
+        if (sliderBrightness != null) {
+            sliderBrightness.setValueFrom(0f);
+            sliderBrightness.setValueTo(100f);
+            sliderBrightness.setStepSize(5f);
         }
-        if (seekBarMagnitude != null) {
-            seekBarMagnitude.setMax(140); // -2 to 12 in 0.1 steps
+        if (sliderMagnitude != null) {
+            sliderMagnitude.setValueFrom(1f);
+            sliderMagnitude.setValueTo(8f);
+            sliderMagnitude.setStepSize(0.5f);
         }
-        if (seekBarLabelMagnitude != null) {
-            seekBarLabelMagnitude.setMax(100); // -2 to 8 in 0.1 steps
+        if (sliderLabelMagnitude != null) {
+            sliderLabelMagnitude.setValueFrom(1f);
+            sliderLabelMagnitude.setValueTo(8f);
+            sliderLabelMagnitude.setStepSize(0.5f);
         }
-        if (seekBarSensorSmoothing != null) {
-            seekBarSensorSmoothing.setMax(100); // 0.0 to 1.0 in 0.01 steps
+        if (sliderSensorSmoothing != null) {
+            sliderSensorSmoothing.setValueFrom(0f);
+            sliderSensorSmoothing.setValueTo(100f);
+            sliderSensorSmoothing.setStepSize(1f);
         }
-        if (seekBarFieldOfView != null) {
-            seekBarFieldOfView.setMax(110); // 10 to 120 degrees
+        if (sliderFieldOfView != null) {
+            sliderFieldOfView.setValueFrom(10f);
+            sliderFieldOfView.setValueTo(120f);
+            sliderFieldOfView.setStepSize(1f);
         }
     }
 
@@ -136,41 +146,30 @@ public class SettingsActivity extends AppCompatActivity {
             btnReset.setOnClickListener(v -> viewModel.resetToDefaults());
         }
 
-        // Brightness SeekBar
-        if (seekBarBrightness != null) {
-            seekBarBrightness.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    if (fromUser && !isUpdatingUI) {
-                        float brightness = 0.5f + (progress / 100f);
-                        viewModel.setStarBrightness(brightness);
-                    }
+        // Brightness Slider
+        if (sliderBrightness != null) {
+            sliderBrightness.addOnChangeListener((slider, value, fromUser) -> {
+                if (fromUser && !isUpdatingUI) {
+                    float brightness = 0.5f + (value / 100f);
+                    viewModel.setStarBrightness(brightness);
                 }
             });
         }
 
-        // Magnitude SeekBar
-        if (seekBarMagnitude != null) {
-            seekBarMagnitude.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    if (fromUser && !isUpdatingUI) {
-                        float magnitude = -2f + (progress / 10f);
-                        viewModel.setMagnitudeLimit(magnitude);
-                    }
+        // Magnitude Slider
+        if (sliderMagnitude != null) {
+            sliderMagnitude.addOnChangeListener((slider, value, fromUser) -> {
+                if (fromUser && !isUpdatingUI) {
+                    viewModel.setMagnitudeLimit(value);
                 }
             });
         }
 
-        // Label Magnitude SeekBar
-        if (seekBarLabelMagnitude != null) {
-            seekBarLabelMagnitude.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    if (fromUser && !isUpdatingUI) {
-                        float magnitude = -2f + (progress / 10f);
-                        viewModel.setLabelMagnitudeLimit(magnitude);
-                    }
+        // Label Magnitude Slider
+        if (sliderLabelMagnitude != null) {
+            sliderLabelMagnitude.addOnChangeListener((slider, value, fromUser) -> {
+                if (fromUser && !isUpdatingUI) {
+                    viewModel.setLabelMagnitudeLimit(value);
                 }
             });
         }
@@ -229,15 +228,12 @@ public class SettingsActivity extends AppCompatActivity {
             });
         }
 
-        // Sensor Smoothing SeekBar
-        if (seekBarSensorSmoothing != null) {
-            seekBarSensorSmoothing.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    if (fromUser && !isUpdatingUI) {
-                        float smoothing = progress / 100f;
-                        viewModel.setSensorSmoothing(smoothing);
-                    }
+        // Sensor Smoothing Slider
+        if (sliderSensorSmoothing != null) {
+            sliderSensorSmoothing.addOnChangeListener((slider, value, fromUser) -> {
+                if (fromUser && !isUpdatingUI) {
+                    float smoothing = value / 100f;
+                    viewModel.setSensorSmoothing(smoothing);
                 }
             });
         }
@@ -251,15 +247,11 @@ public class SettingsActivity extends AppCompatActivity {
             });
         }
 
-        // Field of View SeekBar
-        if (seekBarFieldOfView != null) {
-            seekBarFieldOfView.setOnSeekBarChangeListener(new SimpleSeekBarListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    if (fromUser && !isUpdatingUI) {
-                        float fov = 10f + progress;
-                        viewModel.setFieldOfView(fov);
-                    }
+        // Field of View Slider
+        if (sliderFieldOfView != null) {
+            sliderFieldOfView.addOnChangeListener((slider, value, fromUser) -> {
+                if (fromUser && !isUpdatingUI) {
+                    viewModel.setFieldOfView(value);
                 }
             });
         }
@@ -272,9 +264,9 @@ public class SettingsActivity extends AppCompatActivity {
         // Star Brightness
         viewModel.getStarBrightness().observe(this, brightness -> {
             isUpdatingUI = true;
-            if (seekBarBrightness != null && brightness != null) {
-                int progress = (int) ((brightness - 0.5f) * 100);
-                seekBarBrightness.setProgress(Math.max(0, Math.min(150, progress)));
+            if (sliderBrightness != null && brightness != null) {
+                float value = (brightness - 0.5f) * 100;
+                sliderBrightness.setValue(Math.max(0f, Math.min(100f, value)));
             }
             if (tvBrightnessValue != null && brightness != null) {
                 tvBrightnessValue.setText(String.format("%.1fx", brightness));
@@ -285,9 +277,8 @@ public class SettingsActivity extends AppCompatActivity {
         // Magnitude Limit
         viewModel.getMagnitudeLimit().observe(this, magnitude -> {
             isUpdatingUI = true;
-            if (seekBarMagnitude != null && magnitude != null) {
-                int progress = (int) ((magnitude + 2) * 10);
-                seekBarMagnitude.setProgress(Math.max(0, Math.min(140, progress)));
+            if (sliderMagnitude != null && magnitude != null) {
+                sliderMagnitude.setValue(Math.max(1f, Math.min(8f, magnitude)));
             }
             if (tvMagnitudeValue != null && magnitude != null) {
                 tvMagnitudeValue.setText(String.format("%.1f", magnitude));
@@ -298,9 +289,8 @@ public class SettingsActivity extends AppCompatActivity {
         // Label Magnitude Limit
         viewModel.getLabelMagnitudeLimit().observe(this, magnitude -> {
             isUpdatingUI = true;
-            if (seekBarLabelMagnitude != null && magnitude != null) {
-                int progress = (int) ((magnitude + 2) * 10);
-                seekBarLabelMagnitude.setProgress(Math.max(0, Math.min(100, progress)));
+            if (sliderLabelMagnitude != null && magnitude != null) {
+                sliderLabelMagnitude.setValue(Math.max(1f, Math.min(8f, magnitude)));
             }
             if (tvLabelMagnitudeValue != null && magnitude != null) {
                 tvLabelMagnitudeValue.setText(String.format("%.1f", magnitude));
@@ -365,8 +355,8 @@ public class SettingsActivity extends AppCompatActivity {
         // Sensor Smoothing
         viewModel.getSensorSmoothing().observe(this, smoothing -> {
             isUpdatingUI = true;
-            if (seekBarSensorSmoothing != null && smoothing != null) {
-                seekBarSensorSmoothing.setProgress((int) (smoothing * 100));
+            if (sliderSensorSmoothing != null && smoothing != null) {
+                sliderSensorSmoothing.setValue(Math.max(0f, Math.min(100f, smoothing * 100)));
             }
             if (tvSensorSmoothingValue != null && smoothing != null) {
                 tvSensorSmoothingValue.setText(String.format("%.0f%%", smoothing * 100));
@@ -386,28 +376,13 @@ public class SettingsActivity extends AppCompatActivity {
         // Field of View
         viewModel.getFieldOfView().observe(this, fov -> {
             isUpdatingUI = true;
-            if (seekBarFieldOfView != null && fov != null) {
-                seekBarFieldOfView.setProgress((int) (fov - 10));
+            if (sliderFieldOfView != null && fov != null) {
+                sliderFieldOfView.setValue(Math.max(10f, Math.min(120f, fov)));
             }
             if (tvFieldOfViewValue != null && fov != null) {
                 tvFieldOfViewValue.setText(String.format("%.0f\u00b0", fov));
             }
             isUpdatingUI = false;
         });
-    }
-
-    /**
-     * Simple SeekBar listener that only requires onProgressChanged to be implemented.
-     */
-    private abstract static class SimpleSeekBarListener implements SeekBar.OnSeekBarChangeListener {
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-            // Not needed
-        }
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            // Not needed
-        }
     }
 }

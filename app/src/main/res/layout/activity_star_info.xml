@@ -318,7 +318,7 @@
                             android:layout_height="wrap_content"
                             android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                             android:textColor="@color/text_primary"
-                            tools:text="+89° 15' 51\"" />
+                            tools:text="+89° 15' 51&quot;" />
 
                     </LinearLayout>
 
