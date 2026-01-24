@@ -310,6 +310,21 @@ public class SkyMapActivity extends AppCompatActivity {
 
         Log.d(TAG, "SkyCanvasView created - Canvas2D rendering enabled");
 
+        // Set up star selection listener to open StarInfoActivity when a star is tapped
+        skyCanvasView.setOnStarSelectedListener(star -> {
+            // Debug toast to confirm star was tapped
+            Toast.makeText(this, "Selected: " + star.getName(), Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Star selected: " + star.getName() + " (id=" + star.getId() + ")");
+
+            Intent intent = new Intent(this, StarInfoActivity.class);
+            intent.putExtra(StarInfoActivity.EXTRA_STAR_ID, star.getId());
+            intent.putExtra(StarInfoActivity.EXTRA_STAR_NAME, star.getName());
+            intent.putExtra(StarInfoActivity.EXTRA_STAR_RA, star.getRa());
+            intent.putExtra(StarInfoActivity.EXTRA_STAR_DEC, star.getDec());
+            intent.putExtra(StarInfoActivity.EXTRA_STAR_MAGNITUDE, star.getMagnitude());
+            startActivity(intent);
+        });
+
         // Create a dummy SkyGLSurfaceView for compatibility (won't be displayed)
         // This prevents null pointer exceptions in other parts of the code
         SkyRenderer renderer = new SkyRenderer();
@@ -396,6 +411,24 @@ public class SkyMapActivity extends AppCompatActivity {
             btnGrid.setOnClickListener(v -> toggleGrid());
         }
 
+        // Time Travel button
+        View btnTimeTravel = findViewById(R.id.btnTimeTravel);
+        if (btnTimeTravel != null) {
+            btnTimeTravel.setOnClickListener(v -> showTimeTravelDialog());
+        }
+
+        // Planets toggle button
+        View btnPlanets = findViewById(R.id.btnPlanets);
+        if (btnPlanets != null) {
+            btnPlanets.setOnClickListener(v -> togglePlanets());
+        }
+
+        // Search FAB
+        View fabSearch = findViewById(R.id.fabSearch);
+        if (fabSearch != null) {
+            fabSearch.setOnClickListener(v -> openSearch());
+        }
+
         // Close info panel
         View btnCloseInfoPanel = findViewById(R.id.btnCloseInfoPanel);
         if (btnCloseInfoPanel != null) {
@@ -479,6 +512,9 @@ public class SkyMapActivity extends AppCompatActivity {
         // Initialize layers
         initializeLayers();
 
+        // Load real star data into Canvas view
+        loadStarDataForCanvas();
+
         // Calibrate AR overlay
         arOverlayManager.calibrate(
                 cameraManager.getHorizontalFov(),
@@ -509,6 +545,9 @@ public class SkyMapActivity extends AppCompatActivity {
         // Initialize layers
         initializeLayers();
 
+        // Load real star data into Canvas view
+        loadStarDataForCanvas();
+
         // Set map-only mode
         arOverlayManager.setARModeEnabled(false);
         arOverlayManager.calibrateDefault();
@@ -517,6 +556,42 @@ public class SkyMapActivity extends AppCompatActivity {
         cameraPreviewContainer.setVisibility(View.GONE);
 
         showLoading(false);
+    }
+
+    /**
+     * Loads star data from the repository and passes it to the Canvas view.
+     */
+    private void loadStarDataForCanvas() {
+        if (skyCanvasView == null) {
+            Log.e(TAG, "STARS: Cannot load star data - skyCanvasView is null");
+            return;
+        }
+        if (starRepository == null) {
+            Log.e(TAG, "STARS: Cannot load star data - starRepository is null");
+            return;
+        }
+
+        // Load stars with magnitude up to 6.0 (naked eye visibility)
+        List<StarData> visibleStars = starRepository.getStarsByMagnitude(6.0f);
+        Log.d(TAG, "STARS: Loaded " + visibleStars.size() + " stars from repository");
+
+        if (visibleStars.isEmpty()) {
+            Log.e(TAG, "STARS: No stars loaded! Check protobuf parsing and assets.");
+            // Try loading all stars as a fallback
+            List<StarData> allStars = starRepository.getAllStars();
+            Log.d(TAG, "STARS: Total stars in repository: " + allStars.size());
+        }
+
+        // Pass star data to the canvas view
+        skyCanvasView.setStarData(visibleStars);
+        Log.d(TAG, "STARS: Star data passed to canvas view");
+
+        // Set default observer location (could be updated with GPS)
+        // Default to a location with good star visibility
+        skyCanvasView.setObserverLocation(40.7128, -74.0060);  // New York
+
+        // Set default view direction (looking north at 45 degrees altitude)
+        skyCanvasView.setOrientation(0f, 45f);
     }
 
     /**
@@ -756,6 +831,42 @@ public class SkyMapActivity extends AppCompatActivity {
             int tintColor = isGridEnabled ? R.color.icon_primary : R.color.icon_inactive;
             ivGrid.setColorFilter(ContextCompat.getColor(this, tintColor));
         }
+    }
+
+    /**
+     * Shows the time travel dialog to select a different date/time.
+     */
+    private void showTimeTravelDialog() {
+        Toast.makeText(this, R.string.feature_coming_soon, Toast.LENGTH_SHORT).show();
+        // TODO: Implement time travel dialog
+        // This would allow users to see the sky at different dates/times
+    }
+
+    /**
+     * Toggles visibility of planets in the sky view.
+     */
+    private void togglePlanets() {
+        // Toggle planet visibility state
+        ImageView ivPlanets = findViewById(R.id.ivPlanets);
+        if (ivPlanets != null) {
+            // Toggle icon color to indicate state
+            boolean currentlyActive = ivPlanets.getTag() != null && (boolean) ivPlanets.getTag();
+            boolean newState = !currentlyActive;
+            ivPlanets.setTag(newState);
+            int tintColor = newState ? R.color.icon_primary : R.color.icon_inactive;
+            ivPlanets.setColorFilter(ContextCompat.getColor(this, tintColor));
+        }
+        Toast.makeText(this, R.string.feature_coming_soon, Toast.LENGTH_SHORT).show();
+        // TODO: Implement planets layer toggle
+    }
+
+    /**
+     * Opens the search activity to search for celestial objects.
+     */
+    private void openSearch() {
+        Toast.makeText(this, R.string.feature_coming_soon, Toast.LENGTH_SHORT).show();
+        // TODO: Implement search activity
+        // This would allow users to search for stars, constellations, planets
     }
 
     /**

@@ -223,6 +223,9 @@
     <string name="notification_event_title">Celestial Event Tonight</string>
     <string name="notification_iss_pass">ISS Pass Visible</string>
 
+    <!-- Feature Status -->
+    <string name="feature_coming_soon">Feature coming soon!</string>
+
     <!-- Empty States -->
     <string name="empty_favorites">No favorites yet</string>
     <string name="empty_favorites_description">Tap the star icon on any celestial object to add it to your favorites.</string>

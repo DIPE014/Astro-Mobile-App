@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.astro.app.R;
 import com.google.android.material.slider.Slider;
-import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 /**
  * Activity for managing application settings.
@@ -34,12 +34,12 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView tvBrightnessValue;
     private Slider sliderMagnitude;
     private TextView tvMagnitudeValue;
-    private SwitchMaterial switchNightMode;
+    private MaterialSwitch switchNightMode;
 
     // Layer settings views
-    private SwitchMaterial switchStarLabels;
-    private SwitchMaterial switchConstellationLines;
-    private SwitchMaterial switchConstellationNames;
+    private MaterialSwitch switchStarLabels;
+    private MaterialSwitch switchConstellationLines;
+    private MaterialSwitch switchConstellationNames;
 
     // Prevent recursive updates
     private boolean isUpdatingUI = false;
