@@ -29,6 +29,7 @@ import com.astro.app.core.control.SensorController;
 import com.astro.app.core.layers.ConstellationsLayer;
 import com.astro.app.core.layers.GridLayer;
 import com.astro.app.core.layers.StarsLayer;
+import com.astro.app.core.renderer.SkyCanvasView;
 import com.astro.app.core.renderer.SkyGLSurfaceView;
 import com.astro.app.core.renderer.SkyRenderer;
 import com.astro.app.data.model.StarData;
@@ -101,6 +102,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private FrameLayout skyOverlayContainer;
     private PreviewView cameraPreview;
     private SkyGLSurfaceView skyGLSurfaceView;
+    private SkyCanvasView skyCanvasView;
     private MaterialButton btnArToggle;
     private MaterialCardView infoPanel;
     private TextView tvInfoPanelName;
@@ -235,6 +237,11 @@ public class SkyMapActivity extends AppCompatActivity {
             skyGLSurfaceView.setNightMode(nightMode);
         }
 
+        // Also update Canvas-based renderer
+        if (skyCanvasView != null) {
+            skyCanvasView.setNightMode(nightMode);
+        }
+
         MaterialButton btnNightMode = findViewById(R.id.btnNightMode);
         if (btnNightMode != null) {
             int tintColor = nightMode ? R.color.night_mode_red : R.color.icon_primary;
@@ -292,76 +299,16 @@ public class SkyMapActivity extends AppCompatActivity {
         cameraPreviewContainer.addView(cameraPreview);
 
         // ============================================================
-        // MINIMAL OPENGL TEST - Replace custom SkyGLSurfaceView with
-        // a basic GLSurfaceView to test if OpenGL works on this emulator
+        // Use Canvas-based renderer (works without OpenGL)
+        // This avoids OpenGL issues on emulators
         // ============================================================
-        // If this shows RED, the emulator supports OpenGL and the issue is in our custom SkyGLSurfaceView.
-        // If this shows nothing/cyan, the emulator has OpenGL issues.
-
-        android.opengl.GLSurfaceView testGLView = new android.opengl.GLSurfaceView(this);
-        testGLView.setEGLContextClientVersion(2);
-        testGLView.setRenderer(new android.opengl.GLSurfaceView.Renderer() {
-            @Override
-            public void onSurfaceCreated(javax.microedition.khronos.opengles.GL10 gl, javax.microedition.khronos.egl.EGLConfig config) {
-                android.util.Log.d("TEST_GL", "onSurfaceCreated called!");
-            }
-
-            @Override
-            public void onSurfaceChanged(javax.microedition.khronos.opengles.GL10 gl, int width, int height) {
-                android.opengl.GLES20.glViewport(0, 0, width, height);
-                android.util.Log.d("TEST_GL", "onSurfaceChanged: " + width + "x" + height);
-            }
-
-            @Override
-            public void onDrawFrame(javax.microedition.khronos.opengles.GL10 gl) {
-                android.opengl.GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);  // RED
-                android.opengl.GLES20.glClear(android.opengl.GLES20.GL_COLOR_BUFFER_BIT);
-            }
-        });
-
-        // Set cyan background - if you see cyan, OpenGL rendering is NOT working
-        testGLView.setBackgroundColor(0xFF00FFFF);  // Cyan diagnostic background
-
-        // Add test GLSurfaceView to container
+        skyCanvasView = new SkyCanvasView(this);
         FrameLayout container = findViewById(R.id.skyOverlayContainer);
-        container.addView(testGLView, new FrameLayout.LayoutParams(
+        container.addView(skyCanvasView, new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT));
 
-        Log.d(TAG, "MINIMAL TEST: Basic GLSurfaceView created - expecting RED screen");
-
-        // ============================================================
-        // COMMENTED OUT: Original SkyGLSurfaceView code
-        // ============================================================
-        /*
-        // Create SkyGLSurfaceView programmatically using the renderer constructor
-        // This ensures proper initialization order: EGL version -> EGL config -> setRenderer
-        SkyRenderer renderer = new SkyRenderer();
-        skyGLSurfaceView = new SkyGLSurfaceView(this, renderer);
-        skyGLSurfaceView.setLayoutParams(new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT));
-
-        // DIAGNOSTIC: Set cyan background to detect if OpenGL isn't rendering
-        // If you see cyan, OpenGL's onDrawFrame() isn't being called
-        // If you see red, OpenGL IS rendering (diagnostic glClearColor in SkyRenderer)
-        skyGLSurfaceView.setBackgroundColor(0xFF00FFFF);  // Cyan background as diagnostic
-
-        // Configure GL surface for MAP mode (opaque) or AR mode (transparent)
-        // In MAP mode (default), use opaque surface to show dark blue sky background
-        // In AR mode, use transparent surface to show camera behind
-        if (isARModeEnabled) {
-            skyGLSurfaceView.setZOrderOnTop(true);
-            skyGLSurfaceView.getHolder().setFormat(android.graphics.PixelFormat.TRANSLUCENT);
-        } else {
-            // MAP mode: keep it simple with OPAQUE format
-            skyGLSurfaceView.setZOrderOnTop(false);
-            skyGLSurfaceView.getHolder().setFormat(android.graphics.PixelFormat.OPAQUE);
-        }
-
-        Log.d(TAG, "SkyGLSurfaceView created and configured");
-        skyOverlayContainer.addView(skyGLSurfaceView);
-        */
+        Log.d(TAG, "SkyCanvasView created - Canvas2D rendering enabled");
 
         // Create a dummy SkyGLSurfaceView for compatibility (won't be displayed)
         // This prevents null pointer exceptions in other parts of the code
