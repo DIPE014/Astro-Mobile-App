@@ -267,14 +267,14 @@ public class SkyMapActivity extends AppCompatActivity {
                 azimuth += 360f;
             }
 
-            // Convert pitch to altitude (0 = horizon, 90 = zenith)
+            // Convert pitch to altitude (0 = horizon, 90 = zenith, -90 = nadir)
             // When phone is held upright facing forward, pitch is ~0
             // When tilted up toward sky, pitch becomes negative
+            // When tilted down toward ground, pitch becomes positive
             // So altitude = -pitch
-            // Allow viewing slightly below horizon (-15°) to avoid dark bottom edge
-            // when looking near the horizon, and cap at 90° (zenith)
+            // Allow full 360° rotation: -90° (looking down) to +90° (looking up)
             float altitude = -pitch;
-            altitude = Math.max(-15f, Math.min(90f, altitude));
+            altitude = Math.max(-90f, Math.min(90f, altitude));
 
             // Update the sky canvas view with new orientation
             final float finalAzimuth = azimuth;

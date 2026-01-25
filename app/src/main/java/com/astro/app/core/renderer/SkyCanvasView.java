@@ -667,11 +667,8 @@ public class SkyCanvasView extends View {
             double starAlt = altAz[0];  // Altitude in degrees (0 = horizon, 90 = zenith)
             double starAz = altAz[1];   // Azimuth in degrees (0 = North, 90 = East)
 
-            // Skip stars well below the horizon (allow some below-horizon stars
-            // to be visible when view is near horizon level, prevents dark bottom edge)
-            if (starAlt < -20) {
-                continue;
-            }
+            // No altitude filter - allow viewing stars in all directions
+            // This enables full 360° sky rotation as if Earth was transparent
 
             // Use proper spherical projection
             float[] screenPos = projectToScreen(starAlt, starAz,
@@ -1072,8 +1069,8 @@ public class SkyCanvasView extends View {
         float pixelsPerDegree = Math.min(width, height) / fieldOfView;
 
         // Draw altitude circles (every 15 degrees) using spherical projection
-        // These appear as curves, not straight lines, due to the projection
-        for (int alt = -15; alt <= 90; alt += 15) {
+        // Full range from -90° (nadir) to +90° (zenith) for 360° rotation
+        for (int alt = -90; alt <= 90; alt += 15) {
             Paint linePaint = gridLinePaint;
             if (alt == 0) {
                 // Horizon gets a special stronger line
@@ -1116,9 +1113,9 @@ public class SkyCanvasView extends View {
 
         // Draw azimuth lines (every 30 degrees) using spherical projection
         for (int az = 0; az < 360; az += 30) {
-            // Draw azimuth line as a series of connected points from horizon to zenith
+            // Draw azimuth line as a series of connected points from nadir to zenith
             float lastX = -1, lastY = -1;
-            for (int alt = -15; alt <= 90; alt += 5) {
+            for (int alt = -90; alt <= 90; alt += 5) {
                 float[] pos = projectToScreen(alt, az, altitudeOffset, azimuthOffset,
                         centerX, centerY, pixelsPerDegree);
                 if (pos[2] > 0.5f) {
@@ -1150,7 +1147,7 @@ public class SkyCanvasView extends View {
             }
         }
 
-        // Draw zenith marker if visible
+        // Draw zenith marker if visible (altitude = +90°)
         float[] zenithPos = projectToScreen(90, 0, altitudeOffset, azimuthOffset,
                 centerX, centerY, pixelsPerDegree);
         if (zenithPos[2] > 0.5f && zenithPos[0] >= 0 && zenithPos[0] <= width &&
@@ -1161,6 +1158,19 @@ public class SkyCanvasView extends View {
             zenithPaint.setStrokeWidth(2f);
             canvas.drawCircle(zenithPos[0], zenithPos[1], 15f, zenithPaint);
             canvas.drawText("Zenith", zenithPos[0] + 20, zenithPos[1], gridLabelPaint);
+        }
+
+        // Draw nadir marker if visible (altitude = -90°, below horizon)
+        float[] nadirPos = projectToScreen(-90, 0, altitudeOffset, azimuthOffset,
+                centerX, centerY, pixelsPerDegree);
+        if (nadirPos[2] > 0.5f && nadirPos[0] >= 0 && nadirPos[0] <= width &&
+            nadirPos[1] >= 0 && nadirPos[1] <= height) {
+            Paint nadirPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            nadirPaint.setColor(nightMode ? Color.argb(150, 150, 100, 100) : Color.argb(150, 150, 150, 200));
+            nadirPaint.setStyle(Paint.Style.STROKE);
+            nadirPaint.setStrokeWidth(2f);
+            canvas.drawCircle(nadirPos[0], nadirPos[1], 15f, nadirPaint);
+            canvas.drawText("Nadir", nadirPos[0] + 20, nadirPos[1], gridLabelPaint);
         }
     }
 
