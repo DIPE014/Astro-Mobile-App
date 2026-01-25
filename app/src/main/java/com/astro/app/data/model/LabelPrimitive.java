@@ -112,6 +112,19 @@ public class LabelPrimitive {
     }
 
     /**
+     * Creates a label primitive with specified color.
+     *
+     * @param location Geocentric coordinates
+     * @param text     Text content
+     * @param color    ARGB color value
+     * @return A new LabelPrimitive with the specified color
+     */
+    @NonNull
+    public static LabelPrimitive create(@NonNull GeocentricCoords location, @NonNull String text, int color) {
+        return new LabelPrimitive(location, text, color);
+    }
+
+    /**
      * Creates a label primitive from RA/Dec with default styling.
      *
      * @param ra   Right Ascension in degrees

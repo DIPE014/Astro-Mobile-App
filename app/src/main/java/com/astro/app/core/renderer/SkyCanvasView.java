@@ -12,6 +12,7 @@ import android.view.View;
 import com.astro.app.data.model.StarData;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
@@ -53,6 +54,12 @@ public class SkyCanvasView extends View {
     // Star data from repository
     private List<StarData> realStarData = new CopyOnWriteArrayList<>();
 
+    // Planet data: name -> {ra, dec, color, size}
+    private final java.util.Map<String, float[]> planetData = new HashMap<>();
+    private boolean showPlanets = false;
+    private Paint planetPaint;
+    private Paint planetLabelPaint;
+
     // Rendered elements (computed from star data)
     private List<float[]> stars = new CopyOnWriteArrayList<>();  // x, y, size, color
     private List<float[]> lines = new CopyOnWriteArrayList<>();  // x1, y1, x2, y2, color
@@ -89,6 +96,13 @@ public class SkyCanvasView extends View {
 
         backgroundPaint = new Paint();
         backgroundPaint.setColor(Color.rgb(5, 5, 20)); // Dark blue
+
+        planetPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        planetPaint.setStyle(Paint.Style.FILL);
+
+        planetLabelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        planetLabelPaint.setTextSize(28f);
+        planetLabelPaint.setColor(Color.rgb(255, 183, 77)); // Warm orange for planet labels
     }
 
     /**
@@ -394,6 +408,10 @@ public class SkyCanvasView extends View {
         if (useSimpleStarMap && realStarData != null && !realStarData.isEmpty()) {
             Log.d(TAG, "STARS: Drawing " + realStarData.size() + " stars in simple map mode");
             drawSimpleStarMap(canvas, width, height);
+            // Draw planets on top of stars
+            if (showPlanets) {
+                drawPlanets(canvas, width, height);
+            }
         } else {
             // Draw constellation lines (from complex projection mode)
             for (float[] line : lines) {
@@ -504,6 +522,54 @@ public class SkyCanvasView extends View {
     }
 
     /**
+     * Draws planets on the sky map.
+     * Uses the same RA/Dec to screen coordinate mapping as stars.
+     */
+    private void drawPlanets(Canvas canvas, int width, int height) {
+        if (planetData.isEmpty()) {
+            return;
+        }
+
+        int planetsDrawn = 0;
+        for (java.util.Map.Entry<String, float[]> entry : planetData.entrySet()) {
+            String name = entry.getKey();
+            float[] data = entry.getValue();
+            float ra = data[0];
+            float dec = data[1];
+            int color = Float.floatToIntBits(data[2]);
+            float size = data[3];
+
+            // Normalize RA to 0-360 range
+            if (ra < 0) ra += 360f;
+            if (ra >= 360) ra -= 360f;
+
+            // Simple projection: RA to X, Dec to Y (same as stars)
+            float x = (ra / 360f) * width;
+            float y = ((90f - dec) / 180f) * height;
+
+            // Draw planet point (larger than stars)
+            if (nightMode) {
+                planetPaint.setColor(Color.rgb(255, 100, 100)); // Red tint for night mode
+            } else {
+                planetPaint.setColor(color);
+            }
+            canvas.drawCircle(x, y, size, planetPaint);
+
+            // Draw planet name label
+            if (nightMode) {
+                planetLabelPaint.setColor(Color.rgb(255, 120, 120));
+            } else {
+                planetLabelPaint.setColor(Color.rgb(255, 183, 77)); // Warm orange
+            }
+            canvas.drawText(name, x + size + 6, y + 6, planetLabelPaint);
+
+            planetsDrawn++;
+        }
+
+        Log.d(TAG, "PLANETS: Drew " + planetsDrawn + " planets on screen");
+    }
+
+    /**
      * Draws a crosshair at the center of the screen.
      */
     private void drawCrosshair(Canvas canvas, int width, int height) {
@@ -522,6 +588,50 @@ public class SkyCanvasView extends View {
 
         // Draw small circle in center
         canvas.drawCircle(centerX, centerY, 5f, crosshairPaint);
+    }
+
+    /**
+     * Sets the visibility of planets in the sky view.
+     *
+     * @param visible true to show planets, false to hide
+     */
+    public void setPlanetsVisible(boolean visible) {
+        this.showPlanets = visible;
+        Log.d(TAG, "Planets visibility set to: " + visible);
+        invalidate();
+    }
+
+    /**
+     * Returns whether planets are currently visible.
+     *
+     * @return true if planets are shown
+     */
+    public boolean isPlanetsVisible() {
+        return showPlanets;
+    }
+
+    /**
+     * Adds or updates a planet in the view.
+     *
+     * @param name  Planet name (e.g., "Mars", "Jupiter")
+     * @param ra    Right Ascension in degrees
+     * @param dec   Declination in degrees
+     * @param color ARGB color value
+     * @param size  Size in pixels
+     */
+    public void setPlanet(String name, float ra, float dec, int color, float size) {
+        planetData.put(name, new float[]{ra, dec, Float.intBitsToFloat(color), size});
+        if (showPlanets) {
+            invalidate();
+        }
+    }
+
+    /**
+     * Clears all planet data.
+     */
+    public void clearPlanets() {
+        planetData.clear();
+        invalidate();
     }
 
     public void setNightMode(boolean enabled) {

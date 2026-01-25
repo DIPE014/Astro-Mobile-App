@@ -11,7 +11,7 @@
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Phase 1-7: Initial Build | 🟢 Complete | 100% |
-| **Phase 8: New Features** | 🟡 In Progress | 50% (3/6) |
+| **Phase 8: New Features** | 🟡 In Progress | 67% (4/6) |
 
 ### Phase 8 Features
 
@@ -20,7 +20,7 @@
 | GPS Tracking | `feature/gps-tracking` | 🟢 Complete |
 | Magnitude Control | `feature/magnitude-control` | 🟢 Complete |
 | Time Travel | `feature/time-travel` | 🟢 Complete |
-| Planets | `feature/planets` | 🔴 Not Started |
+| Planets | `feature/planets` | 🟢 Complete |
 | Search + Arrow | `feature/search` | 🔴 Not Started |
 | Constellation Lines | `feature/constellation-lines` | 🔴 Not Started |
 
@@ -86,12 +86,25 @@
 
 ### Feature 8.4: Planets
 **Branch:** `feature/planets`
+**Status:** 🟢 Complete
 
-- [ ] Add planet drawable icons
-- [ ] Create PlanetPositionCalculator.java
-- [ ] Create PlanetsLayer.java
-- [ ] Add planet rendering to SkyCanvasView
-- [ ] Implement togglePlanets()
+- [x] Create PlanetsLayer.java with orbital calculations
+- [x] Add planet rendering to SkyCanvasView
+- [x] Implement togglePlanets() in SkyMapActivity
+- [x] Wire Universe to Dagger dependency injection
+- [x] Add planet position updates for time travel
+- [x] Color-coded planets (Sun gold, Moon white, Mars red, etc.)
+
+**Note:** Using existing Universe.kt and SolarSystemBody.kt for orbital calculations (JPL ephemeris data). No separate drawable icons needed - planets rendered as colored circles with labels.
+
+**Files Added:**
+- `PlanetsLayer.java` - Layer for rendering solar system bodies
+
+**Files Modified:**
+- `SkyMapActivity.java` - Added planets layer, togglePlanets(), updatePlanetPositions()
+- `SkyCanvasView.java` - Added planet rendering support (setPlanet, drawPlanets)
+- `AppModule.java` - Added Universe provider
+- `LabelPrimitive.java` - Added create() method with color parameter
 
 ### Feature 8.5: Search + Arrow
 **Branch:** `feature/search`

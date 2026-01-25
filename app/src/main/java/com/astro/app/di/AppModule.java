@@ -10,6 +10,7 @@ import com.astro.app.core.control.MagneticDeclinationCalculator;
 import com.astro.app.core.control.RealMagneticDeclinationCalculator;
 import com.astro.app.core.control.SensorController;
 import com.astro.app.core.control.TimeTravelClock;
+import com.astro.app.core.control.space.Universe;
 import com.astro.app.data.parser.ProtobufParser;
 import com.astro.app.data.repository.ConstellationRepository;
 import com.astro.app.data.repository.ConstellationRepositoryImpl;
@@ -152,5 +153,17 @@ public class AppModule {
     @Singleton
     ConstellationRepository provideConstellationRepository(ProtobufParser protobufParser) {
         return new ConstellationRepositoryImpl(protobufParser);
+    }
+
+    /**
+     * Provides the Universe for calculating solar system body positions.
+     * Singleton to ensure consistent state across the app.
+     *
+     * @return the Universe instance
+     */
+    @Provides
+    @Singleton
+    Universe provideUniverse() {
+        return new Universe();
     }
 }

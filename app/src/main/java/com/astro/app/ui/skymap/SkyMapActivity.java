@@ -27,9 +27,13 @@ import com.astro.app.R;
 import com.astro.app.core.control.AstronomerModel;
 import com.astro.app.core.control.LocationController;
 import com.astro.app.core.control.SensorController;
+import com.astro.app.core.control.SolarSystemBody;
 import com.astro.app.core.control.TimeTravelClock;
+import com.astro.app.core.control.space.Universe;
+import com.astro.app.core.math.RaDec;
 import com.astro.app.ui.timetravel.TimeTravelDialogFragment;
 import com.astro.app.core.layers.ConstellationsLayer;
+import com.astro.app.core.layers.PlanetsLayer;
 import com.astro.app.core.layers.GridLayer;
 import com.astro.app.core.layers.StarsLayer;
 import com.astro.app.core.math.LatLong;
@@ -46,6 +50,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -102,6 +107,9 @@ public class SkyMapActivity extends AppCompatActivity {
     @Inject
     TimeTravelClock timeTravelClock;
 
+    @Inject
+    Universe universe;
+
     // Camera components
     private CameraManager cameraManager;
     private CameraPermissionHandler permissionHandler;
@@ -129,6 +137,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private StarsLayer starsLayer;
     private ConstellationsLayer constellationsLayer;
     private GridLayer gridLayer;
+    private PlanetsLayer planetsLayer;
 
     // State
     // Default to MAP mode (AR disabled) for better emulator compatibility
@@ -136,6 +145,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private boolean isARModeEnabled = false;
     private boolean isConstellationsEnabled = true;
     private boolean isGridEnabled = false;
+    private boolean isPlanetsEnabled = false;
     @Nullable
     private StarData selectedStar;
 
@@ -785,17 +795,20 @@ public class SkyMapActivity extends AppCompatActivity {
         starsLayer = new StarsLayer(starsLayerRepository);
         constellationsLayer = new ConstellationsLayer(constellationsLayerRepository);
         gridLayer = new GridLayer();
+        planetsLayer = new PlanetsLayer(universe);
 
         // Configure initial visibility
         starsLayer.setVisible(true);
         constellationsLayer.setVisible(isConstellationsEnabled);
         gridLayer.setVisible(isGridEnabled);
+        planetsLayer.setVisible(isPlanetsEnabled);
 
         // Add layers to renderer
         List<com.astro.app.core.layers.Layer> layers = new ArrayList<>();
         layers.add(gridLayer);
         layers.add(constellationsLayer);
         layers.add(starsLayer);
+        layers.add(planetsLayer);
 
         renderer.setLayers(layers);
 
@@ -803,6 +816,7 @@ public class SkyMapActivity extends AppCompatActivity {
         starsLayer.initialize();
         constellationsLayer.initialize();
         gridLayer.initialize();
+        planetsLayer.initialize();
 
         renderer.requestLayerUpdate();
 
@@ -1010,6 +1024,16 @@ public class SkyMapActivity extends AppCompatActivity {
             skyCanvasView.invalidate();
         }
 
+        // Update planets layer for new time
+        if (planetsLayer != null) {
+            planetsLayer.setTime(timeMillis);
+        }
+
+        // Update planet positions in canvas if planets are enabled
+        if (isPlanetsEnabled) {
+            updatePlanetPositions();
+        }
+
         // Update GL surface view
         if (skyGLSurfaceView != null) {
             skyGLSurfaceView.requestLayerUpdate();
@@ -1022,18 +1046,112 @@ public class SkyMapActivity extends AppCompatActivity {
      * Toggles visibility of planets in the sky view.
      */
     private void togglePlanets() {
-        // Toggle planet visibility state
+        isPlanetsEnabled = !isPlanetsEnabled;
+
+        // Update planets layer visibility
+        if (planetsLayer != null) {
+            planetsLayer.setVisible(isPlanetsEnabled);
+            skyGLSurfaceView.requestLayerUpdate();
+        }
+
+        // Update SkyCanvasView planet visibility
+        if (skyCanvasView != null) {
+            skyCanvasView.setPlanetsVisible(isPlanetsEnabled);
+            if (isPlanetsEnabled) {
+                updatePlanetPositions();
+            }
+        }
+
+        // Update icon color to indicate state
         ImageView ivPlanets = findViewById(R.id.ivPlanets);
         if (ivPlanets != null) {
-            // Toggle icon color to indicate state
-            boolean currentlyActive = ivPlanets.getTag() != null && (boolean) ivPlanets.getTag();
-            boolean newState = !currentlyActive;
-            ivPlanets.setTag(newState);
-            int tintColor = newState ? R.color.icon_primary : R.color.icon_inactive;
+            int tintColor = isPlanetsEnabled ? R.color.icon_primary : R.color.icon_inactive;
             ivPlanets.setColorFilter(ContextCompat.getColor(this, tintColor));
         }
-        Toast.makeText(this, R.string.feature_coming_soon, Toast.LENGTH_SHORT).show();
-        // TODO: Implement planets layer toggle
+
+        Log.d(TAG, "Planets visibility toggled to: " + isPlanetsEnabled);
+    }
+
+    /**
+     * Updates planet positions in the SkyCanvasView based on current time.
+     */
+    private void updatePlanetPositions() {
+        if (skyCanvasView == null || universe == null) {
+            return;
+        }
+
+        // Get current observation time
+        long timeMillis = (timeTravelClock != null)
+                ? timeTravelClock.getCurrentTimeMillis()
+                : System.currentTimeMillis();
+        Date observationDate = new Date(timeMillis);
+
+        // Update each planet position
+        for (SolarSystemBody body : SolarSystemBody.values()) {
+            if (body == SolarSystemBody.Earth) {
+                continue; // Skip Earth
+            }
+
+            try {
+                RaDec raDec = universe.getRaDec(body, observationDate);
+                int color = getPlanetColor(body);
+                float size = getPlanetSize(body);
+                skyCanvasView.setPlanet(body.name(), raDec.getRa(), raDec.getDec(), color, size);
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating planet " + body.name() + ": " + e.getMessage());
+            }
+        }
+
+        Log.d(TAG, "Planet positions updated for time: " + observationDate);
+    }
+
+    /**
+     * Gets the display color for a solar system body.
+     */
+    private int getPlanetColor(SolarSystemBody body) {
+        switch (body) {
+            case Sun:
+                return 0xFFFFD700;      // Gold
+            case Moon:
+                return 0xFFF4F4F4;     // Near white
+            case Mercury:
+                return 0xFFB0B0B0;  // Gray
+            case Venus:
+                return 0xFFE6E6CC;    // Pale yellow
+            case Mars:
+                return 0xFFFF6347;     // Red-orange
+            case Jupiter:
+                return 0xFFD4A574;  // Tan/brown
+            case Saturn:
+                return 0xFFF4D59E;   // Pale gold
+            case Uranus:
+                return 0xFFAFDBF5;   // Pale blue
+            case Neptune:
+                return 0xFF5B5DDF; // Deep blue
+            case Pluto:
+                return 0xFFCCBBAA;    // Brownish gray
+            default:
+                return 0xFFFFFFFF;
+        }
+    }
+
+    /**
+     * Gets the display size for a solar system body.
+     */
+    private float getPlanetSize(SolarSystemBody body) {
+        switch (body) {
+            case Sun:
+            case Moon:
+                return 12f;
+            case Venus:
+            case Jupiter:
+                return 9f;
+            case Mars:
+            case Saturn:
+                return 7f;
+            default:
+                return 5f;
+        }
     }
 
     /**
