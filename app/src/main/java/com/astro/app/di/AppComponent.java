@@ -1,6 +1,7 @@
 package com.astro.app.di;
 
 import com.astro.app.AstroApplication;
+import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.skymap.SkyMapActivity;
 import com.astro.app.ui.starinfo.StarInfoActivity;
@@ -44,6 +45,13 @@ public interface AppComponent {
      * @param activity the activity instance to inject into
      */
     void inject(SettingsActivity activity);
+
+    /**
+     * Injects dependencies into the SearchActivity.
+     *
+     * @param activity the activity instance to inject into
+     */
+    void inject(SearchActivity activity);
 
     /**
      * Builder interface for creating AppComponent instances.

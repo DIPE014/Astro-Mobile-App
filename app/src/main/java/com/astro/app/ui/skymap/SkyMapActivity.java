@@ -43,9 +43,11 @@ import com.astro.app.core.renderer.SkyRenderer;
 import com.astro.app.data.model.StarData;
 import com.astro.app.data.repository.ConstellationRepository;
 import com.astro.app.data.repository.StarRepository;
+import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
 import com.astro.app.ui.starinfo.StarInfoActivity;
+import com.astro.app.search.SearchArrowView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
@@ -139,6 +141,12 @@ public class SkyMapActivity extends AppCompatActivity {
     private GridLayer gridLayer;
     private PlanetsLayer planetsLayer;
 
+    // Search
+    private SearchArrowView searchArrowView;
+    private String searchTargetName;
+    private float searchTargetRa;
+    private float searchTargetDec;
+
     // State
     // Default to MAP mode (AR disabled) for better emulator compatibility
     // On devices without camera or on emulator, this ensures stars are visible
@@ -161,6 +169,14 @@ public class SkyMapActivity extends AppCompatActivity {
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (permissionHandler != null) {
                     permissionHandler.handlePermissionResult(isGranted);
+                }
+            });
+
+    // Search activity launcher
+    private final ActivityResultLauncher<Intent> searchActivityLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    handleSearchResult(result.getData());
                 }
             });
 
@@ -388,6 +404,9 @@ public class SkyMapActivity extends AppCompatActivity {
         gpsIndicator = findViewById(R.id.gpsIndicator);
         ivGpsIcon = findViewById(R.id.ivGpsIcon);
         tvGpsStatus = findViewById(R.id.tvGpsStatus);
+
+        // Search arrow view
+        searchArrowView = findViewById(R.id.searchArrow);
 
         // Create PreviewView programmatically for camera
         cameraPreview = new PreviewView(this);
@@ -1158,9 +1177,80 @@ public class SkyMapActivity extends AppCompatActivity {
      * Opens the search activity to search for celestial objects.
      */
     private void openSearch() {
-        Toast.makeText(this, R.string.feature_coming_soon, Toast.LENGTH_SHORT).show();
-        // TODO: Implement search activity
-        // This would allow users to search for stars, constellations, planets
+        Intent intent = new Intent(this, SearchActivity.class);
+        searchActivityLauncher.launch(intent);
+    }
+
+    /**
+     * Handles the result from SearchActivity.
+     *
+     * @param data The result intent containing search target info
+     */
+    private void handleSearchResult(Intent data) {
+        searchTargetName = data.getStringExtra(SearchActivity.EXTRA_RESULT_NAME);
+        searchTargetRa = data.getFloatExtra(SearchActivity.EXTRA_RESULT_RA, 0f);
+        searchTargetDec = data.getFloatExtra(SearchActivity.EXTRA_RESULT_DEC, 0f);
+
+        Log.d(TAG, "Search target: " + searchTargetName + " at RA=" + searchTargetRa + ", Dec=" + searchTargetDec);
+
+        // Show search arrow
+        if (searchArrowView != null) {
+            searchArrowView.setTarget(searchTargetRa, searchTargetDec, searchTargetName);
+            searchArrowView.setVisibility(View.VISIBLE);
+
+            // Update arrow pointing based on current view direction
+            updateSearchArrow();
+        }
+
+        // Navigate to target location
+        if (skyCanvasView != null) {
+            skyCanvasView.setOrientation(searchTargetRa, searchTargetDec);
+        }
+
+        Toast.makeText(this, getString(R.string.search_navigating_to, searchTargetName), Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Updates the search arrow position based on current view direction.
+     */
+    private void updateSearchArrow() {
+        if (searchArrowView == null || !searchArrowView.isActive()) {
+            return;
+        }
+
+        // Get current view direction from skyCanvasView or sensor controller
+        float viewRa = 0f;
+        float viewDec = 45f;
+
+        if (skyCanvasView != null) {
+            // Assuming skyCanvasView has getOrientation method or similar
+            viewRa = skyCanvasView.getViewRa();
+            viewDec = skyCanvasView.getViewDec();
+        }
+
+        searchArrowView.updatePointing(viewRa, viewDec);
+
+        // Check if we're close to the target (within 5 degrees)
+        float dRa = Math.abs(searchTargetRa - viewRa);
+        float dDec = Math.abs(searchTargetDec - viewDec);
+        if (dRa > 180) dRa = 360 - dRa;  // Handle wraparound
+
+        double distance = Math.sqrt(dRa * dRa + dDec * dDec);
+        if (distance < 5.0) {
+            // Close to target, hide arrow after a delay
+            searchArrowView.postDelayed(this::clearSearchTarget, 3000);
+        }
+    }
+
+    /**
+     * Clears the current search target.
+     */
+    private void clearSearchTarget() {
+        if (searchArrowView != null) {
+            searchArrowView.clearTarget();
+            searchArrowView.setVisibility(View.GONE);
+        }
+        searchTargetName = null;
     }
 
     /**

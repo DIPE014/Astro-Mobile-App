@@ -150,6 +150,50 @@ public class SkyCanvasView extends View {
     }
 
     /**
+     * Gets the current view RA (approximation based on azimuth and LST).
+     *
+     * @return Current view RA in degrees
+     */
+    public float getViewRa() {
+        // Approximate: convert azimuth to RA using LST
+        // RA = LST - HA, where HA is related to azimuth
+        double lst = calculateLocalSiderealTime();
+        // Simplified: azimuth 0 (North) roughly corresponds to objects at meridian
+        float ra = (float) ((lst - azimuthOffset + 360) % 360);
+        return ra;
+    }
+
+    /**
+     * Gets the current view Dec (approximation based on altitude and latitude).
+     *
+     * @return Current view Dec in degrees
+     */
+    public float getViewDec() {
+        // Simplified approximation for view declination
+        // When looking at altitude 90 (zenith), Dec = latitude
+        // When looking at horizon (alt 0), Dec varies with azimuth
+        return altitudeOffset;
+    }
+
+    /**
+     * Gets the current view azimuth.
+     *
+     * @return Azimuth in degrees (0 = North)
+     */
+    public float getViewAzimuth() {
+        return azimuthOffset;
+    }
+
+    /**
+     * Gets the current view altitude.
+     *
+     * @return Altitude in degrees (0 = horizon, 90 = zenith)
+     */
+    public float getViewAltitude() {
+        return altitudeOffset;
+    }
+
+    /**
      * Sets the time for sky calculations (for time travel feature).
      *
      * @param timeMillis time in milliseconds since epoch

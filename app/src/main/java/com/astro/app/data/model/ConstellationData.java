@@ -166,6 +166,24 @@ public class ConstellationData {
     }
 
     /**
+     * Returns the center Right Ascension in degrees.
+     *
+     * @return Center RA in degrees, or 0 if center point is not set
+     */
+    public float getCenterRa() {
+        return centerPoint != null ? centerPoint.getRa() : 0f;
+    }
+
+    /**
+     * Returns the center Declination in degrees.
+     *
+     * @return Center Dec in degrees, or 0 if center point is not set
+     */
+    public float getCenterDec() {
+        return centerPoint != null ? centerPoint.getDec() : 0f;
+    }
+
+    /**
      * Checks if a star ID is part of this constellation.
      *
      * @param starId The star ID to check

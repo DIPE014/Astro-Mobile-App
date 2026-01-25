@@ -95,6 +95,7 @@
     <string name="search_results">Search Results</string>
     <string name="recent_searches">Recent Searches</string>
     <string name="clear_history">Clear History</string>
+    <string name="search_navigating_to">Navigating to %1$s</string>
 
     <!-- Settings -->
     <string name="settings_display">Display</string>
