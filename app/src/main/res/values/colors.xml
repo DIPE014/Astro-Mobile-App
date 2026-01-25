@@ -144,6 +144,11 @@
     <color name="icon_active">#BB86FC</color>
     <color name="icon_inactive">#666666</color>
 
+    <!-- GPS Status Colors -->
+    <color name="gps_connected">#4CAF50</color>
+    <color name="gps_searching">#FFB74D</color>
+    <color name="gps_disabled">#666666</color>
+
     <!-- Material Design 3 Color Tokens -->
     <color name="md_theme_dark_primary">#BB86FC</color>
     <color name="md_theme_dark_onPrimary">#1C1B1F</color>

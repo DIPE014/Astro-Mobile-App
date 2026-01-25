@@ -179,6 +179,13 @@
     <string name="error_invalid_input">Invalid input.</string>
     <string name="error_not_supported">This feature is not supported on your device.</string>
 
+    <!-- GPS Status -->
+    <string name="gps_searching">Searching…</string>
+    <string name="gps_connected">GPS Connected</string>
+    <string name="gps_disabled">GPS Disabled</string>
+    <string name="gps_unavailable">GPS Unavailable</string>
+    <string name="cd_gps_status">GPS status indicator</string>
+
     <!-- Accessibility -->
     <string name="cd_star_icon">Star icon</string>
     <string name="cd_planet_icon">Planet icon</string>
