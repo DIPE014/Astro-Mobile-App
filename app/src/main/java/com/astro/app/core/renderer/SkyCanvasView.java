@@ -631,11 +631,11 @@ public class SkyCanvasView extends View {
      * Draws stars using RA/Dec to screen coordinate mapping with device orientation.
      * The view is centered on where the device is pointing (azimuth/altitude).
      *
-     * This provides smooth sky movement as the device rotates.
+     * Uses proper spherical (gnomonic) projection to correctly handle the convergence
+     * of azimuth lines near the zenith.
      */
     private void drawSimpleStarMap(Canvas canvas, int width, int height) {
         int starsDrawn = 0;
-        int starsInView = 0;
 
         // Calculate Local Sidereal Time for RA to azimuth conversion
         double lst = calculateLocalSiderealTime();
@@ -662,31 +662,23 @@ public class SkyCanvasView extends View {
                 continue;
             }
 
-            // Calculate angular distance from view center
-            // Convert azimuth difference to account for wraparound
-            double dAz = starAz - azimuthOffset;
-            if (dAz > 180) dAz -= 360;
-            if (dAz < -180) dAz += 360;
-            double dAlt = starAlt - altitudeOffset;
+            // Use proper spherical projection
+            float[] screenPos = projectToScreen(starAlt, starAz,
+                    altitudeOffset, azimuthOffset,
+                    centerX, centerY, pixelsPerDegree);
 
-            // Check if within field of view (with some margin)
-            double halfFov = fieldOfView / 2.0 * 1.5;  // 1.5x for margin
-            if (Math.abs(dAz) > halfFov || Math.abs(dAlt) > halfFov) {
+            // Skip if not visible (behind us)
+            if (screenPos[2] < 0.5f) {
                 continue;
             }
 
-            // Project to screen coordinates
-            // Azimuth increases to the right (East is to the right when facing North)
-            float x = centerX + (float)(dAz * pixelsPerDegree);
-            // Altitude increases upward
-            float y = centerY - (float)(dAlt * pixelsPerDegree);
+            float x = screenPos[0];
+            float y = screenPos[1];
 
-            // Skip if off screen
+            // Skip if off screen (with margin for partially visible stars)
             if (x < -50 || x > width + 50 || y < -50 || y > height + 50) {
                 continue;
             }
-
-            starsInView++;
 
             // Star size based on magnitude (brighter = lower magnitude = larger)
             float magnitude = star.getMagnitude();
@@ -737,8 +729,104 @@ public class SkyCanvasView extends View {
     private int lastDrawnStarCount = -1;
 
     /**
+     * Projects a celestial object from Alt/Az coordinates to screen coordinates using
+     * proper spherical (gnomonic) projection. This correctly handles the convergence
+     * of azimuth lines near the zenith.
+     *
+     * @param objectAlt Altitude of the object in degrees (0 = horizon, 90 = zenith)
+     * @param objectAz  Azimuth of the object in degrees (0 = North, 90 = East)
+     * @param viewAlt   Altitude of the view center in degrees
+     * @param viewAz    Azimuth of the view center in degrees
+     * @param centerX   Screen center X coordinate
+     * @param centerY   Screen center Y coordinate
+     * @param pixelsPerDegree Scale factor for projection
+     * @return float array [x, y, visible] where visible is 1.0f if in front, 0.0f if behind
+     */
+    private float[] projectToScreen(double objectAlt, double objectAz,
+                                    double viewAlt, double viewAz,
+                                    float centerX, float centerY,
+                                    float pixelsPerDegree) {
+        // Convert view direction to 3D unit vector (x=East, y=North, z=Up)
+        double viewAltRad = Math.toRadians(viewAlt);
+        double viewAzRad = Math.toRadians(viewAz);
+        double vx = Math.cos(viewAltRad) * Math.sin(viewAzRad);
+        double vy = Math.cos(viewAltRad) * Math.cos(viewAzRad);
+        double vz = Math.sin(viewAltRad);
+
+        // Convert object direction to 3D unit vector
+        double objectAltRad = Math.toRadians(objectAlt);
+        double objectAzRad = Math.toRadians(objectAz);
+        double ox = Math.cos(objectAltRad) * Math.sin(objectAzRad);
+        double oy = Math.cos(objectAltRad) * Math.cos(objectAzRad);
+        double oz = Math.sin(objectAltRad);
+
+        // Check if object is in front of us using dot product
+        double dot = vx * ox + vy * oy + vz * oz;
+        if (dot <= 0.01) {
+            // Object is behind or at edge - not visible
+            return new float[]{0, 0, 0.0f};
+        }
+
+        // Build a local coordinate system for the view plane
+        // right vector = view x up, then normalize (points East when looking North at horizon)
+        // For general case, we use cross product with world up (0,0,1) then adjust
+
+        // Up vector in world coords
+        double worldUpX = 0, worldUpY = 0, worldUpZ = 1;
+
+        // Right = view cross worldUp (gives us the horizontal right direction in the view plane)
+        double rightX = vy * worldUpZ - vz * worldUpY;
+        double rightY = vz * worldUpX - vx * worldUpZ;
+        double rightZ = vx * worldUpY - vy * worldUpX;
+
+        // Normalize right vector
+        double rightLen = Math.sqrt(rightX * rightX + rightY * rightY + rightZ * rightZ);
+        if (rightLen < 0.0001) {
+            // Looking straight up or down - right is arbitrary, use East
+            rightX = 1; rightY = 0; rightZ = 0;
+            rightLen = 1;
+        }
+        rightX /= rightLen;
+        rightY /= rightLen;
+        rightZ /= rightLen;
+
+        // Up in view plane = right cross view (perpendicular to both view and right)
+        double upX = rightY * vz - rightZ * vy;
+        double upY = rightZ * vx - rightX * vz;
+        double upZ = rightX * vy - rightY * vx;
+
+        // Normalize up vector
+        double upLen = Math.sqrt(upX * upX + upY * upY + upZ * upZ);
+        upX /= upLen;
+        upY /= upLen;
+        upZ /= upLen;
+
+        // Project object onto the view plane using gnomonic projection
+        // The object direction relative to view center
+        double relX = ox - vx * dot;
+        double relY = oy - vy * dot;
+        double relZ = oz - vz * dot;
+
+        // Project onto right and up axes of the view plane
+        double screenRight = (relX * rightX + relY * rightY + relZ * rightZ) / dot;
+        double screenUp = (relX * upX + relY * upY + relZ * upZ) / dot;
+
+        // Convert to pixel coordinates
+        // Note: screenRight positive = right on screen, screenUp positive = up on screen
+        // We need to convert angular offset to pixels. For small angles, the gnomonic projection
+        // gives us tan(angle), so we convert back to degrees and scale
+        double angleRight = Math.toDegrees(Math.atan(screenRight));
+        double angleUp = Math.toDegrees(Math.atan(screenUp));
+
+        float x = centerX + (float)(angleRight * pixelsPerDegree);
+        float y = centerY - (float)(angleUp * pixelsPerDegree);  // Y is inverted on screen
+
+        return new float[]{x, y, 1.0f};
+    }
+
+    /**
      * Draws planets on the sky map.
-     * Uses the same Alt/Az projection as stars for sensor-based view movement.
+     * Uses proper spherical (gnomonic) projection for correct rendering near zenith.
      */
     private void drawPlanets(Canvas canvas, int width, int height) {
         if (planetData.isEmpty()) {
@@ -754,7 +842,6 @@ public class SkyCanvasView extends View {
 
         // Pixels per degree
         float pixelsPerDegree = Math.min(width, height) / fieldOfView;
-        double halfFov = fieldOfView / 2.0 * 1.5;
 
         int planetsDrawn = 0;
         for (java.util.Map.Entry<String, float[]> entry : planetData.entrySet()) {
@@ -775,20 +862,18 @@ public class SkyCanvasView extends View {
                 continue;
             }
 
-            // Calculate angular distance from view center
-            double dAz = planetAz - azimuthOffset;
-            if (dAz > 180) dAz -= 360;
-            if (dAz < -180) dAz += 360;
-            double dAlt = planetAlt - altitudeOffset;
+            // Use proper spherical projection
+            float[] screenPos = projectToScreen(planetAlt, planetAz,
+                    altitudeOffset, azimuthOffset,
+                    centerX, centerY, pixelsPerDegree);
 
-            // Check if within field of view
-            if (Math.abs(dAz) > halfFov || Math.abs(dAlt) > halfFov) {
+            // Skip if not visible (behind us)
+            if (screenPos[2] < 0.5f) {
                 continue;
             }
 
-            // Project to screen coordinates
-            float x = centerX + (float)(dAz * pixelsPerDegree);
-            float y = centerY - (float)(dAlt * pixelsPerDegree);
+            float x = screenPos[0];
+            float y = screenPos[1];
 
             // Skip if off screen
             if (x < -50 || x > width + 50 || y < -50 || y > height + 50) {
@@ -821,7 +906,7 @@ public class SkyCanvasView extends View {
 
     /**
      * Draws constellation lines on the sky map.
-     * Uses the same Alt/Az projection as stars for sensor-based view movement.
+     * Uses proper spherical (gnomonic) projection for correct rendering near zenith.
      */
     private void drawConstellations(Canvas canvas, int width, int height) {
         if (constellations.isEmpty()) {
@@ -846,7 +931,6 @@ public class SkyCanvasView extends View {
 
         // Pixels per degree
         float pixelsPerDegree = Math.min(width, height) / fieldOfView;
-        double halfFov = fieldOfView / 2.0 * 1.5;
 
         int linesDrawn = 0;
         int labelsDrawn = 0;
@@ -856,6 +940,7 @@ public class SkyCanvasView extends View {
             List<int[]> lineIndices = constellation.getLineIndices();
 
             // Build position map for this constellation's stars (screen coords)
+            // Format: [x, y, visible, starAz] where visible is 1.0 if in front
             java.util.Map<Integer, float[]> starPositions = new HashMap<>();
 
             for (int i = 0; i < starIds.size(); i++) {
@@ -871,18 +956,13 @@ public class SkyCanvasView extends View {
                     double starAlt = altAz[0];
                     double starAz = altAz[1];
 
-                    // Calculate angular distance from view center
-                    double dAz = starAz - azimuthOffset;
-                    if (dAz > 180) dAz -= 360;
-                    if (dAz < -180) dAz += 360;
-                    double dAlt = starAlt - altitudeOffset;
+                    // Use proper spherical projection
+                    float[] screenPos = projectToScreen(starAlt, starAz,
+                            altitudeOffset, azimuthOffset,
+                            centerX, centerY, pixelsPerDegree);
 
-                    // Project to screen coordinates
-                    float x = centerX + (float)(dAz * pixelsPerDegree);
-                    float y = centerY - (float)(dAlt * pixelsPerDegree);
-
-                    // Store screen position and azimuth for wraparound check
-                    starPositions.put(i, new float[]{x, y, (float)starAz, (float)dAz});
+                    // Store screen position, visibility flag, and azimuth
+                    starPositions.put(i, new float[]{screenPos[0], screenPos[1], screenPos[2], (float)starAz});
                 }
             }
 
@@ -893,14 +973,19 @@ public class SkyCanvasView extends View {
                     float[] end = starPositions.get(indices[1]);
 
                     if (start != null && end != null) {
+                        // Skip if either star is behind us
+                        if (start[2] < 0.5f || end[2] < 0.5f) {
+                            continue;
+                        }
+
                         // Only draw if at least one endpoint is on screen
                         boolean startOnScreen = start[0] >= -50 && start[0] <= width + 50 &&
                                                 start[1] >= -50 && start[1] <= height + 50;
                         boolean endOnScreen = end[0] >= -50 && end[0] <= width + 50 &&
                                               end[1] >= -50 && end[1] <= height + 50;
                         if (startOnScreen || endOnScreen) {
-                            // Check for azimuth wraparound
-                            float azDiff = Math.abs(start[2] - end[2]);
+                            // Check for azimuth wraparound (stars on opposite sides of sky)
+                            float azDiff = Math.abs(start[3] - end[3]);
                             if (azDiff > 180) {
                                 continue; // Skip lines that would wrap around
                             }
@@ -922,19 +1007,20 @@ public class SkyCanvasView extends View {
                 double cAlt = altAz[0];
                 double cAz = altAz[1];
 
-                // Calculate screen position
-                double dAz = cAz - azimuthOffset;
-                if (dAz > 180) dAz -= 360;
-                if (dAz < -180) dAz += 360;
-                double dAlt = cAlt - altitudeOffset;
+                // Use proper spherical projection for label position
+                float[] labelPos = projectToScreen(cAlt, cAz,
+                        altitudeOffset, azimuthOffset,
+                        centerX, centerY, pixelsPerDegree);
 
-                // Only draw if in view
-                if (Math.abs(dAz) < halfFov && Math.abs(dAlt) < halfFov) {
-                    float labelX = centerX + (float)(dAz * pixelsPerDegree);
-                    float labelY = centerY - (float)(dAlt * pixelsPerDegree);
+                // Only draw if visible and on screen
+                if (labelPos[2] > 0.5f) {
+                    float labelX = labelPos[0];
+                    float labelY = labelPos[1];
 
-                    canvas.drawText(constellation.getName(), labelX, labelY, constellationLabelPaint);
-                    labelsDrawn++;
+                    if (labelX >= 0 && labelX <= width && labelY >= 0 && labelY <= height) {
+                        canvas.drawText(constellation.getName(), labelX, labelY, constellationLabelPaint);
+                        labelsDrawn++;
+                    }
                 }
             }
         }
@@ -1267,7 +1353,7 @@ public class SkyCanvasView extends View {
 
     /**
      * Finds the nearest star to the given touch coordinates.
-     * Uses the same Alt/Az projection as drawSimpleStarMap.
+     * Uses proper spherical (gnomonic) projection matching drawSimpleStarMap.
      *
      * @param touchX The x coordinate of the touch
      * @param touchY The y coordinate of the touch
@@ -1304,15 +1390,18 @@ public class SkyCanvasView extends View {
             // Skip stars below horizon
             if (starAlt < -5) continue;
 
-            // Calculate angular distance from view center
-            double dAz = starAz - azimuthOffset;
-            if (dAz > 180) dAz -= 360;
-            if (dAz < -180) dAz += 360;
-            double dAlt = starAlt - altitudeOffset;
+            // Use proper spherical projection (same as drawSimpleStarMap)
+            float[] screenPos = projectToScreen(starAlt, starAz,
+                    altitudeOffset, azimuthOffset,
+                    centerX, centerY, pixelsPerDegree);
 
-            // Project to screen coordinates (same as drawSimpleStarMap)
-            float x = centerX + (float)(dAz * pixelsPerDegree);
-            float y = centerY - (float)(dAlt * pixelsPerDegree);
+            // Skip if not visible (behind us)
+            if (screenPos[2] < 0.5f) {
+                continue;
+            }
+
+            float x = screenPos[0];
+            float y = screenPos[1];
 
             float dist = (float) Math.sqrt(Math.pow(touchX - x, 2) + Math.pow(touchY - y, 2));
             if (dist < minDist) {
