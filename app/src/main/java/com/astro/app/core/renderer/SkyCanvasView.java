@@ -267,7 +267,8 @@ public class SkyCanvasView extends View {
     public void setOrientation(float azimuth, float altitude) {
         this.azimuthOffset = azimuth;
         this.altitudeOffset = altitude;
-        updateStarPositions();
+        // Always invalidate to trigger redraw with new orientation
+        invalidate();
     }
 
     /**
@@ -321,7 +322,8 @@ public class SkyCanvasView extends View {
      */
     public void setTime(long timeMillis) {
         this.observationTime = timeMillis;
-        updateStarPositions();
+        Log.d(TAG, "TIME_TRAVEL: Time set to " + new java.util.Date(timeMillis));
+        invalidate();
     }
 
     /**
@@ -404,11 +406,9 @@ public class SkyCanvasView extends View {
         double a = Math.floor(year / 100.0);
         double b = 2 - a + Math.floor(a / 4.0);
         double jd = Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + b - 1524.5;
-        double jd0 = jd - ut / 24.0;
 
         // Days since J2000.0
         double d = jd - 2451545.0;
-        double d0 = jd0 - 2451545.0;
 
         // Greenwich Sidereal Time
         double gst = 280.46061837 + 360.98564736629 * d + 0.000387933 * Math.pow(d / 36525.0, 2);
@@ -581,7 +581,6 @@ public class SkyCanvasView extends View {
             if (showConstellations) {
                 drawConstellations(canvas, width, height);
             }
-            Log.d(TAG, "STARS: Drawing " + realStarData.size() + " stars in simple map mode");
             drawSimpleStarMap(canvas, width, height);
             // Draw planets on top of stars
             if (showPlanets) {
@@ -629,37 +628,69 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Draws stars using simple RA/Dec to screen coordinate mapping.
-     * This guarantees all stars are visible on screen.
+     * Draws stars using RA/Dec to screen coordinate mapping with device orientation.
+     * The view is centered on where the device is pointing (azimuth/altitude).
      *
-     * RA (0-360 degrees) maps to X (0 to width)
-     * Dec (-90 to +90 degrees) maps to Y (height to 0) - north is up
+     * This provides smooth sky movement as the device rotates.
      */
     private void drawSimpleStarMap(Canvas canvas, int width, int height) {
         int starsDrawn = 0;
+        int starsInView = 0;
+
+        // Calculate Local Sidereal Time for RA to azimuth conversion
+        double lst = calculateLocalSiderealTime();
+
+        // Center of screen
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+
+        // Pixels per degree - determines how zoomed in the view is
+        float pixelsPerDegree = Math.min(width, height) / fieldOfView;
 
         for (StarData star : realStarData) {
             // Get RA and Dec
-            float ra = star.getRa();    // 0-360 degrees (or 0-24 hours converted)
+            float ra = star.getRa();    // 0-360 degrees
             float dec = star.getDec();  // -90 to +90 degrees
 
-            // Debug logging for first few stars
-            if (starsDrawn < 5) {
-                Log.d("STARS", "Star: name=" + star.getName() + ", ra=" + ra + ", dec=" + dec + ", mag=" + star.getMagnitude());
+            // Convert RA/Dec to Alt/Az for the observer's location and time
+            double[] altAz = raDecToAltAz(ra, dec, lst);
+            double starAlt = altAz[0];  // Altitude in degrees (0 = horizon, 90 = zenith)
+            double starAz = altAz[1];   // Azimuth in degrees (0 = North, 90 = East)
+
+            // Skip stars below the horizon
+            if (starAlt < -5) {
+                continue;
             }
 
-            // Normalize RA to 0-360 range
-            if (ra < 0) ra += 360f;
-            if (ra >= 360) ra -= 360f;
+            // Calculate angular distance from view center
+            // Convert azimuth difference to account for wraparound
+            double dAz = starAz - azimuthOffset;
+            if (dAz > 180) dAz -= 360;
+            if (dAz < -180) dAz += 360;
+            double dAlt = starAlt - altitudeOffset;
 
-            // Simple projection: RA to X, Dec to Y
-            float x = (ra / 360f) * width;
-            // Flip so north (dec +90) is at top (y=0)
-            float y = ((90f - dec) / 180f) * height;
+            // Check if within field of view (with some margin)
+            double halfFov = fieldOfView / 2.0 * 1.5;  // 1.5x for margin
+            if (Math.abs(dAz) > halfFov || Math.abs(dAlt) > halfFov) {
+                continue;
+            }
+
+            // Project to screen coordinates
+            // Azimuth increases to the right (East is to the right when facing North)
+            float x = centerX + (float)(dAz * pixelsPerDegree);
+            // Altitude increases upward
+            float y = centerY - (float)(dAlt * pixelsPerDegree);
+
+            // Skip if off screen
+            if (x < -50 || x > width + 50 || y < -50 || y > height + 50) {
+                continue;
+            }
+
+            starsInView++;
 
             // Star size based on magnitude (brighter = lower magnitude = larger)
             float magnitude = star.getMagnitude();
-            float size = Math.max(1f, 6f - magnitude);  // mag 1 = size 5, mag 5 = size 1
+            float size = Math.max(2f, 8f - magnitude);  // mag 1 = size 7, mag 5 = size 3
 
             // Get star color or default to white
             int color = star.getColor() != 0 ? star.getColor() : Color.WHITE;
@@ -680,7 +711,7 @@ public class SkyCanvasView extends View {
                 } else {
                     labelPaint.setColor(Color.WHITE);
                 }
-                // Show actual name if available, otherwise show formatted coordinates
+                // Show actual name if available
                 String label;
                 String name = star.getName();
                 if (name != null && !name.isEmpty() && !name.equals("null") && !name.startsWith("Star ")) {
@@ -693,17 +724,37 @@ public class SkyCanvasView extends View {
             }
         }
 
-        Log.d(TAG, "STARS: Drew " + starsDrawn + " stars on screen");
+        // Log sparingly to avoid flooding logcat
+        if (starsDrawn != lastDrawnStarCount) {
+            Log.d(TAG, "STARS: Drew " + starsDrawn + " stars (viewing Az=" +
+                    String.format("%.1f", azimuthOffset) + ", Alt=" +
+                    String.format("%.1f", altitudeOffset) + ")");
+            lastDrawnStarCount = starsDrawn;
+        }
     }
+
+    // Track last drawn count to reduce log spam
+    private int lastDrawnStarCount = -1;
 
     /**
      * Draws planets on the sky map.
-     * Uses the same RA/Dec to screen coordinate mapping as stars.
+     * Uses the same Alt/Az projection as stars for sensor-based view movement.
      */
     private void drawPlanets(Canvas canvas, int width, int height) {
         if (planetData.isEmpty()) {
             return;
         }
+
+        // Calculate LST for coordinate conversion
+        double lst = calculateLocalSiderealTime();
+
+        // Center of screen
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+
+        // Pixels per degree
+        float pixelsPerDegree = Math.min(width, height) / fieldOfView;
+        double halfFov = fieldOfView / 2.0 * 1.5;
 
         int planetsDrawn = 0;
         for (java.util.Map.Entry<String, float[]> entry : planetData.entrySet()) {
@@ -714,13 +765,35 @@ public class SkyCanvasView extends View {
             int color = Float.floatToIntBits(data[2]);
             float size = data[3];
 
-            // Normalize RA to 0-360 range
-            if (ra < 0) ra += 360f;
-            if (ra >= 360) ra -= 360f;
+            // Convert RA/Dec to Alt/Az
+            double[] altAz = raDecToAltAz(ra, dec, lst);
+            double planetAlt = altAz[0];
+            double planetAz = altAz[1];
 
-            // Simple projection: RA to X, Dec to Y (same as stars)
-            float x = (ra / 360f) * width;
-            float y = ((90f - dec) / 180f) * height;
+            // Skip planets below horizon
+            if (planetAlt < -5) {
+                continue;
+            }
+
+            // Calculate angular distance from view center
+            double dAz = planetAz - azimuthOffset;
+            if (dAz > 180) dAz -= 360;
+            if (dAz < -180) dAz += 360;
+            double dAlt = planetAlt - altitudeOffset;
+
+            // Check if within field of view
+            if (Math.abs(dAz) > halfFov || Math.abs(dAlt) > halfFov) {
+                continue;
+            }
+
+            // Project to screen coordinates
+            float x = centerX + (float)(dAz * pixelsPerDegree);
+            float y = centerY - (float)(dAlt * pixelsPerDegree);
+
+            // Skip if off screen
+            if (x < -50 || x > width + 50 || y < -50 || y > height + 50) {
+                continue;
+            }
 
             // Draw planet point (larger than stars)
             if (nightMode) {
@@ -741,12 +814,14 @@ public class SkyCanvasView extends View {
             planetsDrawn++;
         }
 
-        Log.d(TAG, "PLANETS: Drew " + planetsDrawn + " planets on screen");
+        if (planetsDrawn > 0) {
+            Log.d(TAG, "PLANETS: Drew " + planetsDrawn + " planets on screen");
+        }
     }
 
     /**
      * Draws constellation lines on the sky map.
-     * Uses the same RA/Dec to screen coordinate mapping as stars.
+     * Uses the same Alt/Az projection as stars for sensor-based view movement.
      */
     private void drawConstellations(Canvas canvas, int width, int height) {
         if (constellations.isEmpty()) {
@@ -762,6 +837,17 @@ public class SkyCanvasView extends View {
             constellationLabelPaint.setColor(Color.argb(180, 150, 180, 255));
         }
 
+        // Calculate LST for coordinate conversion
+        double lst = calculateLocalSiderealTime();
+
+        // Center of screen
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+
+        // Pixels per degree
+        float pixelsPerDegree = Math.min(width, height) / fieldOfView;
+        double halfFov = fieldOfView / 2.0 * 1.5;
+
         int linesDrawn = 0;
         int labelsDrawn = 0;
 
@@ -769,7 +855,7 @@ public class SkyCanvasView extends View {
             List<String> starIds = constellation.getStarIds();
             List<int[]> lineIndices = constellation.getLineIndices();
 
-            // Build position map for this constellation's stars
+            // Build position map for this constellation's stars (screen coords)
             java.util.Map<Integer, float[]> starPositions = new HashMap<>();
 
             for (int i = 0; i < starIds.size(); i++) {
@@ -780,15 +866,23 @@ public class SkyCanvasView extends View {
                     float ra = star.getRa();
                     float dec = star.getDec();
 
-                    // Normalize RA
-                    if (ra < 0) ra += 360f;
-                    if (ra >= 360) ra -= 360f;
+                    // Convert RA/Dec to Alt/Az
+                    double[] altAz = raDecToAltAz(ra, dec, lst);
+                    double starAlt = altAz[0];
+                    double starAz = altAz[1];
 
-                    // Convert to screen coordinates (same as stars)
-                    float x = (ra / 360f) * width;
-                    float y = ((90f - dec) / 180f) * height;
+                    // Calculate angular distance from view center
+                    double dAz = starAz - azimuthOffset;
+                    if (dAz > 180) dAz -= 360;
+                    if (dAz < -180) dAz += 360;
+                    double dAlt = starAlt - altitudeOffset;
 
-                    starPositions.put(i, new float[]{x, y, ra, dec});
+                    // Project to screen coordinates
+                    float x = centerX + (float)(dAz * pixelsPerDegree);
+                    float y = centerY - (float)(dAlt * pixelsPerDegree);
+
+                    // Store screen position and azimuth for wraparound check
+                    starPositions.put(i, new float[]{x, y, (float)starAz, (float)dAz});
                 }
             }
 
@@ -799,43 +893,65 @@ public class SkyCanvasView extends View {
                     float[] end = starPositions.get(indices[1]);
 
                     if (start != null && end != null) {
-                        // Check for RA wraparound (line crosses 0/360 boundary)
-                        float raDiff = Math.abs(start[2] - end[2]);
-                        if (raDiff > 180) {
-                            // Skip lines that would wrap around the screen
-                            // (This is a simplified handling - could draw two segments instead)
-                            continue;
-                        }
+                        // Only draw if at least one endpoint is on screen
+                        boolean startOnScreen = start[0] >= -50 && start[0] <= width + 50 &&
+                                                start[1] >= -50 && start[1] <= height + 50;
+                        boolean endOnScreen = end[0] >= -50 && end[0] <= width + 50 &&
+                                              end[1] >= -50 && end[1] <= height + 50;
+                        if (startOnScreen || endOnScreen) {
+                            // Check for azimuth wraparound
+                            float azDiff = Math.abs(start[2] - end[2]);
+                            if (azDiff > 180) {
+                                continue; // Skip lines that would wrap around
+                            }
 
-                        canvas.drawLine(start[0], start[1], end[0], end[1], constellationLinePaint);
-                        linesDrawn++;
+                            canvas.drawLine(start[0], start[1], end[0], end[1], constellationLinePaint);
+                            linesDrawn++;
+                        }
                     }
                 }
             }
 
-            // Draw constellation label at center
+            // Draw constellation label at center if visible
             if (showConstellationLabels && constellation.hasCenterPoint()) {
                 float centerRa = constellation.getCenterRa();
                 float centerDec = constellation.getCenterDec();
 
-                // Normalize RA
-                if (centerRa < 0) centerRa += 360f;
-                if (centerRa >= 360) centerRa -= 360f;
+                // Convert center to Alt/Az
+                double[] altAz = raDecToAltAz(centerRa, centerDec, lst);
+                double cAlt = altAz[0];
+                double cAz = altAz[1];
 
-                float labelX = (centerRa / 360f) * width;
-                float labelY = ((90f - centerDec) / 180f) * height;
+                // Calculate screen position
+                double dAz = cAz - azimuthOffset;
+                if (dAz > 180) dAz -= 360;
+                if (dAz < -180) dAz += 360;
+                double dAlt = cAlt - altitudeOffset;
 
-                canvas.drawText(constellation.getName(), labelX, labelY, constellationLabelPaint);
-                labelsDrawn++;
+                // Only draw if in view
+                if (Math.abs(dAz) < halfFov && Math.abs(dAlt) < halfFov) {
+                    float labelX = centerX + (float)(dAz * pixelsPerDegree);
+                    float labelY = centerY - (float)(dAlt * pixelsPerDegree);
+
+                    canvas.drawText(constellation.getName(), labelX, labelY, constellationLabelPaint);
+                    labelsDrawn++;
+                }
             }
         }
 
-        Log.d(TAG, "CONSTELLATIONS: Drew " + linesDrawn + " lines, " + labelsDrawn + " labels");
+        // Reduce log spam
+        if (linesDrawn != lastDrawnLineCount) {
+            Log.d(TAG, "CONSTELLATIONS: Drew " + linesDrawn + " lines, " + labelsDrawn + " labels");
+            lastDrawnLineCount = linesDrawn;
+        }
     }
 
+    // Track last drawn count to reduce log spam
+    private int lastDrawnLineCount = -1;
+
     /**
-     * Draws the coordinate grid (RA/Dec lines) on the sky map.
-     * Uses the same RA/Dec to screen coordinate mapping as stars.
+     * Draws the coordinate grid (Alt/Az lines) on the sky map.
+     * Uses the same Alt/Az projection as stars for sensor-based view movement.
      *
      * @param canvas Canvas to draw on
      * @param width  Canvas width
@@ -851,60 +967,78 @@ public class SkyCanvasView extends View {
             gridLabelPaint.setColor(GRID_LABEL_COLOR);
         }
 
-        // Draw RA lines (vertical lines, every 15 degrees = 1 hour)
-        for (int ra = 0; ra < 360; ra += 15) {
-            float x = (ra / 360f) * width;
+        // Center of screen
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+
+        // Pixels per degree
+        float pixelsPerDegree = Math.min(width, height) / fieldOfView;
+        double halfFov = fieldOfView / 2.0;
+
+        // Draw azimuth lines (every 30 degrees) - these are vertical-ish lines
+        for (int az = 0; az < 360; az += 30) {
+            // Calculate angular distance from current view azimuth
+            double dAz = az - azimuthOffset;
+            if (dAz > 180) dAz -= 360;
+            if (dAz < -180) dAz += 360;
+
+            // Only draw if in view
+            if (Math.abs(dAz) > halfFov) continue;
+
+            float x = centerX + (float)(dAz * pixelsPerDegree);
+
+            // Draw line from bottom to top of screen
             canvas.drawLine(x, 0, x, height, gridLinePaint);
 
-            // Draw RA label at top
-            int raHours = ra / 15;
-            String label = raHours + "h";
-            canvas.drawText(label, x + 4, 20, gridLabelPaint);
+            // Draw azimuth label
+            String label;
+            if (az == 0) label = "N";
+            else if (az == 90) label = "E";
+            else if (az == 180) label = "S";
+            else if (az == 270) label = "W";
+            else label = az + "\u00b0";
+            canvas.drawText(label, x + 4, height - 20, gridLabelPaint);
         }
 
-        // Draw Dec lines (horizontal lines, every 15 degrees)
-        for (int dec = -75; dec <= 75; dec += 15) {
-            float y = ((90f - dec) / 180f) * height;
+        // Draw altitude lines (every 15 degrees) - these are horizontal lines
+        for (int alt = 0; alt <= 90; alt += 15) {
+            // Calculate angular distance from current view altitude
+            double dAlt = alt - altitudeOffset;
+
+            // Only draw if in view
+            if (Math.abs(dAlt) > halfFov) continue;
+
+            float y = centerY - (float)(dAlt * pixelsPerDegree);
+
+            // Draw line from left to right of screen
             canvas.drawLine(0, y, width, y, gridLinePaint);
 
-            // Draw Dec label at left
-            String label = (dec >= 0 ? "+" : "") + dec + "\u00b0";
+            // Draw altitude label
+            String label = alt + "\u00b0";
             canvas.drawText(label, 4, y - 4, gridLabelPaint);
         }
 
-        // Draw celestial equator (Dec = 0) with slightly stronger line
-        float equatorY = ((90f - 0) / 180f) * height;
-        Paint equatorPaint = new Paint(gridLinePaint);
-        equatorPaint.setStrokeWidth(1.5f);
-        equatorPaint.setColor(nightMode ? Color.argb(100, 180, 100, 100) : Color.argb(100, 150, 255, 150));
-        canvas.drawLine(0, equatorY, width, equatorY, equatorPaint);
-
-        // Draw ecliptic approximation (dashed, at roughly 23.5 degrees tilt)
-        // The ecliptic is the path the Sun appears to follow through the year
-        Paint eclipticPaint = new Paint(gridLinePaint);
-        eclipticPaint.setStrokeWidth(1.5f);
-        eclipticPaint.setColor(nightMode ? Color.argb(80, 200, 150, 100) : Color.argb(80, 255, 200, 100));
-        eclipticPaint.setPathEffect(new android.graphics.DashPathEffect(new float[]{10, 10}, 0));
-
-        // Draw ecliptic as a sine wave (simplified approximation)
-        android.graphics.Path eclipticPath = new android.graphics.Path();
-        float obliquity = 23.44f; // Earth's axial tilt in degrees
-        boolean firstPoint = true;
-        for (int ra = 0; ra <= 360; ra += 5) {
-            // Simplified ecliptic calculation: Dec varies sinusoidally with RA
-            float dec = (float) (obliquity * Math.sin(Math.toRadians(ra - 90)));
-            float x = (ra / 360f) * width;
-            float y = ((90f - dec) / 180f) * height;
-            if (firstPoint) {
-                eclipticPath.moveTo(x, y);
-                firstPoint = false;
-            } else {
-                eclipticPath.lineTo(x, y);
-            }
+        // Draw horizon line (altitude = 0) with stronger line if visible
+        double dAltHorizon = 0 - altitudeOffset;
+        if (Math.abs(dAltHorizon) <= halfFov) {
+            float horizonY = centerY - (float)(dAltHorizon * pixelsPerDegree);
+            Paint horizonPaint = new Paint(gridLinePaint);
+            horizonPaint.setStrokeWidth(2f);
+            horizonPaint.setColor(nightMode ? Color.argb(120, 180, 100, 100) : Color.argb(120, 100, 200, 100));
+            canvas.drawLine(0, horizonY, width, horizonY, horizonPaint);
         }
-        canvas.drawPath(eclipticPath, eclipticPaint);
 
-        Log.d(TAG, "GRID: Drew coordinate grid");
+        // Draw zenith point (altitude = 90) if visible
+        double dAltZenith = 90 - altitudeOffset;
+        if (Math.abs(dAltZenith) <= halfFov) {
+            float zenithY = centerY - (float)(dAltZenith * pixelsPerDegree);
+            Paint zenithPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            zenithPaint.setColor(nightMode ? Color.argb(150, 200, 150, 150) : Color.argb(150, 200, 200, 255));
+            zenithPaint.setStyle(Paint.Style.STROKE);
+            zenithPaint.setStrokeWidth(2f);
+            canvas.drawCircle(centerX, zenithY, 15f, zenithPaint);
+            canvas.drawText("Zenith", centerX + 20, zenithY, gridLabelPaint);
+        }
     }
 
     /**
@@ -1133,6 +1267,7 @@ public class SkyCanvasView extends View {
 
     /**
      * Finds the nearest star to the given touch coordinates.
+     * Uses the same Alt/Az projection as drawSimpleStarMap.
      *
      * @param touchX The x coordinate of the touch
      * @param touchY The y coordinate of the touch
@@ -1147,16 +1282,37 @@ public class SkyCanvasView extends View {
         StarData nearest = null;
         float minDist = maxDistance;
 
+        // Calculate LST for coordinate conversion (same as drawSimpleStarMap)
+        double lst = calculateLocalSiderealTime();
+
+        // Center of screen
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+
+        // Pixels per degree
+        float pixelsPerDegree = Math.min(width, height) / fieldOfView;
+
         for (StarData star : realStarData) {
             float ra = star.getRa();
             float dec = star.getDec();
 
-            // Normalize RA to 0-360 range (same as in drawSimpleStarMap)
-            if (ra < 0) ra += 360f;
-            if (ra >= 360) ra -= 360f;
+            // Convert RA/Dec to Alt/Az (same as drawSimpleStarMap)
+            double[] altAz = raDecToAltAz(ra, dec, lst);
+            double starAlt = altAz[0];
+            double starAz = altAz[1];
 
-            float x = (ra / 360f) * width;
-            float y = ((90f - dec) / 180f) * height;
+            // Skip stars below horizon
+            if (starAlt < -5) continue;
+
+            // Calculate angular distance from view center
+            double dAz = starAz - azimuthOffset;
+            if (dAz > 180) dAz -= 360;
+            if (dAz < -180) dAz += 360;
+            double dAlt = starAlt - altitudeOffset;
+
+            // Project to screen coordinates (same as drawSimpleStarMap)
+            float x = centerX + (float)(dAz * pixelsPerDegree);
+            float y = centerY - (float)(dAlt * pixelsPerDegree);
 
             float dist = (float) Math.sqrt(Math.pow(touchX - x, 2) + Math.pow(touchY - y, 2));
             if (dist < minDist) {

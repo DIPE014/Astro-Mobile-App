@@ -1118,15 +1118,25 @@ public class SkyMapActivity extends AppCompatActivity {
      * @param timeMillis the time in milliseconds since epoch
      */
     private void updateSkyForTime(long timeMillis) {
+        Log.d(TAG, "TIME_TRAVEL: updateSkyForTime called with: " + new Date(timeMillis));
+
         // Update astronomer model time
         if (astronomerModel != null) {
             astronomerModel.setTime(timeMillis);
+            Log.d(TAG, "TIME_TRAVEL: AstronomerModel time set");
+        } else {
+            Log.w(TAG, "TIME_TRAVEL: astronomerModel is null!");
         }
 
         // Reload star data for canvas with new time
         if (skyCanvasView != null) {
+            Log.d(TAG, "TIME_TRAVEL: Calling skyCanvasView.setTime()");
             skyCanvasView.setTime(timeMillis);
+            // Note: setTime() already calls invalidate(), but call it again to be sure
             skyCanvasView.invalidate();
+            Log.d(TAG, "TIME_TRAVEL: skyCanvasView invalidated");
+        } else {
+            Log.w(TAG, "TIME_TRAVEL: skyCanvasView is null!");
         }
 
         // Update planets layer for new time
@@ -1144,7 +1154,7 @@ public class SkyMapActivity extends AppCompatActivity {
             skyGLSurfaceView.requestLayerUpdate();
         }
 
-        Log.d(TAG, "Sky updated for time: " + new java.util.Date(timeMillis));
+        Log.d(TAG, "TIME_TRAVEL: Sky updated for time: " + new Date(timeMillis));
     }
 
     /**
