@@ -1,7 +1,7 @@
 # Progress Tracking
 
-**Last Updated**: 2026-01-23
-**Current Phase**: All Phases Complete
+**Last Updated**: 2026-01-25
+**Current Phase**: Phase 8 - New Features
 **Working Branch**: `trung/test`
 
 ---
@@ -10,15 +10,80 @@
 
 | Phase | Status | Progress |
 |-------|--------|----------|
-| Phase 1: Project Setup | 🟢 Complete | 100% |
-| Phase 2: Data Layer | 🟢 Complete | 100% |
-| Phase 3: Core Engine | 🟢 Complete | 100% |
-| Phase 4: Sky Renderer | 🟢 Complete | 100% |
-| Phase 5: UI Layer | 🟢 Complete | 100% |
-| Phase 6: Camera AR | 🟢 Complete | 100% |
-| Phase 7: Polish | 🟢 Complete | 100% |
+| Phase 1-7: Initial Build | 🟢 Complete | 100% |
+| **Phase 8: New Features** | 🔴 Not Started | 0% |
+
+### Phase 8 Features
+
+| Feature | Branch | Status |
+|---------|--------|--------|
+| GPS Tracking | `feature/gps-tracking` | 🔴 Not Started |
+| Magnitude Control | `feature/magnitude-control` | 🔴 Not Started |
+| Time Travel | `feature/time-travel` | 🔴 Not Started |
+| Planets | `feature/planets` | 🔴 Not Started |
+| Search + Arrow | `feature/search` | 🔴 Not Started |
+| Constellation Lines | `feature/constellation-lines` | 🔴 Not Started |
 
 **Legend**: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
+
+---
+
+## Phase 8: New Features
+
+### Feature 8.1: GPS Tracking
+**Branch:** `feature/gps-tracking`
+
+- [ ] Wire LocationController to SkyMapActivity via Dagger
+- [ ] Implement LocationListener in SkyMapActivity
+- [ ] Update SkyCanvasView.setObserverLocation() on GPS change
+- [ ] Add GPS status indicator in UI
+- [ ] Handle permission flow and fallback
+
+### Feature 8.2: Magnitude Control
+**Branch:** `feature/magnitude-control`
+
+- [ ] Add magnitude slider to SettingsActivity
+- [ ] Update SettingsViewModel with magnitude LiveData
+- [ ] Persist to SharedPreferences
+- [ ] Apply to StarsLayer on change
+
+### Feature 8.3: Time Travel
+**Branch:** `feature/time-travel`
+
+- [ ] Create TimeTravelClock.java
+- [ ] Create TimeTravelDialog.java
+- [ ] Create TimePlayerView.java overlay
+- [ ] Integrate with SkyMapActivity
+- [ ] Update star positions when time changes
+
+### Feature 8.4: Planets
+**Branch:** `feature/planets`
+
+- [ ] Add planet drawable icons
+- [ ] Create PlanetPositionCalculator.java
+- [ ] Create PlanetsLayer.java
+- [ ] Add planet rendering to SkyCanvasView
+- [ ] Implement togglePlanets()
+
+### Feature 8.5: Search + Arrow
+**Branch:** `feature/search`
+
+- [ ] Create PrefixStore.java
+- [ ] Create SearchIndex.java
+- [ ] Create SearchActivity.java
+- [ ] Create SearchArrowView.java
+- [ ] Integrate with SkyMapActivity
+
+### Feature 8.6: Constellation Lines
+**Branch:** `feature/constellation-lines`
+
+- [ ] Add line style options to Settings
+- [ ] Update ConstellationsLayer with configurable styles
+- [ ] Add optional glow effect
+
+---
+
+## Phases 1-7: Initial Build (Complete)
 
 ---
 
