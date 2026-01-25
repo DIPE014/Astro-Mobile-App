@@ -3,6 +3,7 @@ package com.astro.app.ui.skymap;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -202,6 +203,7 @@ public class SkyMapActivity extends AppCompatActivity {
         initializeViews();
         initializeManagers();
         setupViewModel();
+        setupSensorController();
         setupLocationController();
         observeViewModel();
         setupClickListeners();
@@ -227,6 +229,67 @@ public class SkyMapActivity extends AppCompatActivity {
         if (constellationRepository != null) {
             viewModel.setConstellationRepository(constellationRepository);
         }
+    }
+
+    /**
+     * Sets up the SensorController to receive orientation updates.
+     * Converts rotation vector to azimuth/altitude and updates the sky view.
+     */
+    private void setupSensorController() {
+        if (sensorController == null) {
+            Log.w(TAG, "SensorController is null, compass tracking unavailable");
+            return;
+        }
+
+        sensorController.setListener(rotationVector -> {
+            // Convert rotation vector to rotation matrix
+            float[] rotationMatrix = new float[9];
+            SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVector);
+
+            // Remap coordinate system for device orientation (phone held upright looking at sky)
+            float[] remappedMatrix = new float[9];
+            SensorManager.remapCoordinateSystem(rotationMatrix,
+                    SensorManager.AXIS_X, SensorManager.AXIS_Z, remappedMatrix);
+
+            // Get orientation angles from remapped rotation matrix
+            float[] orientationAngles = new float[3];
+            SensorManager.getOrientation(remappedMatrix, orientationAngles);
+
+            // Convert radians to degrees
+            // orientationAngles[0] = azimuth (rotation around Z axis, -pi to pi)
+            // orientationAngles[1] = pitch (rotation around X axis, -pi/2 to pi/2)
+            // orientationAngles[2] = roll (rotation around Y axis, -pi to pi)
+            float azimuth = (float) Math.toDegrees(orientationAngles[0]);
+            float pitch = (float) Math.toDegrees(orientationAngles[1]);
+
+            // Normalize azimuth to 0-360 range (0 = North, 90 = East)
+            if (azimuth < 0) {
+                azimuth += 360f;
+            }
+
+            // Convert pitch to altitude (0 = horizon, 90 = zenith)
+            // When phone is held upright facing forward, pitch is ~0
+            // When tilted up toward sky, pitch becomes negative
+            // So altitude = -pitch, clamped to 0-90 range
+            float altitude = -pitch;
+            altitude = Math.max(0f, Math.min(90f, altitude));
+
+            // Update the sky canvas view with new orientation
+            final float finalAzimuth = azimuth;
+            final float finalAltitude = altitude;
+            runOnUiThread(() -> {
+                if (skyCanvasView != null) {
+                    skyCanvasView.setOrientation(finalAzimuth, finalAltitude);
+                }
+
+                // Update search arrow if active
+                if (searchArrowView != null && searchArrowView.isActive()) {
+                    updateSearchArrow();
+                }
+            });
+        });
+
+        Log.d(TAG, "SensorController listener set up for compass tracking");
     }
 
     /**
@@ -989,6 +1052,11 @@ public class SkyMapActivity extends AppCompatActivity {
             skyGLSurfaceView.requestLayerUpdate();
         }
 
+        // Update Canvas-based view
+        if (skyCanvasView != null) {
+            skyCanvasView.setGridVisible(isGridEnabled);
+        }
+
         ImageView ivGrid = findViewById(R.id.ivGrid);
         if (ivGrid != null) {
             int tintColor = isGridEnabled ? R.color.icon_primary : R.color.icon_inactive;
@@ -1000,7 +1068,11 @@ public class SkyMapActivity extends AppCompatActivity {
      * Shows the time travel dialog to select a different date/time.
      */
     private void showTimeTravelDialog() {
-        TimeTravelDialogFragment dialog = TimeTravelDialogFragment.newInstance();
+        // Pass current time travel time (or current time if not in time travel mode)
+        long currentTime = (timeTravelClock != null)
+                ? timeTravelClock.getCurrentTimeMillis()
+                : System.currentTimeMillis();
+        TimeTravelDialogFragment dialog = TimeTravelDialogFragment.newInstance(currentTime);
         dialog.setCallback(new TimeTravelDialogFragment.TimeTravelCallback() {
             @Override
             public void onTimeTravelSelected(int year, int month, int day, int hour, int minute) {

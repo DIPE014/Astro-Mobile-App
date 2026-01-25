@@ -35,6 +35,7 @@ import java.util.Locale;
 public class TimeTravelDialogFragment extends DialogFragment {
 
     private static final String TAG = "TimeTravelDialog";
+    private static final String ARG_INITIAL_TIME = "initial_time";
 
     /** Callback interface for time travel selection */
     public interface TimeTravelCallback {
@@ -54,6 +55,20 @@ public class TimeTravelDialogFragment extends DialogFragment {
         return new TimeTravelDialogFragment();
     }
 
+    /**
+     * Creates a new instance with an initial time to display.
+     *
+     * @param initialTimeMillis The initial time to show in the dialog (milliseconds since epoch)
+     * @return A new TimeTravelDialogFragment instance
+     */
+    public static TimeTravelDialogFragment newInstance(long initialTimeMillis) {
+        TimeTravelDialogFragment fragment = new TimeTravelDialogFragment();
+        Bundle args = new Bundle();
+        args.putLong(ARG_INITIAL_TIME, initialTimeMillis);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     public void setCallback(TimeTravelCallback callback) {
         this.callback = callback;
     }
@@ -62,7 +77,14 @@ public class TimeTravelDialogFragment extends DialogFragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setStyle(DialogFragment.STYLE_NO_FRAME, R.style.Theme_AstroApp_Dialog_TimeTravel);
+
+        // Initialize with provided time or current time
         selectedDateTime = Calendar.getInstance();
+        Bundle args = getArguments();
+        if (args != null && args.containsKey(ARG_INITIAL_TIME)) {
+            long initialTime = args.getLong(ARG_INITIAL_TIME);
+            selectedDateTime.setTimeInMillis(initialTime);
+        }
     }
 
     @Nullable

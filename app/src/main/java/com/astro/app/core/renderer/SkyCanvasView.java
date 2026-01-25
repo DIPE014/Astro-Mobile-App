@@ -71,6 +71,15 @@ public class SkyCanvasView extends View {
     private static final int CONSTELLATION_LINE_COLOR = Color.argb(100, 100, 150, 255);
     private static final int CONSTELLATION_LINE_COLOR_NIGHT = Color.argb(100, 150, 50, 50);
 
+    // Grid data
+    private boolean showGrid = false;
+    private Paint gridLinePaint;
+    private Paint gridLabelPaint;
+    private static final int GRID_LINE_COLOR = Color.argb(60, 100, 200, 100);
+    private static final int GRID_LINE_COLOR_NIGHT = Color.argb(60, 150, 80, 80);
+    private static final int GRID_LABEL_COLOR = Color.argb(150, 100, 200, 100);
+    private static final int GRID_LABEL_COLOR_NIGHT = Color.argb(150, 150, 80, 80);
+
     // Rendered elements (computed from star data)
     private List<float[]> stars = new CopyOnWriteArrayList<>();  // x, y, size, color
     private List<float[]> lines = new CopyOnWriteArrayList<>();  // x1, y1, x2, y2, color
@@ -124,6 +133,16 @@ public class SkyCanvasView extends View {
         constellationLabelPaint.setTextSize(22f);
         constellationLabelPaint.setTextAlign(Paint.Align.CENTER);
         constellationLabelPaint.setColor(Color.argb(180, 150, 180, 255));
+
+        gridLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        gridLinePaint.setStyle(Paint.Style.STROKE);
+        gridLinePaint.setStrokeWidth(1f);
+        gridLinePaint.setColor(GRID_LINE_COLOR);
+
+        gridLabelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        gridLabelPaint.setTextSize(18f);
+        gridLabelPaint.setTextAlign(Paint.Align.LEFT);
+        gridLabelPaint.setColor(GRID_LABEL_COLOR);
     }
 
     /**
@@ -207,6 +226,24 @@ public class SkyCanvasView extends View {
      */
     public boolean isConstellationsVisible() {
         return showConstellations;
+    }
+
+    /**
+     * Sets the visibility of the coordinate grid.
+     *
+     * @param visible true to show the grid
+     */
+    public void setGridVisible(boolean visible) {
+        this.showGrid = visible;
+        Log.d(TAG, "GRID: Visibility set to " + visible);
+        invalidate();
+    }
+
+    /**
+     * Returns whether the coordinate grid is visible.
+     */
+    public boolean isGridVisible() {
+        return showGrid;
     }
 
     /**
@@ -345,7 +382,9 @@ public class SkyCanvasView extends View {
      * @return LST in degrees (0-360)
      */
     private double calculateLocalSiderealTime() {
+        // Use observation time (set by time travel) instead of current system time
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        cal.setTimeInMillis(observationTime);
 
         // Julian Date calculation
         int year = cal.get(Calendar.YEAR);
@@ -534,7 +573,11 @@ public class SkyCanvasView extends View {
 
         // Use simple star map mode if enabled and we have real star data
         if (useSimpleStarMap && realStarData != null && !realStarData.isEmpty()) {
-            // Draw constellation lines first (behind stars)
+            // Draw grid first (behind everything)
+            if (showGrid) {
+                drawGrid(canvas, width, height);
+            }
+            // Draw constellation lines (behind stars)
             if (showConstellations) {
                 drawConstellations(canvas, width, height);
             }
@@ -788,6 +831,80 @@ public class SkyCanvasView extends View {
         }
 
         Log.d(TAG, "CONSTELLATIONS: Drew " + linesDrawn + " lines, " + labelsDrawn + " labels");
+    }
+
+    /**
+     * Draws the coordinate grid (RA/Dec lines) on the sky map.
+     * Uses the same RA/Dec to screen coordinate mapping as stars.
+     *
+     * @param canvas Canvas to draw on
+     * @param width  Canvas width
+     * @param height Canvas height
+     */
+    private void drawGrid(Canvas canvas, int width, int height) {
+        // Set grid colors based on night mode
+        if (nightMode) {
+            gridLinePaint.setColor(GRID_LINE_COLOR_NIGHT);
+            gridLabelPaint.setColor(GRID_LABEL_COLOR_NIGHT);
+        } else {
+            gridLinePaint.setColor(GRID_LINE_COLOR);
+            gridLabelPaint.setColor(GRID_LABEL_COLOR);
+        }
+
+        // Draw RA lines (vertical lines, every 15 degrees = 1 hour)
+        for (int ra = 0; ra < 360; ra += 15) {
+            float x = (ra / 360f) * width;
+            canvas.drawLine(x, 0, x, height, gridLinePaint);
+
+            // Draw RA label at top
+            int raHours = ra / 15;
+            String label = raHours + "h";
+            canvas.drawText(label, x + 4, 20, gridLabelPaint);
+        }
+
+        // Draw Dec lines (horizontal lines, every 15 degrees)
+        for (int dec = -75; dec <= 75; dec += 15) {
+            float y = ((90f - dec) / 180f) * height;
+            canvas.drawLine(0, y, width, y, gridLinePaint);
+
+            // Draw Dec label at left
+            String label = (dec >= 0 ? "+" : "") + dec + "\u00b0";
+            canvas.drawText(label, 4, y - 4, gridLabelPaint);
+        }
+
+        // Draw celestial equator (Dec = 0) with slightly stronger line
+        float equatorY = ((90f - 0) / 180f) * height;
+        Paint equatorPaint = new Paint(gridLinePaint);
+        equatorPaint.setStrokeWidth(1.5f);
+        equatorPaint.setColor(nightMode ? Color.argb(100, 180, 100, 100) : Color.argb(100, 150, 255, 150));
+        canvas.drawLine(0, equatorY, width, equatorY, equatorPaint);
+
+        // Draw ecliptic approximation (dashed, at roughly 23.5 degrees tilt)
+        // The ecliptic is the path the Sun appears to follow through the year
+        Paint eclipticPaint = new Paint(gridLinePaint);
+        eclipticPaint.setStrokeWidth(1.5f);
+        eclipticPaint.setColor(nightMode ? Color.argb(80, 200, 150, 100) : Color.argb(80, 255, 200, 100));
+        eclipticPaint.setPathEffect(new android.graphics.DashPathEffect(new float[]{10, 10}, 0));
+
+        // Draw ecliptic as a sine wave (simplified approximation)
+        android.graphics.Path eclipticPath = new android.graphics.Path();
+        float obliquity = 23.44f; // Earth's axial tilt in degrees
+        boolean firstPoint = true;
+        for (int ra = 0; ra <= 360; ra += 5) {
+            // Simplified ecliptic calculation: Dec varies sinusoidally with RA
+            float dec = (float) (obliquity * Math.sin(Math.toRadians(ra - 90)));
+            float x = (ra / 360f) * width;
+            float y = ((90f - dec) / 180f) * height;
+            if (firstPoint) {
+                eclipticPath.moveTo(x, y);
+                firstPoint = false;
+            } else {
+                eclipticPath.lineTo(x, y);
+            }
+        }
+        canvas.drawPath(eclipticPath, eclipticPaint);
+
+        Log.d(TAG, "GRID: Drew coordinate grid");
     }
 
     /**
