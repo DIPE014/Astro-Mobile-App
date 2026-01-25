@@ -421,6 +421,40 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:rippleColor="@color/ripple_primary" />
 
+    <!-- GPS Status Indicator -->
+    <LinearLayout
+        android:id="@+id/gpsIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_medium"
+        android:layout_marginTop="@dimen/margin_small"
+        android:background="@drawable/bg_gps_indicator"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/padding_small"
+        android:paddingVertical="@dimen/padding_extra_small"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topControls">
+
+        <ImageView
+            android:id="@+id/ivGpsIcon"
+            android:layout_width="@dimen/icon_size_small"
+            android:layout_height="@dimen/icon_size_small"
+            android:contentDescription="@string/cd_gps_status"
+            android:src="@android:drawable/ic_menu_mylocation"
+            app:tint="@color/gps_searching" />
+
+        <TextView
+            android:id="@+id/tvGpsStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_extra_small"
+            android:text="@string/gps_searching"
+            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+            android:textColor="@color/text_secondary" />
+
+    </LinearLayout>
+
     <!-- Compass Indicator -->
     <FrameLayout
         android:id="@+id/compassContainer"

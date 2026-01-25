@@ -25,10 +25,12 @@ import androidx.lifecycle.ViewModelProvider;
 import com.astro.app.AstroApplication;
 import com.astro.app.R;
 import com.astro.app.core.control.AstronomerModel;
+import com.astro.app.core.control.LocationController;
 import com.astro.app.core.control.SensorController;
 import com.astro.app.core.layers.ConstellationsLayer;
 import com.astro.app.core.layers.GridLayer;
 import com.astro.app.core.layers.StarsLayer;
+import com.astro.app.core.math.LatLong;
 import com.astro.app.core.renderer.SkyCanvasView;
 import com.astro.app.core.renderer.SkyGLSurfaceView;
 import com.astro.app.core.renderer.SkyRenderer;
@@ -92,6 +94,9 @@ public class SkyMapActivity extends AppCompatActivity {
     @Inject
     AstronomerModel astronomerModel;
 
+    @Inject
+    LocationController locationController;
+
     // Camera components
     private CameraManager cameraManager;
     private CameraPermissionHandler permissionHandler;
@@ -111,6 +116,9 @@ public class SkyMapActivity extends AppCompatActivity {
     private TextView tvInfoPanelRA;
     private TextView tvInfoPanelDec;
     private FrameLayout loadingOverlay;
+    private View gpsIndicator;
+    private ImageView ivGpsIcon;
+    private TextView tvGpsStatus;
 
     // Layers
     private StarsLayer starsLayer;
@@ -125,6 +133,13 @@ public class SkyMapActivity extends AppCompatActivity {
     private boolean isGridEnabled = false;
     @Nullable
     private StarData selectedStar;
+
+    // GPS state
+    private boolean isGpsEnabled = false;
+    private float currentLatitude = 40.7128f;  // Default: New York
+    private float currentLongitude = -74.0060f;
+    private static final float DEFAULT_LATITUDE = 40.7128f;
+    private static final float DEFAULT_LONGITUDE = -74.0060f;
 
     // Permission launcher
     private final ActivityResultLauncher<String> cameraPermissionLauncher =
@@ -156,6 +171,7 @@ public class SkyMapActivity extends AppCompatActivity {
         initializeViews();
         initializeManagers();
         setupViewModel();
+        setupLocationController();
         observeViewModel();
         setupClickListeners();
 
@@ -179,6 +195,60 @@ public class SkyMapActivity extends AppCompatActivity {
         }
         if (constellationRepository != null) {
             viewModel.setConstellationRepository(constellationRepository);
+        }
+    }
+
+    /**
+     * Sets up the LocationController to receive GPS updates.
+     */
+    private void setupLocationController() {
+        if (locationController == null) {
+            Log.w(TAG, "LocationController is null, GPS tracking unavailable");
+            updateGpsIndicator(false, getString(R.string.gps_unavailable));
+            return;
+        }
+
+        locationController.setListener((latitude, longitude) -> {
+            Log.d(TAG, "GPS: Location updated - lat=" + latitude + ", lon=" + longitude);
+
+            // Store current location
+            currentLatitude = latitude;
+            currentLongitude = longitude;
+            isGpsEnabled = true;
+
+            // Update the sky canvas view with new location
+            runOnUiThread(() -> {
+                if (skyCanvasView != null) {
+                    skyCanvasView.setObserverLocation(latitude, longitude);
+                }
+
+                // Update astronomer model with real location
+                if (astronomerModel != null) {
+                    astronomerModel.setLocation(new LatLong(latitude, longitude));
+                }
+
+                // Update GPS indicator to show connected status
+                updateGpsIndicator(true, String.format("%.2f°, %.2f°", latitude, longitude));
+            });
+        });
+
+        // Initial GPS indicator state
+        updateGpsIndicator(false, getString(R.string.gps_searching));
+    }
+
+    /**
+     * Updates the GPS status indicator in the UI.
+     *
+     * @param connected Whether GPS has obtained a fix
+     * @param statusText Text to display (coordinates or status message)
+     */
+    private void updateGpsIndicator(boolean connected, String statusText) {
+        if (ivGpsIcon != null) {
+            int iconColor = connected ? R.color.gps_connected : R.color.gps_searching;
+            ivGpsIcon.setColorFilter(ContextCompat.getColor(this, iconColor));
+        }
+        if (tvGpsStatus != null) {
+            tvGpsStatus.setText(statusText);
         }
     }
 
@@ -290,6 +360,11 @@ public class SkyMapActivity extends AppCompatActivity {
         tvInfoPanelDec = findViewById(R.id.tvInfoPanelDec);
         loadingOverlay = findViewById(R.id.loadingOverlay);
         btnArToggle = findViewById(R.id.btnArToggle);
+
+        // GPS indicator views
+        gpsIndicator = findViewById(R.id.gpsIndicator);
+        ivGpsIcon = findViewById(R.id.ivGpsIcon);
+        tvGpsStatus = findViewById(R.id.tvGpsStatus);
 
         // Create PreviewView programmatically for camera
         cameraPreview = new PreviewView(this);
@@ -484,21 +559,42 @@ public class SkyMapActivity extends AppCompatActivity {
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (hasPermissions()) {
-                initializeSkyMap();
-            } else {
-                // Check if camera permission was denied
-                boolean cameraGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                        == PackageManager.PERMISSION_GRANTED;
+            // Check individual permission results
+            boolean cameraGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_GRANTED;
+            boolean locationGranted = hasLocationPermission();
 
+            // Handle location permission result
+            if (!locationGranted) {
+                // Location permission denied - use default location
+                Toast.makeText(this, R.string.permission_location_denied, Toast.LENGTH_SHORT).show();
+                currentLatitude = DEFAULT_LATITUDE;
+                currentLongitude = DEFAULT_LONGITUDE;
+                updateGpsIndicator(false, getString(R.string.gps_disabled));
+                Log.d(TAG, "GPS: Permission denied, using default location");
+            } else {
+                // Start GPS tracking
+                if (locationController != null) {
+                    locationController.start();
+                    updateGpsIndicator(false, getString(R.string.gps_searching));
+                }
+            }
+
+            // Handle camera permission result
+            if (cameraGranted || locationGranted) {
+                // At least one useful permission granted, initialize sky map
                 if (!cameraGranted) {
-                    // Fall back to map-only mode
                     Toast.makeText(this, R.string.permission_camera_denied_fallback, Toast.LENGTH_LONG).show();
                     setARModeEnabled(false);
                     initializeSkyMapOnly();
                 } else {
-                    finish();
+                    initializeSkyMap();
                 }
+            } else {
+                // Neither permission granted - still show sky map in basic mode
+                Toast.makeText(this, R.string.permission_camera_denied_fallback, Toast.LENGTH_LONG).show();
+                setARModeEnabled(false);
+                initializeSkyMapOnly();
             }
         }
     }
@@ -586,9 +682,10 @@ public class SkyMapActivity extends AppCompatActivity {
         skyCanvasView.setStarData(visibleStars);
         Log.d(TAG, "STARS: Star data passed to canvas view");
 
-        // Set default observer location (could be updated with GPS)
-        // Default to a location with good star visibility
-        skyCanvasView.setObserverLocation(40.7128, -74.0060);  // New York
+        // Set observer location - use current GPS coordinates if available, otherwise default
+        // GPS updates will automatically update this via the LocationListener
+        skyCanvasView.setObserverLocation(currentLatitude, currentLongitude);
+        Log.d(TAG, "STARS: Observer location set to " + currentLatitude + ", " + currentLongitude);
 
         // Set default view direction (looking north at 45 degrees altitude)
         skyCanvasView.setOrientation(0f, 45f);
@@ -955,10 +1052,24 @@ public class SkyMapActivity extends AppCompatActivity {
             sensorController.start();
         }
 
+        // Start GPS location updates if permission is granted
+        if (locationController != null && hasLocationPermission()) {
+            locationController.start();
+            updateGpsIndicator(false, getString(R.string.gps_searching));
+        }
+
         // Resume camera if AR mode is enabled
         if (isARModeEnabled && permissionHandler != null && permissionHandler.hasCameraPermission()) {
             startCameraPreview();
         }
+    }
+
+    /**
+     * Checks if location permission is granted.
+     */
+    private boolean hasLocationPermission() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override
@@ -969,6 +1080,11 @@ public class SkyMapActivity extends AppCompatActivity {
         // Stop sensors to save battery
         if (sensorController != null) {
             sensorController.stop();
+        }
+
+        // Stop GPS location updates to save battery
+        if (locationController != null) {
+            locationController.stop();
         }
 
         // Stop camera
