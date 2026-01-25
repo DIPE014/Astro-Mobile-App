@@ -227,6 +227,13 @@ public class AstronomerModelImpl implements AstronomerModel {
         calculateLocalNorthAndUpInCelestialCoords(true);
     }
 
+    @Override
+    public void setTime(long timeMillis) {
+        // Create a fixed-time clock for this specific time
+        this.clock = () -> timeMillis;
+        calculateLocalNorthAndUpInCelestialCoords(true);
+    }
+
     // ==================== Location Methods ====================
 
     @Override

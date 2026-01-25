@@ -165,6 +165,32 @@
         <item name="materialAlertDialogBodyTextStyle">@style/TextAppearance.AstroApp.AlertDialog.Body</item>
     </style>
 
+    <!-- Time Travel Dialog Theme -->
+    <style name="Theme.AstroApp.Dialog.TimeTravel" parent="Theme.Material3.Dark.Dialog">
+        <item name="colorPrimary">@color/md_theme_dark_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
+    <!-- Date Picker Theme -->
+    <style name="Theme.AstroApp.DatePicker" parent="ThemeOverlay.Material3.MaterialCalendar">
+        <item name="colorPrimary">@color/md_theme_dark_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
+    </style>
+
+    <!-- Time Picker Theme -->
+    <style name="Theme.AstroApp.TimePicker" parent="ThemeOverlay.Material3.MaterialTimePicker">
+        <item name="colorPrimary">@color/md_theme_dark_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
+    </style>
+
     <!-- Bottom Sheet Dialog Theme -->
     <style name="ThemeOverlay.AstroApp.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/Widget.AstroApp.BottomSheet</item>

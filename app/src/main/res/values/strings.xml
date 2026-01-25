@@ -186,6 +186,20 @@
     <string name="gps_unavailable">GPS Unavailable</string>
     <string name="cd_gps_status">GPS status indicator</string>
 
+    <!-- Time Travel Dialog -->
+    <string name="time_travel_description">View the night sky at any date and time</string>
+    <string name="pick_date">Pick Date</string>
+    <string name="pick_time">Pick Time</string>
+    <string name="quick_presets">Quick Presets</string>
+    <string name="tonight">Tonight 9 PM</string>
+    <string name="midnight">Midnight</string>
+    <string name="sunrise">Sunrise</string>
+    <string name="sunset">Sunset</string>
+    <string name="real_time">Real Time</string>
+    <string name="go_to_time">Go To Time</string>
+    <string name="time_travel_active">Time Travel Active</string>
+    <string name="cd_time_travel">Time travel button</string>
+
     <!-- Accessibility -->
     <string name="cd_star_icon">Star icon</string>
     <string name="cd_planet_icon">Planet icon</string>
