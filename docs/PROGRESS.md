@@ -11,7 +11,7 @@
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Phase 1-7: Initial Build | 🟢 Complete | 100% |
-| **Phase 8: New Features** | 🟡 In Progress | 33% (2/6) |
+| **Phase 8: New Features** | 🟡 In Progress | 50% (3/6) |
 
 ### Phase 8 Features
 
@@ -19,7 +19,7 @@
 |---------|--------|--------|
 | GPS Tracking | `feature/gps-tracking` | 🟢 Complete |
 | Magnitude Control | `feature/magnitude-control` | 🟢 Complete |
-| Time Travel | `feature/time-travel` | 🔴 Not Started |
+| Time Travel | `feature/time-travel` | 🟢 Complete |
 | Planets | `feature/planets` | 🔴 Not Started |
 | Search + Arrow | `feature/search` | 🔴 Not Started |
 | Constellation Lines | `feature/constellation-lines` | 🔴 Not Started |
@@ -68,12 +68,21 @@
 
 ### Feature 8.3: Time Travel
 **Branch:** `feature/time-travel`
+**Status:** 🟢 Complete
 
-- [ ] Create TimeTravelClock.java
-- [ ] Create TimeTravelDialog.java
-- [ ] Create TimePlayerView.java overlay
-- [ ] Integrate with SkyMapActivity
-- [ ] Update star positions when time changes
+- [x] Create TimeTravelClock.java
+- [x] Create TimeTravelDialogFragment.java with Material Design 3 UI
+- [x] Add setTime() method to AstronomerModel and SkyCanvasView
+- [x] Integrate with SkyMapActivity
+- [x] Update star positions when time changes
+
+**Commits:**
+- `122fb6e` [feat] Implement time travel feature
+
+**Files Added:**
+- `TimeTravelClock.java` - Clock with time offset support
+- `TimeTravelDialogFragment.java` - Date/time picker dialog
+- `dialog_time_travel.xml` - Dialog layout with quick presets
 
 ### Feature 8.4: Planets
 **Branch:** `feature/planets`
