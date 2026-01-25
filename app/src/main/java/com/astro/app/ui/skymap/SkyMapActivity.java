@@ -1076,12 +1076,20 @@ public class SkyMapActivity extends AppCompatActivity {
         dialog.setCallback(new TimeTravelDialogFragment.TimeTravelCallback() {
             @Override
             public void onTimeTravelSelected(int year, int month, int day, int hour, int minute) {
-                Log.d(TAG, "Time travel to: " + year + "-" + month + "-" + day + " " + hour + ":" + minute);
+                Log.d(TAG, "TIME_TRAVEL: Callback received: " + year + "-" + month + "-" + day + " " + hour + ":" + minute);
                 if (timeTravelClock != null) {
                     timeTravelClock.travelToDateTime(year, month, day, hour, minute);
+                    long newTime = timeTravelClock.getCurrentTimeMillis();
+                    Log.d(TAG, "TIME_TRAVEL: Clock set to: " + new Date(newTime));
+                    Toast.makeText(SkyMapActivity.this,
+                        "Time travel to: " + year + "-" + month + "-" + day + " " + hour + ":" + minute,
+                        Toast.LENGTH_SHORT).show();
                     updateTimeTravelIndicator(true);
                     // Update sky view with new time
-                    updateSkyForTime(timeTravelClock.getCurrentTimeMillis());
+                    updateSkyForTime(newTime);
+                } else {
+                    Log.e(TAG, "TIME_TRAVEL: timeTravelClock is NULL!");
+                    Toast.makeText(SkyMapActivity.this, "Error: TimeTravelClock not initialized", Toast.LENGTH_SHORT).show();
                 }
             }
 

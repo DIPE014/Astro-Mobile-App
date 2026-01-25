@@ -420,8 +420,18 @@ public class SkyCanvasView extends View {
         lst = lst % 360;
         if (lst < 0) lst += 360;
 
+        // Log LST for time travel debugging (only log occasionally to avoid spam)
+        if (lastLoggedLst < 0 || Math.abs(lst - lastLoggedLst) > 1.0) {
+            Log.d(TAG, "TIME_TRAVEL: LST = " + String.format("%.2f", lst) + "° for time " +
+                new java.util.Date(observationTime));
+            lastLoggedLst = lst;
+        }
+
         return lst;
     }
+
+    // Track last logged LST to reduce log spam
+    private double lastLoggedLst = -1;
 
     /**
      * Converts Right Ascension/Declination to Altitude/Azimuth.
