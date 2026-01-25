@@ -11,7 +11,7 @@
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Phase 1-7: Initial Build | 🟢 Complete | 100% |
-| **Phase 8: New Features** | 🟡 In Progress | 67% (4/6) |
+| **Phase 8: New Features** | 🟢 Complete | 100% (6/6) |
 
 ### Phase 8 Features
 
@@ -21,8 +21,8 @@
 | Magnitude Control | `feature/magnitude-control` | 🟢 Complete |
 | Time Travel | `feature/time-travel` | 🟢 Complete |
 | Planets | `feature/planets` | 🟢 Complete |
-| Search + Arrow | `feature/search` | 🔴 Not Started |
-| Constellation Lines | `feature/constellation-lines` | 🔴 Not Started |
+| Search + Arrow | `feature/search` | 🟢 Complete |
+| Constellation Lines | `feature/constellation-lines` | 🟢 Complete |
 
 **Legend**: 🔴 Not Started | 🟡 In Progress | 🟢 Complete
 
@@ -108,19 +108,55 @@
 
 ### Feature 8.5: Search + Arrow
 **Branch:** `feature/search`
+**Status:** 🟢 Complete
 
-- [ ] Create PrefixStore.java
-- [ ] Create SearchIndex.java
-- [ ] Create SearchActivity.java
-- [ ] Create SearchArrowView.java
-- [ ] Integrate with SkyMapActivity
+- [x] Create PrefixStore.java (trie-based autocomplete)
+- [x] Create SearchIndex.java (aggregates stars, planets, constellations)
+- [x] Create SearchActivity.java (Material Design 3 search UI)
+- [x] Create SearchResultAdapter.java (RecyclerView adapter)
+- [x] Create SearchArrowView.java (directional arrow for off-screen targets)
+- [x] Create SearchResult.java (search result model)
+- [x] Integrate with SkyMapActivity (ActivityResultLauncher, navigation)
+
+**Commits:**
+- `9586acd` [feat] Implement search functionality with directional arrow
+
+**Files Added:**
+- `PrefixStore.java` - Trie data structure for autocomplete suggestions
+- `SearchIndex.java` - Aggregates search across stars, planets, constellations
+- `SearchResult.java` - Search result model with ObjectType enum
+- `SearchArrowView.java` - Custom view for pointing to off-screen targets
+- `SearchActivity.java` - Material Design 3 search UI with autocomplete
+- `SearchResultAdapter.java` - RecyclerView adapter for search results
+- `activity_search.xml` - Search activity layout
+- `item_search_result.xml` - Search result item layout
+- `bg_circle_surface.xml` - Circle drawable for icons
+
+**Files Modified:**
+- `SkyMapActivity.java` - Added openSearch(), handleSearchResult(), updateSearchArrow()
+- `SkyCanvasView.java` - Added getViewRa(), getViewDec() methods
+- `ConstellationData.java` - Added getCenterRa(), getCenterDec() methods
+- `AppComponent.java` - Added inject() for SearchActivity
+- `AndroidManifest.xml` - Registered SearchActivity
+- `activity_sky_map.xml` - Added SearchArrowView overlay
 
 ### Feature 8.6: Constellation Lines
 **Branch:** `feature/constellation-lines`
+**Status:** 🟢 Complete
 
-- [ ] Add line style options to Settings
-- [ ] Update ConstellationsLayer with configurable styles
-- [ ] Add optional glow effect
+- [x] Add constellation data storage to SkyCanvasView
+- [x] Implement drawConstellations() method
+- [x] Add constellation visibility toggle
+- [x] Connect toggle button to Canvas-based renderer
+- [x] Add star lookup with fallback strategies
+- [x] Support coordinate-based star matching
+
+**Commits:**
+- `69653b6` [feat] Implement constellation line rendering in Canvas view
+
+**Files Modified:**
+- `SkyCanvasView.java` - Added constellation rendering (data storage, drawConstellations, findStarForConstellation, findNearestStarByCoords)
+- `SkyMapActivity.java` - Added constellation data loading, connected toggle to canvas view
 
 ---
 
