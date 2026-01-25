@@ -271,6 +271,14 @@ public class SkyMapActivity extends AppCompatActivity {
             }
         });
 
+        // Observe magnitude limit changes to reload star data
+        settingsViewModel.getMagnitudeLimit().observe(this, magnitude -> {
+            if (magnitude != null && skyCanvasView != null) {
+                Log.d(TAG, "Magnitude limit changed to: " + magnitude);
+                loadStarDataForCanvas();
+            }
+        });
+
         // Observe ViewModel night mode state
         viewModel.getNightMode().observe(this, this::onNightModeChanged);
 
@@ -667,9 +675,15 @@ public class SkyMapActivity extends AppCompatActivity {
             return;
         }
 
-        // Load stars with magnitude up to 6.0 (naked eye visibility)
-        List<StarData> visibleStars = starRepository.getStarsByMagnitude(6.0f);
-        Log.d(TAG, "STARS: Loaded " + visibleStars.size() + " stars from repository");
+        // Get magnitude limit from settings (default 6.5 for naked eye visibility)
+        Float magnitudeLimit = settingsViewModel.getMagnitudeLimit().getValue();
+        if (magnitudeLimit == null) {
+            magnitudeLimit = 6.5f;
+        }
+
+        // Load stars up to the configured magnitude limit
+        List<StarData> visibleStars = starRepository.getStarsByMagnitude(magnitudeLimit);
+        Log.d(TAG, "STARS: Loaded " + visibleStars.size() + " stars with magnitude <= " + magnitudeLimit);
 
         if (visibleStars.isEmpty()) {
             Log.e(TAG, "STARS: No stars loaded! Check protobuf parsing and assets.");
