@@ -11,14 +11,14 @@
 | Phase | Status | Progress |
 |-------|--------|----------|
 | Phase 1-7: Initial Build | 🟢 Complete | 100% |
-| **Phase 8: New Features** | 🟡 In Progress | 17% (1/6) |
+| **Phase 8: New Features** | 🟡 In Progress | 33% (2/6) |
 
 ### Phase 8 Features
 
 | Feature | Branch | Status |
 |---------|--------|--------|
 | GPS Tracking | `feature/gps-tracking` | 🟢 Complete |
-| Magnitude Control | `feature/magnitude-control` | 🔴 Not Started |
+| Magnitude Control | `feature/magnitude-control` | 🟢 Complete |
 | Time Travel | `feature/time-travel` | 🔴 Not Started |
 | Planets | `feature/planets` | 🔴 Not Started |
 | Search + Arrow | `feature/search` | 🔴 Not Started |
@@ -52,11 +52,19 @@
 
 ### Feature 8.2: Magnitude Control
 **Branch:** `feature/magnitude-control`
+**Status:** 🟢 Complete
 
-- [ ] Add magnitude slider to SettingsActivity
-- [ ] Update SettingsViewModel with magnitude LiveData
-- [ ] Persist to SharedPreferences
-- [ ] Apply to StarsLayer on change
+- [x] Add magnitude slider to SettingsActivity (already existed)
+- [x] Update SettingsViewModel with magnitude LiveData (already existed)
+- [x] Persist to SharedPreferences (already existed)
+- [x] Apply to StarsLayer on change
+- [x] Wire settings to SkyCanvasView star loading
+
+**Commits:**
+- `0a57d21` [feat] Wire magnitude control to star filtering
+
+**Files Modified:**
+- `SkyMapActivity.java` - Use settings magnitude when loading stars, observe changes
 
 ### Feature 8.3: Time Travel
 **Branch:** `feature/time-travel`
