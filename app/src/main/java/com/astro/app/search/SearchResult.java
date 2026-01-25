@@ -22,10 +22,20 @@ public class SearchResult {
 
         private final String displayName;
 
+        /**
+         * Creates an enum instance with the specified human-readable display name.
+         *
+         * @param displayName the human-readable name for this object type (e.g., "Star")
+         */
         ObjectType(String displayName) {
             this.displayName = displayName;
         }
 
+        /**
+         * Human-readable name for this object type.
+         *
+         * @return the display name (for example, "Star", "Planet")
+         */
         public String getDisplayName() {
             return displayName;
         }
@@ -49,25 +59,25 @@ public class SearchResult {
     private final String objectId;
 
     /**
-     * Creates a search result.
+     * Constructs a SearchResult with the given display name, celestial coordinates, and object type.
      *
-     * @param name       Display name
-     * @param ra         Right Ascension in degrees
-     * @param dec        Declination in degrees
-     * @param objectType Type of celestial object
+     * @param name       display name of the object
+     * @param ra         right ascension in degrees (0–360)
+     * @param dec        declination in degrees (−90–+90)
+     * @param objectType type of the celestial object
      */
     public SearchResult(@NonNull String name, float ra, float dec, @NonNull ObjectType objectType) {
         this(name, ra, dec, objectType, null);
     }
 
     /**
-     * Creates a search result with an object ID.
+     * Constructs a SearchResult with an optional object identifier.
      *
-     * @param name       Display name
-     * @param ra         Right Ascension in degrees
-     * @param dec        Declination in degrees
-     * @param objectType Type of celestial object
-     * @param objectId   Optional object ID for further lookup
+     * @param name       display name of the object (non-null)
+     * @param ra         Right Ascension in degrees, in range 0–360
+     * @param dec        Declination in degrees, in range -90–90
+     * @param objectType type of celestial object (non-null)
+     * @param objectId   optional identifier for further lookup; may be null
      */
     public SearchResult(@NonNull String name, float ra, float dec,
                         @NonNull ObjectType objectType, String objectId) {
@@ -79,9 +89,9 @@ public class SearchResult {
     }
 
     /**
-     * Returns the display name of the object.
+     * The object's display name.
      *
-     * @return Object name
+     * @return the object's display name
      */
     @NonNull
     public String getName() {
@@ -89,27 +99,27 @@ public class SearchResult {
     }
 
     /**
-     * Returns the Right Ascension in degrees.
+     * Gets the Right Ascension in degrees.
      *
-     * @return RA in degrees (0-360)
+     * @return the Right Ascension in degrees, in the range 0 to 360
      */
     public float getRa() {
         return ra;
     }
 
     /**
-     * Returns the Declination in degrees.
+     * Gets the Declination in degrees.
      *
-     * @return Dec in degrees (-90 to +90)
+     * @return Declination in degrees, in the range -90 to +90
      */
     public float getDec() {
         return dec;
     }
 
     /**
-     * Returns the type of celestial object.
+     * Gets the celestial object's type.
      *
-     * @return Object type
+     * @return the object's {@link ObjectType} (never {@code null})
      */
     @NonNull
     public ObjectType getObjectType() {
@@ -117,18 +127,18 @@ public class SearchResult {
     }
 
     /**
-     * Returns the optional object ID.
+     * Gets the optional identifier associated with this search result.
      *
-     * @return Object ID, or null if not set
+     * @return the object ID, or {@code null} if not set
      */
     public String getObjectId() {
         return objectId;
     }
 
     /**
-     * Converts the coordinates to a 3D unit vector.
+     * Convert the object's Right Ascension and Declination into a 3D unit Cartesian vector.
      *
-     * @return float array [x, y, z]
+     * @return a length-3 float array containing the unit vector [x, y, z] in equatorial Cartesian coordinates
      */
     @NonNull
     public float[] toVector3() {
@@ -142,6 +152,12 @@ public class SearchResult {
         return new float[] {x, y, z};
     }
 
+    /**
+     * Determines whether another object represents the same search result.
+     *
+     * @param o the object to compare with this instance
+     * @return `true` if {@code o} is a {@code SearchResult} with equal `name`, `ra`, `dec`, and `objectType`; `false` otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -153,6 +169,11 @@ public class SearchResult {
                objectType == that.objectType;
     }
 
+    /**
+     * Computes a hash code derived from the search result's name, right ascension, declination, and object type.
+     *
+     * @return an int hash code based on the name, ra, dec, and object type
+     */
     @Override
     public int hashCode() {
         int result = name.hashCode();
@@ -162,6 +183,11 @@ public class SearchResult {
         return result;
     }
 
+    /**
+     * Create a compact, human-readable representation of the search result.
+     *
+     * @return the string "SearchResult{name='NAME', ra=RA, dec=DEC, type=TYPE}" where NAME and TYPE are the object's name and type, and RA/DEC are formatted to two decimal places
+     */
     @Override
     @NonNull
     public String toString() {

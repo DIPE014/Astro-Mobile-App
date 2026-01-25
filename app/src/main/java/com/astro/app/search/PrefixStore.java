@@ -55,12 +55,11 @@ public class PrefixStore {
     private final TrieNode root = new TrieNode();
 
     /**
-     * Adds a string to the prefix store.
+     * Indexes the given string for prefix searches while preserving its original capitalization for results.
      *
-     * <p>The string is indexed in a case-insensitive manner, but the original
-     * capitalization is preserved in the results.</p>
+     * The string is stored in a case-insensitive manner (lowercased for indexing); an empty string is ignored.
      *
-     * @param string The string to add
+     * @param string the string to index (original capitalization is preserved in query results)
      */
     public void add(@NonNull String string) {
         if (string.isEmpty()) {
@@ -135,9 +134,9 @@ public class PrefixStore {
     }
 
     /**
-     * Checks if the prefix store contains any entries.
+     * Determine whether the store contains no entries.
      *
-     * @return true if the store is empty
+     * @return `true` if the store contains no entries, `false` otherwise
      */
     public boolean isEmpty() {
         return root.children.isEmpty();
@@ -152,16 +151,19 @@ public class PrefixStore {
     }
 
     /**
-     * Returns the total number of unique strings stored.
+     * Compute the total number of unique strings stored in the trie.
      *
-     * @return Count of stored strings
+     * @return the number of unique strings contained in this PrefixStore
      */
     public int size() {
         return countStrings(root);
     }
 
     /**
-     * Recursively counts strings in the trie.
+     * Count the number of stored strings in the subtree rooted at the given node.
+     *
+     * @param node the trie node serving as the root of the subtree to count
+     * @return the total number of unique strings stored in that subtree
      */
     private int countStrings(@NonNull TrieNode node) {
         int count = node.results.size();

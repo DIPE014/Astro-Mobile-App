@@ -14,24 +14,37 @@ import kotlin.math.log10
  * A celestial object that lives in our solar system.
  */
 abstract class SolarSystemObject(protected val solarSystemBody : SolarSystemBody) : MovingObject() {
+    /**
+     * The update frequency for this solar system object.
+     *
+     * @return The update frequency in milliseconds.
+     */
     fun getUpdateFrequencyMs(): Long {
         return solarSystemBody.updateFrequencyMs
     }
 
     /**
-     * Returns the resource id for the string corresponding to the name of this
-     * planet.
+     * Get the string resource ID for this solar system object's name.
+     *
+     * @return The string resource ID corresponding to the object's name.
      */
     fun getNameResourceId(): Int {
         return solarSystemBody.nameResourceId
     }
 
-    /** Returns the resource id for the planet's image.  */
+    /**
+ * Provides the drawable resource ID for this body's image at the given time.
+ *
+ * @param time The moment used to determine the body's appearance (for example, phase or orientation).
+ * @return The drawable resource ID representing the body's image for the specified time.
+ */
     abstract fun getImageResourceId(time: Date): Int
 
     /**
-     * Calculate the percent of the body that is illuminated. The value returned
-     * is a fraction in the range from 0.0 to 100.0.
+     * Calculates the illuminated fraction of the body's disk as a percentage (0.0–100.0).
+     *
+     * @param time The epoch at which to compute illumination.
+     * @return The illuminated percentage, where 0.0 means no illumination and 100.0 means fully illuminated.
      */
     @VisibleForTesting
     open fun calculatePercentIlluminated(time: Date): Float {
@@ -40,7 +53,13 @@ abstract class SolarSystemObject(protected val solarSystemBody : SolarSystemBody
     }
 
     /**
-     * Calculates the phase angle of the planet, in degrees.
+     * Compute the geocentric phase angle of this solar system body for the given time.
+     *
+     * For the Moon this uses an elongation-based approximation; for other bodies the
+     * returned angle is the geocentric phase angle computed from heliocentric positions.
+     *
+     * @param time The time of observation.
+     * @return The phase angle in degrees (0..180).
      */
     @VisibleForTesting
     open fun calculatePhaseAngle(time: Date): Float {
@@ -76,7 +95,15 @@ abstract class SolarSystemObject(protected val solarSystemBody : SolarSystemBody
         ) * RADIANS_TO_DEGREES
     }
 
-    // Experimental code used to scale planetary images.
+    /**
+     * Provides an experimental scale factor for rendering the object's image based on its SolarSystemBody.
+     *
+     * Maps specific bodies to predetermined float sizes (fraction of some base dimension):
+     * Sun, Moon -> 0.02; Mercury, Venus, Mars, Pluto -> 0.01; Jupiter -> 0.025; Uranus, Neptune -> 0.015; Saturn -> 0.035.
+     *
+     * @return A float scale factor to use for the planetary image.
+     * @throws RuntimeException If the object's SolarSystemBody is not covered by the mapping.
+     */
     fun getPlanetaryImageSize(): Float {
         return when (this.solarSystemBody) {
             SolarSystemBody.Sun, SolarSystemBody.Moon -> 0.02f
@@ -89,7 +116,11 @@ abstract class SolarSystemObject(protected val solarSystemBody : SolarSystemBody
     }
 
     /**
-     * Calculates the planet's magnitude for the given date.
+     * Compute the object's apparent visual magnitude at the specified time.
+     *
+     * @param time The date/time for which to compute the magnitude.
+     * @return The apparent visual magnitude (smaller values indicate a brighter appearance).
+     * @throws RuntimeException If no magnitude formula exists for this solar system body.
      */
     open fun getMagnitude(time: Date): Float {
         // First, determine position in the solar system.

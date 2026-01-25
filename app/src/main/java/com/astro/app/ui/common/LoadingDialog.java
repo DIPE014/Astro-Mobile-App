@@ -39,10 +39,10 @@ public class LoadingDialog extends DialogFragment {
     private TextView messageTextView;
 
     /**
-     * Creates a new instance of LoadingDialog with a custom message.
+     * Create a LoadingDialog configured with the provided message and non-cancelable by default.
      *
-     * @param message The message to display
-     * @return A new LoadingDialog instance
+     * @param message the message to display in the dialog, or null to hide the message view
+     * @return the configured LoadingDialog with cancelable set to false
      */
     @NonNull
     public static LoadingDialog newInstance(@Nullable String message) {
@@ -66,6 +66,11 @@ public class LoadingDialog extends DialogFragment {
         return dialog;
     }
 
+    /**
+     * Initializes the dialog's message and cancelable behavior from the fragment arguments and applies the cancelable setting.
+     *
+     * @param savedInstanceState previously saved state, if any
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,6 +81,14 @@ public class LoadingDialog extends DialogFragment {
         setCancelable(isCancelableOnTouchOutside);
     }
 
+    /**
+     * Create and configure the loading dialog UI with the currently set message and cancel behavior.
+     *
+     * The returned dialog contains the inflated loading layout, shows the message if one was provided,
+     * applies the fragment's cancelable setting, and sets a transparent window background when available.
+     *
+     * @return the AlertDialog configured as the loading dialog
+     */
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
@@ -109,9 +122,13 @@ public class LoadingDialog extends DialogFragment {
     }
 
     /**
-     * Updates the loading message.
+     * Updates the displayed loading message and its visibility.
      *
-     * @param message The new message to display
+     * Sets the internal message value and, if the dialog's view has been created, updates the message
+     * TextView: the view is set to visible and updated when `message` is non-empty, and hidden when
+     * `message` is null or empty.
+     *
+     * @param message the message to display; if null or empty the message view will be hidden
      */
     public void setMessage(@Nullable String message) {
         this.message = message;
@@ -126,9 +143,9 @@ public class LoadingDialog extends DialogFragment {
     }
 
     /**
-     * Shows the loading dialog.
+     * Shows the dialog using the provided FragmentManager when it is not already added and the manager's state is not saved.
      *
-     * @param fragmentManager The FragmentManager to use
+     * @param fragmentManager the FragmentManager used to perform the show operation
      */
     public void show(@NonNull FragmentManager fragmentManager) {
         if (!isAdded() && !fragmentManager.isStateSaved()) {
@@ -137,7 +154,9 @@ public class LoadingDialog extends DialogFragment {
     }
 
     /**
-     * Dismisses the loading dialog safely.
+     * Dismisses the dialog only if it is currently added and the FragmentManager state is not saved.
+     *
+     * If those conditions are not met, the method does nothing to avoid IllegalStateException.
      */
     public void dismissSafely() {
         if (isAdded() && !isStateSaved()) {
@@ -168,10 +187,10 @@ public class LoadingDialog extends DialogFragment {
         }
 
         /**
-         * Sets whether the dialog can be canceled.
+         * Configure whether the created LoadingDialog can be canceled by user actions.
          *
-         * @param cancelable true if cancelable
-         * @return The Builder instance
+         * @param cancelable `true` to allow canceling the dialog, `false` to prevent it
+         * @return this Builder instance
          */
         @NonNull
         public Builder setCancelable(boolean cancelable) {
@@ -180,9 +199,9 @@ public class LoadingDialog extends DialogFragment {
         }
 
         /**
-         * Builds the LoadingDialog instance.
+         * Create a LoadingDialog configured with the builder's settings.
          *
-         * @return A new LoadingDialog
+         * @return a {@link LoadingDialog} instance configured with the builder's message and cancelable flag
          */
         @NonNull
         public LoadingDialog build() {
@@ -190,10 +209,10 @@ public class LoadingDialog extends DialogFragment {
         }
 
         /**
-         * Builds and shows the LoadingDialog.
+         * Builds a LoadingDialog with the builder's configuration and shows it using the provided FragmentManager.
          *
-         * @param fragmentManager The FragmentManager to use
-         * @return The shown LoadingDialog
+         * @param fragmentManager the FragmentManager used to show the dialog
+         * @return the shown LoadingDialog
          */
         @NonNull
         public LoadingDialog show(@NonNull FragmentManager fragmentManager) {
@@ -222,19 +241,22 @@ public class LoadingDialog extends DialogFragment {
         private TextView messageTextView;
 
         /**
-         * Creates a new Simple loading dialog.
+         * Constructs a lightweight, non-lifecycle-managed loading dialog using the provided context.
          *
-         * @param context The context
+         * @param context the Context used to create and display the dialog; must be non-null (typically an Activity context)
          */
         public Simple(@NonNull Context context) {
             this.context = context;
         }
 
         /**
-         * Sets the loading message.
+         * Set the loading message displayed by this Simple dialog.
          *
-         * @param message The message
-         * @return The Simple instance
+         * If `message` is `null` or empty, the message view is hidden; if the dialog is already shown,
+         * the visible message is updated immediately.
+         *
+         * @param message the message to display, or `null`/empty to hide the message
+         * @return this Simple instance for chaining
          */
         @NonNull
         public Simple setMessage(@Nullable String message) {
@@ -251,7 +273,12 @@ public class LoadingDialog extends DialogFragment {
         }
 
         /**
-         * Shows the loading dialog.
+         * Displays a non-lifecycle loading dialog using the stored Context.
+         *
+         * If a dialog is already showing this method does nothing. Otherwise it creates a new Dialog,
+         * inflates the loading layout, applies a transparent background and wrap-content sizing,
+         * sets non-cancelable behavior, updates the message view visibility/text from the current
+         * message value, and shows the dialog.
          */
         public void show() {
             if (dialog != null && dialog.isShowing()) {
@@ -297,9 +324,9 @@ public class LoadingDialog extends DialogFragment {
         }
 
         /**
-         * Checks if the dialog is currently showing.
+         * Reports whether the underlying dialog is currently visible to the user.
          *
-         * @return true if showing
+         * @return {@code true} if the dialog exists and is showing, {@code false} otherwise.
          */
         public boolean isShowing() {
             return dialog != null && dialog.isShowing();

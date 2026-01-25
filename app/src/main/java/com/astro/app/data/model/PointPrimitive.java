@@ -46,12 +46,12 @@ public final class PointPrimitive {
     private final Shape shape;
 
     /**
-     * Private constructor. Use {@link Builder} or factory methods.
+     * Create a PointPrimitive with the specified location, ARGB color, size in pixels, and shape.
      *
-     * @param location The celestial coordinates
-     * @param color    ARGB color value
-     * @param size     Size in pixels
-     * @param shape    Shape for rendering
+     * @param location celestial coordinates (non-null)
+     * @param color    ARGB color value (0xAARRGGBB)
+     * @param size     diameter in pixels at default zoom
+     * @param shape    rendering shape (non-null)
      */
     private PointPrimitive(@NonNull GeocentricCoords location, int color, int size, @NonNull Shape shape) {
         this.location = location;
@@ -86,12 +86,12 @@ public final class PointPrimitive {
     }
 
     /**
-     * Creates a point primitive with specified color.
-     *
-     * @param location The celestial coordinates
-     * @param color    ARGB color value
-     * @return A new PointPrimitive
-     */
+         * Create a PointPrimitive at the given celestial location with the specified ARGB color.
+         *
+         * @param location celestial coordinates (non-null)
+         * @param color    ARGB color value
+         * @return the PointPrimitive with the given location and color, using the default size and a circular shape
+         */
     @NonNull
     public static PointPrimitive create(@NonNull GeocentricCoords location, int color) {
         return new PointPrimitive(location, color, DEFAULT_SIZE, Shape.CIRCLE);
@@ -111,13 +111,13 @@ public final class PointPrimitive {
     }
 
     /**
-     * Creates a point primitive with all parameters.
+     * Create a PointPrimitive with the specified location, ARGB color, size, and shape.
      *
-     * @param location The celestial coordinates
-     * @param color    ARGB color value
-     * @param size     Size in pixels
-     * @param shape    Shape for rendering
-     * @return A new PointPrimitive
+     * @param location the celestial coordinates (non-null)
+     * @param color    ARGB color packed into an int (0xAARRGGBB)
+     * @param size     diameter in pixels at default zoom
+     * @param shape    rendering shape (non-null)
+     * @return         the created PointPrimitive
      */
     @NonNull
     public static PointPrimitive create(@NonNull GeocentricCoords location, int color, int size,
@@ -126,12 +126,12 @@ public final class PointPrimitive {
     }
 
     /**
-     * Creates a point primitive from RA/Dec coordinates with defaults.
-     *
-     * @param ra  Right Ascension in degrees
-     * @param dec Declination in degrees
-     * @return A new PointPrimitive
-     */
+         * Create a PointPrimitive at the given celestial coordinates using the default color, size, and circle shape.
+         *
+         * @param ra  Right Ascension in degrees
+         * @param dec Declination in degrees
+         * @return a PointPrimitive positioned at the specified RA/Dec with default styling
+         */
     @NonNull
     public static PointPrimitive fromRaDec(float ra, float dec) {
         return new PointPrimitive(GeocentricCoords.fromDegrees(ra, dec),
@@ -139,14 +139,15 @@ public final class PointPrimitive {
     }
 
     /**
-     * Creates a point primitive from a StarData object.
-     *
-     * <p>The shape is automatically set to STAR for bright stars (magnitude less than 2)
-     * and CIRCLE for dimmer stars.</p>
-     *
-     * @param star The star data to create a primitive for
-     * @return A new PointPrimitive configured for the star
-     */
+         * Creates a PointPrimitive representing the given star.
+         *
+         * <p>The primitive uses the star's coordinates, color, and size. If the star's magnitude
+         * is less than 2.0 the shape is set to {@link Shape#STAR}; otherwise the shape is
+         * {@link Shape#CIRCLE}.</p>
+         *
+         * @param star the star data to convert (non-null)
+         * @return the PointPrimitive corresponding to the provided star
+         */
     @NonNull
     public static PointPrimitive fromStar(@NonNull StarData star) {
         Shape starShape = star.getMagnitude() < 2.0f ? Shape.STAR : Shape.CIRCLE;
@@ -159,9 +160,9 @@ public final class PointPrimitive {
     }
 
     /**
-     * Returns the celestial location of this point.
+     * The celestial (geocentric) coordinates of this point.
      *
-     * @return The geocentric coordinates
+     * @return the non-null {@link GeocentricCoords} representing the point's celestial location
      */
     @NonNull
     public GeocentricCoords getLocation() {
@@ -169,99 +170,93 @@ public final class PointPrimitive {
     }
 
     /**
-     * Returns the Right Ascension in degrees.
+     * Get the right ascension in degrees.
      *
-     * @return RA in degrees (0-360)
+     * @return the right ascension in degrees in the range [0, 360)
      */
     public float getRa() {
         return location.getRa();
     }
 
     /**
-     * Returns the Declination in degrees.
+     * Gets the celestial Declination in degrees.
      *
-     * @return Dec in degrees (-90 to +90)
+     * @return the Declination in degrees, from -90 to +90
      */
     public float getDec() {
         return location.getDec();
     }
 
     /**
-     * Returns the ARGB color for this point.
+     * Get the point's color as a packed ARGB integer.
      *
-     * @return ARGB color value
+     * @return the color encoded as an ARGB-packed int (alpha in bits 24–31, red in 16–23, green in 8–15, blue in 0–7)
      */
     public int getColor() {
         return color;
     }
 
     /**
-     * Returns the alpha component of the color.
+     * Alpha component of the ARGB color.
      *
-     * @return Alpha value (0-255)
+     * @return the alpha component (0-255)
      */
     public int getAlpha() {
         return (color >> 24) & 0xFF;
     }
 
     /**
-     * Returns the red component of the color.
+     * Get the red component of this primitive's ARGB color.
      *
-     * @return Red value (0-255)
+     * @return the red component value in the range 0-255
      */
     public int getRed() {
         return (color >> 16) & 0xFF;
     }
 
     /**
-     * Returns the green component of the color.
+     * Gets the green component of the ARGB color.
      *
-     * @return Green value (0-255)
+     * @return the green component (0-255)
      */
     public int getGreen() {
         return (color >> 8) & 0xFF;
     }
 
     /**
-     * Returns the blue component of the color.
+     * Gets the blue component of this primitive's ARGB color.
      *
-     * @return Blue value (0-255)
+     * @return the blue component (0–255)
      */
     public int getBlue() {
         return color & 0xFF;
     }
 
     /**
-     * Returns the rendering size in pixels.
+     * Provides the rendering diameter in pixels at the default zoom level.
      *
-     * @return Size in pixels at default zoom
+     * @return the diameter in pixels at default zoom.
      */
     public int getSize() {
         return size;
     }
 
     /**
-     * Returns the shape for rendering.
-     *
-     * @return The rendering shape
-     */
+         * The rendering shape of this point primitive.
+         *
+         * @return the shape used to render the point
+         */
     @NonNull
     public Shape getShape() {
         return shape;
     }
 
     /**
-     * Returns the location as a 3D unit vector.
+     * Converts the point's celestial coordinates to a 3D unit vector on the celestial unit sphere.
      *
-     * <p>The vector is on a unit sphere where:
-     * <ul>
-     *   <li>X points toward RA=0h, Dec=0</li>
-     *   <li>Y points toward RA=6h, Dec=0</li>
-     *   <li>Z points toward Dec=+90 (north celestial pole)</li>
-     * </ul>
-     * </p>
+     * <p>Axes: X points toward RA=0h, Dec=0; Y points toward RA=6h, Dec=0; Z points toward Dec=+90° (north celestial pole).</p>
      *
-     * @return float array [x, y, z]
+     * @return a length-3 float array {x, y, z} representing the unit vector
      */
     @NonNull
     public float[] toVector3() {
@@ -280,39 +275,49 @@ public final class PointPrimitive {
     }
 
     /**
-     * Creates a copy of this primitive with a different size.
-     *
-     * @param newSize The new size in pixels
-     * @return A new PointPrimitive with the specified size
-     */
+         * Create a PointPrimitive with the same location, color, and shape but a different size.
+         *
+         * @param newSize the diameter in pixels at default zoom
+         * @return a new PointPrimitive with the specified size
+         */
     @NonNull
     public PointPrimitive withSize(int newSize) {
         return new PointPrimitive(location, color, newSize, shape);
     }
 
     /**
-     * Creates a copy of this primitive with a different shape.
-     *
-     * @param newShape The new shape
-     * @return A new PointPrimitive with the specified shape
-     */
+         * Creates a copy of this primitive with the specified shape.
+         *
+         * @param newShape the shape to set on the returned primitive
+         * @return a PointPrimitive with the same location, color, and size, and the specified shape
+         */
     @NonNull
     public PointPrimitive withShape(@NonNull Shape newShape) {
         return new PointPrimitive(location, color, size, newShape);
     }
 
     /**
-     * Creates a copy of this primitive with modified alpha.
-     *
-     * @param alpha The new alpha value (0-255)
-     * @return A new PointPrimitive with the specified alpha
-     */
+         * Return a copy of this primitive with its alpha channel set to the given value.
+         *
+         * @param alpha the new alpha value in the range 0–255
+         * @return a PointPrimitive with the same location, size, and shape and with RGB channels preserved but alpha set to `alpha`
+         */
     @NonNull
     public PointPrimitive withAlpha(int alpha) {
         int newColor = (alpha << 24) | (color & 0x00FFFFFF);
         return new PointPrimitive(location, newColor, size, shape);
     }
 
+    /**
+     * Determines whether this PointPrimitive is equal to another object based on its identifying fields.
+     *
+     * Two PointPrimitive instances are equal if they are the same class and have equal location, color,
+     * size, and shape.
+     *
+     * @param o the object to compare with this instance
+     * @return {@code true} if the given object is a PointPrimitive with the same location, color, size,
+     *         and shape; {@code false} otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -324,6 +329,11 @@ public final class PointPrimitive {
                shape == that.shape;
     }
 
+    /**
+     * Compute a hash code for this PointPrimitive.
+     *
+     * @return the hash code derived from the location, color, size, and shape
+     */
     @Override
     public int hashCode() {
         int result = location.hashCode();
@@ -333,6 +343,11 @@ public final class PointPrimitive {
         return result;
     }
 
+    /**
+     * Provides a concise textual representation of this point primitive including RA, Dec, color, size, and shape.
+     *
+     * @return the string formatted as PointPrimitive{ra=%.4f, dec=%.4f, color=0x%08X, size=%d, shape=%s}
+     */
     @Override
     @NonNull
     public String toString() {
@@ -362,16 +377,19 @@ public final class PointPrimitive {
         private Shape shape = Shape.CIRCLE;
 
         /**
-         * Creates a new Builder instance.
+         * Creates a new Builder for constructing a PointPrimitive.
+         *
+         * The builder is initialized with default color, size, and shape; the location is unset
+         * and must be provided before calling {@link Builder#build()}.
          */
         public Builder() {
         }
 
         /**
-         * Sets the celestial location.
+         * Set the celestial location used when building the PointPrimitive.
          *
-         * @param location The geocentric coordinates
-         * @return This builder for method chaining
+         * @param location the geocentric celestial coordinates to use
+         * @return this Builder instance for method chaining
          */
         @NonNull
         public Builder setLocation(@NonNull GeocentricCoords location) {
@@ -393,11 +411,11 @@ public final class PointPrimitive {
         }
 
         /**
-         * Sets the ARGB color.
-         *
-         * @param color ARGB color value
-         * @return This builder for method chaining
-         */
+                 * Set the ARGB color for the PointPrimitive being built.
+                 *
+                 * @param color ARGB color in 0xAARRGGBB format
+                 * @return this builder for method chaining
+                 */
         @NonNull
         public Builder setColor(int color) {
             this.color = color;
@@ -429,10 +447,10 @@ public final class PointPrimitive {
         }
 
         /**
-         * Builds the PointPrimitive instance.
+         * Constructs a PointPrimitive from the builder's configured properties.
          *
-         * @return A new PointPrimitive
-         * @throws IllegalStateException if location is not set
+         * @return a new PointPrimitive with the builder's location, color, size, and shape
+         * @throws IllegalStateException if location has not been set
          */
         @NonNull
         public PointPrimitive build() {

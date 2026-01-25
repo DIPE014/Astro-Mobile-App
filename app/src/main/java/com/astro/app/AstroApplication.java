@@ -14,6 +14,9 @@ public class AstroApplication extends Application {
 
     private AppComponent appComponent;
 
+    /**
+     * Performs application startup tasks and initializes the Dagger AppComponent for application-wide dependency injection.
+     */
     @Override
     public void onCreate() {
         super.onCreate();
@@ -32,10 +35,9 @@ public class AstroApplication extends Application {
     }
 
     /**
-     * Returns the application-level Dagger component.
-     * Activities and other components can use this to obtain dependencies.
+     * Access the application-level Dagger component.
      *
-     * @return the AppComponent for dependency injection
+     * @return the AppComponent instance used for application-wide dependency injection
      */
     public AppComponent getAppComponent() {
         return appComponent;

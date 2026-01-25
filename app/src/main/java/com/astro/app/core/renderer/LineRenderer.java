@@ -120,7 +120,12 @@ public class LineRenderer {
     }
 
     /**
-     * Initializes the renderer. Must be called on the GL thread.
+     * Creates the OpenGL resources required by the renderer.
+     *
+     * Must be called on the GL thread. This method is a no-op if the renderer is already initialized.
+     * It compiles/links the shader program, queries attribute and uniform locations, generates VBOs,
+     * and marks the renderer as initialized. If shader program creation fails, initialization aborts
+     * and the renderer remains not ready.
      */
     public void initialize() {
         if (initialized) {
@@ -157,9 +162,15 @@ public class LineRenderer {
     }
 
     /**
-     * Updates the line data to be rendered.
+     * Builds vertex and index buffers for the provided line primitives and prepares them for drawing.
      *
-     * @param lines List of line primitives
+     * For each consecutive vertex pair in each LinePrimitive this method generates a quad (four vertices,
+     * two triangles) representing a single line segment, updates the internal segment count, and stores
+     * packed vertex and index data in the renderer's buffers. If the renderer is initialized the buffers
+     * are uploaded to the GPU VBOs; otherwise the data is kept in client-side buffers until initialization.
+     *
+     * @param lines list of LinePrimitive objects whose vertices and per-line attributes (color, width)
+     *              are used to construct the batched geometry; an empty list clears the segment count.
      */
     public void updateLines(@NonNull List<LinePrimitive> lines) {
         if (lines.isEmpty()) {
@@ -248,7 +259,20 @@ public class LineRenderer {
     }
 
     /**
-     * Adds a line segment's vertex data to the buffer.
+     * Convert the given line segment into a screen-facing quad and append its four vertices to the vertex buffer.
+     *
+     * Each vertex contains position (x,y,z), color (r,g,b,a) and texture coordinates; texture U maps start→end (0→1)
+     * and V maps bottom→top (0→1).
+     *
+     * @param start     the segment start point in geocentric coordinates
+     * @param end       the segment end point in geocentric coordinates
+     * @param r         red color component (0.0–1.0)
+     * @param g         green color component (0.0–1.0)
+     * @param b         blue color component (0.0–1.0)
+     * @param a         alpha component (0.0–1.0)
+     * @param lineWidth half of the quad thickness in world units (the perpendicular offset applied to each side)
+     *
+     * Note: if the computed perpendicular is degenerate, a fallback perpendicular is used so the quad is still generated.
      */
     private void addSegmentToBuffer(GeocentricCoords start, GeocentricCoords end,
                                     float r, float g, float b, float a, float lineWidth) {
@@ -296,8 +320,19 @@ public class LineRenderer {
     }
 
     /**
-     * Adds a single vertex to the buffer.
-     */
+         * Appends a vertex to the internal vertex buffer in the expected attribute order:
+         * position (x, y, z), color (r, g, b, a), then texture coordinates (u, v).
+         *
+         * @param x the vertex X coordinate
+         * @param y the vertex Y coordinate
+         * @param z the vertex Z coordinate
+         * @param r red color component
+         * @param g green color component
+         * @param b blue color component
+         * @param a alpha (opacity) component
+         * @param u texture U coordinate
+         * @param v texture V coordinate
+         */
     private void addVertex(float x, float y, float z, float r, float g, float b, float a,
                            float u, float v) {
         vertexBuffer.put(x);
@@ -312,9 +347,13 @@ public class LineRenderer {
     }
 
     /**
-     * Draws all lines.
+     * Renders all prepared line segments using the provided model-view-projection matrix.
      *
-     * @param mvpMatrix The combined model-view-projection matrix
+     * If the renderer is not initialized or no segments are loaded, this call is a no-op.
+     * The method uses the renderer's shader program and vertex/index buffers, enables blending
+     * for proper anti-aliasing/transparency, and uploads the night-mode flag when enabled.
+     *
+     * @param mvpMatrix the combined model-view-projection matrix used to transform vertex positions
      */
     public void draw(@NonNull float[] mvpMatrix) {
         if (!initialized || segmentCount == 0) {
@@ -387,9 +426,9 @@ public class LineRenderer {
     }
 
     /**
-     * Sets the line width multiplier for all lines.
+     * Set the global multiplier applied to line widths when constructing segment geometry.
      *
-     * @param factor The scale factor (1.0 = normal width)
+     * @param factor multiplier for line width (1.0 = original width; >1 increases width; values between 0 and 1 decrease width)
      */
     public void setLineWidthFactor(float factor) {
         this.lineWidthFactor = factor;
@@ -405,9 +444,9 @@ public class LineRenderer {
     }
 
     /**
-     * Returns the number of line segments currently loaded.
+     * Report the number of line segments currently loaded for rendering.
      *
-     * @return Segment count
+     * @return the number of prepared line segments
      */
     public int getSegmentCount() {
         return segmentCount;
@@ -423,7 +462,13 @@ public class LineRenderer {
     }
 
     /**
-     * Releases all OpenGL resources.
+     * Release OpenGL resources owned by this renderer.
+     *
+     * Deletes vertex/index buffer objects and releases the shader program if present,
+     * then marks the renderer as not initialized. Calling this when the renderer is
+     * not initialized is a no-op.
+     *
+     * <p>Must be called from the GL thread.</p>
      */
     public void release() {
         if (initialized) {

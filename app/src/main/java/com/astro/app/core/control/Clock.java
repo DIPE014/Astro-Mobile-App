@@ -10,9 +10,9 @@ package com.astro.app.core.control;
 public interface Clock {
 
     /**
-     * Gets the current time in milliseconds since the Unix epoch (January 1, 1970).
-     *
-     * @return time in milliseconds since epoch
-     */
+ * Provides the current time as milliseconds since the Unix epoch.
+ *
+ * @return the current time in milliseconds since January 1, 1970 UTC
+ */
     long getTimeInMillisSinceEpoch();
 }

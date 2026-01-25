@@ -86,9 +86,9 @@ public class PlanetsLayer extends AbstractLayer {
     private boolean showLabels = true;
 
     /**
-     * Creates a PlanetsLayer with the given Universe for position calculations.
+     * Create a PlanetsLayer that renders solar system bodies using the provided Universe for position calculations.
      *
-     * @param universe The Universe object for calculating planet positions
+     * @param universe the Universe used to compute right ascension and declination for solar system bodies
      */
     public PlanetsLayer(@NonNull Universe universe) {
         super(LAYER_ID, LAYER_NAME, DEPTH_ORDER);
@@ -96,6 +96,13 @@ public class PlanetsLayer extends AbstractLayer {
         this.observationTimeMillis = System.currentTimeMillis();
     }
 
+    /**
+     * Initializes the planets layer by computing and adding solar system bodies for the current observation time.
+     *
+     * Computes positions for every SolarSystemBody except Earth using the layer's observation time, creates and
+     * adds the corresponding point (and optional label) primitives to the layer, and logs initialization progress.
+     * Errors encountered while adding individual bodies are caught and logged without aborting the overall initialization.
+     */
     @Override
     protected void initializeLayer() {
         Log.d(TAG, "Initializing planets layer for time: " + new Date(observationTimeMillis));
@@ -119,10 +126,11 @@ public class PlanetsLayer extends AbstractLayer {
     }
 
     /**
-     * Adds a single planet to the layer.
+     * Computes the body's apparent position for the given observation date and adds a point primitive
+     * (and an optional label) representing that body to the layer.
      *
-     * @param body The solar system body to add
-     * @param date The observation date for position calculation
+     * @param body the solar system body to add
+     * @param date the observation date used to compute the body's position
      */
     private void addPlanetToLayer(@NonNull SolarSystemBody body, @NonNull Date date) {
         // Calculate planet position using Universe
@@ -160,37 +168,37 @@ public class PlanetsLayer extends AbstractLayer {
     }
 
     /**
-     * Returns the current observation time.
+     * Current observation time used to compute planetary positions.
      *
-     * @return Time in milliseconds since epoch
+     * @return The observation time in milliseconds since the Unix epoch.
      */
     public long getObservationTime() {
         return observationTimeMillis;
     }
 
     /**
-     * Sets whether to show planet name labels.
+     * Enable or disable rendering of planet name labels.
      *
-     * @param showLabels true to show labels, false to hide
+     * @param showLabels true to enable planet name labels, false to disable
      */
     public void setShowLabels(boolean showLabels) {
         this.showLabels = showLabels;
     }
 
     /**
-     * Returns whether planet labels are shown.
+     * Indicates whether planet labels are shown.
      *
-     * @return true if labels are shown
+     * @return `true` if labels are shown, `false` otherwise.
      */
     public boolean isShowLabels() {
         return showLabels;
     }
 
     /**
-     * Gets the display color for a solar system body.
+     * Provide the display color associated with the given solar system body.
      *
-     * @param body The solar system body
-     * @return ARGB color value
+     * @param body the solar system body whose display color is requested
+     * @return the ARGB color value for the body; white (0xFFFFFFFF) if the body is unrecognized
      */
     private int getPlanetColor(@NonNull SolarSystemBody body) {
         switch (body) {
@@ -220,10 +228,12 @@ public class PlanetsLayer extends AbstractLayer {
     }
 
     /**
-     * Gets the display size for a solar system body.
+     * Determine the point size in pixels used to render the specified solar system body.
      *
-     * @param body The solar system body
-     * @return Size in pixels
+     * Sun and Moon use a distinct larger size; brighter planets are rendered slightly larger than dimmer ones.
+     *
+     * @param body the solar system body to size
+     * @return the point size in pixels for the given body
      */
     private int getPlanetSize(@NonNull SolarSystemBody body) {
         switch (body) {
@@ -242,10 +252,10 @@ public class PlanetsLayer extends AbstractLayer {
     }
 
     /**
-     * Gets the display name for a solar system body.
+     * Provides the user-facing name for a solar system body.
      *
-     * @param body The solar system body
-     * @return Human-readable name
+     * @param body the solar system body
+     * @return the capitalized display name for the body; for unexpected values returns {@code body.name()}
      */
     @NonNull
     private String getPlanetDisplayName(@NonNull SolarSystemBody body) {

@@ -33,44 +33,42 @@ import java.util.List;
 public interface Layer {
 
     /**
-     * Initializes the layer.
-     *
-     * <p>This method is called when the layer is added to the layer manager.
-     * Implementations should load data and compute initial positions.
-     * This method should return quickly - use a background thread if necessary.</p>
-     */
+ * Prepare the layer for use by loading data and computing initial drawable primitives.
+ *
+ * <p>Called when the layer is added to the layer manager. Implementations should populate
+ * internal state required for rendering (for example, compute initial positions) and avoid
+ * blocking the caller; perform long-running work asynchronously if needed.</p>
+ */
     void initialize();
 
     /**
-     * Returns the point primitives to render.
-     *
-     * <p>Points are used for rendering stars, planets, and other point-like
-     * celestial objects.</p>
-     *
-     * @return List of point primitives (never null, may be empty)
-     */
+         * Supply the point primitives to render.
+         *
+         * <p>Point primitives represent stars, planets, and other point-like celestial objects.</p>
+         *
+         * @return the list of point primitives; never null, may be empty
+         */
     @NonNull
     List<PointPrimitive> getPoints();
 
     /**
-     * Returns the line primitives to render.
+     * Provide the line primitives for rendering.
      *
-     * <p>Lines are used for rendering constellation lines, coordinate grids,
-     * and other linear features.</p>
+     * Lines are used for constellation lines, coordinate grids, and other linear features.
      *
-     * @return List of line primitives (never null, may be empty)
+     * @return a List of LinePrimitive objects to render; never null, may be empty
      */
     @NonNull
     List<LinePrimitive> getLines();
 
     /**
-     * Returns the label primitives to render.
-     *
-     * <p>Labels are used for rendering star names, constellation names,
-     * and other text in the sky map.</p>
-     *
-     * @return List of label primitives (never null, may be empty)
-     */
+         * Provide the label primitives to render in this layer.
+         *
+         * <p>Labels represent star names, constellation names, and other textual annotations
+         * shown on the sky map.</p>
+         *
+         * @return a {@code List<LabelPrimitive>} of label primitives to render; never {@code null}, may be empty
+         */
     @NonNull
     List<LabelPrimitive> getLabels();
 
@@ -85,10 +83,10 @@ public interface Layer {
     void setVisible(boolean visible);
 
     /**
-     * Returns whether this layer is currently visible.
-     *
-     * @return true if visible, false if hidden
-     */
+ * Indicates whether the layer is currently visible.
+ *
+ * @return `true` if the layer is visible, `false` otherwise.
+ */
     boolean isVisible();
 
     /**
@@ -101,39 +99,39 @@ public interface Layer {
     void redraw();
 
     /**
-     * Returns the unique identifier for this layer.
-     *
-     * <p>This ID is used for saving/restoring layer preferences.</p>
-     *
-     * @return Unique layer ID
-     */
+         * Get the unique identifier for this layer.
+         *
+         * <p>This identifier is used to save and restore per-layer preferences and should remain stable
+         * across application sessions.</p>
+         *
+         * @return the unique identifier for the layer, never {@code null}
+         */
     @NonNull
     String getLayerId();
 
     /**
-     * Returns the display name of this layer.
+     * Retrieve the human-readable display name for the layer.
      *
-     * <p>This name is shown to the user in the layer toggle UI.</p>
+     * <p>This name is shown to the user in the layer selection/toggle UI.</p>
      *
-     * @return Human-readable layer name
+     * @return the human-readable layer name
      */
     @NonNull
     String getLayerName();
 
     /**
-     * Returns the depth order for rendering.
-     *
-     * <p>Lower values are rendered first (behind higher values).
-     * Typical values:</p>
-     * <ul>
-     *   <li>0 - Grid (background)</li>
-     *   <li>10 - Constellations</li>
-     *   <li>20 - Deep sky objects</li>
-     *   <li>30 - Stars</li>
-     *   <li>40 - Planets</li>
-     * </ul>
-     *
-     * @return Depth order value
-     */
+ * Defines the rendering depth order for this layer.
+ *
+ * Lower values are rendered first (appear behind layers with higher values). Typical values:
+ * <ul>
+ *   <li>0 - Grid (background)</li>
+ *   <li>10 - Constellations</li>
+ *   <li>20 - Deep sky objects</li>
+ *   <li>30 - Stars</li>
+ *   <li>40 - Planets</li>
+ * </ul>
+ *
+ * @return the rendering depth order; lower values render behind higher values
+ */
     int getLayerDepthOrder();
 }

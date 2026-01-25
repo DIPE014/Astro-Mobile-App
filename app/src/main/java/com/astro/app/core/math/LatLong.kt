@@ -31,9 +31,10 @@ data class LatLong(private val _latitudeDeg: Float, private val _longitudeDeg: F
     )
 
     /**
-     * Angular distance between the two points.
-     * @param other
-     * @return degrees
+     * Computes the angular distance from this point to another geographic point.
+     *
+     * @param other The other geographic point.
+     * @return The angular distance between the two points, in degrees.
      */
     fun distanceFrom(other: LatLong): Float {
         // Some misuse of the astronomy math classes

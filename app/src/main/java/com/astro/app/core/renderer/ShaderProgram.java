@@ -46,10 +46,10 @@ public class ShaderProgram {
     private boolean valid;
 
     /**
-     * Creates a shader program from vertex and fragment shader source code.
+     * Compiles and links the given vertex and fragment GLSL sources into an OpenGL shader program and initializes this ShaderProgram.
      *
-     * @param vertexShaderCode   The vertex shader GLSL source code
-     * @param fragmentShaderCode The fragment shader GLSL source code
+     * @param vertexShaderCode   GLSL source for the vertex shader
+     * @param fragmentShaderCode GLSL source for the fragment shader
      */
     public ShaderProgram(@NonNull String vertexShaderCode, @NonNull String fragmentShaderCode) {
         programId = createProgram(vertexShaderCode, fragmentShaderCode);
@@ -60,18 +60,18 @@ public class ShaderProgram {
     }
 
     /**
-     * Checks if the shader program was successfully created.
+     * Indicates whether the shader program was created successfully and is usable.
      *
-     * @return true if the program is valid and can be used
+     * @return true if the program was created successfully and can be used, false otherwise.
      */
     public boolean isValid() {
         return valid;
     }
 
     /**
-     * Returns the OpenGL program ID.
+     * Get the OpenGL program identifier for this ShaderProgram.
      *
-     * @return The program ID, or 0 if invalid
+     * @return the OpenGL program ID, or 0 if the program is invalid or has been released
      */
     public int getProgramId() {
         return programId;
@@ -137,10 +137,10 @@ public class ShaderProgram {
     }
 
     /**
-     * Sets a float uniform value.
+     * Set the float uniform with the given name for this shader program.
      *
-     * @param name  The uniform name
-     * @param value The float value
+     * @param name  the GLSL uniform variable name
+     * @param value the float value to assign to the uniform
      */
     public void setUniform1f(@NonNull String name, float value) {
         int location = getUniformLocation(name);
@@ -163,11 +163,11 @@ public class ShaderProgram {
     }
 
     /**
-     * Sets a vec2 uniform value.
+     * Sets the shader program's vec2 uniform to the given components.
      *
-     * @param name The uniform name
-     * @param x    X component
-     * @param y    Y component
+     * @param name the name of the uniform variable in the shader
+     * @param x    the first (x) component of the vec2
+     * @param y    the second (y) component of the vec2
      */
     public void setUniform2f(@NonNull String name, float x, float y) {
         int location = getUniformLocation(name);
@@ -177,12 +177,14 @@ public class ShaderProgram {
     }
 
     /**
-     * Sets a vec3 uniform value.
+     * Sets the vec3 uniform identified by name in the currently active shader program.
      *
-     * @param name The uniform name
-     * @param x    X component
-     * @param y    Y component
-     * @param z    Z component
+     * If the uniform is not found or the program is not valid, the call has no effect.
+     *
+     * @param name the uniform variable name in the shader
+     * @param x the X component
+     * @param y the Y component
+     * @param z the Z component
      */
     public void setUniform3f(@NonNull String name, float x, float y, float z) {
         int location = getUniformLocation(name);
@@ -192,13 +194,15 @@ public class ShaderProgram {
     }
 
     /**
-     * Sets a vec4 uniform value.
+     * Set the shader uniform with the given name to the specified four-component vector.
      *
-     * @param name The uniform name
-     * @param x    X component
-     * @param y    Y component
-     * @param z    Z component
-     * @param w    W component
+     * If the uniform is not found in the program, this method performs no operation.
+     *
+     * @param name the uniform variable name in the shader program
+     * @param x    the X component
+     * @param y    the Y component
+     * @param z    the Z component
+     * @param w    the W component
      */
     public void setUniform4f(@NonNull String name, float x, float y, float z, float w) {
         int location = getUniformLocation(name);
@@ -208,10 +212,12 @@ public class ShaderProgram {
     }
 
     /**
-     * Sets a 4x4 matrix uniform value.
+     * Assigns a 4x4 matrix to the specified uniform.
      *
-     * @param name   The uniform name
-     * @param matrix The 16-element matrix array (column-major order)
+     * If the named uniform is not found or not active, the call is ignored.
+     *
+     * @param name   the uniform variable name in the shader
+     * @param matrix a 16-element float array containing the matrix in column-major order; values are read starting at index 0
      */
     public void setUniformMatrix4fv(@NonNull String name, @NonNull float[] matrix) {
         int location = getUniformLocation(name);
@@ -221,11 +227,11 @@ public class ShaderProgram {
     }
 
     /**
-     * Sets a 4x4 matrix uniform value with offset.
+     * Sets the 4x4 matrix uniform identified by name using values from the provided float array starting at the given offset.
      *
-     * @param name   The uniform name
-     * @param matrix The matrix array
-     * @param offset Starting offset in the array
+     * @param name   the uniform variable name in the shader
+     * @param matrix float array containing the matrix values (column-major order)
+     * @param offset index in the array where the 4x4 matrix begins
      */
     public void setUniformMatrix4fv(@NonNull String name, @NonNull float[] matrix, int offset) {
         int location = getUniformLocation(name);
@@ -250,11 +256,14 @@ public class ShaderProgram {
     }
 
     /**
-     * Creates a shader program from vertex and fragment shader source code.
+     * Create and link an OpenGL ES shader program from vertex and fragment GLSL sources.
      *
-     * @param vertexSource   Vertex shader GLSL source
-     * @param fragmentSource Fragment shader GLSL source
-     * @return The program ID, or 0 on failure
+     * Deletes the compiled shader objects after linking; if compilation or linking fails the program
+     * is deleted and the function returns 0.
+     *
+     * @param vertexSource   GLSL source for the vertex shader
+     * @param fragmentSource GLSL source for the fragment shader
+     * @return The linked OpenGL program ID, or 0 if compilation or linking failed
      */
     private static int createProgram(@NonNull String vertexSource, @NonNull String fragmentSource) {
         Log.d(TAG, "Creating shader program...");
@@ -349,9 +358,12 @@ public class ShaderProgram {
     }
 
     /**
-     * Checks for OpenGL errors and logs them.
+     * Logs the most recent OpenGL error, if one occurred.
      *
-     * @param operation The operation being performed (for logging)
+     * Maps the GL error code to a human-readable name and writes an error log
+     * optionally prefixed with the provided operation description.
+     *
+     * @param operation an optional label describing the GL operation to include in the log; may be null
      */
     public static void checkGLError(@Nullable String operation) {
         int error = GLES20.glGetError();

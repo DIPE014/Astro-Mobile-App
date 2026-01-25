@@ -78,21 +78,48 @@ public class SearchArrowView extends View {
     // Path for arrow shape
     private Path arrowPath;
 
+    /**
+     * Create a SearchArrowView attached to the provided Context.
+     *
+     * Initializes the view's rendering state including paints, arrow path, and pulse animation.
+     *
+     * @param context the Context this view is running in
+     */
     public SearchArrowView(Context context) {
         super(context);
         init();
     }
 
+    /**
+     * Constructs a SearchArrowView with the provided Context and optional XML attributes.
+     *
+     * @param context the Context used to access resources and theme
+     * @param attrs   optional AttributeSet supplied when inflating from XML, may be null
+     */
     public SearchArrowView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
+    /**
+     * Creates a SearchArrowView for displaying directional guidance to a celestial target.
+     *
+     * @param context the Context the view is running in
+     * @param attrs optional XML attributes specified in layout XML
+     * @param defStyleAttr default style attribute resource to apply to this view
+     */
     public SearchArrowView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
 
+    /**
+     * Initializes drawing resources and the pulse animation used by the view.
+     *
+     * Sets up paints for the arrow, circle, label, and background; builds the arrow
+     * shape path; and configures the pulse animator that updates `pulseScale`
+     * and invalidates the view on each frame.
+     */
     private void init() {
         // Arrow paint
         arrowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -133,7 +160,10 @@ public class SearchArrowView extends View {
     }
 
     /**
-     * Creates the arrow shape path.
+     * Builds the internal Path describing an upward-pointing arrow and stores it in `arrowPath`.
+     *
+     * The arrow geometry is based on `ARROW_SIZE`; the path is reset before construction so the
+     * resulting shape is a normalized arrow (pointing up) that can be translated and rotated when drawn.
      */
     private void createArrowPath() {
         arrowPath.reset();
@@ -148,11 +178,14 @@ public class SearchArrowView extends View {
     }
 
     /**
-     * Sets the search target.
+     * Set the celestial search target and activate the indicator.
      *
-     * @param ra   Target Right Ascension in degrees
-     * @param dec  Target Declination in degrees
-     * @param name Target name for display
+     * If `name` is null the displayed label is cleared. Activating a target begins the pulsing indicator
+     * and recomputes the arrow direction using the current view orientation.
+     *
+     * @param ra   target Right Ascension in degrees
+     * @param dec  target Declination in degrees
+     * @param name display label for the target; pass null to clear the label
      */
     public void setTarget(float ra, float dec, String name) {
         this.targetRa = ra;
@@ -169,7 +202,9 @@ public class SearchArrowView extends View {
     }
 
     /**
-     * Clears the search target.
+     * Deactivates and removes the current search target.
+     *
+     * Marks the view as inactive, clears the target label, stops the pulse animation, and requests a redraw.
      */
     public void clearTarget() {
         this.isActive = false;
@@ -179,10 +214,13 @@ public class SearchArrowView extends View {
     }
 
     /**
-     * Updates the current view direction and recalculates arrow position.
+     * Update internal pointing state from the current view direction and recompute arrow and indicator metrics.
      *
-     * @param viewRa  Current view Right Ascension in degrees
-     * @param viewDec Current view Declination in degrees
+     * Updates `distance`, `arrowAngle`, and `focusProgress` based on the angular separation between the current view
+     * (viewRa, viewDec) and the active target, then invalidates the view to trigger a redraw.
+     *
+     * @param viewRa  current view Right Ascension in degrees
+     * @param viewDec current view Declination in degrees
      */
     public void updatePointing(float viewRa, float viewDec) {
         this.viewRa = viewRa;
@@ -211,14 +249,27 @@ public class SearchArrowView extends View {
     }
 
     /**
-     * Normalizes an angle to the range [-180, 180].
-     */
+         * Normalizes an angle in degrees to the range [-180, 180].
+         *
+         * @param angle the angle in degrees to normalize
+         * @return the equivalent angle in degrees constrained to [-180, 180]
+         */
     private float normalizeAngle(float angle) {
         while (angle > 180) angle -= 360;
         while (angle < -180) angle += 360;
         return angle;
     }
 
+    /**
+     * Renders the view's overlay and visual indicators for the current target when active.
+     *
+     * <p>When the view is inactive, nothing is drawn. While active this method draws a
+     * semi-transparent background, a directional arrow (hidden when the target is nearly
+     * centered), a pulsing circle indicator, and an optional target name label. The arrow
+     * color interpolates between configured far and near colors based on distance.
+     *
+     * @param canvas the Canvas to draw into
+     */
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -256,7 +307,15 @@ public class SearchArrowView extends View {
     }
 
     /**
-     * Draws the directional arrow.
+     * Draws and positions the directional arrow pointing toward the current target.
+     *
+     * Positions the arrow at ARROW_OFFSET from the provided center, rotates it to align with
+     * the computed arrowAngle, and adjusts its alpha based on focusProgress so the arrow
+     * fades as the target becomes centered.
+     *
+     * @param canvas  the canvas to draw onto
+     * @param centerX x-coordinate of the view center used as the arrow's reference point
+     * @param centerY y-coordinate of the view center used as the arrow's reference point
      */
     private void drawArrow(Canvas canvas, float centerX, float centerY) {
         canvas.save();
@@ -280,7 +339,18 @@ public class SearchArrowView extends View {
     }
 
     /**
-     * Draws the circle indicator around the target.
+     * Renders the circular position indicator for the target, including a pulsing outer ring
+     * and an optional inner filled dot when the target is nearly centered.
+     *
+     * The outer radius is interpolated between CIRCLE_RADIUS and MAX_CIRCLE_RADIUS by
+     * {@code focusProgress} and scaled by the current {@code pulseScale}. The outer alpha
+     * increases with {@code focusProgress} (fully opaque past 0.5). When {@code focusProgress}
+     * is greater than 0.8, an inner filled circle is drawn with alpha proportional to how
+     * close {@code focusProgress} is to 1.0.
+     *
+     * @param canvas  the Canvas to draw onto
+     * @param centerX x-coordinate of the circle center
+     * @param centerY y-coordinate of the circle center
      */
     private void drawCircleIndicator(Canvas canvas, float centerX, float centerY) {
         // Calculate circle radius based on focus state
@@ -303,8 +373,13 @@ public class SearchArrowView extends View {
     }
 
     /**
-     * Interpolates between two colors.
-     */
+         * Produces a color between two ARGB colors by linear interpolation.
+         *
+         * @param color1   the start ARGB color (returned when {@code fraction} is 0)
+         * @param color2   the end ARGB color (returned when {@code fraction} is 1)
+         * @param fraction interpolation factor in the range [0, 1]; values between 0 and 1 blend the two colors
+         * @return         the interpolated ARGB color packed into an {@code int}
+         */
     private int interpolateColor(int color1, int color2, float fraction) {
         int a1 = (color1 >> 24) & 0xFF;
         int r1 = (color1 >> 16) & 0xFF;
@@ -325,23 +400,28 @@ public class SearchArrowView extends View {
     }
 
     /**
-     * Returns whether a search target is active.
+     * Indicates whether a search target is currently set.
      *
-     * @return true if target is set
+     * @return `true` if a search target is currently active, `false` otherwise.
      */
     public boolean isActive() {
         return isActive;
     }
 
     /**
-     * Returns the current focus progress.
+     * Indicates how centered the target is within the view.
      *
-     * @return 0 (off-screen) to 1 (centered)
+     * @return a float between 0 and 1 where `0` means the target is off-screen and `1` means it is centered
      */
     public float getFocusProgress() {
         return focusProgress;
     }
 
+    /**
+     * Called when the view is detached from the window to release resources.
+     *
+     * Cancels the ongoing pulse animation to stop visual updates and prevent animator leaks.
+     */
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();

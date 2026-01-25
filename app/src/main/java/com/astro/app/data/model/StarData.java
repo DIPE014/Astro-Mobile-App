@@ -73,51 +73,50 @@ public class StarData extends CelestialObject {
     }
 
     /**
-     * Returns the apparent magnitude (brightness) of this star.
+     * The apparent magnitude (brightness) of this star.
      *
-     * <p>Lower values indicate brighter stars. Typical visible range is
-     * approximately -1.5 to +6.0.</p>
+     * Lower values indicate brighter stars. Typical visible range is approximately -1.5 to +6.0.
      *
-     * @return The apparent magnitude
+     * @return the apparent magnitude
      */
     public float getMagnitude() {
         return magnitude;
     }
 
     /**
-     * Returns the spectral type classification.
-     *
-     * <p>Examples: "O5", "B2", "A0", "F5", "G2V", "K5", "M0"</p>
-     *
-     * @return The spectral type, or null if unknown
-     */
+         * Spectral classification string for the star.
+         *
+         * <p>Examples: "O5", "B2", "A0", "F5", "G2V", "K5", "M0"</p>
+         *
+         * @return the spectral type (e.g., "G2V"), or null if unknown
+         */
     @Nullable
     public String getSpectralType() {
         return spectralType;
     }
 
     /**
-     * Returns the distance from Earth in light years.
+     * The distance from Earth to this star in light years.
      *
-     * @return Distance in light years, or {@link #DISTANCE_UNKNOWN} if not known
+     * @return the distance in light years, or {@link #DISTANCE_UNKNOWN} if unknown
      */
     public float getDistance() {
         return distance;
     }
 
     /**
-     * Checks if the distance is known for this star.
+     * Indicates whether the star's distance is known.
      *
-     * @return true if distance is known, false otherwise
+     * @return `true` if distance is greater than zero and not `DISTANCE_UNKNOWN`, `false` otherwise
      */
     public boolean hasKnownDistance() {
         return distance != DISTANCE_UNKNOWN && distance > 0;
     }
 
     /**
-     * Returns the ID of the constellation this star belongs to.
+     * Identifier of the constellation that contains this star.
      *
-     * @return The constellation ID, or null if not assigned
+     * @return the constellation ID, or null if the star has no assigned constellation
      */
     @Nullable
     public String getConstellationId() {
@@ -125,56 +124,53 @@ public class StarData extends CelestialObject {
     }
 
     /**
-     * Checks if this star is assigned to a constellation.
+     * Indicates whether the star has a constellation identifier.
      *
-     * @return true if the star has a constellation assignment
+     * @return `true` if the constellation ID is non-null and not empty, `false` otherwise
      */
     public boolean hasConstellation() {
         return constellationId != null && !constellationId.isEmpty();
     }
 
     /**
-     * Returns the rendering size for this star.
+     * Rendering size of the star in pixels at the default zoom level.
      *
-     * <p>This is typically calculated based on magnitude - brighter stars
-     * appear larger.</p>
+     * <p>Brighter stars are typically assigned larger sizes for rendering.</p>
      *
-     * @return Size in pixels at default zoom level
+     * @return Size in pixels at the default zoom level.
      */
     public int getSize() {
         return size;
     }
 
     /**
-     * Calculates the luminosity relative to a reference magnitude.
+     * Calculates the luminosity ratio relative to an object with the given reference magnitude.
      *
-     * <p>Uses the formula: ratio = 10^((refMag - thisMag) / 2.5)</p>
+     * <p>Uses the formula {@code 10^((referenceMagnitude - magnitude) / 2.5)}.</p>
      *
-     * @param referenceMagnitude The reference magnitude to compare against
-     * @return The luminosity ratio
+     * @param referenceMagnitude the reference magnitude to compare against
+     * @return the multiplicative luminosity ratio — `>1` if this star is more luminous than the reference magnitude, `1` if equal, `<1` otherwise
      */
     public float getLuminosityRatio(float referenceMagnitude) {
         return (float) Math.pow(10, (referenceMagnitude - magnitude) / 2.5);
     }
 
     /**
-     * Checks if this star is visible to the naked eye.
+     * Determines whether this star is visible to the naked eye.
      *
-     * <p>Generally, stars with magnitude less than or equal to 6.0 are
-     * visible under ideal conditions.</p>
-     *
-     * @return true if the star is visible to naked eye
+     * @return true if the star's apparent magnitude is less than or equal to 6.0, false otherwise.
      */
     public boolean isNakedEyeVisible() {
         return magnitude <= 6.0f;
     }
 
     /**
-     * Returns a color based on the spectral type.
+     * Maps the star's spectral class to a representative ARGB color.
      *
-     * <p>If no spectral type is set, returns a default white color.</p>
+     * <p>Spectral classes O, B, A, F, G, K, and M are mapped to typical blue-to-red star colors;
+     * if the spectral type is unset or unrecognized, the star's default color is returned.</p>
      *
-     * @return ARGB color representing the star's spectral color
+     * @return ARGB integer encoding the color for the star's spectral class, or the object's default color if unset or unknown
      */
     public int getSpectralColor() {
         if (spectralType == null || spectralType.isEmpty()) {
@@ -202,6 +198,11 @@ public class StarData extends CelestialObject {
         }
     }
 
+    /**
+     * Provides a concise one-line representation of the star's identifying and observational fields.
+     *
+     * @return a formatted string containing the star's id, name, right ascension (ra), declination (dec), magnitude, and spectral type, e.g. "StarData{id='...', name='...', ra=..., dec=..., mag=..., type='...'}".
+     */
     @Override
     @NonNull
     public String toString() {
@@ -254,16 +255,21 @@ public class StarData extends CelestialObject {
             super();
         }
 
+        /**
+         * Return the current Builder to enable fluent method chaining.
+         *
+         * @return this Builder instance
+         */
         @Override
         protected Builder self() {
             return this;
         }
 
         /**
-         * Sets the apparent magnitude (brightness).
+         * Set the apparent magnitude (brightness) for the star.
          *
-         * @param magnitude The apparent magnitude (lower = brighter)
-         * @return This builder for method chaining
+         * @param magnitude apparent magnitude; lower values indicate a brighter star
+         * @return this Builder for method chaining
          */
         @NonNull
         public Builder setMagnitude(float magnitude) {
@@ -272,11 +278,11 @@ public class StarData extends CelestialObject {
         }
 
         /**
-         * Sets the spectral type classification.
-         *
-         * @param spectralType The spectral type (e.g., "G2V")
-         * @return This builder for method chaining
-         */
+                 * Set the star's spectral type classification.
+                 *
+                 * @param spectralType the spectral type (e.g., "G2V"); may be {@code null} to unset
+                 * @return this builder for method chaining
+                 */
         @NonNull
         public Builder setSpectralType(@Nullable String spectralType) {
             this.spectralType = spectralType;
@@ -296,11 +302,11 @@ public class StarData extends CelestialObject {
         }
 
         /**
-         * Sets the constellation ID this star belongs to.
-         *
-         * @param constellationId The constellation ID (e.g., "Ori" for Orion)
-         * @return This builder for method chaining
-         */
+                 * Set the constellation identifier for the star.
+                 *
+                 * @param constellationId the constellation abbreviation (e.g., "Ori" for Orion), or {@code null} to unset
+                 * @return this Builder instance for chaining
+                 */
         @NonNull
         public Builder setConstellationId(@Nullable String constellationId) {
             this.constellationId = constellationId;
@@ -335,6 +341,11 @@ public class StarData extends CelestialObject {
             return this;
         }
 
+        /**
+         * Create a StarData instance from this builder's configured values.
+         *
+         * @return a validated {@link StarData} constructed from this builder
+         */
         @Override
         @NonNull
         public StarData build() {

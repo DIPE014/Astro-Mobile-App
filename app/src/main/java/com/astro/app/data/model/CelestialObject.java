@@ -52,10 +52,13 @@ public class CelestialObject {
     private final int color;
 
     /**
-     * Protected constructor for use by Builder and subclasses.
-     *
-     * @param builder The builder containing the object's properties
-     */
+         * Initialize a CelestialObject using values from a Builder.
+         *
+         * The instance's fields are populated from the provided builder. The list
+         * of alternate names is copied and exposed as an unmodifiable list.
+         *
+         * @param builder the Builder that provides the object's properties; must be non-null
+         */
     protected CelestialObject(@NonNull Builder<?> builder) {
         this.id = builder.id;
         this.name = builder.name;
@@ -66,9 +69,9 @@ public class CelestialObject {
     }
 
     /**
-     * Returns the unique identifier for this celestial object.
+     * Get the unique identifier of this celestial object.
      *
-     * @return The object's unique ID
+     * @return the object's unique identifier (non-null)
      */
     @NonNull
     public String getId() {
@@ -76,9 +79,9 @@ public class CelestialObject {
     }
 
     /**
-     * Returns the primary display name of this object.
+     * Primary display name of this celestial object.
      *
-     * @return The object's name
+     * @return the primary display name (non-null)
      */
     @NonNull
     public String getName() {
@@ -100,46 +103,46 @@ public class CelestialObject {
     }
 
     /**
-     * Returns the Right Ascension in degrees.
+     * The object's Right Ascension in degrees.
      *
-     * @return Right Ascension in degrees (0-360)
+     * @return the Right Ascension in degrees, in the range 0 to 360
      */
     public float getRa() {
         return ra;
     }
 
     /**
-     * Returns the Declination in degrees.
+     * Declination in degrees.
      *
-     * @return Declination in degrees (-90 to +90)
+     * @return Declination in degrees, between -90 and +90
      */
     public float getDec() {
         return dec;
     }
 
     /**
-     * Returns the geocentric coordinates of this object.
-     *
-     * @return GeocentricCoords representing this object's position
-     */
+         * Obtain the geocentric coordinate representation of this object.
+         *
+         * @return the geocentric coordinates corresponding to this object's right ascension and declination (in degrees)
+         */
     @NonNull
     public GeocentricCoords getCoordinates() {
         return GeocentricCoords.fromDegrees(ra, dec);
     }
 
     /**
-     * Returns the ARGB color for rendering this object.
+     * Get the ARGB color used to render this celestial object.
      *
-     * @return ARGB color value
+     * @return the ARGB color value used for rendering
      */
     public int getColor() {
         return color;
     }
 
     /**
-     * Checks if this object has any alternate names.
+     * Returns whether the object has any alternate names.
      *
-     * @return true if the object has at least one alternate name
+     * @return `true` if the object has at least one alternate name, `false` otherwise
      */
     public boolean hasAlternateNames() {
         return !alternateNames.isEmpty();
@@ -155,6 +158,12 @@ public class CelestialObject {
         return getCoordinates().angularDistanceTo(other.getCoordinates());
     }
 
+    /**
+     * Determine whether another object represents the same celestial object by id.
+     *
+     * @param o the object to compare with
+     * @return `true` if {@code o} is a CelestialObject of the same runtime class and has an identical id, `false` otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -163,11 +172,22 @@ public class CelestialObject {
         return id.equals(that.id);
     }
 
+    /**
+     * Compute a hash code for this object using its identifier.
+     *
+     * @return the hash code derived from {@code id}
+     */
     @Override
     public int hashCode() {
         return id.hashCode();
     }
 
+    /**
+     * Provide a concise string representation of the celestial object.
+     *
+     * @return a string containing the object's id, name, RA, and Dec in the format
+     *         "CelestialObject{id='...', name='...', ra=%.4f, dec=%.4f}".
+     */
     @Override
     @NonNull
     public String toString() {
@@ -208,10 +228,10 @@ public class CelestialObject {
         }
 
         /**
-         * Returns this builder instance for method chaining.
-         *
-         * @return This builder instance
-         */
+                 * Return the current builder cast to the concrete builder type for fluent chaining.
+                 *
+                 * @return `this` cast to the concrete builder type `T`
+                 */
         @SuppressWarnings("unchecked")
         protected T self() {
             return (T) this;
@@ -230,10 +250,10 @@ public class CelestialObject {
         }
 
         /**
-         * Sets the primary name.
+         * Sets the primary display name.
          *
-         * @param name The display name
-         * @return This builder for method chaining
+         * @param name primary display name
+         * @return this builder instance for chaining
          */
         @NonNull
         public T setName(@NonNull String name) {
@@ -242,10 +262,12 @@ public class CelestialObject {
         }
 
         /**
-         * Sets the list of alternate names.
+         * Replace the builder's alternate names with the given list.
          *
-         * @param alternateNames The list of alternate names
-         * @return This builder for method chaining
+         * If `alternateNames` is `null`, the builder's alternate names are set to an empty list.
+         *
+         * @param alternateNames list of alternate names, or `null` to clear to an empty list
+         * @return this builder for method chaining
          */
         @NonNull
         public T setAlternateNames(@Nullable List<String> alternateNames) {
@@ -254,10 +276,10 @@ public class CelestialObject {
         }
 
         /**
-         * Adds an alternate name.
+         * Appends an alternate name to the builder's list of alternate names.
          *
-         * @param alternateName An alternate name to add
-         * @return This builder for method chaining
+         * @param alternateName the alternate name to append
+         * @return this builder instance for chaining
          */
         @NonNull
         public T addAlternateName(@NonNull String alternateName) {
@@ -303,10 +325,10 @@ public class CelestialObject {
         }
 
         /**
-         * Sets the ARGB color for rendering.
+         * Set the ARGB color used to render the celestial object.
          *
-         * @param color ARGB color value
-         * @return This builder for method chaining
+         * @param color ARGB color value (0xAARRGGBB)
+         * @return this builder for method chaining
          */
         @NonNull
         public T setColor(int color) {
@@ -315,10 +337,10 @@ public class CelestialObject {
         }
 
         /**
-         * Builds the CelestialObject instance.
+         * Create a CelestialObject from the builder's current state.
          *
-         * @return A new CelestialObject instance
-         * @throws IllegalStateException if required fields are not set
+         * @return the constructed CelestialObject
+         * @throws IllegalStateException if required fields (such as id or name) are empty
          */
         @NonNull
         public CelestialObject build() {
@@ -327,9 +349,9 @@ public class CelestialObject {
         }
 
         /**
-         * Validates that required fields are properly set.
+         * Ensure required builder fields are present before building a CelestialObject.
          *
-         * @throws IllegalStateException if validation fails
+         * @throws IllegalStateException if `id` is empty or `name` is empty
          */
         protected void validate() {
             if (id.isEmpty()) {

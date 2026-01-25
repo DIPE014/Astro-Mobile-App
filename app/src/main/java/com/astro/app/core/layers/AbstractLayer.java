@@ -66,11 +66,11 @@ public abstract class AbstractLayer implements Layer {
     protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     /**
-     * Creates an abstract layer with the given parameters.
+     * Constructs an AbstractLayer with the specified identifier, display name, and rendering depth order.
      *
-     * @param layerId        Unique identifier for this layer
-     * @param layerName      Display name for this layer
-     * @param layerDepthOrder Depth order for rendering
+     * @param layerId         Unique non-null identifier for the layer
+     * @param layerName       Non-null display name for the layer
+     * @param layerDepthOrder Rendering depth order; lower values render behind higher values
      */
     protected AbstractLayer(@NonNull String layerId, @NonNull String layerName, int layerDepthOrder) {
         this.layerId = layerId;
@@ -78,6 +78,13 @@ public abstract class AbstractLayer implements Layer {
         this.layerDepthOrder = layerDepthOrder;
     }
 
+    /**
+     * Initialize the layer by populating its primitives and marking it initialized.
+     *
+     * This method is idempotent: if the layer is already initialized it returns immediately.
+     * It acquires the layer's write lock, clears existing primitives, invokes {@link #initializeLayer()}
+     * while the write lock is held, and sets the internal initialized flag.
+     */
     @Override
     public void initialize() {
         if (initialized) {
@@ -108,6 +115,13 @@ public abstract class AbstractLayer implements Layer {
      */
     protected abstract void initializeLayer();
 
+    /**
+     * Get a snapshot of the layer's point primitives when the layer is visible.
+     *
+     * The returned list is a copy of the current points at call time and is not backed by the layer's internal storage.
+     *
+     * @return a copy of the current point primitives if the layer is visible, or an empty list if not visible
+     */
     @Override
     @NonNull
     public List<PointPrimitive> getPoints() {
@@ -122,6 +136,11 @@ public abstract class AbstractLayer implements Layer {
         }
     }
 
+    /**
+     * Provide a snapshot of the layer's line primitives when the layer is visible.
+     *
+     * @return a list containing the current line primitives snapshot when the layer is visible, or an empty list when the layer is not visible
+     */
     @Override
     @NonNull
     public List<LinePrimitive> getLines() {
@@ -136,6 +155,13 @@ public abstract class AbstractLayer implements Layer {
         }
     }
 
+    /**
+     * Provides a snapshot of the layer's label primitives when the layer is visible.
+     *
+     * The returned list is a copy and is not backed by the layer's internal storage.
+     *
+     * @return a non-null list of current LabelPrimitive instances if the layer is visible, or an empty list otherwise.
+     */
     @Override
     @NonNull
     public List<LabelPrimitive> getLabels() {
@@ -150,17 +176,34 @@ public abstract class AbstractLayer implements Layer {
         }
     }
 
+    /**
+     * Updates whether the layer is visible to renderers and data consumers.
+     *
+     * Setting this to `false` causes `getPoints()`, `getLines()`, and `getLabels()` to behave as if the layer is hidden.
+     *
+     * @param visible `true` to make the layer visible, `false` to hide it
+     */
     @Override
     public void setVisible(boolean visible) {
         this.visible = visible;
         Log.d(TAG, "Layer " + layerId + " visibility set to " + visible);
     }
 
+    /**
+     * Indicates whether the layer is visible.
+     *
+     * @return true if the layer is visible, false otherwise.
+     */
     @Override
     public boolean isVisible() {
         return visible;
     }
 
+    /**
+     * Recreates the layer's primitives by clearing current primitives and repopulating them.
+     *
+     * <p>Acquires the layer's write lock while updating primitives to ensure thread-safe modification; upon completion the method logs the refreshed counts of points, lines, and labels.</p>
+     */
     @Override
     public void redraw() {
         lock.writeLock().lock();
@@ -176,49 +219,64 @@ public abstract class AbstractLayer implements Layer {
         }
     }
 
+    /**
+     * Get the unique identifier of this layer.
+     *
+     * @return the unique identifier for this layer
+     */
     @Override
     @NonNull
     public String getLayerId() {
         return layerId;
     }
 
+    /**
+     * Get the display name of the layer.
+     *
+     * @return the layer's display name
+     */
     @Override
     @NonNull
     public String getLayerName() {
         return layerName;
     }
 
+    /**
+     * Gets the layer's rendering depth order.
+     *
+     * @return the layer's rendering depth order; lower values render behind higher values.
+     */
     @Override
     public int getLayerDepthOrder() {
         return layerDepthOrder;
     }
 
     /**
-     * Returns whether this layer has been initialized.
+     * Indicates whether the layer has completed initialization.
      *
-     * @return true if initialized
+     * @return true if the layer has been initialized, false otherwise.
      */
     public boolean isInitialized() {
         return initialized;
     }
 
     /**
-     * Adds a point primitive to this layer.
+     * Add a point primitive to this layer.
      *
-     * <p>This method should be called during initialization with the write lock held.</p>
+     * <p>Expected to be called while holding the write lock (e.g., during initialization or redraw).</p>
      *
-     * @param point Point primitive to add
+     * @param point the point primitive to add
      */
     protected void addPoint(@NonNull PointPrimitive point) {
         points.add(point);
     }
 
     /**
-     * Adds a line primitive to this layer.
+     * Add a line primitive to this layer's internal collection.
      *
-     * <p>This method should be called during initialization with the write lock held.</p>
+     * Expected to be called while holding the write lock (for example during initialization or redraw).
      *
-     * @param line Line primitive to add
+     * @param line the line primitive to add
      */
     protected void addLine(@NonNull LinePrimitive line) {
         lines.add(line);
@@ -236,36 +294,36 @@ public abstract class AbstractLayer implements Layer {
     }
 
     /**
-     * Adds multiple point primitives to this layer.
+     * Adds multiple point primitives to the layer.
      *
-     * @param newPoints Points to add
+     * @param newPoints the point primitives to append; must be called with the layer's write lock held
      */
     protected void addPoints(@NonNull List<PointPrimitive> newPoints) {
         points.addAll(newPoints);
     }
 
     /**
-     * Adds multiple line primitives to this layer.
+     * Add multiple line primitives to this layer's internal storage.
      *
-     * @param newLines Lines to add
+     * @param newLines the line primitives to add; the caller is expected to hold the layer's write lock when invoking this method
      */
     protected void addLines(@NonNull List<LinePrimitive> newLines) {
         lines.addAll(newLines);
     }
 
     /**
-     * Adds multiple label primitives to this layer.
+     * Append the given label primitives to this layer's label storage.
      *
-     * @param newLabels Labels to add
+     * @param newLabels the label primitives to add; call while holding the layer's write lock
      */
     protected void addLabels(@NonNull List<LabelPrimitive> newLabels) {
         labels.addAll(newLabels);
     }
 
     /**
-     * Clears all primitives from this layer.
+     * Remove all point, line, and label primitives from this layer.
      *
-     * <p>This method should be called with the write lock held.</p>
+     * <p>Must be invoked while holding the layer's write lock to preserve thread safety.</p>
      */
     protected void clearPrimitives() {
         points.clear();
@@ -274,9 +332,9 @@ public abstract class AbstractLayer implements Layer {
     }
 
     /**
-     * Returns the total number of primitives in this layer.
+     * Get the current total number of primitives in the layer.
      *
-     * @return Total primitive count
+     * @return the number of point, line, and label primitives currently stored in this layer
      */
     public int getPrimitiveCount() {
         lock.readLock().lock();

@@ -112,9 +112,9 @@ public class SettingsViewModel extends AndroidViewModel {
     private SharedPreferences sharedPreferences;
 
     /**
-     * Creates a new SettingsViewModel.
+     * Initialize the view model, set up preferences storage, and load saved settings into LiveData.
      *
-     * @param application The application context
+     * @param application the Application instance used to obtain SharedPreferences and app resources
      */
     public SettingsViewModel(@NonNull Application application) {
         super(application);
@@ -125,7 +125,7 @@ public class SettingsViewModel extends AndroidViewModel {
     // ==================== Settings Loading/Saving ====================
 
     /**
-     * Loads all settings from SharedPreferences.
+     * Populate the ViewModel's LiveData fields from SharedPreferences, using defined defaults when keys are absent.
      */
     private void loadSettings() {
         starBrightnessLiveData.setValue(
@@ -159,7 +159,10 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Saves a float setting to SharedPreferences.
+     * Persist a float value under the given preference key and mark settings as changed.
+     *
+     * @param key   the preference key to store the value under
+     * @param value the float value to persist
      */
     private void saveFloat(String key, float value) {
         sharedPreferences.edit().putFloat(key, value).apply();
@@ -167,7 +170,7 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Saves a boolean setting to SharedPreferences.
+     * Save the boolean value under the given key in SharedPreferences and mark that settings have changed.
      */
     private void saveBoolean(String key, boolean value) {
         sharedPreferences.edit().putBoolean(key, value).apply();
@@ -175,7 +178,10 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Saves an int setting to SharedPreferences.
+     * Persist an integer preference and mark settings as changed.
+     *
+     * @param key   the SharedPreferences key under which to store the value
+     * @param value the integer value to save
      */
     private void saveInt(String key, int value) {
         sharedPreferences.edit().putInt(key, value).apply();
@@ -185,9 +191,9 @@ public class SettingsViewModel extends AndroidViewModel {
     // ==================== LiveData Getters ====================
 
     /**
-     * Returns the LiveData for star brightness.
+     * LiveData that exposes the star brightness multiplier.
      *
-     * @return LiveData containing the star brightness multiplier
+     * @return the current star brightness multiplier
      */
     @NonNull
     public LiveData<Float> getStarBrightness() {
@@ -195,9 +201,9 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Returns the LiveData for magnitude limit.
+     * LiveData exposing the current maximum magnitude to display.
      *
-     * @return LiveData containing the maximum magnitude to display
+     * @return the current maximum magnitude to display as a Float
      */
     @NonNull
     public LiveData<Float> getMagnitudeLimit() {
@@ -205,19 +211,19 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Returns the LiveData for label magnitude limit.
-     *
-     * @return LiveData containing the maximum magnitude for labels
-     */
+         * Exposes the current maximum magnitude threshold for star labels as LiveData.
+         *
+         * @return the LiveData holding the maximum magnitude for which star labels are displayed
+         */
     @NonNull
     public LiveData<Float> getLabelMagnitudeLimit() {
         return labelMagnitudeLimitLiveData;
     }
 
     /**
-     * Returns the LiveData for night mode state.
+     * Provides the LiveData representing whether night mode is enabled.
      *
-     * @return LiveData containing true if night mode is enabled
+     * @return true if night mode is enabled, false otherwise.
      */
     @NonNull
     public LiveData<Boolean> getNightMode() {
@@ -225,29 +231,29 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Returns the LiveData for star labels visibility.
-     *
-     * @return LiveData containing true if star labels should be shown
-     */
+         * Provides LiveData that indicates whether star labels are shown.
+         *
+         * @return the LiveData whose value is `true` if star labels should be shown, `false` otherwise
+         */
     @NonNull
     public LiveData<Boolean> getShowStarLabels() {
         return showStarLabelsLiveData;
     }
 
     /**
-     * Returns the LiveData for constellation lines visibility.
-     *
-     * @return LiveData containing true if constellation lines should be shown
-     */
+         * Provides the current setting for constellation lines visibility.
+         *
+         * @return true if constellation lines should be shown, false otherwise.
+         */
     @NonNull
     public LiveData<Boolean> getShowConstellationLines() {
         return showConstellationLinesLiveData;
     }
 
     /**
-     * Returns the LiveData for constellation names visibility.
+     * Provides the LiveData that indicates whether constellation names are shown.
      *
-     * @return LiveData containing true if constellation names should be shown
+     * @return `true` if constellation names should be shown, `false` otherwise.
      */
     @NonNull
     public LiveData<Boolean> getShowConstellationNames() {
@@ -255,9 +261,9 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Returns the LiveData for grid visibility.
+     * Provides observable state of whether the coordinate grid is shown.
      *
-     * @return LiveData containing true if the coordinate grid should be shown
+     * @return LiveData containing true if the coordinate grid should be shown, false otherwise.
      */
     @NonNull
     public LiveData<Boolean> getShowGrid() {
@@ -265,9 +271,9 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Returns the LiveData for auto-rotate setting.
+     * Get the current auto-rotate setting.
      *
-     * @return LiveData containing true if auto-rotate is enabled
+     * @return LiveData containing {@code true} if auto-rotate is enabled, {@code false} otherwise.
      */
     @NonNull
     public LiveData<Boolean> getAutoRotate() {
@@ -275,9 +281,9 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Returns the LiveData for sensor smoothing.
+     * Exposes the current sensor smoothing factor as observable LiveData.
      *
-     * @return LiveData containing the smoothing factor (0.0 to 1.0)
+     * @return the smoothing factor in the range 0.0 to 1.0
      */
     @NonNull
     public LiveData<Float> getSensorSmoothing() {
@@ -285,9 +291,9 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Returns the LiveData for field of view.
+     * Provides the current field of view setting in degrees.
      *
-     * @return LiveData containing the FOV in degrees
+     * @return LiveData containing the field of view in degrees.
      */
     @NonNull
     public LiveData<Float> getFieldOfView() {
@@ -295,29 +301,29 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Returns the LiveData for constellation line color.
-     *
-     * @return LiveData containing the ARGB color value
-     */
+         * Exposes the current constellation line color.
+         *
+         * @return the current constellation line color as an ARGB integer
+         */
     @NonNull
     public LiveData<Integer> getConstellationLineColor() {
         return constellationLineColorLiveData;
     }
 
     /**
-     * Returns the LiveData for magnetic correction setting.
-     *
-     * @return LiveData containing true if magnetic correction should be used
-     */
+         * LiveData that indicates whether magnetic correction is enabled.
+         *
+         * @return `true` if magnetic correction should be used, `false` otherwise.
+         */
     @NonNull
     public LiveData<Boolean> getUseMagneticCorrection() {
         return useMagneticCorrectionLiveData;
     }
 
     /**
-     * Returns the LiveData for settings changed flag.
+     * Indicates whether settings have changed since the last clear.
      *
-     * @return LiveData containing true if settings have changed
+     * @return `true` if settings have changed, `false` otherwise.
      */
     @NonNull
     public LiveData<Boolean> getSettingsChanged() {
@@ -327,9 +333,11 @@ public class SettingsViewModel extends AndroidViewModel {
     // ==================== Settings Setters ====================
 
     /**
-     * Sets the star brightness multiplier.
+     * Update the application's star brightness setting.
      *
-     * @param brightness The brightness multiplier (0.5 to 2.0)
+     * Updates the observable LiveData and persists the clamped value to SharedPreferences.
+     *
+     * @param brightness desired brightness multiplier; values below 0.5 are set to 0.5 and values above 2.0 are set to 2.0
      */
     public void setStarBrightness(float brightness) {
         float clamped = Math.max(0.5f, Math.min(2.0f, brightness));
@@ -339,9 +347,11 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Sets the maximum star magnitude to display.
+     * Update the maximum star magnitude shown in the sky view.
      *
-     * @param magnitude The magnitude limit (-2 to 12)
+     * The provided value is clamped to the range -2 to 12, persisted to preferences, and posted to observers.
+     *
+     * @param magnitude desired magnitude limit; values less than -2 are set to -2 and values greater than 12 are set to 12
      */
     public void setMagnitudeLimit(float magnitude) {
         float clamped = Math.max(-2f, Math.min(12f, magnitude));
@@ -351,9 +361,11 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Sets the maximum magnitude for showing star labels.
+     * Update the maximum star magnitude for which labels are displayed.
      *
-     * @param magnitude The label magnitude limit (-2 to 8)
+     * Values outside the range -2 to 8 are clamped to that range.
+     *
+     * @param magnitude the desired label magnitude limit; values < -2 are treated as -2 and values > 8 are treated as 8
      */
     public void setLabelMagnitudeLimit(float magnitude) {
         float clamped = Math.max(-2f, Math.min(8f, magnitude));
@@ -363,9 +375,9 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Sets the night mode state.
+     * Enable or disable the app's night (low-light) display mode.
      *
-     * @param enabled true to enable night mode
+     * @param enabled true to enable night mode, false to disable it
      */
     public void setNightMode(boolean enabled) {
         nightModeLiveData.setValue(enabled);
@@ -374,7 +386,9 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Toggles night mode on/off.
+     * Toggle the night mode setting between enabled and disabled.
+     *
+     * If the setting is currently unset, this enables night mode.
      */
     public void toggleNightMode() {
         Boolean current = nightModeLiveData.getValue();
@@ -382,9 +396,9 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Sets whether star labels should be shown.
+     * Enable or disable the display of star labels.
      *
-     * @param show true to show star labels
+     * @param show `true` to show star labels, `false` to hide them
      */
     public void setShowStarLabels(boolean show) {
         showStarLabelsLiveData.setValue(show);
@@ -393,9 +407,9 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Sets whether constellation lines should be shown.
+     * Enable or disable display of constellation lines.
      *
-     * @param show true to show constellation lines
+     * @param show true to display constellation lines, false to hide them
      */
     public void setShowConstellationLines(boolean show) {
         showConstellationLinesLiveData.setValue(show);
@@ -426,9 +440,9 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Sets whether auto-rotate is enabled.
+     * Enable or disable automatic rotation of the view.
      *
-     * @param enabled true to enable auto-rotate
+     * @param enabled true to enable automatic rotation, false to disable it
      */
     public void setAutoRotate(boolean enabled) {
         autoRotateLiveData.setValue(enabled);
@@ -437,9 +451,9 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Sets the sensor smoothing factor.
+     * Updates the sensor smoothing factor, clamped to the range 0.0–1.0 and persisted to preferences.
      *
-     * @param smoothing The smoothing factor (0.0 to 1.0)
+     * @param smoothing the desired smoothing factor; values less than 0.0 become 0.0 and values greater than 1.0 become 1.0
      */
     public void setSensorSmoothing(float smoothing) {
         float clamped = Math.max(0f, Math.min(1f, smoothing));
@@ -449,9 +463,9 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Sets the field of view.
+     * Update the field of view used by the UI and persist the value.
      *
-     * @param fov The field of view in degrees (10 to 120)
+     * @param fov field of view in degrees; values are clamped to the range 10–120
      */
     public void setFieldOfView(float fov) {
         float clamped = Math.max(10f, Math.min(120f, fov));
@@ -485,9 +499,11 @@ public class SettingsViewModel extends AndroidViewModel {
     // ==================== Apply Settings to Components ====================
 
     /**
-     * Applies current settings to the AstronomerModel.
+     * Applies the current field-of-view and auto-rotate settings to the given AstronomerModel.
      *
-     * @param model The astronomer model to configure
+     * If a setting is not present in the ViewModel's LiveData, the corresponding model property is left unchanged.
+     *
+     * @param model the AstronomerModel to configure
      */
     public void applyToAstronomerModel(@NonNull AstronomerModel model) {
         Float fov = fieldOfViewLiveData.getValue();
@@ -504,10 +520,13 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Applies current settings to the StarsLayer.
-     *
-     * @param layer The stars layer to configure
-     */
+         * Apply current stars-related settings to the provided StarsLayer.
+         *
+         * <p>Specifically applies magnitude limit, label magnitude limit, and star label visibility,
+         * then requests the layer to redraw.</p>
+         *
+         * @param layer the StarsLayer to configure and redraw
+         */
     public void applyToStarsLayer(@NonNull StarsLayer layer) {
         Float magnitudeLimit = magnitudeLimitLiveData.getValue();
         if (magnitudeLimit != null) {
@@ -531,9 +550,11 @@ public class SettingsViewModel extends AndroidViewModel {
     }
 
     /**
-     * Applies current settings to the ConstellationsLayer.
+     * Configure a ConstellationsLayer using current settings and request a redraw.
      *
-     * @param layer The constellations layer to configure
+     * Updates visibility of constellation lines and names and the line color when the corresponding settings are available, then triggers a redraw of the layer.
+     *
+     * @param layer the ConstellationsLayer to configure
      */
     public void applyToConstellationsLayer(@NonNull ConstellationsLayer layer) {
         Boolean showLines = showConstellationLinesLiveData.getValue();
@@ -582,8 +603,6 @@ public class SettingsViewModel extends AndroidViewModel {
 
     /**
      * Clears the settings changed flag.
-     *
-     * <p>Call this after handling settings changes in the observer.</p>
      */
     public void clearSettingsChangedFlag() {
         settingsChangedLiveData.setValue(false);

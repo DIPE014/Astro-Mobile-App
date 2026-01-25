@@ -125,7 +125,7 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Creates a new SkyRenderer.
+     * Constructs a SkyRenderer and initializes its point, line, and label sub-renderers.
      */
     public SkyRenderer() {
         pointRenderer = new PointRenderer();
@@ -133,6 +133,16 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
         labelRenderer = new LabelRenderer();
     }
 
+    /**
+     * Initialize OpenGL state and sub-renderers when the GL surface is created.
+     *
+     * <p>Sets the clear color, enables depth testing and face culling, initializes
+     * point/line/label sub-renderers, marks layer data for update, and logs GL
+     * vendor/renderer/version information.</p>
+     *
+     * @param gl     the GL interface associated with the surface (may be unused)
+     * @param config the EGL configuration used to create the surface
+     */
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         Log.d(TAG, "onSurfaceCreated - OpenGL surface is ready!");
@@ -163,6 +173,12 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
         Log.d(TAG, "OpenGL initialized");
     }
 
+    /**
+     * Handle a change in the GL surface size by updating viewport, internal size state, and projection.
+     *
+     * @param width  the new surface width in pixels; values less than 1 are treated as 1
+     * @param height the new surface height in pixels; values less than 1 are treated as 1
+     */
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         Log.d(TAG, "onSurfaceChanged: " + width + "x" + height);
@@ -178,6 +194,15 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
 
     private static int frameCount = 0;
 
+    /**
+     * Render a single frame: update view/projection state, refresh layer data when needed, draw all layers, and invoke render callbacks.
+     *
+     * <p>Per-frame actions include invoking {@code renderCallback.onPreRender} and {@code onPostRender} (if set), clearing color and depth buffers
+     * (temporarily using a bright red clear color for diagnostics), updating the view matrix, composing the MVP matrix (using the custom
+     * transformation matrix when enabled), updating aggregated layer data when requested, rendering layers in depth order, and checking for GL errors.</p>
+     *
+     * @param gl the GL interface provided by GLSurfaceView
+     */
     @Override
     public void onDrawFrame(GL10 gl) {
         frameCount++;
@@ -262,7 +287,10 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Collects and updates primitive data from all layers.
+     * Aggregates primitives from visible layers in depth order and updates the sub-renderers.
+     *
+     * Visible layers are processed in depth order; their points, lines, and labels
+     * are collected into lists and passed to the point, line, and label renderers.
      */
     private void updateLayerData() {
         List<PointPrimitive> allPoints = new ArrayList<>();
@@ -291,7 +319,9 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Renders all layers.
+     * Renders aggregated layer primitives with depth writing disabled so transparent elements compose correctly.
+     *
+     * Renders in back-to-front order: lines, then points, then labels, and restores depth writing afterward.
      */
     private void renderLayers() {
         // Disable depth writing for transparent objects
@@ -309,10 +339,13 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     // ========== Public API ==========
 
     /**
-     * Sets the layers to render.
-     *
-     * @param newLayers The layers to render
-     */
+         * Replace the renderer's current layers with the provided list and mark layers for update.
+         *
+         * The new list completely replaces any existing layers; layer data will be recomputed on the
+         * next render pass.
+         *
+         * @param newLayers the layers to render (must not be null)
+         */
     public void setLayers(@NonNull List<Layer> newLayers) {
         layers.clear();
         layers.addAll(newLayers);
@@ -320,9 +353,9 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Adds a layer to render.
+     * Add the given layer to the renderer and schedule an update of aggregated layer data.
      *
-     * @param layer The layer to add
+     * @param layer the layer to add; must not be null
      */
     public void addLayer(@NonNull Layer layer) {
         layers.add(layer);
@@ -330,9 +363,9 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Removes a layer.
+     * Remove the given layer from the renderer and schedule a layer data update.
      *
-     * @param layer The layer to remove
+     * @param layer the layer to remove from rendering
      */
     public void removeLayer(@NonNull Layer layer) {
         layers.remove(layer);
@@ -340,8 +373,11 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Clears all layers.
-     */
+         * Remove all layers from the renderer and mark layer data for update.
+         *
+         * This clears the internal layer collection and sets the flag so aggregated
+         * layer data will be rebuilt on the next render/update pass.
+         */
     public void clearLayers() {
         layers.clear();
         layersNeedUpdate = true;
@@ -357,12 +393,10 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Sets a custom transformation matrix for the view.
+     * Sets a custom transformation matrix to replace the internally calculated view matrix.
      *
-     * <p>When set, this matrix replaces the internally calculated view matrix.
-     * Use this to integrate with external orientation sources.</p>
-     *
-     * @param matrix The transformation matrix, or null to use internal view
+     * @param matrix the transformation matrix to use, or `null` to disable the custom matrix and
+     *               resume using the internally computed view orientation
      */
     public void setTransformationMatrix(@Nullable Matrix4x4 matrix) {
         this.customTransformationMatrix = matrix;
@@ -370,10 +404,14 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Sets the view orientation.
+     * Update the renderer's viewing orientation from a look direction and an up direction.
      *
-     * @param lookDir The direction to look (will be normalized)
-     * @param upDir   The up direction (will be orthogonalized)
+     * The provided look direction will be normalized and the provided up direction will be made
+     * orthogonal to the resulting look direction and normalized. This marks the view matrix
+     * for recomputation and disables any previously set custom transformation matrix.
+     *
+     * @param lookDir the desired look direction vector (will be normalized)
+     * @param upDir   the desired up direction vector (will be orthogonalized to the look direction and normalized)
      */
     public void setViewOrientation(@NonNull Vector3 lookDir, @NonNull Vector3 upDir) {
         // Normalize look direction
@@ -404,24 +442,32 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Sets the view orientation from raw float values.
-     *
-     * @param lookX Look direction X
-     * @param lookY Look direction Y
-     * @param lookZ Look direction Z
-     * @param upX   Up direction X
-     * @param upY   Up direction Y
-     * @param upZ   Up direction Z
-     */
+         * Set the view orientation using explicit vector components for the look and up directions.
+         *
+         * The provided look vector will be normalized and the up vector will be adjusted to be
+         * orthogonal to the look direction. Calling this disables any custom transformation matrix
+         * and schedules the internal view matrix to be updated.
+         *
+         * @param lookX X component of the look (forward) direction
+         * @param lookY Y component of the look (forward) direction
+         * @param lookZ Z component of the look (forward) direction
+         * @param upX   X component of the up direction
+         * @param upY   Y component of the up direction
+         * @param upZ   Z component of the up direction
+         */
     public void setViewOrientation(float lookX, float lookY, float lookZ,
                                    float upX, float upY, float upZ) {
         setViewOrientation(new Vector3(lookX, lookY, lookZ), new Vector3(upX, upY, upZ));
     }
 
     /**
-     * Sets the field of view.
+     * Set the vertical field of view used for the perspective projection.
      *
-     * @param fovDegrees Field of view in degrees (typically 30-90)
+     * The provided value is clamped to the range 10–120 degrees and the projection
+     * matrix is updated immediately.
+     *
+     * @param fovDegrees desired field of view in degrees; values outside 10–120
+     *                   will be clamped to that range
      */
     public void setFieldOfView(float fovDegrees) {
         this.fieldOfView = Math.max(10.0f, Math.min(120.0f, fovDegrees));
@@ -429,18 +475,25 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Returns the current field of view.
-     *
-     * @return FOV in degrees
-     */
+         * Get the field of view used for the perspective projection.
+         *
+         * Values set via {@link #setFieldOfView(float)} are clamped to 10–120 degrees.
+         *
+         * @return the field of view in degrees
+         */
     public float getFieldOfView() {
         return fieldOfView;
     }
 
     /**
-     * Enables or disables night mode (red tint for dark adaptation).
+     * Toggle night mode to apply a red-tinted display for dark adaptation.
      *
-     * @param enabled true to enable night mode
+     * When enabled, sets the internal night-mode flag, propagates the setting to
+     * point, line, and label sub-renderers, and adjusts the background color to a
+     * red tint suitable for dark adaptation. When disabled, restores the standard
+     * dark-blue background and clears night-mode on sub-renderers.
+     *
+     * @param enabled true to enable night mode, false to disable it
      */
     public void setNightMode(boolean enabled) {
         this.nightMode = enabled;
@@ -462,21 +515,21 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Returns whether night mode is enabled.
-     *
-     * @return true if night mode is enabled
-     */
+         * Indicates whether night mode is enabled.
+         *
+         * @return `true` if night mode is enabled, `false` otherwise.
+         */
     public boolean isNightMode() {
         return nightMode;
     }
 
     /**
-     * Sets the background color.
+     * Set the renderer's background (clear) color.
      *
-     * @param red   Red component (0-1)
-     * @param green Green component (0-1)
-     * @param blue  Blue component (0-1)
-     * @param alpha Alpha component (0-1)
+     * @param red   Red component, in the range 0 to 1.
+     * @param green Green component, in the range 0 to 1.
+     * @param blue  Blue component, in the range 0 to 1.
+     * @param alpha Alpha component (opacity), in the range 0 to 1.
      */
     public void setBackgroundColor(float red, float green, float blue, float alpha) {
         bgRed = red;
@@ -522,9 +575,9 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Returns the current look direction.
+     * Retrieve the current look direction of the view.
      *
-     * @return Look direction vector
+     * @return a new Vector3 containing the current look direction; modifying it does not affect the renderer
      */
     @NonNull
     public Vector3 getLookDirection() {
@@ -532,47 +585,48 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     }
 
     /**
-     * Returns the current up direction.
-     *
-     * @return Up direction vector
-     */
+         * Get the renderer's up direction vector.
+         *
+         * @return A copy of the renderer's up direction Vector3; modifying the returned vector does not affect internal state.
+         */
     @NonNull
     public Vector3 getUpDirection() {
         return upDirection.copyForJ();
     }
 
     /**
-     * Returns the screen width.
+     * Get the current screen width in pixels.
      *
-     * @return Width in pixels
+     * @return the current screen width in pixels
      */
     public int getScreenWidth() {
         return screenWidth;
     }
 
     /**
-     * Returns the screen height.
-     *
-     * @return Height in pixels
-     */
+         * Gets the current screen height used by the renderer.
+         *
+         * @return the current height in pixels
+         */
     public int getScreenHeight() {
         return screenHeight;
     }
 
     /**
-     * Returns the current MVP matrix.
-     *
-     * @return The 16-element MVP matrix array
-     */
+         * Get the current model-view-projection (MVP) matrix.
+         *
+         * @return a 16-element float array containing a copy of the current MVP matrix
+         */
     @NonNull
     public float[] getMvpMatrix() {
         return mvpMatrix.clone();
     }
 
     /**
-     * Releases all OpenGL resources.
+     * Release OpenGL resources held by this renderer and clear all managed layers.
      *
-     * <p>Call this when the renderer is no longer needed.</p>
+     * <p>This frees resources held by the point, line, and label sub-renderers and empties the
+     * internal layer list.</p>
      */
     public void release() {
         if (pointRenderer != null) {

@@ -76,24 +76,22 @@ public class CameraPermissionHandler {
      */
     public interface PermissionCallback {
         /**
-         * Called when camera permission has been granted.
-         */
+ * Invoked when the user grants the camera permission.
+ */
         void onPermissionGranted();
 
         /**
-         * Called when camera permission has been denied.
-         *
-         * @param shouldShowRationale true if the user denied without checking
-         *                            "Don't ask again", false if permission is
-         *                            permanently denied
-         */
+ * Notifies that camera permission was denied.
+ *
+ * @param shouldShowRationale `true` if the app should show a rationale (the user denied without selecting "Don't ask again"), `false` if the permission is permanently denied and the user must enable it from settings
+ */
         void onPermissionDenied(boolean shouldShowRationale);
     }
 
     /**
-     * Creates a CameraPermissionHandler for the given activity.
+     * Initializes a CameraPermissionHandler bound to the provided Activity.
      *
-     * @param activity The activity context
+     * @param activity the Activity used to display dialogs and start settings or permission-related intents
      */
     public CameraPermissionHandler(@NonNull Activity activity) {
         this.activity = activity;
@@ -101,18 +99,19 @@ public class CameraPermissionHandler {
     }
 
     /**
-     * Sets the callback for permission results.
+     * Register or clear the callback that will receive camera permission results.
      *
-     * @param callback The callback to receive permission results
+     * @param callback the PermissionCallback to notify when permission is granted or denied; pass
+     *                 `null` to clear any previously set callback
      */
     public void setCallback(@Nullable PermissionCallback callback) {
         this.callback = callback;
     }
 
     /**
-     * Checks if the camera permission is currently granted.
+     * Determine whether the app currently has camera permission.
      *
-     * @return true if CAMERA permission is granted
+     * @return `true` if the camera permission is granted, `false` otherwise.
      */
     public boolean hasCameraPermission() {
         return ContextCompat.checkSelfPermission(context, CAMERA_PERMISSION)
@@ -120,26 +119,20 @@ public class CameraPermissionHandler {
     }
 
     /**
-     * Checks if the app should show a rationale for requesting camera permission.
+     * Determines whether the app should display a rationale before requesting camera permission.
      *
-     * <p>Returns true if the user has previously denied the permission but hasn't
-     * checked "Don't ask again". In this case, you should explain why the
-     * permission is needed before requesting it again.</p>
-     *
-     * @return true if rationale should be shown
+     * @return true if a rationale should be shown, false otherwise.
      */
     public boolean shouldShowRationale() {
         return ActivityCompat.shouldShowRequestPermissionRationale(activity, CAMERA_PERMISSION);
     }
 
     /**
-     * Requests camera permission using the provided launcher.
+     * Initiates a camera permission request using the provided ActivityResultLauncher.
      *
-     * <p>This method launches the system permission dialog. The result should be
-     * handled by calling {@link #handlePermissionResult(boolean)} from your
-     * ActivityResultCallback.</p>
+     * <p>The permission result is delivered to the launcher's registered callback.</p>
      *
-     * @param launcher The ActivityResultLauncher for permission requests
+     * @param launcher the ActivityResultLauncher used to start the permission request
      */
     public void requestCameraPermission(@NonNull ActivityResultLauncher<String> launcher) {
         launcher.launch(CAMERA_PERMISSION);
@@ -171,12 +164,12 @@ public class CameraPermissionHandler {
     }
 
     /**
-     * Shows a dialog directing the user to app settings when permission
-     * has been permanently denied.
-     *
-     * <p>Use this when permission is denied and {@link #shouldShowRationale()}
-     * returns false (meaning the user selected "Don't ask again").</p>
-     */
+         * Shows a non-cancelable dialog that directs the user to the app's settings page
+         * so they can manually grant the camera permission.
+         *
+         * <p>The dialog's positive action opens the application settings; the negative
+         * action dismisses the dialog.</p>
+         */
     public void showSettingsDialog() {
         new AlertDialog.Builder(activity)
                 .setTitle(R.string.permission_camera_title)
@@ -192,12 +185,13 @@ public class CameraPermissionHandler {
     }
 
     /**
-     * Handles the result of a permission request.
+     * Process the camera permission result and notify the configured callback.
      *
-     * <p>Call this method from your ActivityResultCallback to notify the handler
-     * of the permission result.</p>
+     * <p>If a callback has been set, invokes {@code onPermissionGranted()} when {@code isGranted}
+     * is true; otherwise invokes {@code onPermissionDenied(boolean)} supplying whether a rationale
+     * should be shown.</p>
      *
-     * @param isGranted true if permission was granted, false otherwise
+     * @param isGranted true if the camera permission was granted, false otherwise
      */
     public void handlePermissionResult(boolean isGranted) {
         if (callback == null) {
@@ -214,12 +208,13 @@ public class CameraPermissionHandler {
     }
 
     /**
-     * Checks permission and automatically handles the request flow.
+     * Checks camera permission and proceeds with the appropriate request or callback flow.
      *
-     * <p>This is a convenience method that combines checking, rationale display,
-     * and permission request into a single call.</p>
+     * <p>If the camera permission is already granted, invokes {@link PermissionCallback#onPermissionGranted()}
+     * when a callback is set. If a rationale should be shown, displays the rationale dialog; otherwise
+     * launches the permission request using the provided launcher.</p>
      *
-     * @param launcher The ActivityResultLauncher for permission requests
+     * @param launcher the ActivityResultLauncher used to request the camera permission
      */
     public void checkAndRequestPermission(@NonNull ActivityResultLauncher<String> launcher) {
         if (hasCameraPermission()) {

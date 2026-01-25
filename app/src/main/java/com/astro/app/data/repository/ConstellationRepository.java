@@ -21,24 +21,23 @@ import java.util.List;
 public interface ConstellationRepository {
 
     /**
-     * Returns all constellations in the catalog.
+     * Retrieve all constellations in the catalog.
      *
-     * <p>This returns the 88 officially recognized constellations along
-     * with any additional asterisms included in the catalog.</p>
+     * <p>Includes the 88 officially recognized constellations and any additional asterisms present in the catalog.</p>
      *
-     * @return A list of all constellations, or an empty list if loading fails
+     * @return a non-null list of all constellations in the catalog; may be empty if loading fails
      */
     @NonNull
     List<ConstellationData> getAllConstellations();
 
     /**
-     * Finds a constellation by its unique identifier.
+     * Finds the constellation with the specified unique identifier.
      *
-     * <p>Constellation IDs typically use the standard 3-letter IAU
-     * abbreviations (e.g., "Ori" for Orion, "UMa" for Ursa Major).</p>
+     * <p>Constellation IDs typically use the standard 3-letter IAU abbreviations (e.g., "Ori" for
+     * Orion, "UMa" for Ursa Major).</p>
      *
-     * @param id The constellation's unique identifier
-     * @return The constellation with the given ID, or null if not found
+     * @param id the constellation's unique identifier (typically a 3-letter IAU abbreviation)
+     * @return the ConstellationData for the given ID, or null if no matching constellation exists
      */
     @Nullable
     ConstellationData getConstellationById(@NonNull String id);
@@ -55,14 +54,13 @@ public interface ConstellationRepository {
     ConstellationData getConstellationByName(@NonNull String name);
 
     /**
-     * Searches for constellations matching the given query.
-     *
-     * <p>Search is case-insensitive and matches partial names.
-     * For example, "ori" would match "Orion".</p>
-     *
-     * @param query The search query (partial name match)
-     * @return A list of constellations matching the query
-     */
+         * Searches constellations whose names contain the given query using case-insensitive matching.
+         *
+         * <p>Partial name matches are supported (for example, "ori" matches "Orion").</p>
+         *
+         * @param query the partial or full name to match; matching is case-insensitive
+         * @return a non-null list of constellations whose names match the query (case-insensitive, partial matches allowed)
+         */
     @NonNull
     List<ConstellationData> searchConstellations(@NonNull String query);
 }

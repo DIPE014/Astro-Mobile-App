@@ -29,6 +29,12 @@ data class Matrix4x4(private val contents: FloatArray) {
         System.arraycopy(contents, 0, floatArray, 0, 16)
     }
 
+    /**
+     * Multiply this 4x4 matrix by another 4x4 matrix.
+     *
+     * @param mat2 The right-hand matrix to multiply by.
+     * @return A new Matrix4x4 representing the product of this matrix and `mat2` (this * mat2).
+     */
     operator fun times(mat2 : Matrix4x4): Matrix4x4 {
         val m = this.floatArray
         val n = mat2.floatArray
@@ -54,6 +60,12 @@ data class Matrix4x4(private val contents: FloatArray) {
         )
     }
 
+    /**
+     * Transforms a 3D vector by this 4x4 matrix, applying rotation, scale, and translation.
+     *
+     * @param v The input Vector3 to transform; treated as a position (translation is applied).
+     * @return The transformed Vector3 with x, y, and z computed from the matrix-vector product (including the matrix's translation column).
+     */
     operator fun times(v : Vector3): Vector3 {
         val m = this.floatArray
         return Vector3(
@@ -64,11 +76,24 @@ data class Matrix4x4(private val contents: FloatArray) {
     }
 
     companion object {
+        /**
+         * Creates an identity 4x4 matrix.
+         *
+         * @return A Matrix4x4 representing the identity transform (1.0 on the main diagonal, 0.0 elsewhere).
+         */
         @JvmStatic
         fun createIdentity(): Matrix4x4 {
             return createScaling(1f, 1f, 1f)
         }
 
+        /**
+         * Creates a scaling matrix that scales coordinates along the x, y, and z axes.
+         *
+         * @param x Scale factor along the X axis.
+         * @param y Scale factor along the Y axis.
+         * @param z Scale factor along the Z axis.
+         * @return A 4x4 matrix that applies the specified scaling with the homogeneous coordinate left as 1.
+         */
         @JvmStatic
         fun createScaling(x: Float, y: Float, z: Float): Matrix4x4 {
             return Matrix4x4(
@@ -78,6 +103,14 @@ data class Matrix4x4(private val contents: FloatArray) {
             )
         }
 
+        /**
+         * Creates a 4x4 translation matrix that translates coordinates by the given amounts along each axis.
+         *
+         * @param x Translation distance along the X axis.
+         * @param y Translation distance along the Y axis.
+         * @param z Translation distance along the Z axis.
+         * @return A Matrix4x4 representing the translation transform in homogeneous coordinates.
+         */
         @JvmStatic
         fun createTranslation(x: Float, y: Float, z: Float): Matrix4x4 {
             return Matrix4x4(
@@ -88,7 +121,13 @@ data class Matrix4x4(private val contents: FloatArray) {
             )
         }
 
-        // axis MUST be normalized.
+        /**
+         * Creates a 4x4 homogeneous rotation matrix for rotating by the specified angle about a given axis.
+         *
+         * @param angleRadians Rotation angle in radians.
+         * @param unitAxis Axis of rotation; must be normalized (unit length).
+         * @return A Matrix4x4 that applies the specified rotation in homogeneous coordinates (bottom-right element is 1).
+         */
         @JvmStatic
         fun createRotation(angleRadians: Float, unitAxis: Vector3): Matrix4x4 {
             val m = FloatArray(16)
@@ -124,6 +163,14 @@ data class Matrix4x4(private val contents: FloatArray) {
             return Matrix4x4(m)
         }
 
+        /**
+         * Creates a perspective projection matrix for the given viewport dimensions and vertical field of view.
+         *
+         * @param width The viewport width in pixels (used to derive aspect ratio).
+         * @param height The viewport height in pixels (used to derive aspect ratio).
+         * @param fovyInRadians The vertical field of view in radians.
+         * @return A 4x4 projection Matrix4x4 that maps camera (view) space to clip space using near = 0.01 and far = 10000.0.
+         */
         @JvmStatic
         fun createPerspectiveProjection(
             width: Float,
@@ -144,6 +191,14 @@ data class Matrix4x4(private val contents: FloatArray) {
             )
         }
 
+        /**
+         * Constructs a view matrix from the provided camera basis vectors.
+         *
+         * @param lookDir The camera's forward direction (look direction).
+         * @param up The camera's up direction.
+         * @param right The camera's right direction.
+         * @return A 4x4 view matrix that maps world coordinates into camera space using the given basis vectors.
+         */
         @JvmStatic
         fun createView(lookDir: Vector3, up: Vector3, right: Vector3): Matrix4x4 {
             return Matrix4x4(
@@ -161,22 +216,36 @@ data class Matrix4x4(private val contents: FloatArray) {
             )
         }
 
-        // TODO(johntaylor): inline and remove this once we're fully on Kotlin.
+        /**
+         * Multiply two 4x4 matrices and return their product.
+         *
+         * @param mat1 The left-hand matrix operand.
+         * @param mat2 The right-hand matrix operand.
+         * @return A new Matrix4x4 equal to mat1 multiplied by mat2.
+         */
         @JvmStatic
         fun times(mat1: Matrix4x4, mat2: Matrix4x4): Matrix4x4 {
             return mat1 * mat2
         }
 
-        // TODO(johntaylor): inline and remove this once we're fully on Kotlin.
+        /**
+         * Transforms a Vector3 by a 4x4 matrix.
+         *
+         * @param mat The 4x4 matrix to apply.
+         * @param v The vector to transform.
+         * @return The transformed Vector3 with rotation, scale, and translation (translation taken from the matrix's last column).
+         */
         @JvmStatic
         fun multiplyMV(mat: Matrix4x4, v: Vector3): Vector3 {
             return mat * v
         }
 
         /**
-         * Used to perform a perspective transformation.  This multiplies the given
-         * vector by the matrix, but also divides the x and y components by the w
-         * component of the result, as needed when doing perspective projections.
+         * Applies a perspective-style transform to a 3D vector and performs the homogeneous w‑divide on x and y.
+         *
+         * @param mat The 4x4 transform matrix.
+         * @param v The input 3D vector.
+         * @return A new Vector3 whose x and y components are divided by the computed w (perspective divide); z is left as the resulting depth. 
          */
         @JvmStatic
         fun transformVector(mat: Matrix4x4, v: Vector3): Vector3 {

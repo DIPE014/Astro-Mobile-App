@@ -18,11 +18,25 @@ public class RealMagneticDeclinationCalculator implements MagneticDeclinationCal
     // Default to 0 until location is set
     private float declination = 0f;
 
+    /**
+     * Get the current magnetic declination computed for the last supplied location and time.
+     *
+     * @return the declination in degrees; positive when magnetic north is east of true north.
+     */
     @Override
     public float getDeclination() {
         return declination;
     }
 
+    /**
+     * Update the calculator with a geographic location and timestamp to compute the magnetic declination.
+     *
+     * If {@code location} is {@code null}, the stored declination is reset to 0 degrees.
+     * The computation uses a sea-level altitude (0 meters).
+     *
+     * @param location     the latitude/longitude of the location, or {@code null} to reset declination
+     * @param timeInMillis the time of the observation in milliseconds since the Unix epoch
+     */
     @Override
     public void setLocationAndTime(LatLong location, long timeInMillis) {
         if (location == null) {

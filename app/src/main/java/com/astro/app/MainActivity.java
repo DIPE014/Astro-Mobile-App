@@ -30,6 +30,12 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private SettingsViewModel settingsViewModel;
 
+    /**
+     * Initializes the activity by inflating the view binding, setting the content view,
+     * obtaining the shared SettingsViewModel, and configuring UI actions and observers.
+     *
+     * @param savedInstanceState bundle containing saved instance state, or null if none
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,7 +52,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Sets up UI click listeners and initial state.
+     * Configures UI actions for the main screen.
+     *
+     * Attaches a click listener to the bound start button to launch SkyMapActivity and, if a view
+     * with ID R.id.btnSettings exists, attaches a click listener to launch SettingsActivity.
      */
     private void setupUI() {
         // Navigate to Sky Map
@@ -80,7 +89,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Applies night mode (red filter) to preserve night vision.
+     * Switches the activity UI to a night-optimized red theme to preserve night vision.
+     *
+     * Sets the activity's root view background to a dark red tint (ARGB 0xFF1A0000).
      */
     private void applyNightMode() {
         View rootView = binding.getRoot();
@@ -89,7 +100,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Applies normal day mode appearance.
+     * Set the activity UI to day mode.
+     *
+     * Changes the root view background color to solid black.
      */
     private void applyDayMode() {
         View rootView = binding.getRoot();
@@ -97,6 +110,11 @@ public class MainActivity extends AppCompatActivity {
         rootView.setBackgroundColor(0xFF000000); // Black background
     }
 
+    /**
+     * Re-applies the current night mode setting when the activity resumes.
+     *
+     * If the stored night mode value is `true`, applies night mode; otherwise leaves the UI state unchanged.
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -107,6 +125,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Releases the activity's view binding when the activity is destroyed.
+     *
+     * Clears the binding reference so the view hierarchy can be garbage-collected and avoid leaks.
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();

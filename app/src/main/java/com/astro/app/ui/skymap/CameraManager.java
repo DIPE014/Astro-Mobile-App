@@ -85,17 +85,17 @@ public class CameraManager {
         void onCameraStarted();
 
         /**
-         * Called when an error occurs during camera operation.
-         *
-         * @param message Error description
-         */
+ * Notifies that a camera error occurred.
+ *
+ * @param message a human-readable description of the error
+ */
         void onCameraError(String message);
     }
 
     /**
-     * Creates a new CameraManager with the given context.
+     * Construct a CameraManager and retain the application's Context for CameraX interactions.
      *
-     * @param context Application or Activity context
+     * @param context an Application or Activity Context; the constructor stores its application context for internal use
      */
     @Inject
     public CameraManager(@NonNull Context context) {
@@ -103,23 +103,22 @@ public class CameraManager {
     }
 
     /**
-     * Sets the PreviewView where the camera preview will be displayed.
+     * Specify the PreviewView that will host the camera preview surface.
      *
-     * @param previewView The PreviewView to use for camera preview
+     * @param previewView the PreviewView used as the preview display and surface provider
      */
     public void setPreviewView(@NonNull PreviewView previewView) {
         this.previewView = previewView;
     }
 
     /**
-     * Starts the camera and binds it to the lifecycle.
+     * Start and bind the camera preview to the provided lifecycle owner.
      *
-     * <p>This method initializes CameraX, creates a preview use case, and binds
-     * the camera to the provided lifecycle owner. The callback is invoked when
-     * the camera is ready or if an error occurs.</p>
+     * Initializes CameraX and binds a Preview use case to the given lifecycle; invokes
+     * the provided callback when the camera has started or when an error occurs.
      *
-     * @param lifecycleOwner The lifecycle owner to bind the camera to
-     * @param callback       Callback for camera events (can be null)
+     * @param lifecycleOwner the LifecycleOwner to bind camera use cases to
+     * @param callback       an optional CameraCallback invoked on success or error; may be null
      */
     public void startCamera(@NonNull LifecycleOwner lifecycleOwner,
                            @Nullable CameraCallback callback) {
@@ -150,9 +149,14 @@ public class CameraManager {
     }
 
     /**
-     * Binds camera use cases to the lifecycle.
+     * Bind the camera preview use case to the stored lifecycle owner and start the camera.
      *
-     * @param callback Callback for camera events
+     * Attempts to unbind any existing use cases, create and attach a Preview (using the stored
+     * PreviewView and back-facing camera), and mark the camera as running.
+     *
+     * @param callback optional callback invoked with lifecycle events: `onCameraStarted()` when the
+     *                 camera has been bound successfully, or `onCameraError(String)` if binding
+     *                 fails or required dependencies are missing
      */
     private void bindCameraUseCases(@Nullable CameraCallback callback) {
         if (cameraProvider == null || lifecycleOwner == null || previewView == null) {
@@ -203,10 +207,9 @@ public class CameraManager {
     }
 
     /**
-     * Stops the camera preview and releases resources.
+     * Stops the camera preview and releases camera-related resources.
      *
-     * <p>This method unbinds all camera use cases. The camera can be
-     * started again by calling {@link #startCamera(LifecycleOwner, CameraCallback)}.</p>
+     * <p>Unbinds all camera use cases from the internal ProcessCameraProvider and clears internal references.</p>
      */
     public void stopCamera() {
         if (cameraProvider != null) {
@@ -220,18 +223,18 @@ public class CameraManager {
     }
 
     /**
-     * Checks if the camera is currently running.
+     * Indicates whether the camera preview is currently running.
      *
-     * @return true if the camera is active and showing preview
+     * @return `true` if the camera is active and showing the preview, `false` otherwise.
      */
     public boolean isCameraRunning() {
         return isCameraRunning;
     }
 
     /**
-     * Returns the current Camera instance.
+     * Provides access to the currently bound Camera instance.
      *
-     * @return The Camera instance, or null if camera is not running
+     * @return the current Camera, or null if no camera is bound
      */
     @Nullable
     public Camera getCamera() {
@@ -239,12 +242,9 @@ public class CameraManager {
     }
 
     /**
-     * Returns the horizontal field of view of the camera in degrees.
+     * Provides an estimated horizontal field of view in degrees.
      *
-     * <p>This is an estimated value based on typical smartphone cameras.
-     * For more accurate values, use CameraCharacteristics from Camera2 API.</p>
-     *
-     * @return Estimated horizontal FOV in degrees
+     * @return Estimated horizontal field of view in degrees.
      */
     public float getHorizontalFov() {
         // Typical smartphone camera horizontal FOV
@@ -253,11 +253,11 @@ public class CameraManager {
     }
 
     /**
-     * Returns the vertical field of view of the camera in degrees.
+     * Gets the camera's vertical field of view in degrees.
      *
-     * <p>This is an estimated value based on typical smartphone cameras.</p>
+     * <p>This value is an approximation based on typical smartphone cameras.</p>
      *
-     * @return Estimated vertical FOV in degrees
+     * @return Estimated vertical field of view in degrees.
      */
     public float getVerticalFov() {
         // Typical smartphone camera vertical FOV (4:3 aspect ratio)
@@ -265,9 +265,9 @@ public class CameraManager {
     }
 
     /**
-     * Enables or disables the camera torch (flashlight).
+     * Toggle the camera's torch (flashlight) when a camera with a flash unit is available.
      *
-     * @param enabled true to turn on the torch, false to turn it off
+     * @param enabled `true` to enable the torch, `false` to disable it
      */
     public void setTorchEnabled(boolean enabled) {
         if (camera != null && camera.getCameraInfo().hasFlashUnit()) {
@@ -276,9 +276,9 @@ public class CameraManager {
     }
 
     /**
-     * Releases all camera resources.
+     * Release camera resources and clear internal references.
      *
-     * <p>Call this when the camera is no longer needed.</p>
+     * Stops the camera if running and clears the cached ProcessCameraProvider, lifecycle owner, and preview view references.
      */
     public void release() {
         stopCamera();

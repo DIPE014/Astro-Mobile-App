@@ -155,7 +155,15 @@ public class AstronomerModelImpl implements AstronomerModel {
         this(new RealMagneticDeclinationCalculator());
     }
 
-    // ==================== View Mode ====================
+    /**
+     * Set the phone's canonical pointing and screen-up vectors based on the selected view direction mode.
+     *
+     * For STANDARD the pointing is the screen-forward vector and screen-up is top of screen;
+     * for ROTATE90 the pointing is screen-forward and screen-up is rotated 90°;
+     * for TELESCOPE the pointing and screen-up use the telescope orientation convention.
+     *
+     * @param mode the view direction mode determining which predefined phone-coordinate vectors to use
+     */
 
     @Override
     public void setViewDirectionMode(ViewDirectionMode mode) {
@@ -175,27 +183,45 @@ public class AstronomerModelImpl implements AstronomerModel {
         }
     }
 
-    // ==================== Auto Update ====================
+    /**
+     * Enable or disable automatic updating of the model's pointing from sensors, time, and location changes.
+     *
+     * @param autoUpdatePointing true to enable automatic updates of pointing; false to disable them
+     */
 
     @Override
     public void setAutoUpdatePointing(boolean autoUpdatePointing) {
         this.autoUpdatePointing = autoUpdatePointing;
     }
 
-    // ==================== Field of View ====================
+    /**
+     * Get the current field of view in degrees.
+     *
+     * @return the field of view, in degrees
+     */
 
     @Override
     public float getFieldOfView() {
         return fieldOfView;
     }
 
+    /**
+     * Set the model's field of view in degrees and apply it to the current pointing.
+     *
+     * @param degrees the field of view angle in degrees
+     */
     @Override
     public void setFieldOfView(float degrees) {
         this.fieldOfView = degrees;
         pointing.setFieldOfView(degrees);
     }
 
-    // ==================== Magnetic Correction ====================
+    /**
+     * Provides the magnetic declination used to correct local north for celestial calculations.
+     *
+     * @return the magnetic declination in degrees; positive values indicate eastward declination,
+     *         negative values indicate westward declination, or 0.0 if no declination calculator is available.
+     */
 
     @Override
     public float getMagneticCorrection() {
@@ -203,30 +229,55 @@ public class AstronomerModelImpl implements AstronomerModel {
                 magneticDeclinationCalculator.getDeclination() : 0f;
     }
 
+    /**
+     * Sets the magnetic declination calculator and recomputes the local north and up axes in celestial coordinates.
+     *
+     * @param calculator the MagneticDeclinationCalculator to use for magnetic correction, or {@code null} to disable magnetic correction
+     */
     @Override
     public void setMagneticDeclinationCalculator(MagneticDeclinationCalculator calculator) {
         this.magneticDeclinationCalculator = calculator;
         calculateLocalNorthAndUpInCelestialCoords(true);
     }
 
-    // ==================== Time Methods ====================
+    /**
+     * Get the current instant from the model's clock.
+     *
+     * @return a Date representing the current time according to the model's clock
+     */
 
     @Override
     public Date getTime() {
         return new Date(clock.getTimeInMillisSinceEpoch());
     }
 
+    /**
+     * Retrieve the model's current time from its clock.
+     *
+     * @return Current time in milliseconds since the Unix epoch.
+     */
     @Override
     public long getTimeMillis() {
         return clock.getTimeInMillisSinceEpoch();
     }
 
+    /**
+     * Set the time source used for celestial calculations and force immediate recomputation of the local
+     * north and up axes in celestial coordinates.
+     *
+     * @param clock the Clock to use for time queries; will be used immediately to refresh cached celestial axes
+     */
     @Override
     public void setClock(Clock clock) {
         this.clock = clock;
         calculateLocalNorthAndUpInCelestialCoords(true);
     }
 
+    /**
+     * Set the model's current time to a specific instant and refresh time-dependent celestial axes.
+     *
+     * @param timeMillis the target time expressed as milliseconds since the Unix epoch (UTC)
+     */
     @Override
     public void setTime(long timeMillis) {
         // Create a fixed-time clock for this specific time
@@ -234,26 +285,51 @@ public class AstronomerModelImpl implements AstronomerModel {
         calculateLocalNorthAndUpInCelestialCoords(true);
     }
 
-    // ==================== Location Methods ====================
+    /**
+     * Get the geographic location used for celestial calculations and magnetic correction.
+     *
+     * @return the current latitude/longitude location used by the model
+     */
 
     @Override
     public LatLong getLocation() {
         return location;
     }
 
+    /**
+     * Set the observer's geographic location and force an immediate refresh of the local
+     * celestial North/East/Up axes.
+     *
+     * @param location the observer's geographic latitude and longitude used to compute
+     *                 local celestial directions (North, East, Up)
+     */
     @Override
     public void setLocation(LatLong location) {
         this.location = location;
         calculateLocalNorthAndUpInCelestialCoords(true);
     }
 
-    // ==================== Sensor Methods ====================
+    /**
+     * Get the device's up direction expressed in the phone coordinate frame.
+     *
+     * @return a copy of the phone up direction vector (phone-coordinate unit vector)
+     */
 
     @Override
     public Vector3 getPhoneUpDirection() {
         return upPhone.copyForJ();
     }
 
+    /**
+     * Updates the model with accelerometer and magnetometer readings from the phone.
+     *
+     * If either vector's magnitude is below the internal tolerance, the values are ignored
+     * and the model is not changed. On success, stores the provided vectors and disables
+     * rotation-vector-based orientation.
+     *
+     * @param acceleration the accelerometer reading in phone coordinates
+     * @param magneticField the magnetic field (magnetometer) reading in phone coordinates
+     */
     @Override
     public void setPhoneSensorValues(Vector3 acceleration, Vector3 magneticField) {
         if (magneticField.getLength2() < TOL || acceleration.getLength2() < TOL) {
@@ -265,6 +341,15 @@ public class AstronomerModelImpl implements AstronomerModel {
         useRotationVector = false;
     }
 
+    /**
+     * Sets the phone's rotation-vector sensor values and enables the rotation-vector input path.
+     *
+     * Copies up to the first four elements of the provided Android rotation-vector array into the
+     * internal rotation vector and marks the model to use the rotation-vector sensor for subsequent
+     * orientation calculations.
+     *
+     * @param rotationVector Android rotation-vector sensor values; only the first four elements are used
+     */
     @Override
     public void setPhoneSensorValues(float[] rotationVector) {
         // Copy rotation vector (truncate to 4 elements if necessary)
@@ -273,7 +358,11 @@ public class AstronomerModelImpl implements AstronomerModel {
         useRotationVector = true;
     }
 
-    // ==================== Celestial Directions ====================
+    /**
+     * The local true north direction expressed in celestial coordinates.
+     *
+     * @return a new {@code Vector3} unit vector pointing toward local true north in the celestial coordinate frame
+     */
 
     @Override
     public Vector3 getNorth() {
@@ -281,6 +370,11 @@ public class AstronomerModelImpl implements AstronomerModel {
         return trueNorthCelestial.copyForJ();
     }
 
+    /**
+     * Local south direction in celestial coordinates.
+     *
+     * @return a unit Vector3 pointing toward local geographic south in the celestial frame
+     */
     @Override
     public Vector3 getSouth() {
         calculateLocalNorthAndUpInCelestialCoords(false);
@@ -289,12 +383,26 @@ public class AstronomerModelImpl implements AstronomerModel {
         return south;
     }
 
+    /**
+     * Provides the local zenith direction in celestial coordinates.
+     *
+     * Ensures the model's cached local celestial axes are refreshed before returning.
+     *
+     * @return a copy of the local zenith (unit `Vector3`) expressed in celestial coordinates
+     */
     @Override
     public Vector3 getZenith() {
         calculateLocalNorthAndUpInCelestialCoords(false);
         return upCelestial.copyForJ();
     }
 
+    /**
+     * Provide the local nadir direction in celestial coordinates (the direction pointing toward the ground).
+     *
+     * Recomputes local celestial axes if they are out of date before returning the nadir.
+     *
+     * @return the nadir direction as a unit Vector3 in celestial coordinates (points opposite the zenith)
+     */
     @Override
     public Vector3 getNadir() {
         calculateLocalNorthAndUpInCelestialCoords(false);
@@ -303,12 +411,24 @@ public class AstronomerModelImpl implements AstronomerModel {
         return nadir;
     }
 
+    /**
+     * Gets the local east direction expressed in celestial coordinates.
+     *
+     * Ensures local celestial axes are up-to-date before returning.
+     *
+     * @return a copy of the local east unit vector in celestial coordinates
+     */
     @Override
     public Vector3 getEast() {
         calculateLocalNorthAndUpInCelestialCoords(false);
         return trueEastCelestial.copyForJ();
     }
 
+    /**
+     * Provides the local west direction expressed in celestial coordinates.
+     *
+     * @return the unit Vector3 pointing toward local West in celestial coordinates (a new copy)
+     */
     @Override
     public Vector3 getWest() {
         calculateLocalNorthAndUpInCelestialCoords(false);
@@ -317,7 +437,11 @@ public class AstronomerModelImpl implements AstronomerModel {
         return west;
     }
 
-    // ==================== Pointing Methods ====================
+    /**
+     * Provide the current pointing state, recalculating it beforehand to ensure it reflects the latest sensor, time, and location data.
+     *
+     * @return the current {@code Pointing} containing the up-to-date line-of-sight and perpendicular vectors (and field of view)
+     */
 
     @Override
     public Pointing getPointing() {
@@ -325,6 +449,14 @@ public class AstronomerModelImpl implements AstronomerModel {
         return pointing;
     }
 
+    /**
+     * Update the current pointing using an explicit line-of-sight and a perpendicular orientation vector.
+     *
+     * @param lineOfSight a vector representing the pointing direction in the coordinate frame used by the model
+     * @param perpendicular a vector perpendicular to {@code lineOfSight} that defines the orientation (screen-up) in the same frame
+     * <p>
+     * This updates the internal pointing state and notifies registered PointingListeners of the change.
+     */
     @Override
     public void setPointing(Vector3 lineOfSight, Vector3 perpendicular) {
         pointing.updateLineOfSight(lineOfSight);
@@ -332,7 +464,13 @@ public class AstronomerModelImpl implements AstronomerModel {
         notifyPointingListeners();
     }
 
-    // ==================== Transformation Matrix ====================
+    /**
+     * Provide the current 3x3 transformation that maps vectors from phone coordinates into celestial coordinates.
+     *
+     * The implementation ensures the matrix is recalculated if needed before returning.
+     *
+     * @return a copy of the transformation matrix mapping phone-coordinate vectors to celestial-coordinate vectors
+     */
 
     @Override
     public Matrix3x3 getTransformationMatrix() {
@@ -340,7 +478,13 @@ public class AstronomerModelImpl implements AstronomerModel {
         return transformationMatrix.copyForJ();
     }
 
-    // ==================== Listener Methods ====================
+    /**
+     * Registers a listener to be notified when the pointing changes.
+     *
+     * If `listener` is null or already registered, this method has no effect.
+     *
+     * @param listener the PointingListener to add
+     */
 
     @Override
     public void addPointingListener(PointingListener listener) {
@@ -349,11 +493,21 @@ public class AstronomerModelImpl implements AstronomerModel {
         }
     }
 
+    /**
+     * Unregisters a pointing listener so it will no longer receive pointing updates.
+     *
+     * @param listener the listener to remove; no-op if the listener is null or not registered
+     */
     @Override
     public void removePointingListener(PointingListener listener) {
         pointingListeners.remove(listener);
     }
 
+    /**
+     * Notify all registered PointingListener instances that the current pointing has changed.
+     *
+     * Each listener's onPointingChanged(pointing) method is invoked synchronously on the calling thread.
+     */
     private void notifyPointingListeners() {
         for (PointingListener listener : pointingListeners) {
             listener.onPointingChanged(pointing);
@@ -363,12 +517,13 @@ public class AstronomerModelImpl implements AstronomerModel {
     // ==================== Core Calculation Methods ====================
 
     /**
-     * Updates the astronomer's 'pointing', that is, the direction the phone is
-     * facing in celestial coordinates and also the 'up' vector along the
-     * screen (also in celestial coordinates).
+     * Update the current pointing in celestial coordinates and notify listeners.
      *
-     * This method requires that axesMagneticCelestialMatrix and
-     * axesPhoneInverseMatrix are currently up to date.
+     * Recomputes the phone→celestial transformation, transforms the stored phone
+     * pointing and screen-up vectors into celestial coordinates, updates the
+     * internal Pointing (line-of-sight, perpendicular, and field of view), and
+     * notifies registered PointingListeners. Requires that
+     * axesMagneticCelestialMatrix and axesPhoneInverseMatrix are current.
      */
     private void calculatePointing() {
         if (!autoUpdatePointing) {
@@ -394,10 +549,17 @@ public class AstronomerModelImpl implements AstronomerModel {
     }
 
     /**
-     * Calculates local North, East and Up vectors in terms of the celestial
-     * coordinate frame.
+     * Recomputes the local North, East, and Up unit vectors expressed in celestial coordinates.
      *
-     * @param forceUpdate if true, forces recalculation even if recently updated
+     * <p>When not forced, this method will return immediately if the most recent computation
+     * occurred within the configured minimum update interval. On execution it updates the
+     * cached timestamp, refreshes the magnetic-declination calculator state, computes the
+     * zenith (Up) and the true North/East directions, applies the magnetic-declination
+     * correction if available, and stores the results in the instance fields:
+     * {@code upCelestial}, {@code trueNorthCelestial}, {@code trueEastCelestial}, and
+     * {@code axesMagneticCelestialMatrix}.</p>
+     *
+     * @param forceUpdate if true, bypasses the time-based throttle and forces a recalculation
      */
     private void calculateLocalNorthAndUpInCelestialCoords(boolean forceUpdate) {
         long currentTime = clock.getTimeInMillisSinceEpoch();
@@ -449,8 +611,16 @@ public class AstronomerModelImpl implements AstronomerModel {
     }
 
     /**
-     * Calculates local North and Up vectors in terms of the phone's coordinate
-     * frame from the magnetic field and accelerometer sensors (or rotation vector).
+     * Compute the local North, East, and Up axes expressed in phone coordinates and update
+     * the cached inverse phone-axes matrix used for frame transformations.
+     *
+     * <p>If a rotation-vector sensor is in use, the axes are extracted from the rotation
+     * matrix derived from that vector. Otherwise, the accelerometer and magnetometer are
+     * used: the accelerometer determines Up and the magnetometer (projected onto the
+     * horizontal plane) determines magnetic North; East is computed from North and Up.
+     *
+     * <p>Side effects: updates the fields {@code upPhone} and {@code axesPhoneInverseMatrix}
+     * (row vectors: magnetic north, up, magnetic east).
      */
     private void calculateLocalNorthAndUpInPhoneCoordsFromSensors() {
         Vector3 magneticNorthPhone;

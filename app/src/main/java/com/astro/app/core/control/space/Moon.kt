@@ -12,6 +12,17 @@ import java.util.*
  * A class to represent the Moon.
  */
 class Moon : EarthOrbitingObject(SolarSystemBody.Moon) {
+    /**
+     * Compute the Moon's geocentric right ascension and declination for a given date.
+     *
+     * Uses an Almanac-based approximation (2008 Astronomical Almanac, p. D22) to derive
+     * the Moon's ecliptic longitude and latitude and convert them to equatorial coordinates.
+     * This approximation is intended for general-purpose use and was documented as valid
+     * through at least 2009; accuracy may degrade outside that range.
+     *
+     * @param date The date/time for which to compute the Moon's geocentric coordinates.
+     * @return A RaDec containing the right ascension (degrees, in [0, 360)) and declination (degrees).
+     */
     override fun getRaDec(date: Date): RaDec {
         /**
          * Calculate the geocentric right ascension and declination of the moon using
@@ -50,15 +61,26 @@ class Moon : EarthOrbitingObject(SolarSystemBody.Moon) {
         return RaDec(ra, dec)
     }
 
-    /** Returns the resource id for the planet's image.  */
+    /**
+ * Selects the image resource representing the Moon for the given time.
+ *
+ * @param time The date and time used to determine the Moon's phase.
+ * @return The drawable resource identifier corresponding to the Moon's phase at the specified time.
+ */
     override fun getImageResourceId(time: Date) = getLunarPhaseImageId(time)
 
     /**
-     * Determine the Moon's phase and return the resource ID of the correct
-     * image.
+     * Selects a moon phase image resource ID for the given time.
      *
-     * Note: Returns placeholder values. Replace with actual R.drawable.moon* values
-     * when resources are added.
+     * Computes the Moon's phase angle and chooses a drawable ID representing New, Crescent,
+     * Quarter, Gibbous, or Full. For intermediate phases the function compares the phase
+     * angle one day later to determine waxing versus waning.
+     *
+     * @param time The date and time at which to evaluate the Moon's phase.
+     * @return An integer resource ID for the chosen moon phase image:
+     *         0 = new, 1 = waxing crescent, 2 = waxing quarter, 3 = waxing gibbous,
+     *         4 = full, 5 = waning gibbous, 6 = waning quarter, 7 = waning crescent.
+     *         These are placeholder values; replace with actual R.drawable.* IDs.
      */
     fun getLunarPhaseImageId(time: Date): Int {
         // First, calculate phase angle:
@@ -92,5 +114,11 @@ class Moon : EarthOrbitingObject(SolarSystemBody.Moon) {
 
     override val bodySize = -0.83f
 
-    override fun getMagnitude(time: Date) = -10.0f
+    /**
+ * Provides the Moon's apparent visual magnitude for the specified time.
+ *
+ * @param time The date/time for which the magnitude is requested.
+ * @return `-10.0f`, the apparent visual magnitude used for the Moon in this model.
+ */
+override fun getMagnitude(time: Date) = -10.0f
 }

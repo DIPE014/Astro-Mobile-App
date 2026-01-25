@@ -30,12 +30,19 @@ class Universe {
     }
 
     /**
-     * Gets the |SolarSystemObject| corresponding to the given |SolarSystemBody|.
-     */
+ * Retrieve the SolarSystemObject associated with the given SolarSystemBody.
+ *
+ * @param solarSystemBody The celestial body whose SolarSystemObject to retrieve.
+ * @return The mapped SolarSystemObject for the specified body.
+ */
     fun solarSystemObjectFor(solarSystemBody : SolarSystemBody) : SolarSystemObject = solarSystemObjectMap[solarSystemBody]!!
 
     /**
-     * Gets the location of a planet at a particular date.
+     * Compute the right ascension and declination of the specified solar system body at the given date.
+     *
+     * @param solarSystemBody The solar system body whose coordinates to compute.
+     * @param datetime The date and time for which to compute the coordinates.
+     * @return A `RaDec` containing the right ascension and declination for the body at `datetime`.
      */
     fun getRaDec(solarSystemBody: SolarSystemBody, datetime: Date): RaDec {
         return solarSystemObjectMap.get(solarSystemBody)!!.getRaDec(datetime)

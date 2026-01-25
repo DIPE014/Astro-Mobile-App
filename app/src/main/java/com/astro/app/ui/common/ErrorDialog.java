@@ -45,10 +45,10 @@ public class ErrorDialog extends DialogFragment {
     private OnDismissListener dismissListener;
 
     /**
-     * Creates a new instance of ErrorDialog with a message.
+     * Constructs an ErrorDialog configured to display the provided message.
      *
-     * @param message The error message to display
-     * @return A new ErrorDialog instance
+     * @param message the error message to display in the dialog
+     * @return an ErrorDialog configured with the provided message
      */
     @NonNull
     public static ErrorDialog newInstance(@NonNull String message) {
@@ -56,11 +56,11 @@ public class ErrorDialog extends DialogFragment {
     }
 
     /**
-     * Creates a new instance of ErrorDialog with a title and message.
+     * Create an ErrorDialog configured with the given title and message.
      *
-     * @param title   The dialog title
-     * @param message The error message
-     * @return A new ErrorDialog instance
+     * @param title   the dialog title, or null to use the default title
+     * @param message the error message to display
+     * @return an ErrorDialog configured with the provided title and message
      */
     @NonNull
     public static ErrorDialog newInstance(@Nullable String title, @NonNull String message) {
@@ -73,11 +73,11 @@ public class ErrorDialog extends DialogFragment {
     }
 
     /**
-     * Creates a new instance of ErrorDialog with retry option.
+     * Create an ErrorDialog configured to show a retry button.
      *
-     * @param title   The dialog title
-     * @param message The error message
-     * @return A new ErrorDialog instance with retry button
+     * @param title   optional dialog title; pass null to use the default title
+     * @param message error message to display
+     * @return an ErrorDialog configured to display a retry option
      */
     @NonNull
     public static ErrorDialog newInstanceWithRetry(@Nullable String title, @NonNull String message) {
@@ -90,6 +90,11 @@ public class ErrorDialog extends DialogFragment {
         return dialog;
     }
 
+    /**
+     * Populates dialog configuration fields (title, message, button texts, and retry flag) from the fragment arguments if present.
+     *
+     * @param savedInstanceState the previously saved state, if any (not used by this method)
+     */
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,6 +107,13 @@ public class ErrorDialog extends DialogFragment {
         }
     }
 
+    /**
+     * Create the AlertDialog displayed by this DialogFragment.
+     *
+     * @return the Dialog configured with the fragment's message, a title (or "Error" if no title was provided),
+     *         a positive "OK" button that invokes the dismiss listener if set, and an optional "Retry" button
+     *         that invokes the retry listener if enabled and set.
+     */
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
@@ -138,6 +150,16 @@ public class ErrorDialog extends DialogFragment {
         return builder.create();
     }
 
+    /**
+     * Called when the dialog is dismissed.
+     *
+     * <p>This override forwards to the superclass but does not invoke the configured
+     * OnDismissListener. The dialog's dismiss listener (if any) is invoked only when
+     * the positive (OK) button is clicked to distinguish an explicit confirmation
+     * from dismissals caused by outside touches or the back button.</p>
+     *
+     * @param dialog the dialog that was dismissed
+     */
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
@@ -146,11 +168,11 @@ public class ErrorDialog extends DialogFragment {
     }
 
     /**
-     * Sets the retry click listener.
-     *
-     * @param listener The listener
-     * @return The ErrorDialog instance
-     */
+         * Configure a listener invoked when the dialog's Retry button is clicked.
+         *
+         * @param listener the listener to invoke when Retry is clicked, or `null` to clear the listener
+         * @return this ErrorDialog instance for method chaining
+         */
     @NonNull
     public ErrorDialog setOnRetryClickListener(@Nullable OnRetryClickListener listener) {
         this.retryClickListener = listener;
@@ -158,11 +180,11 @@ public class ErrorDialog extends DialogFragment {
     }
 
     /**
-     * Sets the dismiss listener.
-     *
-     * @param listener The listener
-     * @return The ErrorDialog instance
-     */
+         * Assigns a listener to be invoked when the dialog's positive ("OK") button is clicked.
+         *
+         * @param listener listener to notify on positive-button click, or null to remove the listener
+         * @return this ErrorDialog instance
+         */
     @NonNull
     public ErrorDialog setOnDismissListener(@Nullable OnDismissListener listener) {
         this.dismissListener = listener;
@@ -170,9 +192,9 @@ public class ErrorDialog extends DialogFragment {
     }
 
     /**
-     * Shows the error dialog.
+     * Displays the dialog with the provided FragmentManager when it is not already added and the manager's state has not been saved.
      *
-     * @param fragmentManager The FragmentManager to use
+     * @param fragmentManager the FragmentManager to use to show the dialog
      */
     public void show(@NonNull FragmentManager fragmentManager) {
         if (!isAdded() && !fragmentManager.isStateSaved()) {
@@ -193,14 +215,24 @@ public class ErrorDialog extends DialogFragment {
      * Listener interface for retry button clicks.
      */
     public interface OnRetryClickListener {
-        void onRetry();
+        /**
+ * Called when the user requests a retry of the failed operation.
+ *
+ * Implementers should start or schedule the retry logic to handle the failure.
+ */
+void onRetry();
     }
 
     /**
      * Listener interface for dialog dismissal.
      */
     public interface OnDismissListener {
-        void onDismiss();
+        /**
+ * Invoked when the dialog is dismissed.
+ *
+ * <p>Called after the dialog has been dismissed by the user or programmatically.</p>
+ */
+void onDismiss();
     }
 
     /**
@@ -229,10 +261,10 @@ public class ErrorDialog extends DialogFragment {
         private OnDismissListener dismissListener;
 
         /**
-         * Sets the dialog title.
+         * Set the dialog title for the ErrorDialog being built.
          *
-         * @param title The title
-         * @return The Builder instance
+         * @param title the title to display, or {@code null} to use the default title
+         * @return this Builder instance for method chaining
          */
         @NonNull
         public Builder setTitle(@Nullable String title) {
@@ -241,10 +273,10 @@ public class ErrorDialog extends DialogFragment {
         }
 
         /**
-         * Sets the error message.
+         * Set the dialog's error message.
          *
-         * @param message The message
-         * @return The Builder instance
+         * @param message the message text to display in the dialog
+         * @return this Builder instance
          */
         @NonNull
         public Builder setMessage(@NonNull String message) {
@@ -253,11 +285,11 @@ public class ErrorDialog extends DialogFragment {
         }
 
         /**
-         * Sets the positive button text.
-         *
-         * @param text The button text
-         * @return The Builder instance
-         */
+                 * Set the text shown on the dialog's positive (confirmation) button.
+                 *
+                 * @param text the label to display on the positive button
+                 * @return this Builder instance for method chaining
+                 */
         @NonNull
         public Builder setPositiveButtonText(@NonNull String text) {
             this.positiveButtonText = text;
@@ -265,11 +297,11 @@ public class ErrorDialog extends DialogFragment {
         }
 
         /**
-         * Sets the negative/retry button text.
-         *
-         * @param text The button text
-         * @return The Builder instance
-         */
+                 * Set the negative (retry) button label used by the dialog.
+                 *
+                 * @param text the label to display on the negative/retry button
+                 * @return this Builder instance for chaining
+                 */
         @NonNull
         public Builder setNegativeButtonText(@NonNull String text) {
             this.negativeButtonText = text;
@@ -277,11 +309,11 @@ public class ErrorDialog extends DialogFragment {
         }
 
         /**
-         * Enables the retry button.
-         *
-         * @param showRetry true to show retry button
-         * @return The Builder instance
-         */
+                 * Configure whether the dialog should include a Retry button.
+                 *
+                 * @param showRetry true to show the Retry button, false to hide it
+                 * @return the Builder instance for chaining
+                 */
         @NonNull
         public Builder setShowRetry(boolean showRetry) {
             this.showRetry = showRetry;
@@ -289,10 +321,10 @@ public class ErrorDialog extends DialogFragment {
         }
 
         /**
-         * Sets the retry click listener.
+         * Assigns a retry callback and enables the retry option when a non-null listener is provided.
          *
-         * @param listener The listener
-         * @return The Builder instance
+         * @param listener the callback invoked when the retry button is pressed; pass `null` to disable retry
+         * @return this Builder instance
          */
         @NonNull
         public Builder setOnRetryClickListener(@Nullable OnRetryClickListener listener) {
@@ -302,11 +334,11 @@ public class ErrorDialog extends DialogFragment {
         }
 
         /**
-         * Sets the dismiss listener.
-         *
-         * @param listener The listener
-         * @return The Builder instance
-         */
+                 * Configure a listener to be invoked when the dialog is dismissed.
+                 *
+                 * @param listener a listener to notify on dialog dismiss; may be {@code null} to clear any previously set listener
+                 * @return the Builder instance
+                 */
         @NonNull
         public Builder setOnDismissListener(@Nullable OnDismissListener listener) {
             this.dismissListener = listener;
@@ -314,9 +346,9 @@ public class ErrorDialog extends DialogFragment {
         }
 
         /**
-         * Builds the ErrorDialog instance.
+         * Creates an ErrorDialog configured with this Builder's settings.
          *
-         * @return A new ErrorDialog
+         * @return the configured ErrorDialog instance
          */
         @NonNull
         public ErrorDialog build() {
@@ -354,33 +386,35 @@ public class ErrorDialog extends DialogFragment {
     public static class Simple {
 
         /**
-         * Shows a simple error dialog.
+         * Show a simple error dialog titled "Error" with the given message and an OK button.
          *
-         * @param context The context
-         * @param message The error message
+         * @param context the Context used to create and display the dialog
+         * @param message the error message to display
          */
         public static void show(@NonNull Context context, @NonNull String message) {
             show(context, "Error", message, null);
         }
 
         /**
-         * Shows a simple error dialog with title.
+         * Show a simple error dialog with the given title and message.
          *
-         * @param context The context
-         * @param title   The title
-         * @param message The error message
+         * The dialog displays an OK button and does not invoke a dismiss callback.
+         *
+         * @param context the Context used to build and show the dialog
+         * @param title   the dialog title
+         * @param message the error message to display
          */
         public static void show(@NonNull Context context, @NonNull String title, @NonNull String message) {
             show(context, title, message, null);
         }
 
         /**
-         * Shows a simple error dialog with dismiss callback.
+         * Display an AlertDialog with the given title and message and an OK button.
          *
-         * @param context        The context
-         * @param title          The title
-         * @param message        The error message
-         * @param dismissListener The dismiss listener
+         * @param context         the Context used to build the dialog
+         * @param title           the dialog title
+         * @param message         the dialog message
+         * @param dismissListener callback invoked when the OK button is pressed (may be null)
          */
         public static void show(@NonNull Context context, @NonNull String title, @NonNull String message,
                                 @Nullable OnDismissListener dismissListener) {
@@ -396,12 +430,12 @@ public class ErrorDialog extends DialogFragment {
         }
 
         /**
-         * Shows a simple error dialog with retry option.
+         * Displays a simple error dialog with an OK button and a Retry button.
          *
-         * @param context        The context
-         * @param title          The title
-         * @param message        The error message
-         * @param retryListener  The retry listener
+         * @param context       Context used to build and show the dialog
+         * @param title         Dialog title
+         * @param message       Error message shown in the dialog
+         * @param retryListener Invoked when the user taps the Retry button; may be null
          */
         public static void showWithRetry(@NonNull Context context, @NonNull String title,
                                          @NonNull String message, @Nullable OnRetryClickListener retryListener) {
@@ -409,13 +443,13 @@ public class ErrorDialog extends DialogFragment {
         }
 
         /**
-         * Shows a simple error dialog with retry option and dismiss callback.
+         * Display a simple error AlertDialog with the given title and message, an OK button that triggers an optional dismiss callback, and an optional Retry button.
          *
-         * @param context         The context
-         * @param title           The title
-         * @param message         The error message
-         * @param retryListener   The retry listener
-         * @param dismissListener The dismiss listener
+         * @param context         the Context used to build and show the dialog
+         * @param title           the dialog title
+         * @param message         the error message shown in the dialog
+         * @param retryListener   invoked when the Retry button is pressed; if `null`, the Retry button is not shown
+         * @param dismissListener invoked when the OK button is pressed; may be `null`
          */
         public static void showWithRetry(@NonNull Context context, @NonNull String title,
                                          @NonNull String message,

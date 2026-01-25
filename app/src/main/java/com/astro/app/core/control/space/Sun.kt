@@ -12,8 +12,20 @@ import java.util.*
 class Sun : SunOrbitingObject(SolarSystemBody.Sun) {
     override val bodySize = -0.83f
 
-    override fun getMyHeliocentricCoordinates(date: Date) =
+    /**
+         * Provide the Sun's heliocentric coordinates.
+         *
+         * @param date The time for which coordinates are requested; ignored because the Sun is fixed at the heliocentric origin.
+         * @return A Vector3 at the origin (0.0f, 0.0f, 0.0f).
+         */
+        override fun getMyHeliocentricCoordinates(date: Date) =
         Vector3(0.0f, 0.0f, 0.0f)
 
-    override fun getMagnitude(time: Date) = -27.0f
+    /**
+ * Provides the Sun's apparent visual magnitude.
+ *
+ * @param time Ignored; present for API compatibility.
+ * @return The Sun's apparent visual magnitude (-27.0f).
+ */
+override fun getMagnitude(time: Date) = -27.0f
 }

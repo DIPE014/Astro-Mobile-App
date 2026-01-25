@@ -74,11 +74,13 @@ public class LinePrimitive {
     }
 
     /**
-     * Creates a line primitive with all parameters.
+     * Constructs a LinePrimitive with the specified color, vertices, and line width.
      *
-     * @param color     ARGB color
-     * @param vertices  List of vertices in geocentric coordinates
-     * @param lineWidth Width in pixels
+     * The provided vertex list is copied; subsequent mutations to the original list do not affect this instance.
+     *
+     * @param color     ARGB color value
+     * @param vertices  list of vertices in geocentric coordinates (copied)
+     * @param lineWidth line width in pixels
      */
     public LinePrimitive(int color, @NonNull List<GeocentricCoords> vertices, float lineWidth) {
         this.color = color;
@@ -87,13 +89,13 @@ public class LinePrimitive {
     }
 
     /**
-     * Creates a line segment between two points.
+     * Constructs a LinePrimitive representing a single segment from the given start point to the given end point.
      *
-     * @param start     Start point coordinates
-     * @param end       End point coordinates
-     * @param color     ARGB color
-     * @param lineWidth Width in pixels
-     * @return A new LinePrimitive with two vertices
+     * @param start     start vertex of the segment
+     * @param end       end vertex of the segment
+     * @param color     ARGB color applied to the line
+     * @param lineWidth width of the line in pixels
+     * @return          a LinePrimitive containing exactly two vertices (start followed by end) with the specified color and width
      */
     @NonNull
     public static LinePrimitive createSegment(@NonNull GeocentricCoords start,
@@ -127,28 +129,28 @@ public class LinePrimitive {
     }
 
     /**
-     * Adds a vertex to this line from geocentric coordinates.
+     * Appends the given geocentric coordinate as a vertex at the end of this line.
      *
-     * @param coords The coordinates to add
+     * @param coords the non-null geocentric coordinates to append
      */
     public void addVertex(@NonNull GeocentricCoords coords) {
         vertices.add(coords);
     }
 
     /**
-     * Adds a vertex to this line from RA/Dec coordinates.
+     * Add a vertex to the line using equatorial coordinates.
      *
-     * @param ra  Right Ascension in degrees
-     * @param dec Declination in degrees
+     * @param ra  Right Ascension in degrees.
+     * @param dec Declination in degrees.
      */
     public void addVertex(float ra, float dec) {
         vertices.add(GeocentricCoords.fromDegrees(ra, dec));
     }
 
     /**
-     * Adds multiple vertices to this line.
+     * Appends the given vertices to the end of this line's vertex list in order.
      *
-     * @param coords List of coordinates to add
+     * @param coords the coordinates to append (non-null)
      */
     public void addVertices(@NonNull List<GeocentricCoords> coords) {
         vertices.addAll(coords);
@@ -162,40 +164,39 @@ public class LinePrimitive {
     }
 
     /**
-     * Returns the ARGB color.
+     * The primitive's ARGB color.
      *
-     * @return ARGB color value
+     * @return the ARGB color as an int.
      */
     public int getColor() {
         return color;
     }
 
     /**
-     * Returns the alpha component of the color.
+     * Get the alpha component of the ARGB color.
      *
-     * @return Alpha value (0-255)
+     * @return the alpha component as an integer in the range 0-255
      */
     public int getAlpha() {
         return (color >> 24) & 0xFF;
     }
 
     /**
-     * Returns the vertices as an unmodifiable list.
-     *
-     * @return Unmodifiable list of vertices in geocentric coordinates
-     */
+         * Get an unmodifiable view of the vertices in geocentric coordinates.
+         *
+         * @return an unmodifiable list of vertices in geocentric coordinates
+         */
     @NonNull
     public List<GeocentricCoords> getVertices() {
         return Collections.unmodifiableList(vertices);
     }
 
     /**
-     * Returns the mutable vertices list for adding points.
+     * Provides direct mutable access to the internal vertex list for adding or modifying points.
      *
-     * <p>Use this method when you need to modify the vertices directly.
-     * For read-only access, prefer {@link #getVertices()}.</p>
+     * Modifying the returned list changes this LinePrimitive's vertices.
      *
-     * @return Mutable list of vertices
+     * @return the internal mutable list of GeocentricCoords vertices
      */
     @NonNull
     public List<GeocentricCoords> getVerticesMutable() {
@@ -203,31 +204,30 @@ public class LinePrimitive {
     }
 
     /**
-     * Returns the vertex at the specified index.
-     *
-     * @param index The vertex index
-     * @return The vertex coordinates
-     * @throws IndexOutOfBoundsException if index is out of range
-     */
+         * Get the vertex at the given zero-based index.
+         *
+         * @param index the zero-based position of the vertex to retrieve
+         * @return the vertex coordinates at the specified index
+         */
     @NonNull
     public GeocentricCoords getVertex(int index) {
         return vertices.get(index);
     }
 
     /**
-     * Returns the first vertex of the line.
-     *
-     * @return The first vertex, or null if the line is empty
-     */
+         * Get the first vertex of this line.
+         *
+         * @return the first vertex, or {@code null} if the line contains no vertices
+         */
     @Nullable
     public GeocentricCoords getFirstVertex() {
         return vertices.isEmpty() ? null : vertices.get(0);
     }
 
     /**
-     * Returns the last vertex of the line.
+     * Retrieve the last vertex of the line.
      *
-     * @return The last vertex, or null if the line is empty
+     * @return the last vertex, or `null` if there are no vertices
      */
     @Nullable
     public GeocentricCoords getLastVertex() {
@@ -235,59 +235,56 @@ public class LinePrimitive {
     }
 
     /**
-     * Returns the line width in pixels.
+     * Provides the line width in pixels.
      *
-     * @return Line width
+     * @return the line width in pixels
      */
     public float getLineWidth() {
         return lineWidth;
     }
 
     /**
-     * Returns the number of vertices in this line.
+     * The number of vertices in this line.
      *
-     * @return Vertex count
+     * @return the number of vertices contained in this LinePrimitive
      */
     public int getVertexCount() {
         return vertices.size();
     }
 
     /**
-     * Returns the number of line segments.
+     * Compute the number of straight segments implied by the stored vertices.
      *
-     * <p>For a polyline with n vertices, there are n-1 segments.</p>
-     *
-     * @return Segment count (0 if fewer than 2 vertices)
+     * @return the number of segments; 0 if the primitive has fewer than 2 vertices
      */
     public int getSegmentCount() {
         return Math.max(0, vertices.size() - 1);
     }
 
     /**
-     * Checks if this line has enough vertices to be drawn.
+     * Determines whether the line contains enough vertices to be rendered.
      *
-     * @return true if the line has at least 2 vertices
+     * @return `true` if the line has at least 2 vertices, `false` otherwise.
      */
     public boolean isDrawable() {
         return vertices.size() >= 2;
     }
 
     /**
-     * Checks if this line is empty (has no vertices).
+     * Determines whether the line contains no vertices.
      *
-     * @return true if the line has no vertices
+     * @return `true` if the line has no vertices, `false` otherwise.
      */
     public boolean isEmpty() {
         return vertices.isEmpty();
     }
 
     /**
-     * Converts all vertices to 3D unit vectors.
+     * Convert the primitive's vertices into 3-element 3D unit vectors.
      *
-     * <p>Each vertex is converted to a float[3] array containing [x, y, z].
-     * This is useful for OpenGL rendering.</p>
+     * Each vertex is mapped to a float[3] array containing [x, y, z], in the same order as the vertices.
      *
-     * @return List of float arrays, each containing [x, y, z]
+     * @return a list of 3-element float arrays `[x, y, z]`, one per vertex
      */
     @NonNull
     public List<float[]> toVector3List() {
@@ -342,10 +339,10 @@ public class LinePrimitive {
     }
 
     /**
-     * Creates a copy of this line with modified alpha.
+     * Create a copy of this LinePrimitive with its color's alpha channel set to the given value.
      *
-     * @param alpha The new alpha value (0-255)
-     * @return A new LinePrimitive with the specified alpha
+     * @param alpha the alpha component (0–255). Only the lowest 8 bits are applied to the resulting color.
+     * @return a new LinePrimitive with the same vertices and line width, and the color adjusted to the specified alpha (RGB preserved)
      */
     @NonNull
     public LinePrimitive withAlpha(int alpha) {
@@ -353,6 +350,12 @@ public class LinePrimitive {
         return new LinePrimitive(newColor, new ArrayList<>(vertices), lineWidth);
     }
 
+    /**
+     * Determine whether another object represents the same LinePrimitive.
+     *
+     * @param o the object to compare with
+     * @return `true` if {@code o} is a {@code LinePrimitive} with the same color, the same line width, and equal vertex sequence; `false` otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -363,6 +366,11 @@ public class LinePrimitive {
                vertices.equals(that.vertices);
     }
 
+    /**
+     * Computes a hash code for this LinePrimitive using its color, line width, and vertex list.
+     *
+     * @return an integer hash code derived from the color, lineWidth, and vertices
+     */
     @Override
     public int hashCode() {
         int result = color;
@@ -371,6 +379,11 @@ public class LinePrimitive {
         return result;
     }
 
+    /**
+     * Short string describing the LinePrimitive's color, vertex count, and line width.
+     *
+     * @return a string in the form LinePrimitive{color=0xAARRGGBB, vertices=N, lineWidth=W.W}
+     */
     @Override
     @NonNull
     public String toString() {
@@ -406,10 +419,10 @@ public class LinePrimitive {
         }
 
         /**
-         * Sets the ARGB color.
+         * Set the ARGB color used by the builder.
          *
-         * @param color ARGB color value
-         * @return This builder for method chaining
+         * @param color ARGB color value in 0xAARRGGBB format
+         * @return this Builder instance for method chaining
          */
         @NonNull
         public Builder setColor(int color) {
@@ -418,10 +431,10 @@ public class LinePrimitive {
         }
 
         /**
-         * Sets the line width.
+         * Set the line width used by the builder.
          *
-         * @param lineWidth Width in pixels
-         * @return This builder for method chaining
+         * @param lineWidth the line width in pixels
+         * @return this Builder for method chaining
          */
         @NonNull
         public Builder setLineWidth(float lineWidth) {
@@ -455,10 +468,10 @@ public class LinePrimitive {
         }
 
         /**
-         * Adds multiple vertices to the line.
+         * Appends the provided vertices to the builder's internal vertex list, preserving their order.
          *
-         * @param coords List of vertex coordinates
-         * @return This builder for method chaining
+         * @param coords list of vertices to append; elements must be non-null and the list may be empty
+         * @return this Builder instance for method chaining
          */
         @NonNull
         public Builder addVertices(@NonNull List<GeocentricCoords> coords) {
@@ -467,11 +480,11 @@ public class LinePrimitive {
         }
 
         /**
-         * Sets all vertices, replacing any existing vertices.
-         *
-         * @param coords List of vertex coordinates
-         * @return This builder for method chaining
-         */
+                 * Replace the builder's vertex list with a copy of the given coordinates.
+                 *
+                 * @param coords the vertices to set on the builder (copied into the builder)
+                 * @return this builder for method chaining
+                 */
         @NonNull
         public Builder setVertices(@NonNull List<GeocentricCoords> coords) {
             this.vertices.clear();
@@ -480,10 +493,10 @@ public class LinePrimitive {
         }
 
         /**
-         * Builds the LinePrimitive instance.
-         *
-         * @return A new LinePrimitive
-         */
+                 * Builds a LinePrimitive configured with this builder's color, vertices, and line width.
+                 *
+                 * @return the constructed LinePrimitive
+                 */
         @NonNull
         public LinePrimitive build() {
             return new LinePrimitive(color, vertices, lineWidth);

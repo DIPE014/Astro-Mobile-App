@@ -22,9 +22,9 @@ public class AssetDataSource {
     private final AssetManager assetManager;
 
     /**
-     * Creates an AssetDataSource with the provided AssetManager.
+     * Constructs an AssetDataSource that uses the given AssetManager to access app assets.
      *
-     * @param assetManager the Android AssetManager for accessing app assets
+     * @param assetManager the Android AssetManager used to open asset files
      */
     @Inject
     public AssetDataSource(AssetManager assetManager) {
@@ -57,10 +57,10 @@ public class AssetDataSource {
     }
 
     /**
-     * Opens an InputStream for the constellations catalog binary file.
+     * Open the constellations catalog asset.
      *
-     * @return an InputStream for reading constellations.binary
-     * @throws IOException if the file cannot be found or opened
+     * @return an InputStream for reading "constellations.binary"
+     * @throws IOException if the asset cannot be found or opened
      */
     public InputStream openConstellationsCatalog() throws IOException {
         return openAsset("constellations.binary");
@@ -77,10 +77,10 @@ public class AssetDataSource {
     }
 
     /**
-     * Checks if an asset file exists.
+     * Determines whether the named asset can be opened.
      *
-     * @param fileName the name of the asset file to check
-     * @return true if the asset exists and can be opened, false otherwise
+     * @param fileName the asset file name to check
+     * @return `true` if the asset can be opened, `false` otherwise
      */
     public boolean assetExists(String fileName) {
         try (InputStream ignored = assetManager.open(fileName)) {

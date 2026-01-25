@@ -14,7 +14,13 @@ import kotlin.math.sin
  * Base class for any celestial objects.
  */
 abstract class CelestialObject {
-    abstract fun getRaDec(date : Date) : RaDec
+    /**
+ * Compute the object's right ascension and declination for the specified date.
+ *
+ * @param date The date and time to evaluate the object's coordinates.
+ * @return A `RaDec` containing the object's right ascension and declination at the specified date.
+ */
+abstract fun getRaDec(date : Date) : RaDec
 
     /**
      * Enum that identifies whether we are interested in rise or set time.
@@ -28,14 +34,14 @@ abstract class CelestialObject {
     private val MAX_ITERATIONS = 25
 
     /**
-     * Calculates the next rise or set time of this planet from a given observer.
-     * Returns null if the planet doesn't rise or set during the next day.
+     * Compute the next rise or set time for this object as seen by an observer.
      *
-     * @param now Calendar time from which to calculate next rise / set time.
-     * @param loc Location of observer.
-     * @param indicator Indicates whether to look for rise or set time.
-     * @return New Calendar set to the next rise or set time if within
-     * the next day, otherwise null.
+     * Returns null if the event does not occur within the next day.
+     *
+     * @param now Reference time from which to search for the next event.
+     * @param loc Observer latitude and longitude.
+     * @param indicator Selects whether to find the next rise (`RiseSetIndicator.RISE`) or set (`RiseSetIndicator.SET`) time.
+     * @return A Calendar set to the next rise or set time in the observer's local time zone, or `null` if no event occurs within the next day.
      */
     open fun calcNextRiseSetTime(
         now: Calendar, loc: LatLong,
@@ -68,7 +74,14 @@ abstract class CelestialObject {
     open protected val bodySize = 0.0f
 
     // Internally calculate the rise and set time of an object.
-    // Returns a double, the number of hours through the day in UT.
+    /**
+     * Computes the Universal Time hour (0–24) of the next rise or set for this object on the given date.
+     *
+     * @param d Date for which the rise/set is sought (date component used in UT).
+     * @param loc Observer latitude/longitude.
+     * @param indicator Whether to compute the rise time or the set time.
+     * @return The hour-of-day in UT (decimal hours between 0 and 24) when the event occurs, or `-1.0` if the calculation did not converge.
+     */
     private fun calcRiseSetTime(
         d: Date, loc: LatLong,
         indicator: RiseSetIndicator
@@ -127,7 +140,14 @@ abstract class CelestialObject {
 
     // Calculates the hour angle of a given declination for the given location.
     // This is a helper application for the rise and set calculations.
-    // All values are in degrees.
+    /**
+     * Computes the hour angle (in degrees) for a celestial body at a specified altitude, observer latitude, and declination.
+     *
+     * @param altitude Apparent altitude of the body in degrees.
+     * @param latitude Observer latitude in degrees.
+     * @param declination Body declination in degrees.
+     * @return The hour angle in degrees.
+     */
     open fun calculateHourAngle(
         altitude: Float, latitude: Float,
         declination: Float

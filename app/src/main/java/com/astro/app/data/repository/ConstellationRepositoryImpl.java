@@ -82,6 +82,11 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
         this.protobufParser = protobufParser;
     }
 
+    /**
+     * Provide the list of all known constellations, loading and caching data on first access.
+     *
+     * @return the unmodifiable list of ConstellationData sorted by name, or an empty list if no constellations are available
+     */
     @Override
     @NonNull
     public synchronized List<ConstellationData> getAllConstellations() {
@@ -89,6 +94,12 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
         return cachedConstellations != null ? cachedConstellations : Collections.emptyList();
     }
 
+    /**
+     * Retrieve a constellation by its identifier.
+     *
+     * @param id the constellation identifier to look up
+     * @return the matching {@code ConstellationData} if found, {@code null} otherwise
+     */
     @Override
     @Nullable
     public ConstellationData getConstellationById(@NonNull String id) {
@@ -96,6 +107,12 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
         return constellationIdMap != null ? constellationIdMap.get(id) : null;
     }
 
+    /**
+     * Look up a constellation by name using a case-insensitive match.
+     *
+     * @param name the constellation name to look up; comparison is case-insensitive
+     * @return the matching {@code ConstellationData}, or {@code null} if no constellation with that name is found
+     */
     @Override
     @Nullable
     public ConstellationData getConstellationByName(@NonNull String name) {
@@ -103,6 +120,12 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
         return constellationNameMap != null ? constellationNameMap.get(name.toLowerCase(Locale.ROOT)) : null;
     }
 
+    /**
+     * Searches cached constellations for entries whose name or id contains the given query, case-insensitive.
+     *
+     * @param query substring to match against a constellation's name or id (case-insensitive)
+     * @return a list of ConstellationData whose name or id contains the query, preserving the order from getAllConstellations(); empty list if no matches
+     */
     @Override
     @NonNull
     public List<ConstellationData> searchConstellations(@NonNull String query) {
@@ -128,8 +151,11 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
     }
 
     /**
-     * Ensures that the constellation cache is loaded.
-     * This method is synchronized to prevent multiple threads from loading simultaneously.
+     * Load and cache all constellation data from the protobuf asset if the cache is not already initialized.
+     *
+     * <p>Parses all AstronomicalSourceProto entries, converts each to ConstellationData, and populates
+     * the in-memory caches: a sorted, unmodifiable list of constellations, a map from constellation ID
+     * to ConstellationData, and a map from lowercased constellation name to ConstellationData.</p>
      */
     private synchronized void ensureCacheLoaded() {
         if (cachedConstellations != null) {
@@ -163,11 +189,15 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
     }
 
     /**
-     * Converts an {@link AstronomicalSourceProto} to a {@link ConstellationData} object.
-     *
-     * @param proto The protobuf astronomical source
-     * @return A ConstellationData object, or null if conversion fails
-     */
+         * Builds a constellation model from the provided protobuf source.
+         *
+         * <p>Extracts a display name, a stable identifier, star identifiers, connection indices, and
+         * an optional center point from the protobuf. Returns null when a required value (such as the
+         * name) is missing or when an error occurs during conversion.</p>
+         *
+         * @param proto the protobuf astronomical source to convert
+         * @return the resulting ConstellationData, or {@code null} if conversion fails or required data is missing
+         */
     @Nullable
     private ConstellationData convertProtoToConstellationData(@NonNull AstronomicalSourceProto proto) {
         try {
@@ -209,13 +239,14 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
     }
 
     /**
-     * Extracts the constellation name from the protobuf data.
-     *
-     * <p>Tries multiple sources: labels, string IDs, and integer IDs.</p>
-     *
-     * @param proto The astronomical source proto
-     * @return The constellation name, or null if not found
-     */
+         * Determines the constellation display name from the given proto.
+         *
+         * <p>Checks sources in order: label string IDs, the proto's name string IDs, then a
+         * fallback formatted from the search location coordinates.</p>
+         *
+         * @param proto the astronomical source proto to extract the name from
+         * @return the formatted constellation name, or {@code null} if no name could be determined
+         */
     @Nullable
     private String extractConstellationName(@NonNull AstronomicalSourceProto proto) {
         // Try to get name from labels first
@@ -243,12 +274,17 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
     }
 
     /**
-     * Extracts or generates a constellation ID.
-     *
-     * @param proto The astronomical source proto
-     * @param name  The constellation name (fallback for ID generation)
-     * @return A unique constellation ID
-     */
+         * Produce a stable, unique identifier for a constellation.
+         *
+         * <p>Prefer a canonical ID embedded in the proto when present; otherwise generate an ID
+         * from the provided name and append a unique numeric suffix.</p>
+         *
+         * @param proto the astronomical source proto which may contain a canonical name string ID
+         * @param name  fallback constellation name used to generate an ID when the proto has none
+         * @return a lowercase identifier derived from the proto's name string ID when available;
+         *         otherwise a generated identifier based on the provided name with an appended
+         *         underscore and unique numeric suffix
+         */
     @NonNull
     private String extractConstellationId(@NonNull AstronomicalSourceProto proto, @NonNull String name) {
         // Try to use string ID if available
@@ -272,13 +308,10 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
     }
 
     /**
-     * Extracts star IDs from the constellation's point elements.
+     * Generates star identifiers for points that include a location.
      *
-     * <p>Each point in the constellation represents a star position.
-     * We generate unique IDs based on their coordinates.</p>
-     *
-     * @param proto The astronomical source proto
-     * @return A list of generated star IDs
+     * @param proto the astronomical source proto containing point elements
+     * @return a list of star IDs derived from each point's coordinates (e.g. "cstar_<ra*1000>_<dec*1000>")
      */
     @NonNull
     private List<String> extractStarIds(@NonNull AstronomicalSourceProto proto) {
@@ -300,15 +333,14 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
     }
 
     /**
-     * Extracts line connection indices from the constellation's line elements.
-     *
-     * <p>Lines in the protobuf contain vertex coordinates. We need to map these
-     * to indices in our star list by finding the closest matching stars.</p>
-     *
-     * @param proto    The astronomical source proto
-     * @param starCount The number of stars in the constellation
-     * @return A list of index pairs representing line connections
-     */
+         * Builds a list of star-index pairs that represent line segments for the constellation.
+         *
+         * <p>Each element is an int[2] where the first entry is the start star index and the second is the end star index;
+         * pairs are included only when both vertices map to distinct stars in the constellation.</p>
+         *
+         * @param proto the astronomical source proto containing line vertex coordinates
+         * @return a list of index pairs ([startIndex, endIndex]) referencing stars that form each line segment
+         */
     @NonNull
     private List<int[]> extractLineIndices(@NonNull AstronomicalSourceProto proto, int starCount) {
         List<int[]> lineIndices = new ArrayList<>();
@@ -343,12 +375,12 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
     }
 
     /**
-     * Finds the index of the closest star to the given coordinates.
-     *
-     * @param starCoords List of star coordinates [ra, dec]
-     * @param target     The target coordinates to match
-     * @return The index of the closest star, or -1 if no match found
-     */
+         * Finds the index of the star whose coordinates are nearest to the given target coordinates.
+         *
+         * @param starCoords list of float[2] arrays where each entry is [rightAscension, declination] in degrees
+         * @param target     target coordinates to match (right ascension and declination in degrees)
+         * @return the index of the nearest star in {@code starCoords} if its angular distance to {@code target} is less than 1.0 degree, or -1 otherwise
+         */
     private int findClosestStarIndex(@NonNull List<float[]> starCoords,
                                      @NonNull GeocentricCoordinatesProto target) {
         float targetRa = target.getRightAscension();
@@ -396,10 +428,10 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
     }
 
     /**
-     * Extracts the center point from the search location.
+     * Obtain the center coordinates from the proto's search location.
      *
-     * @param proto The astronomical source proto
-     * @return The center coordinates, or null if not available
+     * @param proto the astronomical source proto to read the search location from
+     * @return the center geocentric coordinates, or null if the proto has no search location
      */
     @Nullable
     private GeocentricCoords extractCenterPoint(@NonNull AstronomicalSourceProto proto) {

@@ -23,11 +23,10 @@ public interface MagneticDeclinationCalculator {
     float getDeclination();
 
     /**
-     * Sets the user's location and time for declination calculation.
-     * This should be called when the user's location or time changes.
-     *
-     * @param location the user's latitude/longitude
-     * @param timeInMillis the current time in milliseconds since epoch
-     */
+ * Configure the calculator with the user's geographic location and the observation time for subsequent declination calculations.
+ *
+ * @param location the user's latitude and longitude as a LatLong
+ * @param timeInMillis the observation time in milliseconds since the Unix epoch
+ */
     void setLocationAndTime(LatLong location, long timeInMillis);
 }

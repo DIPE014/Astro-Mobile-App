@@ -37,6 +37,14 @@ public class LoadingState<T> {
     @Nullable
     private final Throwable exception;
 
+    /**
+     * Creates a LoadingState with the specified state, associated data, error message, and exception.
+     *
+     * @param state        the loading state (must not be null)
+     * @param data         the associated data for the state, or null if none
+     * @param errorMessage the error message for ERROR state, or null if none
+     * @param exception    the Throwable associated with an error, or null if none
+     */
     private LoadingState(@NonNull State state, @Nullable T data, @Nullable String errorMessage, @Nullable Throwable exception) {
         this.state = state;
         this.data = data;
@@ -45,10 +53,10 @@ public class LoadingState<T> {
     }
 
     /**
-     * Creates an IDLE loading state.
+     * Create a LoadingState in the IDLE state.
      *
-     * @param <T> The type parameter
-     * @return A LoadingState in IDLE state
+     * @param <T> the type of associated data
+     * @return a LoadingState in the IDLE state with no data, error message, or exception
      */
     @NonNull
     public static <T> LoadingState<T> idle() {
@@ -56,10 +64,9 @@ public class LoadingState<T> {
     }
 
     /**
-     * Creates a LOADING state.
+     * Create a LoadingState representing the LOADING state.
      *
-     * @param <T> The type parameter
-     * @return A LoadingState in LOADING state
+     * @return a LoadingState in LOADING state with no data, error message, or exception
      */
     @NonNull
     public static <T> LoadingState<T> loading() {
@@ -79,35 +86,35 @@ public class LoadingState<T> {
     }
 
     /**
-     * Creates a SUCCESS state with the given data.
-     *
-     * @param data The successful result data
-     * @param <T>  The type of data
-     * @return A LoadingState in SUCCESS state
-     */
+         * Create a LoadingState representing a successful result.
+         *
+         * @param data the associated success data (may be null)
+         * @param <T>  the type of the data
+         * @return a LoadingState in the SUCCESS state containing the provided data
+         */
     @NonNull
     public static <T> LoadingState<T> success(@Nullable T data) {
         return new LoadingState<>(State.SUCCESS, data, null, null);
     }
 
     /**
-     * Creates an ERROR state with the given error message.
-     *
-     * @param errorMessage The error message
-     * @param <T>          The type parameter
-     * @return A LoadingState in ERROR state
-     */
+         * Creates a LoadingState representing an error with the provided message.
+         *
+         * @param errorMessage the non-null error message to attach to the ERROR state
+         * @param <T>          the data type associated with the LoadingState (none present for this state)
+         * @return             a `LoadingState` in `ERROR` state with the given message and no data or exception
+         */
     @NonNull
     public static <T> LoadingState<T> error(@NonNull String errorMessage) {
         return new LoadingState<>(State.ERROR, null, errorMessage, null);
     }
 
     /**
-     * Creates an ERROR state from a Throwable.
+     * Create a LoadingState representing an error using the provided throwable.
      *
-     * @param throwable The exception that caused the error
-     * @param <T>       The type parameter
-     * @return A LoadingState in ERROR state
+     * @param throwable the exception to record with this error state
+     * @param <T>       the type of associated data
+     * @return          a LoadingState with state ERROR, an error message derived from the throwable, and the throwable set as the exception
      */
     @NonNull
     public static <T> LoadingState<T> error(@NonNull Throwable throwable) {
@@ -119,13 +126,13 @@ public class LoadingState<T> {
     }
 
     /**
-     * Creates an ERROR state with both message and exception.
-     *
-     * @param errorMessage The error message
-     * @param throwable    The exception
-     * @param <T>          The type parameter
-     * @return A LoadingState in ERROR state
-     */
+         * Create a LoadingState representing an error that carries both an error message and an exception.
+         *
+         * @param errorMessage the error message to attach to the state
+         * @param throwable    the exception associated with the error
+         * @param <T>          the payload type
+         * @return the `LoadingState` in `ERROR` state containing the provided message and exception
+         */
     @NonNull
     public static <T> LoadingState<T> error(@NonNull String errorMessage, @NonNull Throwable throwable) {
         return new LoadingState<>(State.ERROR, null, errorMessage, throwable);
@@ -145,11 +152,14 @@ public class LoadingState<T> {
     }
 
     /**
-     * Creates a LoadingState from a Result object.
+     * Convert a Result into a corresponding LoadingState.
      *
-     * @param result The Result to convert
-     * @param <T>    The type of data
-     * @return A LoadingState representing the Result
+     * If the result represents success, the returned state is SUCCESS containing the result's data;
+     * otherwise the returned state is ERROR containing the result's error message and exception.
+     *
+     * @param result the Result to convert into a LoadingState
+     * @param <T>    the type of the contained data
+     * @return       a LoadingState representing the given Result
      */
     @NonNull
     public static <T> LoadingState<T> fromResult(@NonNull Result<T> result) {
@@ -181,9 +191,9 @@ public class LoadingState<T> {
     }
 
     /**
-     * Gets the error message.
+     * The error message associated with this loading state.
      *
-     * @return The error message, or null if not in error state
+     * @return the error message, or null if none is set
      */
     @Nullable
     public String getErrorMessage() {
@@ -191,10 +201,10 @@ public class LoadingState<T> {
     }
 
     /**
-     * Gets the error message with a default fallback.
+     * Get the stored error message or the provided default message if none is present.
      *
-     * @param defaultMessage The default message if none exists
-     * @return The error message or the default
+     * @param defaultMessage the message to return when no error message is stored
+     * @return {@code errorMessage} if present, otherwise {@code defaultMessage}
      */
     @NonNull
     public String getErrorMessageOrDefault(@NonNull String defaultMessage) {
@@ -202,64 +212,72 @@ public class LoadingState<T> {
     }
 
     /**
-     * Gets the exception if available.
-     *
-     * @return The exception, or null if not available
-     */
+         * The Throwable associated with the ERROR state, if any.
+         *
+         * @return the Throwable for the current ERROR state, or {@code null} if none
+         */
     @Nullable
     public Throwable getException() {
         return exception;
     }
 
     /**
-     * Checks if the state is IDLE.
+     * Determine whether the current loading state is IDLE.
      *
-     * @return true if IDLE
+     * @return `true` if the current state is IDLE, `false` otherwise.
      */
     public boolean isIdle() {
         return state == State.IDLE;
     }
 
     /**
-     * Checks if the state is LOADING.
+     * Returns whether the current state is LOADING.
      *
-     * @return true if LOADING
+     * @return `true` if the current state is LOADING, `false` otherwise.
      */
     public boolean isLoading() {
         return state == State.LOADING;
     }
 
     /**
-     * Checks if the state is SUCCESS.
+     * Determines whether the loading state is SUCCESS.
      *
-     * @return true if SUCCESS
+     * @return true if the current state is SUCCESS, false otherwise.
      */
     public boolean isSuccess() {
         return state == State.SUCCESS;
     }
 
     /**
-     * Checks if the state is ERROR.
+     * Whether the current loading state is ERROR.
      *
-     * @return true if ERROR
+     * @return `true` if the state is ERROR, `false` otherwise.
      */
     public boolean isError() {
         return state == State.ERROR;
     }
 
     /**
-     * Checks if data is available (regardless of state).
+     * Indicates whether associated data is present regardless of the loading state.
      *
-     * @return true if data is not null
+     * @return `true` if the stored data is not null, `false` otherwise.
      */
     public boolean hasData() {
         return data != null;
     }
 
     /**
-     * Handles the current state with appropriate callbacks.
+     * Invoke the corresponding method on the provided handler for the current loading state.
      *
-     * @param handler The handler with callbacks for each state
+     * <p>The handler is called as follows:
+     * <ul>
+     *   <li>IDLE → {@code onIdle()}</li>
+     *   <li>LOADING → {@code onLoading(data)}</li>
+     *   <li>SUCCESS → {@code onSuccess(data)}</li>
+     *   <li>ERROR → {@code onError(errorMessage or "Unknown error", data)}</li>
+     * </ul>
+     *
+     * @param handler the handler whose callback matching the current state will be invoked
      */
     public void handle(@NonNull StateHandler<T> handler) {
         switch (state) {
@@ -284,10 +302,29 @@ public class LoadingState<T> {
      * @param <T> The type of data
      */
     public interface StateHandler<T> {
-        void onIdle();
-        void onLoading(@Nullable T existingData);
-        void onSuccess(@Nullable T data);
-        void onError(@NonNull String message, @Nullable T existingData);
+        /**
+ * Invoked when the loading state is IDLE.
+ */
+void onIdle();
+        /**
+ * Called when the operation enters the LOADING state.
+ *
+ * @param existingData previously available data to continue displaying while loading, or {@code null} if none
+ */
+void onLoading(@Nullable T existingData);
+        /**
+ * Called when the operation completes successfully.
+ *
+ * @param data the resulting data, or {@code null} if no data is available
+ */
+void onSuccess(@Nullable T data);
+        /**
+ * Called when the loading operation finishes with an error.
+ *
+ * @param message       the error message describing the failure
+ * @param existingData  the associated data preserved from before the error, or {@code null} if none
+ */
+void onError(@NonNull String message, @Nullable T existingData);
     }
 
     /**
@@ -296,19 +333,47 @@ public class LoadingState<T> {
      * @param <T> The type of data
      */
     public static abstract class SimpleStateHandler<T> implements StateHandler<T> {
+        /**
+         * Called when the loading state is IDLE.
+         *
+         * <p>Default no-op implementation; override to handle the idle state.</p>
+         */
         @Override
         public void onIdle() {}
 
+        /**
+         * Invoked when the loading state is active; provides any existing data preserved while loading.
+         *
+         * @param existingData previously loaded data that may be shown during the loading state, or {@code null} if none
+         */
         @Override
         public void onLoading(@Nullable T existingData) {}
 
+        /**
+         * Invoked when the operation completes successfully.
+         *
+         * <p>Default no-op implementation; override to handle the successful result.</p>
+         *
+         * @param data the result data for the successful operation, may be null
+         */
         @Override
         public void onSuccess(@Nullable T data) {}
 
+        /**
+         * Invoked when the operation finishes in the ERROR state.
+         *
+         * @param message       a human-readable error message describing the failure
+         * @param existingData  optional previously loaded data associated with this error, may be null
+         */
         @Override
         public void onError(@NonNull String message, @Nullable T existingData) {}
     }
 
+    /**
+     * Produce a concise string representation of this LoadingState for debugging.
+     *
+     * @return the string containing the current `state`, `data`, and `errorMessage`
+     */
     @Override
     @NonNull
     public String toString() {

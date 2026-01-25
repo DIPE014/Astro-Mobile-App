@@ -55,7 +55,13 @@ data class OrbitalElements(
     // compute the true anomaly from mean anomaly using iteration
     // m - mean anomaly in radians
     // e - orbit eccentricity
-    // Return value is in radians.
+    /**
+     * Calculates the true anomaly from a mean anomaly and orbital eccentricity.
+     *
+     * @param m Mean anomaly, in radians.
+     * @param e Orbital eccentricity (unitless).
+     * @return True anomaly in radians, normalized to the range [0, 2π).
+     */
     private fun calculateTrueAnomaly(m: Float, e: Float): Float {
         // initial approximation of eccentric anomaly
         var e0 = m + e * sin(m) * (1.0f + e * cos(m))

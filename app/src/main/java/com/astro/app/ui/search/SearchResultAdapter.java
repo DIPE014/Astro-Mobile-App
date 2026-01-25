@@ -27,25 +27,30 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
      * Interface for handling result clicks.
      */
     public interface OnResultClickListener {
-        void onResultClick(@NonNull SearchResult result);
+        /**
+ * Called when the user selects a search result item.
+ *
+ * @param result the selected {@link SearchResult}; never null
+ */
+void onResultClick(@NonNull SearchResult result);
     }
 
     private final List<SearchResult> results = new ArrayList<>();
     private final OnResultClickListener listener;
 
     /**
-     * Creates an adapter with the given click listener.
+     * Creates a SearchResultAdapter that notifies the provided listener when a result item is clicked.
      *
-     * @param listener Callback for result clicks
+     * @param listener the non-null listener invoked for result item clicks
      */
     public SearchResultAdapter(@NonNull OnResultClickListener listener) {
         this.listener = listener;
     }
 
     /**
-     * Updates the results list.
+     * Replace the adapter's current search results with the provided list and refresh the displayed items.
      *
-     * @param newResults New list of results
+     * @param newResults the new search results to display (must not be null)
      */
     public void setResults(@NonNull List<SearchResult> newResults) {
         results.clear();
@@ -53,6 +58,13 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
         notifyDataSetChanged();
     }
 
+    /**
+     * Inflates the item_search_result layout and returns a ViewHolder for it.
+     *
+     * @param parent   the parent ViewGroup providing layout params and context
+     * @param viewType the view type for the new view
+     * @return         a new ViewHolder wrapping the inflated item view
+     */
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -61,12 +73,23 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
         return new ViewHolder(view);
     }
 
+    /**
+     * Binds the search result for the given adapter position to the provided ViewHolder.
+     *
+     * @param holder the ViewHolder to populate with data
+     * @param position the adapter position of the item to bind
+     */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SearchResult result = results.get(position);
         holder.bind(result, listener);
     }
 
+    /**
+     * Number of items currently managed by the adapter.
+     *
+     * @return the number of SearchResult items in the adapter
+     */
     @Override
     public int getItemCount() {
         return results.size();
@@ -81,6 +104,11 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
         private final TextView tvType;
         private final TextView tvCoords;
 
+        /**
+         * Initializes view references for a search result item view.
+         *
+         * @param itemView the root view of the search result item used to locate child views
+         */
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             ivIcon = itemView.findViewById(R.id.ivResultIcon);
@@ -89,6 +117,15 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
             tvCoords = itemView.findViewById(R.id.tvResultCoords);
         }
 
+        /**
+         * Populates the ViewHolder's views with the given search result and wires the item click callback.
+         *
+         * Sets the name, type, formatted coordinates, type-specific icon and icon color, and attaches
+         * the provided listener to handle item clicks.
+         *
+         * @param result   the SearchResult to display
+         * @param listener callback invoked when the item is clicked
+         */
         void bind(@NonNull SearchResult result, @NonNull OnResultClickListener listener) {
             tvName.setText(result.getName());
             tvType.setText(result.getObjectType().getDisplayName());
@@ -110,7 +147,11 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
         }
 
         /**
-         * Formats coordinates for display.
+         * Format celestial coordinates (right ascension and declination) into a human-readable string.
+         *
+         * @param ra  right ascension in degrees
+         * @param dec declination in degrees
+         * @return    a string in the form "Hh Mm, ±D° M'" where RA is converted to hours and minutes and Dec is shown with sign, degrees, and arcminutes
          */
         private String formatCoords(float ra, float dec) {
             // Convert RA to hours
@@ -127,7 +168,10 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
         }
 
         /**
-         * Gets the icon resource for an object type.
+         * Selects a drawable resource id that represents the given search result object type.
+         *
+         * @param type the SearchResult.ObjectType to map to an icon
+         * @return the Android drawable resource id corresponding to the object type
          */
         private int getIconForType(SearchResult.ObjectType type) {
             switch (type) {
@@ -147,7 +191,10 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
         }
 
         /**
-         * Gets the color resource for an object type.
+         * Selects the color resource associated with a search result object type.
+         *
+         * @param type the object's type whose color should be returned
+         * @return the color resource ID corresponding to the given object type (falls back to the primary text color for unknown types)
          */
         private int getColorForType(SearchResult.ObjectType type) {
             switch (type) {

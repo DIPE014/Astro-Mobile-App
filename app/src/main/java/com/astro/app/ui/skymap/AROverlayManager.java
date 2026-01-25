@@ -89,12 +89,12 @@ public class AROverlayManager {
      */
     public interface ObjectSelectionCallback {
         /**
-         * Called when a celestial object is selected by tap.
-         *
-         * @param star The selected star, or null if no object found at position
-         * @param screenX The X screen coordinate of the tap
-         * @param screenY The Y screen coordinate of the tap
-         */
+ * Notifies that a celestial object was selected by a user tap.
+ *
+ * @param star    the selected star, or {@code null} if no object was found at the tapped position
+ * @param screenX the X coordinate of the tap in screen pixels
+ * @param screenY the Y coordinate of the tap in screen pixels
+ */
         void onObjectSelected(@Nullable StarData star, float screenX, float screenY);
     }
 
@@ -102,18 +102,20 @@ public class AROverlayManager {
     private ObjectSelectionCallback selectionCallback;
 
     /**
-     * Creates a new AROverlayManager.
+     * Initialize a new AROverlayManager that manages the AR sky overlay and interaction between screen space and celestial coordinates.
      *
-     * @param starRepository Repository for accessing star data
+     * @param starRepository repository providing star catalog data used for object lookup and selection
      */
     public AROverlayManager(@NonNull StarRepository starRepository) {
         this.starRepository = starRepository;
     }
 
     /**
-     * Sets the SkyGLSurfaceView to manage.
+     * Attach the SkyGLSurfaceView used for AR overlay rendering.
      *
-     * @param skyView The sky view to overlay on the camera
+     * Stores the provided view and caches its SkyRenderer for rendering and coordinate conversions.
+     *
+     * @param skyView the SkyGLSurfaceView to overlay on the camera (must not be null)
      */
     public void setSkyView(@NonNull SkyGLSurfaceView skyView) {
         this.skyView = skyView;
@@ -121,9 +123,9 @@ public class AROverlayManager {
     }
 
     /**
-     * Sets the callback for object selection events.
+     * Register or clear the callback invoked when a celestial object is selected via tap.
      *
-     * @param callback The callback to receive selection events
+     * @param callback the callback to receive selection events, or `null` to clear the callback
      */
     public void setObjectSelectionCallback(@Nullable ObjectSelectionCallback callback) {
         this.selectionCallback = callback;
@@ -153,17 +155,19 @@ public class AROverlayManager {
     }
 
     /**
-     * Calibrates with default smartphone camera FOV values.
+     * Calibrates the AR overlay using common smartphone camera field-of-view defaults (horizontal 66°, vertical 50°).
      */
     public void calibrateDefault() {
         calibrate(66.0f, 50.0f);
     }
 
     /**
-     * Updates the screen dimensions.
+     * Set the current screen size used for coordinate transformations.
      *
-     * @param width  Screen width in pixels
-     * @param height Screen height in pixels
+     * Values are clamped to at least 1 pixel to avoid invalid calculations.
+     *
+     * @param width  screen width in pixels
+     * @param height screen height in pixels
      */
     public void setScreenDimensions(int width, int height) {
         this.screenWidth = Math.max(1, width);
@@ -189,15 +193,17 @@ public class AROverlayManager {
     }
 
     /**
-     * Converts screen coordinates to celestial coordinates.
-     *
-     * <p>The screen center is mapped to the current look direction.
-     * Offset from center is mapped based on the FOV.</p>
-     *
-     * @param screenX Screen X coordinate in pixels
-     * @param screenY Screen Y coordinate in pixels
-     * @return GeocentricCoords at the screen position, or null if conversion fails
-     */
+         * Map a screen pixel position to celestial coordinates (right ascension and declination).
+         *
+         * <p>The screen center corresponds to the current look direction; offsets from center are
+         * translated into angular offsets using the configured horizontal and vertical FOVs.
+         * The resulting coordinates are expressed as geocentric radians.</p>
+         *
+         * @param screenX horizontal screen coordinate in pixels
+         * @param screenY vertical screen coordinate in pixels
+         * @return a GeocentricCoords representing the RA/Dec at the given screen position, or
+         *         `null` if the AR overlay is not calibrated
+         */
     @Nullable
     public GeocentricCoords screenToSky(float screenX, float screenY) {
         if (!isCalibrated) {
@@ -231,12 +237,14 @@ public class AROverlayManager {
     }
 
     /**
-     * Finds the nearest celestial object to a screen position.
-     *
-     * @param screenX Screen X coordinate in pixels
-     * @param screenY Screen Y coordinate in pixels
-     * @return The nearest StarData within search radius, or null if none found
-     */
+         * Locate the nearest star to the given screen coordinates, if any.
+         *
+         * Converts the tap position to sky coordinates (requires calibration) and returns the nearest star within the currently configured search radius.
+         *
+         * @param screenX screen X coordinate in pixels
+         * @param screenY screen Y coordinate in pixels
+         * @return the nearest StarData within the configured search radius, or null if no star is found or the screen-to-sky conversion fails (for example, if not calibrated)
+         */
     @Nullable
     public StarData findObjectAtScreenPosition(float screenX, float screenY) {
         GeocentricCoords tapCoords = screenToSky(screenX, screenY);
@@ -248,12 +256,12 @@ public class AROverlayManager {
     }
 
     /**
-     * Finds the nearest star to the given celestial coordinates.
-     *
-     * @param coords The celestial coordinates to search near
-     * @param maxDistanceDegrees Maximum angular distance in degrees
-     * @return The nearest StarData within the search radius, or null if none found
-     */
+         * Locate the brightest candidate star nearest to the provided celestial coordinates within a maximum angular distance.
+         *
+         * @param coords             target celestial coordinates (geocentric)
+         * @param maxDistanceDegrees maximum angular separation in degrees to consider
+         * @return                   the nearest StarData within {@code maxDistanceDegrees}, or {@code null} if none found
+         */
     @Nullable
     public StarData findNearestStar(@NonNull GeocentricCoords coords, float maxDistanceDegrees) {
         List<StarData> stars = starRepository.getStarsByMagnitude(MAX_MAGNITUDE_FOR_TAP);
@@ -280,13 +288,10 @@ public class AROverlayManager {
     }
 
     /**
-     * Handles a tap event at the given screen position.
+     * Process a tap at the specified screen coordinates and invoke the registered object-selection callback with the star found (or `null`) at that location.
      *
-     * <p>This method finds any celestial object at the tap position and
-     * notifies the callback.</p>
-     *
-     * @param screenX Screen X coordinate in pixels
-     * @param screenY Screen Y coordinate in pixels
+     * @param screenX the x coordinate of the tap in pixels
+     * @param screenY the y coordinate of the tap in pixels
      */
     public void handleTap(float screenX, float screenY) {
         StarData star = findObjectAtScreenPosition(screenX, screenY);
@@ -339,27 +344,29 @@ public class AROverlayManager {
     }
 
     /**
-     * Sets the search radius for tap-to-select operations.
+     * Configure the tap-to-select search radius.
      *
-     * @param radiusDegrees Search radius in degrees
+     * The provided value is clamped to the range 1.0–20.0 degrees.
+     *
+     * @param radiusDegrees desired radius in degrees; values outside [1, 20] are clamped
      */
     public void setSearchRadius(float radiusDegrees) {
         this.searchRadiusDegrees = Math.max(1.0f, Math.min(20.0f, radiusDegrees));
     }
 
     /**
-     * Returns whether the overlay is calibrated.
+     * Indicates whether the AR overlay has been calibrated.
      *
-     * @return true if calibration has been performed
+     * @return true if calibration has been performed, false otherwise.
      */
     public boolean isCalibrated() {
         return isCalibrated;
     }
 
     /**
-     * Enables AR mode by making the sky background transparent.
+     * Toggle AR mode by switching the sky background between transparent and opaque.
      *
-     * @param enabled true to enable AR mode (transparent background)
+     * @param enabled true to use a transparent background for AR mode, false to use an opaque background for map-only mode
      */
     public void setARModeEnabled(boolean enabled) {
         if (renderer != null) {
@@ -374,9 +381,9 @@ public class AROverlayManager {
     }
 
     /**
-     * Gets the current look direction as a Vector3.
+     * Get the current look direction as a 3D unit vector.
      *
-     * @return Vector3 representing the current look direction
+     * @return a Vector3 unit vector pointing toward the current view direction; components are (x: east, y: north, z: up)
      */
     @NonNull
     public Vector3 getLookDirection() {
@@ -389,18 +396,18 @@ public class AROverlayManager {
     }
 
     /**
-     * Returns the current horizontal FOV.
+     * Get the current horizontal field of view used for coordinate transformations.
      *
-     * @return Horizontal FOV in degrees
+     * @return Horizontal field of view in degrees
      */
     public float getHorizontalFov() {
         return cameraHorizontalFov;
     }
 
     /**
-     * Returns the current vertical FOV.
+     * Get the current vertical field of view used for screen-to-sky mappings.
      *
-     * @return Vertical FOV in degrees
+     * @return the vertical field of view in degrees
      */
     public float getVerticalFov() {
         return cameraVerticalFov;

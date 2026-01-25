@@ -32,19 +32,18 @@ public class AppModule {
     private final Context applicationContext;
 
     /**
-     * Creates an AppModule with the given application context.
+     * Constructs an AppModule that retains the application Context for providing app-scoped dependencies.
      *
-     * @param applicationContext the application context (not activity context)
+     * @param applicationContext the application Context to use (must be the application-level context, not an Activity context)
      */
     public AppModule(Context applicationContext) {
         this.applicationContext = applicationContext;
     }
 
     /**
-     * Provides the application context.
-     * This is a singleton since the application context lives for the entire app lifecycle.
+     * Provide the application context.
      *
-     * @return the application context
+     * @return the application Context
      */
     @Provides
     @Singleton
@@ -53,11 +52,9 @@ public class AppModule {
     }
 
     /**
-     * Provides the LocationController for GPS location updates.
-     * Singleton to ensure only one instance manages location services.
+     * Provides the application's LocationController.
      *
-     * @param context the application context
-     * @return the LocationController instance
+     * @return the LocationController configured with the application context
      */
     @Provides
     @Singleton
@@ -66,10 +63,9 @@ public class AppModule {
     }
 
     /**
-     * Provides the SensorController for device orientation sensors.
-     * Singleton to ensure only one instance manages sensor services.
+     * Provides the application's SensorController.
      *
-     * @param context the application context
+     * @param context the application Context used to create the controller
      * @return the SensorController instance
      */
     @Provides
@@ -79,11 +75,10 @@ public class AppModule {
     }
 
     /**
-     * Provides the AssetManager for accessing app assets.
-     * Used for loading star catalog data and other binary assets.
+     * Provides the application's AssetManager for accessing packaged assets.
      *
-     * @param context the application context
-     * @return the AssetManager instance
+     * @param context the application Context used to obtain the AssetManager
+     * @return the AssetManager for accessing the application's packaged assets
      */
     @Provides
     @Singleton
@@ -92,10 +87,9 @@ public class AppModule {
     }
 
     /**
-     * Provides the MagneticDeclinationCalculator for calculating the difference
-     * between magnetic north and true north.
+     * Creates a MagneticDeclinationCalculator for computing the angular difference between magnetic north and true north.
      *
-     * @return the MagneticDeclinationCalculator instance
+     * @return a MagneticDeclinationCalculator that computes magnetic declination
      */
     @Provides
     @Singleton
@@ -116,11 +110,9 @@ public class AppModule {
     }
 
     /**
-     * Provides the AstronomerModel for calculating celestial coordinates
-     * from device sensor data.
-     * Singleton to ensure consistent state across the app.
+     * Creates an AstronomerModel that calculates celestial coordinates from device sensor data.
      *
-     * @param magneticDeclinationCalculator the calculator for magnetic declination
+     * @param magneticDeclinationCalculator calculator used to correct magnetic declination
      * @return the AstronomerModel instance
      */
     @Provides
@@ -130,12 +122,11 @@ public class AppModule {
     }
 
     /**
-     * Provides the StarRepository for accessing star data.
-     * Uses StarRepositoryImpl which loads data from binary protobuf files.
-     *
-     * @param protobufParser the parser for reading binary star data
-     * @return the StarRepository instance
-     */
+         * Creates a StarRepository that provides access to star data.
+         *
+         * @param protobufParser parser used to read star data from protobuf binaries
+         * @return the StarRepository instance
+         */
     @Provides
     @Singleton
     StarRepository provideStarRepository(ProtobufParser protobufParser) {
@@ -143,11 +134,10 @@ public class AppModule {
     }
 
     /**
-     * Provides the ConstellationRepository for accessing constellation data.
-     * Uses ConstellationRepositoryImpl which loads data from binary protobuf files.
+     * Creates a ConstellationRepository for accessing constellation data.
      *
-     * @param protobufParser the parser for reading binary constellation data
-     * @return the ConstellationRepository instance
+     * @param protobufParser parser for reading protobuf-encoded constellation data
+     * @return a ConstellationRepository backed by protobuf data
      */
     @Provides
     @Singleton
@@ -156,10 +146,9 @@ public class AppModule {
     }
 
     /**
-     * Provides the Universe for calculating solar system body positions.
-     * Singleton to ensure consistent state across the app.
+     * Create a Universe used to calculate solar system body positions.
      *
-     * @return the Universe instance
+     * @return the Universe used to compute positions of solar system bodies
      */
     @Provides
     @Singleton

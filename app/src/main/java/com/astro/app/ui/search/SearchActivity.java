@@ -84,6 +84,11 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     private SearchIndex searchIndex;
     private SearchResultAdapter adapter;
 
+    /**
+     * Initializes the activity: sets the layout, performs dependency injection, and prepares the search UI and index.
+     *
+     * @param savedInstanceState previously saved state, if any
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,7 +103,9 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     }
 
     /**
-     * Initializes view references.
+     * Binds activity UI elements, wires back/clear button behavior, initializes the results RecyclerView with its adapter, and shows the empty state.
+     *
+     * Finds and assigns the search input, results list, empty and loading views; sets the back button to finish the activity and the clear button to clear and refocus the search field; creates and attaches the SearchResultAdapter with a LinearLayoutManager.
      */
     private void initializeViews() {
         etSearch = findViewById(R.id.etSearch);
@@ -150,19 +157,45 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     }
 
     /**
-     * Sets up event listeners.
-     */
+         * Attach listeners to the search input to drive live autocomplete and UI controls.
+         *
+         * <p>On text change, triggers a search with the current text. After text is changed,
+         * toggles the clear button visibility based on whether the input is empty. Handles the
+         * keyboard search action (IME_ACTION_SEARCH) by performing a search with the current query.
+         */
     private void setupListeners() {
         // Text change listener for autocomplete
         etSearch.addTextChangedListener(new TextWatcher() {
+            /**
+             * Invoked immediately before the text is changed.
+             *
+             * @param s the current text content
+             * @param start the start index of the change
+             * @param count the number of characters that will be replaced
+             * @param after the number of characters that will replace the old text
+             */
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
+            /**
+             * Invoked when the input text changes and triggers a search using the current text.
+             *
+             * @param s the current text in the search input
+             * @param start the start position of the change
+             * @param before the length of the previous text that was replaced
+             * @param count the length of the new text that was inserted
+             */
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 performSearch(s.toString());
             }
 
+            /**
+             * Toggles the visibility of the clear button (R.id.btnClear) based on the provided text:
+             * shows the button when the text length is greater than zero and hides it when empty.
+             *
+             * @param s the current text content of the input field
+             */
             @Override
             public void afterTextChanged(Editable s) {
                 // Show/hide clear button
@@ -185,10 +218,16 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     }
 
     /**
-     * Performs a search with the given query.
-     *
-     * @param query The search query
-     */
+         * Updates the UI with autocomplete search results for the given query.
+         *
+         * <p>If the search index is not built this method no-ops. An empty query clears results
+         * and shows the empty state. If no suggestions are found it shows the no-results state.
+         * Otherwise it resolves suggestions to SearchResult objects, orders them with prefix
+         * (exact) matches first and then alphabetically, limits the list to 50 items, updates
+         * the adapter, and displays the results view.</p>
+         *
+         * @param query the user-entered search string to query against the search index
+         */
     private void performSearch(String query) {
         if (searchIndex == null || !searchIndex.isIndexBuilt()) {
             return;
@@ -240,7 +279,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     }
 
     /**
-     * Shows the empty state (initial state).
+     * Display the search empty state by showing the empty-state view, hiding the results list and loading indicator, and updating the empty title and subtitle text.
      */
     private void showEmptyState() {
         emptyState.setVisibility(View.VISIBLE);
@@ -259,7 +298,9 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     }
 
     /**
-     * Shows the no results state.
+     * Display the "no results" empty state, hide the results list and loading indicator.
+     *
+     * Updates the empty state's title to the localized "no results" string and clears its subtitle.
      */
     private void showNoResults() {
         emptyState.setVisibility(View.VISIBLE);
@@ -287,8 +328,8 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     }
 
     /**
-     * Shows the loading state.
-     */
+         * Display the loading UI and hide the empty-state and results views.
+         */
     private void showLoading() {
         emptyState.setVisibility(View.GONE);
         rvResults.setVisibility(View.GONE);
@@ -302,6 +343,11 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         loadingState.setVisibility(View.GONE);
     }
 
+    /**
+     * Handle a selected search result by returning its details to the calling activity and finishing.
+     *
+     * @param result the selected SearchResult whose name, coordinates, type, and optional id will be returned
+     */
     @Override
     public void onResultClick(@NonNull SearchResult result) {
         Log.d(TAG, "Selected: " + result.getName());

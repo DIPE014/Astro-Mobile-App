@@ -40,9 +40,7 @@ public class ProtobufParser {
     private final AssetDataSource assetDataSource;
 
     /**
-     * Creates a ProtobufParser with the provided AssetDataSource.
-     *
-     * @param assetDataSource the data source for reading asset files
+     * Initializes a ProtobufParser with the provided AssetDataSource.
      */
     @Inject
     public ProtobufParser(AssetDataSource assetDataSource) {
@@ -69,11 +67,13 @@ public class ProtobufParser {
     }
 
     /**
-     * Parses star data from the provided InputStream.
+     * Extracts all star point elements from an InputStream containing an AstronomicalSourcesProto.
      *
-     * @param inputStream the input stream containing serialized AstronomicalSourcesProto
-     * @return a list of PointElementProto objects representing stars
-     * @throws IOException if reading or parsing fails
+     * Aggregates point entries from every source in the proto into a single list.
+     *
+     * @param inputStream input stream containing a serialized AstronomicalSourcesProto
+     * @return a list of star PointElementProto entries
+     * @throws IOException if reading from the stream or parsing the proto fails
      */
     public List<PointElementProto> parseStarsFromStream(InputStream inputStream) throws IOException {
         AstronomicalSourcesProto sources = AstronomicalSourcesProto.parseFrom(inputStream);
@@ -106,13 +106,9 @@ public class ProtobufParser {
     }
 
     /**
-     * Parses the messier.binary file and extracts all Messier object sources.
+     * Parse the messier.binary asset and return its Messier sources.
      *
-     * <p>Each {@link AstronomicalSourceProto} represents a Messier deep-sky object
-     * (galaxies, nebulae, star clusters, etc.).</p>
-     *
-     * @return a list of AstronomicalSourceProto objects representing Messier objects,
-     *         or an empty list if parsing fails
+     * @return a list of AstronomicalSourceProto objects representing Messier deep-sky objects, or an empty list if parsing fails
      */
     public List<AstronomicalSourceProto> parseMessierObjects() {
         try (InputStream inputStream = assetDataSource.openMessierCatalog()) {
@@ -157,10 +153,9 @@ public class ProtobufParser {
     }
 
     /**
-     * Gets the count of stars in the star catalog without fully parsing all data.
-     * Useful for progress indicators and validation.
+     * Compute the total number of star point entries in the star catalog without fully parsing all data.
      *
-     * @return the number of star sources in the catalog, or 0 if parsing fails
+     * @return the total number of star point entries, or 0 if parsing fails
      */
     public int getStarCount() {
         try (InputStream inputStream = assetDataSource.openStarsCatalog()) {
@@ -177,7 +172,7 @@ public class ProtobufParser {
     }
 
     /**
-     * Gets the count of constellations in the catalog.
+     * Retrieve the number of constellation sources in the constellations catalog.
      *
      * @return the number of constellation sources, or 0 if parsing fails
      */

@@ -44,6 +44,11 @@ public class SettingsActivity extends AppCompatActivity {
     // Prevent recursive updates
     private boolean isUpdatingUI = false;
 
+    /**
+     * Set up the settings UI and ViewModel, bind view references, attach user interaction listeners, and begin observing ViewModel state.
+     *
+     * @param savedInstanceState if non-null, this activity is being re-created from a previous saved state
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,7 +63,8 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     /**
-     * Initializes view references.
+     * Binds UI widgets from the layout to the activity's fields and configures
+     * slider ranges for star brightness and magnitude limits.
      */
     private void initializeViews() {
         // Display settings

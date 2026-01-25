@@ -23,10 +23,10 @@ data class RaDec(
 ) {
 
     /**
-     * Return true if the given Ra/Dec is always above the horizon. Return
-     * false otherwise.
-     * In the northern hemisphere, objects never set if dec > 90 - lat.
-     * In the southern hemisphere, objects never set if dec < -90 - lat.
+     * Determines whether this Ra/Dec is always above the horizon at the specified observer location.
+     *
+     * @param loc Observer location (latitude in degrees).
+     * @return `true` if the coordinate never sets for the given latitude, `false` otherwise.
      */
     private fun isCircumpolarFor(loc: LatLong): Boolean {
         // This should be relatively easy to do. In the northern hemisphere,
@@ -42,10 +42,10 @@ data class RaDec(
     }
 
     /**
-     * Return true if the given Ra/Dec is always below the horizon. Return
-     * false otherwise.
-     * In the northern hemisphere, objects never rise if dec < lat - 90.
-     * In the southern hemisphere, objects never rise if dec > 90 - lat.
+     * Determine whether this Ra/Dec never rises above the horizon for the given observer location.
+     *
+     * @param loc Observer location; latitude in degrees.
+     * @return `true` if the RA/Dec never rises above the horizon at the given location, `false` otherwise.
      */
     private fun isNeverVisible(loc: LatLong): Boolean {
         return if (loc.latitude > 0.0f) {
@@ -56,16 +56,38 @@ data class RaDec(
     }
 
     companion object {
+        /**
+         * Convert right ascension given in hours, minutes, and seconds to decimal degrees.
+         *
+         * @param h Hours of right ascension (typically 0–24).
+         * @param m Minutes of right ascension (0–59).
+         * @param s Seconds of right ascension (0–59.999...).
+         * @return Right ascension in decimal degrees (0–360).
+         */
         @JvmStatic
         fun raDegreesFromHMS(h: Float, m: Float, s: Float): Float {
             return 360 / 24 * (h + m / 60 + s / 60 / 60)
         }
 
+        /**
+         * Convert degrees, arcminutes and arcseconds to decimal degrees.
+         *
+         * @param d Degrees component (may be negative to indicate south/negative declination).
+         * @param m Arcminutes component (added as positive fractional degrees).
+         * @param s Arcseconds component (added as positive fractional degrees).
+         * @return The angle in decimal degrees (d + m/60 + s/3600).
+         */
         @JvmStatic
         fun decDegreesFromDMS(d: Float, m: Float, s: Float): Float {
             return d + m / 60 + s / 60 / 60
         }
 
+        /**
+         * Converts 3D geocentric rectangular equatorial coordinates to right ascension and declination.
+         *
+         * @param coords A 3-element vector representing geocentric rectangular equatorial coordinates (x, y, z).
+         * @return A RaDec where `ra` is right ascension in degrees (0 ≤ ra < 360) and `dec` is declination in degrees (-90 ≤ dec ≤ 90).
+         */
         @JvmStatic
         fun fromGeocentricCoords(coords: Vector3): RaDec {
             // find the RA and DEC from the rectangular equatorial coords
@@ -76,6 +98,17 @@ data class RaDec(
             return RaDec(ra, dec)
         }
 
+        /**
+         * Create a RaDec from right ascension in hours/minutes/seconds and declination in degrees/arcminutes/arcseconds.
+         *
+         * @param raHours Right ascension hours component.
+         * @param raMinutes Right ascension minutes component.
+         * @param raSeconds Right ascension seconds component.
+         * @param decDegrees Declination degrees component (sign indicates north/south).
+         * @param decMinutes Declination arcminutes component.
+         * @param decSeconds Declination arcseconds component.
+         * @return A RaDec with `ra` converted to decimal degrees and `dec` converted to decimal degrees.
+         */
         @JvmStatic
         fun fromHoursMinutesSeconds(
             raHours: Float, raMinutes: Float, raSeconds: Float,

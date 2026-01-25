@@ -149,7 +149,11 @@ public class PointRenderer {
     }
 
     /**
-     * Initializes the renderer. Must be called on the GL thread.
+     * Prepare the renderer for use by creating its GL resources and shader program; must be called on the GL thread.
+     *
+     * Initializes the shader program and retrieves attribute/uniform locations, generates vertex/index buffer object IDs,
+     * and marks the renderer as initialized. If already initialized this method returns immediately. If shader creation fails
+     * the renderer remains uninitialized and will not render.
      */
     public void initialize() {
         if (initialized) {
@@ -191,10 +195,15 @@ public class PointRenderer {
     }
 
     /**
-     * Updates the point data to be rendered.
-     *
-     * @param points List of point primitives
-     */
+         * Replaces the renderer's point data with the provided list and prepares GPU buffers.
+         *
+         * Builds per-point vertex and index buffers (quads for billboarding) from the supplied
+         * PointPrimitive list, sets the internal point count, and uploads the buffers to the
+         * vertex/index VBOs when the renderer is initialized. If the list is empty, clears the
+         * point count and leaves GPU resources unchanged.
+         *
+         * @param points the list of point primitives to render; each entry produces a quad (4 vertices, 6 indices)
+         */
     public void updatePoints(@NonNull List<PointPrimitive> points) {
         if (points.isEmpty()) {
             pointCount = 0;
@@ -252,7 +261,12 @@ public class PointRenderer {
     }
 
     /**
-     * Adds a point's vertex data to the buffer.
+     * Appends four vertices for a camera-facing billboard quad representing the given point to the vertex buffer.
+     *
+     * Each vertex contains position, color (normalized to 0–1), texture coordinates, and the point's size.
+     *
+     * @param point      the PointPrimitive whose geometry and attributes will be added to the buffer
+     * @param pointIndex the index of this point within the point list (used to compute vertex/index offsets)
      */
     private void addPointToBuffer(PointPrimitive point, int pointIndex) {
         float[] pos = point.toVector3();
@@ -318,8 +332,19 @@ public class PointRenderer {
     }
 
     /**
-     * Adds a single vertex to the buffer.
-     */
+         * Appends a single vertex's packed attributes to the active vertex buffer in the renderer's layout order.
+         *
+         * @param x     vertex x position in world coordinates
+         * @param y     vertex y position in world coordinates
+         * @param z     vertex z position in world coordinates
+         * @param r     red color component (0.0–1.0)
+         * @param g     green color component (0.0–1.0)
+         * @param b     blue color component (0.0–1.0)
+         * @param a     alpha component (0.0–1.0)
+         * @param u     texture coordinate U (horizontal)
+         * @param v     texture coordinate V (vertical)
+         * @param size  per-vertex point size attribute used by the shader
+         */
     private void addVertex(float x, float y, float z, float r, float g, float b, float a,
                            float u, float v, float size) {
         vertexBuffer.put(x);
@@ -335,19 +360,19 @@ public class PointRenderer {
     }
 
     /**
-     * Draws all points.
+     * Renders all loaded points using the provided model-view-projection matrix with the circle shape.
      *
-     * @param mvpMatrix The combined model-view-projection matrix
+     * @param mvpMatrix the combined model-view-projection matrix used to transform point vertices to clip space
      */
     public void draw(@NonNull float[] mvpMatrix) {
         draw(mvpMatrix, Shape.CIRCLE);
     }
 
     /**
-     * Draws all points with specified shape.
+     * Render all loaded points as billboards using the provided model-view-projection matrix and shape.
      *
-     * @param mvpMatrix The combined model-view-projection matrix
-     * @param shape     The shape to use for all points
+     * @param mvpMatrix the combined model-view-projection matrix used to transform point vertices
+     * @param shape     the shape variant to use for fragment shading (selects shader shape mask)
      */
     public void draw(@NonNull float[] mvpMatrix, @NonNull Shape shape) {
         if (!initialized || pointCount == 0) {
@@ -436,7 +461,11 @@ public class PointRenderer {
     }
 
     /**
-     * Converts a Shape enum to an integer for the shader.
+     * Map a Shape enum to the integer code expected by the fragment shader.
+     *
+     * @param shape the shape to convert
+     * @return `0` for CIRCLE, `1` for STAR, `2` for DIAMOND, `3` for SQUARE,
+     *         `4` for TRIANGLE, `5` for CROSS; defaults to `0` for unknown values
      */
     private int shapeToInt(Shape shape) {
         switch (shape) {
@@ -476,9 +505,9 @@ public class PointRenderer {
     }
 
     /**
-     * Returns the number of points currently loaded.
+     * Get the current number of loaded points.
      *
-     * @return Point count
+     * @return the current number of loaded points
      */
     public int getPointCount() {
         return pointCount;
@@ -494,7 +523,10 @@ public class PointRenderer {
     }
 
     /**
-     * Releases all OpenGL resources.
+     * Free native GL resources held by this renderer and mark it uninitialized.
+     *
+     * Deletes the vertex and index VBOs and releases the compiled shader program if present.
+     * This method is a no-op when the renderer is not initialized.
      */
     public void release() {
         if (initialized) {

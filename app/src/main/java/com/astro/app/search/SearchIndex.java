@@ -73,11 +73,11 @@ public class SearchIndex {
     private boolean isIndexBuilt = false;
 
     /**
-     * Creates a search index with all data sources.
+     * Constructs a SearchIndex that optionally uses the provided data sources to populate the index.
      *
-     * @param starRepository          Star data source (can be null)
-     * @param constellationRepository Constellation data source (can be null)
-     * @param universe                Universe for planet positions (can be null)
+     * @param starRepository          source of star data; may be null to disable star indexing
+     * @param constellationRepository source of constellation data; may be null to disable constellation indexing
+     * @param universe                source for planet positions; may be null to disable planet indexing and updates
      */
     public SearchIndex(@Nullable StarRepository starRepository,
                        @Nullable ConstellationRepository constellationRepository,
@@ -88,10 +88,11 @@ public class SearchIndex {
     }
 
     /**
-     * Builds the search index from all available data sources.
+     * Constructs the in-memory search index by clearing existing entries and indexing any available
+     * stars, planets, and constellations from the provided data sources.
      *
-     * <p>This should be called once after construction, ideally on a
-     * background thread as it may take some time for large catalogs.</p>
+     * <p>After this method completes, {@link #isIndexBuilt()} returns {@code true}. Any null data
+     * sources are skipped.</p>
      */
     public void buildIndex() {
         Log.d(TAG, "Building search index...");
@@ -121,8 +122,12 @@ public class SearchIndex {
     }
 
     /**
-     * Indexes all named stars from the star repository.
-     */
+         * Indexes named stars from the star repository into the search index.
+         *
+         * For each StarData returned by the repository, if the star has a non-null, non-empty
+         * name that does not start with "Star ", creates a STAR SearchResult using the star's
+         * RA/Dec and id and adds it to the index. Logs the number of stars indexed.
+         */
     private void indexStars() {
         List<StarData> stars = starRepository.getAllStars();
         int count = 0;
@@ -140,7 +145,9 @@ public class SearchIndex {
     }
 
     /**
-     * Indexes all planets from the Universe.
+     * Adds entries for all solar system bodies (except Earth) to the search index by querying the Universe for their current RA/Dec.
+     *
+     * For each body this method obtains its RA/Dec for the current time and inserts a corresponding SearchResult into the index; bodies that cannot be resolved are skipped and logged. The method updates the internal index and logs the number of planets indexed.
      */
     private void indexPlanets() {
         Date now = new Date();
@@ -165,7 +172,9 @@ public class SearchIndex {
     }
 
     /**
-     * Indexes all constellations from the constellation repository.
+     * Adds named constellations from the repository to the search index using each constellation's center coordinates.
+     *
+     * For each constellation with a non-null, non-empty name, creates an index entry with type CONSTELLATION and the constellation's id. Constellations without names are skipped.
      */
     private void indexConstellations() {
         List<ConstellationData> constellations = constellationRepository.getAllConstellations();
@@ -188,7 +197,13 @@ public class SearchIndex {
     }
 
     /**
-     * Adds an entry to the search index.
+     * Add a named object to the autocomplete store and exact-name lookup.
+     *
+     * @param name     display name used for autocomplete and exact matching
+     * @param ra       right ascension in degrees for the object's position
+     * @param dec      declination in degrees for the object's position
+     * @param type     the object's SearchResult.ObjectType (e.g., STAR, PLANET, CONSTELLATION)
+     * @param objectId unique identifier for the object (repository ID or canonical name)
      */
     private void addToIndex(String name, float ra, float dec,
                             SearchResult.ObjectType type, String objectId) {
@@ -198,7 +213,10 @@ public class SearchIndex {
     }
 
     /**
-     * Gets the object type for a solar system body.
+     * Map a SolarSystemBody to the corresponding SearchResult.ObjectType.
+     *
+     * @param body the solar system body to classify
+     * @return `SUN` for Sun, `MOON` for Moon, `PLANET` for any other body
      */
     private SearchResult.ObjectType getObjectType(SolarSystemBody body) {
         switch (body) {
@@ -212,10 +230,10 @@ public class SearchIndex {
     }
 
     /**
-     * Gets autocomplete suggestions for a prefix.
+     * Retrieve autocomplete suggestions that start with the given prefix.
      *
-     * @param prefix The prefix to search for
-     * @return Set of matching names
+     * @param prefix the prefix to match
+     * @return a set of matching names; empty if the index is not built or no matches exist
      */
     @NonNull
     public Set<String> getAutocompleteSuggestions(@NonNull String prefix) {
@@ -227,12 +245,14 @@ public class SearchIndex {
     }
 
     /**
-     * Searches for objects matching the query.
+     * Finds indexed objects whose names match the query.
      *
-     * <p>First tries exact match, then falls back to prefix search.</p>
+     * <p>Performs an exact-name lookup first; if an exact match exists it is returned as the sole item.
+     * Otherwise performs a prefix search and returns all matching entries. If the index has not been built
+     * or no matches are found, an empty list is returned.</p>
      *
-     * @param query The search query
-     * @return List of matching results
+     * @param query the search query string
+     * @return a list of matching SearchResult objects (empty if none)
      */
     @NonNull
     public List<SearchResult> search(@NonNull String query) {
@@ -264,10 +284,10 @@ public class SearchIndex {
     }
 
     /**
-     * Gets a search result by exact name.
+     * Retrieve the indexed SearchResult for an exact object name.
      *
-     * @param name The exact name to look up
-     * @return The search result, or null if not found
+     * @param name the exact name to look up; comparison is case-insensitive (uses {@code Locale.ROOT})
+     * @return the SearchResult for the given name, or {@code null} if no matching entry exists
      */
     @Nullable
     public SearchResult getByName(@NonNull String name) {
@@ -275,11 +295,12 @@ public class SearchIndex {
     }
 
     /**
-     * Updates planet positions for a specific time.
+     * Update indexed planet positions to those corresponding to the given observation time.
      *
-     * <p>Call this when using time travel to update planet positions.</p>
+     * Updates stored search entries for all solar system bodies except Earth to use RA/Dec
+     * computed for the provided time while preserving each entry's object type and identifier.
      *
-     * @param timeMillis The observation time
+     * @param timeMillis the observation time in milliseconds since the Unix epoch
      */
     public void updatePlanetPositions(long timeMillis) {
         if (universe == null) {
@@ -310,18 +331,18 @@ public class SearchIndex {
     }
 
     /**
-     * Returns whether the index has been built.
+     * Indicates whether the search index has been built.
      *
-     * @return true if buildIndex() has been called
+     * @return `true` if the index has been built, `false` otherwise.
      */
     public boolean isIndexBuilt() {
         return isIndexBuilt;
     }
 
     /**
-     * Returns the number of indexed entries.
+     * Number of entries in the search index.
      *
-     * @return Entry count
+     * @return the number of indexed entries
      */
     public int size() {
         return searchMap.size();

@@ -38,6 +38,9 @@ public class ErrorHandler {
 
     private boolean isDebugMode = false;
 
+    /**
+     * Prevents external instantiation to enforce the singleton pattern for ErrorHandler.
+     */
     private ErrorHandler() {
         // Private constructor for singleton
     }
@@ -68,10 +71,10 @@ public class ErrorHandler {
     }
 
     /**
-     * Sets the debug mode flag.
+     * Enables or disables debug logging for the ErrorHandler.
      *
-     * @param debugMode true to enable debug mode
-     * @return The ErrorHandler instance for chaining
+     * @param debugMode true to enable verbose debug logging, false to disable it
+     * @return the ErrorHandler instance for method chaining
      */
     @NonNull
     public ErrorHandler setDebugMode(boolean debugMode) {
@@ -80,11 +83,11 @@ public class ErrorHandler {
     }
 
     /**
-     * Sets a custom error reporter for analytics/crash reporting.
-     *
-     * @param reporter The ErrorReporter implementation
-     * @return The ErrorHandler instance for chaining
-     */
+         * Sets the ErrorReporter used to report errors to external analytics or crash services.
+         *
+         * @param reporter the ErrorReporter to use, or {@code null} to disable external reporting
+         * @return this ErrorHandler instance for method chaining
+         */
     @NonNull
     public ErrorHandler setErrorReporter(@Nullable ErrorReporter reporter) {
         this.errorReporter = reporter;
@@ -102,11 +105,11 @@ public class ErrorHandler {
     }
 
     /**
-     * Handles an exception with a custom message.
+     * Logs the provided throwable and forwards it to the configured error reporter with an optional context message.
      *
-     * @param tag       The log tag
-     * @param message   Optional custom message
-     * @param throwable The exception to handle
+     * @param tag       log tag identifying the source
+     * @param message   optional contextual message to include with logs and reports; may be null
+     * @param throwable the exception to log and report
      */
     public void handleError(@NonNull String tag, @Nullable String message, @NonNull Throwable throwable) {
         // Log the error
@@ -117,11 +120,14 @@ public class ErrorHandler {
     }
 
     /**
-     * Logs an error with the given information.
+     * Log an error using the provided tag, optional message, and throwable.
      *
-     * @param tag       The log tag
-     * @param message   Optional message
-     * @param throwable The exception
+     * In debug mode this logs the full throwable (including stack trace); otherwise it logs the message
+     * and the throwable's message only.
+     *
+     * @param tag       the log tag to categorize the message
+     * @param message   an optional human-readable message; if null a default message is used
+     * @param throwable the exception to log
      */
     public void logError(@NonNull String tag, @Nullable String message, @NonNull Throwable throwable) {
         String logMessage = message != null ? message : "An error occurred";
@@ -154,10 +160,13 @@ public class ErrorHandler {
     }
 
     /**
-     * Reports an error to the configured error reporter (analytics/crash reporting).
+     * Forward an exception and optional context to the configured ErrorReporter for analytics/crash reporting.
      *
-     * @param throwable The exception to report
-     * @param context   Optional context message
+     * If no ErrorReporter is configured this method performs no external reporting. When debug mode is enabled
+     * a debug log entry is written indicating the reported error or provided context.
+     *
+     * @param throwable the exception to report
+     * @param context   optional contextual message to accompany the error
      */
     public void reportError(@NonNull Throwable throwable, @Nullable String context) {
         if (errorReporter != null) {
@@ -187,11 +196,11 @@ public class ErrorHandler {
     }
 
     /**
-     * Converts an exception to a user-friendly error message.
-     *
-     * @param throwable The exception
-     * @return A user-friendly error message
-     */
+         * Map an exception to a concise, user-facing error message.
+         *
+         * @param throwable the exception to convert into a user-facing message
+         * @return a concise, user-friendly message describing the error suitable for display to end users
+         */
     @NonNull
     public String getUserFriendlyMessage(@NonNull Throwable throwable) {
         // Network-related errors
@@ -236,12 +245,12 @@ public class ErrorHandler {
     }
 
     /**
-     * Converts an exception to a user-friendly message with a default fallback.
-     *
-     * @param throwable      The exception
-     * @param defaultMessage The default message if conversion fails
-     * @return A user-friendly error message
-     */
+         * Produce a user-facing error message for the given throwable, using a fallback if generation fails.
+         *
+         * @param throwable      the exception to convert into a user-friendly message
+         * @param defaultMessage the message to return if conversion throws an exception
+         * @return a user-friendly message derived from the throwable, or `defaultMessage` if conversion fails
+         */
     @NonNull
     public String getUserFriendlyMessage(@NonNull Throwable throwable, @NonNull String defaultMessage) {
         try {
@@ -252,10 +261,12 @@ public class ErrorHandler {
     }
 
     /**
-     * Gets the error type for categorization purposes.
+     * Categorizes a Throwable into one of the ErrorHandler error-type constants.
      *
-     * @param throwable The exception
-     * @return The error type constant
+     * @param throwable the exception to classify
+     * @return one of the ERROR_TYPE_* constants indicating the error category (for example:
+     *         ERROR_TYPE_NETWORK, ERROR_TYPE_TIMEOUT, ERROR_TYPE_AUTHENTICATION,
+     *         ERROR_TYPE_VALIDATION, or ERROR_TYPE_UNKNOWN)
      */
     public int getErrorType(@NonNull Throwable throwable) {
         if (throwable instanceof UnknownHostException) {
@@ -282,10 +293,10 @@ public class ErrorHandler {
     }
 
     /**
-     * Checks if the error is recoverable (user can retry).
+     * Determines whether the given throwable represents a recoverable error that the user can retry.
      *
-     * @param throwable The exception
-     * @return true if the error is recoverable
+     * @param throwable the exception to classify
+     * @return true if the error is recoverable (network or timeout), false otherwise
      */
     public boolean isRecoverable(@NonNull Throwable throwable) {
         int errorType = getErrorType(throwable);
@@ -293,11 +304,10 @@ public class ErrorHandler {
     }
 
     /**
-     * Creates a Result.Error from an exception with a user-friendly message.
+     * Convert an exception into a Result.Error containing a user-friendly message.
      *
-     * @param throwable The exception
-     * @param <T>       The type parameter
-     * @return A Result.Error with user-friendly message
+     * @param throwable the exception to convert
+     * @return a Result representing an error with a user-friendly message and the original throwable
      */
     @NonNull
     public <T> Result<T> toResult(@NonNull Throwable throwable) {
@@ -306,11 +316,11 @@ public class ErrorHandler {
     }
 
     /**
-     * Creates a LoadingState.Error from an exception with a user-friendly message.
+     * Creates a LoadingState in error state from the given throwable using a user-friendly message.
      *
-     * @param throwable The exception
-     * @param <T>       The type parameter
-     * @return A LoadingState in error state
+     * @param throwable the exception to convert into an error state
+     * @param <T> the content type of the LoadingState
+     * @return a LoadingState in error state containing a user-friendly message and the original throwable
      */
     @NonNull
     public <T> LoadingState<T> toLoadingState(@NonNull Throwable throwable) {
@@ -323,18 +333,18 @@ public class ErrorHandler {
      */
     public interface ErrorReporter {
         /**
-         * Reports an error to the analytics/crash reporting service.
-         *
-         * @param throwable The exception to report
-         * @param context   Optional context information
-         */
+ * Send the given exception to the configured crash/analytics service with optional contextual information.
+ *
+ * @param throwable the exception to report
+ * @param context   optional short context (e.g., tag, operation, or message) to accompany the report
+ */
         void reportError(@NonNull Throwable throwable, @Nullable String context);
 
         /**
-         * Reports a non-fatal issue for tracking.
-         *
-         * @param message The message to report
-         */
+ * Sends a non-fatal diagnostic message to the configured error-reporting backend for tracking.
+ *
+ * @param message descriptive text about the non-fatal issue to record
+ */
         void reportNonFatal(@NonNull String message);
     }
 
@@ -342,11 +352,25 @@ public class ErrorHandler {
      * Default no-op error reporter for development/testing.
      */
     public static class NoOpErrorReporter implements ErrorReporter {
+        /**
+         * Discards the given throwable and optional context without reporting it.
+         *
+         * @param throwable the error to report (ignored)
+         * @param context optional contextual information about the error (ignored)
+         */
         @Override
         public void reportError(@NonNull Throwable throwable, @Nullable String context) {
             // No-op implementation
         }
 
+        /**
+         * Report a non-fatal issue for tracking or analytics.
+         *
+         * <p>The default implementation does nothing; override to forward the message to a crash
+         * reporting or analytics service.</p>
+         *
+         * @param message a descriptive message for the non-fatal issue
+         */
         @Override
         public void reportNonFatal(@NonNull String message) {
             // No-op implementation

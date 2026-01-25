@@ -55,37 +55,40 @@ public class LabelPrimitive {
     private final float offset;
 
     /**
-     * Creates a label primitive from Right Ascension and Declination.
+     * Constructs a LabelPrimitive from right ascension and declination.
      *
-     * @param ra    Right Ascension in degrees (0-360)
-     * @param dec   Declination in degrees (-90 to +90)
-     * @param text  Text content
+     * @param ra    Right ascension in degrees (0–360)
+     * @param dec   Declination in degrees (−90 to +90)
+     * @param text  Label text; must be non-null and non-empty
      * @param color ARGB color
+     * @throws IllegalArgumentException if {@code text} is null or empty
      */
     public LabelPrimitive(float ra, float dec, @NonNull String text, int color) {
         this(GeocentricCoords.fromDegrees(ra, dec), text, color, DEFAULT_OFFSET, DEFAULT_FONT_SIZE);
     }
 
     /**
-     * Creates a label primitive from geocentric coordinates.
+     * Constructs a LabelPrimitive at the specified geocentric coordinates with the given text and color.
      *
-     * @param location Geocentric coordinates
-     * @param text     Text content
-     * @param color    ARGB color
+     * @param location geocentric position for the label; must not be null
+     * @param text     label text; must not be null or empty
+     * @param color    ARGB color value for the label
+     * @throws IllegalArgumentException if {@code text} is null or empty
      */
     public LabelPrimitive(@NonNull GeocentricCoords location, @NonNull String text, int color) {
         this(location, text, color, DEFAULT_OFFSET, DEFAULT_FONT_SIZE);
     }
 
     /**
-     * Creates a label primitive with all parameters.
+     * Constructs a LabelPrimitive positioned at the given celestial location with the specified
+     * text, color, offset, and font size.
      *
-     * @param location Geocentric coordinates
-     * @param text     Text content
-     * @param color    ARGB color
-     * @param offset   Offset from location
+     * @param location Geocentric coordinates of the label's position (must be non-null)
+     * @param text     Label content; must be non-null and not empty after trimming
+     * @param color    ARGB color value for the text
+     * @param offset   Positional offset from the location
      * @param fontSize Font size in scaled pixels
-     * @throws IllegalArgumentException if text is null or empty
+     * @throws IllegalArgumentException if {@code text} is null or empty
      */
     public LabelPrimitive(@NonNull GeocentricCoords location, @NonNull String text, int color,
                           float offset, int fontSize) {
@@ -100,11 +103,9 @@ public class LabelPrimitive {
     }
 
     /**
-     * Creates a label primitive with default styling.
+     * Create a label primitive positioned at the given celestial coordinates using default color and font size.
      *
-     * @param location Geocentric coordinates
-     * @param text     Text content
-     * @return A new LabelPrimitive with default color and font size
+     * @return a new LabelPrimitive positioned at the provided location with the given text and default styling
      */
     @NonNull
     public static LabelPrimitive create(@NonNull GeocentricCoords location, @NonNull String text) {
@@ -112,12 +113,12 @@ public class LabelPrimitive {
     }
 
     /**
-     * Creates a label primitive with specified color.
+     * Creates a label primitive positioned at the given geocentric coordinates with the specified text and color.
      *
-     * @param location Geocentric coordinates
-     * @param text     Text content
-     * @param color    ARGB color value
-     * @return A new LabelPrimitive with the specified color
+     * @param location geocentric coordinates for the label's position
+     * @param text     label text content
+     * @param color    ARGB color value for the label
+     * @return the label primitive configured with the given location, text, and color
      */
     @NonNull
     public static LabelPrimitive create(@NonNull GeocentricCoords location, @NonNull String text, int color) {
@@ -125,12 +126,12 @@ public class LabelPrimitive {
     }
 
     /**
-     * Creates a label primitive from RA/Dec with default styling.
+     * Create a label positioned at the specified celestial coordinates using the default styling.
      *
-     * @param ra   Right Ascension in degrees
-     * @param dec  Declination in degrees
-     * @param text Text content
-     * @return A new LabelPrimitive
+     * @param ra   Right Ascension in degrees.
+     * @param dec  Declination in degrees.
+     * @param text Label text (must be non-null and non-empty).
+     * @return      a LabelPrimitive positioned at the given RA/Dec using the default color, offset, and font size.
      */
     @NonNull
     public static LabelPrimitive fromRaDec(float ra, float dec, @NonNull String text) {
@@ -138,11 +139,11 @@ public class LabelPrimitive {
     }
 
     /**
-     * Creates a label primitive from a CelestialObject.
-     *
-     * @param object The celestial object to create a label for
-     * @return A new LabelPrimitive using the object's name and position
-     */
+         * Create a label primitive representing the given celestial object.
+         *
+         * @param object the celestial object whose name, coordinates, and color are used for the label
+         * @return a LabelPrimitive positioned at the object's coordinates with the object's name and color
+         */
     @NonNull
     public static LabelPrimitive fromCelestialObject(@NonNull CelestialObject object) {
         return new LabelPrimitive(
@@ -166,47 +167,47 @@ public class LabelPrimitive {
     }
 
     /**
-     * Returns the celestial location of this label.
-     *
-     * @return The geocentric coordinates
-     */
+         * The celestial location of this label.
+         *
+         * @return the geocentric coordinates representing the label's celestial position
+         */
     @NonNull
     public GeocentricCoords getLocation() {
         return location;
     }
 
     /**
-     * Returns the Right Ascension in degrees.
+     * Get the right ascension in degrees.
      *
-     * @return RA in degrees (0-360)
+     * @return the right ascension in degrees, in the range 0–360
      */
     public float getRa() {
         return location.getRa();
     }
 
     /**
-     * Returns the Declination in degrees.
+     * Declination of the label's location in degrees.
      *
-     * @return Dec in degrees (-90 to +90)
+     * @return Declination in degrees, between -90 and +90.
      */
     public float getDec() {
         return location.getDec();
     }
 
     /**
-     * Returns the text content of the label.
-     *
-     * @return Label text
-     */
+         * Retrieve the label's text content.
+         *
+         * @return the label's text
+         */
     @NonNull
     public String getText() {
         return text;
     }
 
     /**
-     * Returns the text content (alias for getText).
+     * Alias for getText that provides the label's text content.
      *
-     * @return Label text
+     * @return the label's text content
      */
     @NonNull
     public String getLabel() {
@@ -214,10 +215,10 @@ public class LabelPrimitive {
     }
 
     /**
-     * Sets the text content of the label.
+     * Update the label's displayed text.
      *
-     * @param text New text content
-     * @throws IllegalArgumentException if text is null or empty
+     * @param text the new text for the label; must be non-null and not empty after trimming
+     * @throws IllegalArgumentException if {@code text} is null or empty after trimming
      */
     public void setText(@NonNull String text) {
         if (text == null || text.trim().isEmpty()) {
@@ -227,77 +228,75 @@ public class LabelPrimitive {
     }
 
     /**
-     * Returns the ARGB color.
+     * The ARGB color used to render the label.
      *
-     * @return ARGB color value
+     * @return the color as an ARGB-packed int
      */
     public int getColor() {
         return color;
     }
 
     /**
-     * Returns the alpha component of the color.
+     * Retrieves the alpha component of the label's ARGB color.
      *
-     * @return Alpha value (0-255)
+     * @return the alpha component (0-255)
      */
     public int getAlpha() {
         return (color >> 24) & 0xFF;
     }
 
     /**
-     * Returns the font size in scaled pixels.
+     * Font size used to render the label, expressed in scaled pixels.
      *
-     * @return Font size
+     * @return the font size in scaled pixels
      */
     public int getFontSize() {
         return fontSize;
     }
 
     /**
-     * Returns the offset from the location.
+     * Positional offset applied to the label to separate it from its anchored location.
      *
-     * <p>This offset is used to position the label slightly away from
-     * its associated point to prevent overlap.</p>
-     *
-     * @return Offset value
+     * @return the offset value used to displace the label from its location
      */
     public float getOffset() {
         return offset;
     }
 
     /**
-     * Returns the location as a 3D unit vector.
-     *
-     * @return float array [x, y, z]
-     */
+         * Get the location as a 3D unit vector.
+         *
+         * @return a float array of length 3 containing the unit vector components in order: x, y, z
+         */
     @NonNull
     public float[] toVector3() {
         return location.toVector3();
     }
 
     /**
-     * Returns the length of the text content.
+     * Gets the number of characters in the label's text.
      *
-     * @return Number of characters in the label
+     * @return the number of characters in the label's text
      */
     public int getTextLength() {
         return text.length();
     }
 
     /**
-     * Checks if this label has non-trivial content.
+     * Determines whether the label contains non-empty text (ignoring surrounding whitespace).
      *
-     * @return true if the label has visible text content
+     * @return true if the label contains one or more non-whitespace characters, false otherwise.
      */
     public boolean hasContent() {
         return text != null && !text.trim().isEmpty();
     }
 
     /**
-     * Creates a copy of this label with a different text.
+     * Return a new label identical to this one but using the provided text.
      *
-     * @param newText The new text content
-     * @return A new LabelPrimitive with the specified text
+     * @param newText the text for the new label (must be non-null and non-empty)
+     * @return a new LabelPrimitive with the same location, color, offset, and font size, but with `newText`
+     * @throws IllegalArgumentException if `newText` is null or empty
      */
     @NonNull
     public LabelPrimitive withText(@NonNull String newText) {
@@ -327,10 +326,10 @@ public class LabelPrimitive {
     }
 
     /**
-     * Creates a copy of this label with a different offset.
+     * Create a label identical to this one but using the specified positional offset.
      *
-     * @param newOffset The new offset value
-     * @return A new LabelPrimitive with the specified offset
+     * @param newOffset the positional offset from the label's location
+     * @return a new LabelPrimitive identical to this one except with the given offset
      */
     @NonNull
     public LabelPrimitive withOffset(float newOffset) {
@@ -338,10 +337,10 @@ public class LabelPrimitive {
     }
 
     /**
-     * Creates a copy of this label with modified alpha.
+     * Creates a copy of this label with its color alpha component set to the given value.
      *
-     * @param alpha The new alpha value (0-255)
-     * @return A new LabelPrimitive with the specified alpha
+     * @param alpha the new alpha value in the range 0–255
+     * @return a LabelPrimitive identical to this one except the color's alpha is set to the given value
      */
     @NonNull
     public LabelPrimitive withAlpha(int alpha) {
@@ -349,6 +348,13 @@ public class LabelPrimitive {
         return new LabelPrimitive(location, text, newColor, offset, fontSize);
     }
 
+    /**
+     * Determines whether the given object represents the same label primitive.
+     *
+     * @param o the object to compare with this label
+     * @return `true` if {@code o} is a {@code LabelPrimitive} whose location, text, color,
+     *         font size, and offset are equal to this instance's; `false` otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -361,6 +367,11 @@ public class LabelPrimitive {
                text.equals(that.text);
     }
 
+    /**
+     * Compute a hash code based on the label's location, text, color, font size, and offset.
+     *
+     * @return an int hash code derived from the label's `location`, `text`, `color`, `fontSize`, and `offset`
+     */
     @Override
     public int hashCode() {
         int result = location.hashCode();
@@ -371,6 +382,11 @@ public class LabelPrimitive {
         return result;
     }
 
+    /**
+     * Provide a concise textual representation of the label including its text, celestial coordinates, color, and font size.
+     *
+     * @return a {@code String} formatted as {@code "LabelPrimitive{text='...', ra=..., dec=..., color=0xAARRGGBB, fontSize=...}"} containing the label's content, RA, Dec, ARGB color in hex, and font size.
+     */
     @Override
     @NonNull
     public String toString() {
@@ -468,10 +484,10 @@ public class LabelPrimitive {
         }
 
         /**
-         * Sets the offset from the location.
+         * Set the positional offset applied when rendering the label relative to its location.
          *
-         * @param offset Offset value
-         * @return This builder for method chaining
+         * @param offset the offset distance to apply from the label's celestial location
+         * @return this builder for method chaining
          */
         @NonNull
         public Builder setOffset(float offset) {

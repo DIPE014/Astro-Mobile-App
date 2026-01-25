@@ -30,10 +30,10 @@ public final class GeocentricCoords {
     private final float dec;
 
     /**
-     * Private constructor. Use factory methods to create instances.
+     * Constructs a GeocentricCoords instance after normalizing RA and clamping Dec.
      *
-     * @param ra  Right Ascension in degrees
-     * @param dec Declination in degrees
+     * @param ra  Right Ascension in degrees; will be normalized to the range [0, 360).
+     * @param dec Declination in degrees; will be clamped to the range [-90, 90].
      */
     private GeocentricCoords(float ra, float dec) {
         this.ra = normalizeRa(ra);
@@ -41,11 +41,11 @@ public final class GeocentricCoords {
     }
 
     /**
-     * Creates a GeocentricCoords instance from degrees.
+     * Constructs a GeocentricCoords from Right Ascension and Declination specified in degrees.
      *
-     * @param ra  Right Ascension in degrees (0-360)
-     * @param dec Declination in degrees (-90 to +90)
-     * @return A new GeocentricCoords instance
+     * @param ra  Right Ascension in degrees; will be normalized to [0, 360).
+     * @param dec Declination in degrees; will be clamped to [-90, 90].
+     * @return    a GeocentricCoords with RA in degrees (0–360) and Dec in degrees (−90–90)
      */
     @NonNull
     public static GeocentricCoords fromDegrees(float ra, float dec) {
@@ -53,14 +53,12 @@ public final class GeocentricCoords {
     }
 
     /**
-     * Creates a GeocentricCoords instance from hours (for RA) and degrees (for Dec).
-     *
-     * <p>Right Ascension is often expressed in hours (0-24h), where 1 hour = 15 degrees.</p>
-     *
-     * @param raHours Right Ascension in hours (0-24)
-     * @param dec     Declination in degrees (-90 to +90)
-     * @return A new GeocentricCoords instance
-     */
+         * Create a GeocentricCoords from Right Ascension given in hours and Declination in degrees.
+         *
+         * @param raHours Right Ascension in hours (expected range: 0–24)
+         * @param dec     Declination in degrees (expected range: -90 to +90)
+         * @return the GeocentricCoords representing the given RA and Dec (RA interpreted as hours and converted to degrees, then normalized; Dec clamped to [-90, +90])
+         */
     @NonNull
     public static GeocentricCoords fromHoursAndDegrees(float raHours, float dec) {
         float raDegrees = raHours * 15.0f; // Convert hours to degrees
@@ -68,11 +66,11 @@ public final class GeocentricCoords {
     }
 
     /**
-     * Creates a GeocentricCoords instance from radians.
+     * Create a GeocentricCoords from Right Ascension and Declination expressed in radians.
      *
      * @param raRadians  Right Ascension in radians
      * @param decRadians Declination in radians
-     * @return A new GeocentricCoords instance
+     * @return a GeocentricCoords whose RA and Dec are converted to degrees (RA normalized to [0,360), Dec clamped to [-90,90])
      */
     @NonNull
     public static GeocentricCoords fromRadians(float raRadians, float decRadians) {
@@ -82,20 +80,20 @@ public final class GeocentricCoords {
     }
 
     /**
-     * Creates a GeocentricCoords instance from a 3D Cartesian vector.
+     * Create a GeocentricCoords from a 3D Cartesian unit vector.
      *
-     * <p>The vector is assumed to be on a unit sphere where:
+     * <p>The vector is interpreted in a right-handed celestial frame where:
      * <ul>
-     *   <li>X points toward RA=0h, Dec=0</li>
-     *   <li>Y points toward RA=6h, Dec=0</li>
-     *   <li>Z points toward Dec=+90 (north celestial pole)</li>
+     *   <li>X points toward RA = 0h, Dec = 0°</li>
+     *   <li>Y points toward RA = 6h, Dec = 0°</li>
+     *   <li>Z points toward Dec = +90° (north celestial pole)</li>
      * </ul>
      * </p>
      *
-     * @param x X component of the vector
+     * @param x X component of the vector (unit length not required but expected)
      * @param y Y component of the vector
      * @param z Z component of the vector
-     * @return A new GeocentricCoords instance
+     * @return a GeocentricCoords with RA normalized to [0, 360) degrees and Dec clamped to [-90, 90] degrees
      */
     @NonNull
     public static GeocentricCoords fromVector3(float x, float y, float z) {
@@ -108,45 +106,45 @@ public final class GeocentricCoords {
     }
 
     /**
-     * Returns the Right Ascension in degrees.
+     * Get the Right Ascension in degrees.
      *
-     * @return Right Ascension in degrees (0-360)
+     * @return Right Ascension in degrees, normalized to the range [0, 360)
      */
     public float getRa() {
         return ra;
     }
 
     /**
-     * Returns the Right Ascension in hours.
+     * Right Ascension expressed in hours.
      *
-     * @return Right Ascension in hours (0-24)
+     * @return Right Ascension in hours, normalized to the range [0, 24).
      */
     public float getRaHours() {
         return ra / 15.0f;
     }
 
     /**
-     * Returns the Right Ascension in radians.
+     * Right ascension expressed in radians.
      *
-     * @return Right Ascension in radians (0-2*PI)
+     * @return Right ascension in radians, in the range [0, 2π).
      */
     public float getRaRadians() {
         return (float) Math.toRadians(ra);
     }
 
     /**
-     * Returns the Declination in degrees.
+     * The Declination in degrees.
      *
-     * @return Declination in degrees (-90 to +90)
+     * @return Declination in degrees, between -90 and +90 inclusive.
      */
     public float getDec() {
         return dec;
     }
 
     /**
-     * Returns the Declination in radians.
+     * Declination expressed in radians.
      *
-     * @return Declination in radians (-PI/2 to +PI/2)
+     * @return the declination in radians, between -π/2 and +π/2
      */
     public float getDecRadians() {
         return (float) Math.toRadians(dec);
@@ -178,13 +176,10 @@ public final class GeocentricCoords {
     }
 
     /**
-     * Calculates the angular distance to another coordinate in degrees.
+     * Computes the angular distance to another geocentric coordinate.
      *
-     * <p>Uses the Haversine formula for accurate distance calculation
-     * on a sphere.</p>
-     *
-     * @param other The other coordinate
-     * @return Angular distance in degrees (0-180)
+     * @param other the target coordinate
+     * @return the angular separation in degrees, between 0 and 180
      */
     public float angularDistanceTo(@NonNull GeocentricCoords other) {
         double ra1 = Math.toRadians(this.ra);
@@ -217,12 +212,21 @@ public final class GeocentricCoords {
     }
 
     /**
-     * Clamps Declination to the range [-90, 90].
+     * Clamp a declination angle to the inclusive range -90° to +90°.
+     *
+     * @param dec declination in degrees
+     * @return the input declination constrained to the range -90.0 to 90.0 degrees
      */
     private static float clampDec(float dec) {
         return Math.max(-90.0f, Math.min(90.0f, dec));
     }
 
+    /**
+     * Determines whether this GeocentricCoords is equal to another object.
+     *
+     * @param o the object to compare with
+     * @return `true` if `o` is a GeocentricCoords with identical RA and Dec values, `false` otherwise
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -232,6 +236,11 @@ public final class GeocentricCoords {
                Float.compare(that.dec, dec) == 0;
     }
 
+    /**
+     * Computes a hash code derived from the stored Right Ascension and Declination values.
+     *
+     * @return an int hash code computed from this object's `ra` and `dec` fields
+     */
     @Override
     public int hashCode() {
         int result = (ra != +0.0f ? Float.floatToIntBits(ra) : 0);
@@ -239,6 +248,11 @@ public final class GeocentricCoords {
         return result;
     }
 
+    /**
+     * Provide a compact string representation of the coordinates including RA in degrees and hours and Dec in degrees.
+     *
+     * @return a string in the form {@code GeocentricCoords{ra=%.4f deg (%.2fh), dec=%.4f deg}} showing RA in degrees, RA in hours, and Dec in degrees
+     */
     @Override
     @NonNull
     public String toString() {

@@ -77,11 +77,11 @@ public class SkyGLSurfaceView extends GLSurfaceView {
      */
     public interface GestureListener {
         /**
-         * Called when the user taps on the view.
-         *
-         * @param x Screen X coordinate
-         * @param y Screen Y coordinate
-         */
+ * Invoked when the user performs a single tap on the view.
+ *
+ * @param x horizontal tap coordinate in view pixels, measured from the left edge
+ * @param y vertical tap coordinate in view pixels, measured from the top edge
+ */
         void onTap(float x, float y);
 
         /**
@@ -93,26 +93,26 @@ public class SkyGLSurfaceView extends GLSurfaceView {
         void onDoubleTap(float x, float y);
 
         /**
-         * Called when the user long-presses on the view.
-         *
-         * @param x Screen X coordinate
-         * @param y Screen Y coordinate
-         */
+ * Invoked when the user long-presses the view at the given screen coordinates.
+ *
+ * @param x the X coordinate of the long-press in pixels
+ * @param y the Y coordinate of the long-press in pixels
+ */
         void onLongPress(float x, float y);
 
         /**
-         * Called when the view orientation changes.
-         *
-         * @param azimuth   Horizontal angle in radians
-         * @param elevation Vertical angle in radians
-         */
+ * Invoked when the view orientation changes.
+ *
+ * @param azimuth   azimuth (horizontal) angle in radians, normalized to [0, 2*pi)
+ * @param elevation elevation (vertical) angle in radians, clamped to [-pi/2, pi/2]
+ */
         void onOrientationChanged(float azimuth, float elevation);
 
         /**
-         * Called when the field of view changes.
-         *
-         * @param fov Field of view in degrees
-         */
+ * Notifies that the field of view has changed.
+ *
+ * @param fov the new field of view, in degrees
+ */
         void onFovChanged(float fov);
     }
 
@@ -121,27 +121,60 @@ public class SkyGLSurfaceView extends GLSurfaceView {
      * Extend this class to override only the methods you need.
      */
     public static class SimpleGestureListener implements GestureListener {
+        /**
+         * Called when the user performs a single tap on the view.
+         *
+         * Default implementation does nothing; override to handle tap events.
+         *
+         * @param x horizontal coordinate of the tap in view pixels
+         * @param y vertical coordinate of the tap in view pixels
+         */
         @Override
         public void onTap(float x, float y) {}
 
+        /**
+         * Called when the user performs a double tap at the given view coordinates.
+         *
+         * @param x the x coordinate of the tap in view pixels
+         * @param y the y coordinate of the tap in view pixels
+         */
         @Override
         public void onDoubleTap(float x, float y) {}
 
+        /**
+         * Invoked when a long-press gesture is detected at the given coordinates.
+         *
+         * @param x the x coordinate of the press in view pixels
+         * @param y the y coordinate of the press in view pixels
+         */
         @Override
         public void onLongPress(float x, float y) {}
 
+        /**
+         * Called when the view orientation changes.
+         *
+         * @param azimuth   new azimuth in radians, normalized to [0, 2π)
+         * @param elevation new elevation in radians, clamped to [-π/2, π/2]
+         */
         @Override
         public void onOrientationChanged(float azimuth, float elevation) {}
 
+        /**
+         * Called when the view's field of view changes.
+         *
+         * Default no-op implementation; override to respond to FOV updates.
+         *
+         * @param fov the new field of view in degrees
+         */
         @Override
         public void onFovChanged(float fov) {}
     }
 
     /**
-     * Creates a SkyGLSurfaceView with the given renderer.
+     * Create a SkyGLSurfaceView backed by the provided SkyRenderer.
      *
-     * @param context  Android context
-     * @param renderer The SkyRenderer to use
+     * @param context  Android context used to configure the view
+     * @param renderer SkyRenderer instance that will drive rendering for this view
      */
     public SkyGLSurfaceView(@NonNull Context context, @NonNull SkyRenderer renderer) {
         super(context);
@@ -150,13 +183,12 @@ public class SkyGLSurfaceView extends GLSurfaceView {
     }
 
     /**
-     * Creates a SkyGLSurfaceView from XML attributes.
+     * Constructs a SkyGLSurfaceView when inflated from XML.
      *
-     * <p>Note: When using this constructor, you must call {@link #setRenderer(Renderer)}
-     * with a SkyRenderer before using the view.</p>
+     * <p>Initializes the view with a default SkyRenderer and performs OpenGL and gesture setup.</p>
      *
-     * @param context Android context
-     * @param attrs   XML attributes
+     * @param context the Android Context used to access resources and system services
+     * @param attrs   the XML attributes supplied to the view (may be null)
      */
     public SkyGLSurfaceView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -165,7 +197,12 @@ public class SkyGLSurfaceView extends GLSurfaceView {
     }
 
     /**
-     * Initializes the view.
+     * Initialize the GL surface, attach the renderer, and set up gesture handling and the initial view orientation.
+     *
+     * Configures OpenGL ES 2.0 and an EGL config, sets the SkyRenderer and continuous render mode, creates the
+     * GestureDetector and ScaleGestureDetector, and applies the current orientation to the renderer.
+     *
+     * @param context Android Context used to construct gesture detectors and access resources
      */
     private void init(Context context) {
         android.util.Log.d(TAG, "init() called - starting GLSurfaceView initialization");
@@ -199,6 +236,12 @@ public class SkyGLSurfaceView extends GLSurfaceView {
         android.util.Log.d(TAG, "init() complete - GLSurfaceView should now render");
     }
 
+    /**
+     * Dispatches the touch event to the scale and gesture detectors and reports if it was consumed.
+     *
+     * @param event the MotionEvent to handle
+     * @return `true` if the event was handled by the scale detector, gesture detector, or the superclass; `false` otherwise
+     */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         // Let scale gesture detector handle pinch gestures first
@@ -211,8 +254,12 @@ public class SkyGLSurfaceView extends GLSurfaceView {
     }
 
     /**
-     * Updates the view orientation in the renderer based on current azimuth and elevation.
-     */
+         * Update the renderer's view orientation from the current azimuth, elevation, and roll.
+         *
+         * Computes forward (look) and up vectors from the spherical coordinates and, if a roll
+         * is present, rotates the up vector around the look direction; the final vectors are
+         * posted to the GL thread and applied to the renderer.
+         */
     private void updateViewOrientation() {
         // Calculate look direction from spherical coordinates
         float cosElev = (float) Math.cos(elevation);
@@ -266,11 +313,30 @@ public class SkyGLSurfaceView extends GLSurfaceView {
      */
     private class GestureHandler extends GestureDetector.SimpleOnGestureListener {
 
+        /**
+         * Signals that the gesture detector should continue receiving subsequent gesture events after a down event.
+         *
+         * @param e the MotionEvent representing the initial down event
+         * @return `true` to receive subsequent gesture events, `false` otherwise
+         */
         @Override
         public boolean onDown(MotionEvent e) {
             return true; // Must return true to receive subsequent events
         }
 
+        /**
+         * Handles drag gestures to pan the sky view by updating azimuth and elevation.
+         *
+         * Updates the stored orientation, clamps elevation to valid bounds, normalizes azimuth into
+         * [0, 2*PI), applies the new orientation to the renderer, and notifies the gesture listener.
+         * If a pinch gesture is active, the scroll is ignored.
+         *
+         * @param e1        the initial down MotionEvent that started the gesture
+         * @param e2        the current MotionEvent for the scroll
+         * @param distanceX horizontal distance in pixels since the last call
+         * @param distanceY vertical distance in pixels since the last call
+         * @return          `true` if the scroll was handled and orientation updated, `false` if ignored
+         */
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             if (isPinching) {
@@ -299,6 +365,12 @@ public class SkyGLSurfaceView extends GLSurfaceView {
             return true;
         }
 
+        /**
+         * Handle a confirmed single-tap gesture and notify the registered GestureListener.
+         *
+         * @param e the MotionEvent for the confirmed single tap (provides tap coordinates)
+         * @return true if the event was handled
+         */
         @Override
         public boolean onSingleTapConfirmed(MotionEvent e) {
             if (gestureListener != null) {
@@ -307,6 +379,12 @@ public class SkyGLSurfaceView extends GLSurfaceView {
             return true;
         }
 
+        /**
+         * Handle a double-tap gesture by forwarding the tap coordinates to the registered GestureListener.
+         *
+         * @param e the MotionEvent for the double-tap; its X and Y coordinates are passed to the listener
+         * @return `true` if the double-tap was handled, `false` otherwise
+         */
         @Override
         public boolean onDoubleTap(MotionEvent e) {
             if (gestureListener != null) {
@@ -315,6 +393,11 @@ public class SkyGLSurfaceView extends GLSurfaceView {
             return true;
         }
 
+        /**
+         * Handles a long-press gesture and notifies the configured GestureListener with the press coordinates.
+         *
+         * @param e the MotionEvent for the long-press; the event's X and Y are passed to {@code gestureListener.onLongPress(float, float)} if a listener is set
+         */
         @Override
         public void onLongPress(MotionEvent e) {
             if (gestureListener != null) {
@@ -322,6 +405,15 @@ public class SkyGLSurfaceView extends GLSurfaceView {
             }
         }
 
+        /**
+         * Placeholder for handling a fling (swipe) gesture; intended to be overridden to implement momentum scrolling.
+         *
+         * @param e1 the first down motion event that started the fling
+         * @param e2 the move motion event that triggered the current onFling
+         * @param velocityX horizontal velocity of the fling in pixels per second
+         * @param velocityY vertical velocity of the fling in pixels per second
+         * @return `true` if the fling was handled, `false` otherwise
+         */
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             // Could implement momentum scrolling here
@@ -334,12 +426,27 @@ public class SkyGLSurfaceView extends GLSurfaceView {
      */
     private class ScaleHandler extends ScaleGestureDetector.SimpleOnScaleGestureListener {
 
+        /**
+         * Marks the start of a pinch gesture so the view enters a pinching state and will handle scale updates.
+         *
+         * @param detector the ScaleGestureDetector reporting the begin event
+         * @return `true` to accept the scale gesture and receive subsequent scale events, `false` otherwise
+         */
         @Override
         public boolean onScaleBegin(ScaleGestureDetector detector) {
             isPinching = true;
             return true;
         }
 
+        /**
+         * Adjusts the renderer's field of view based on the current pinch scale gesture.
+         *
+         * The method computes a new FOV from the detector's scale factor (pinch-in zooms in), clamps it to the configured limits,
+         * queues the update to the renderer, and notifies the gesture listener of the change.
+         *
+         * @param detector the active ScaleGestureDetector providing the current scale factor
+         * @return `true` if the scale gesture was handled, `false` otherwise
+         */
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             float scaleFactor = detector.getScaleFactor();
@@ -361,6 +468,11 @@ public class SkyGLSurfaceView extends GLSurfaceView {
             return true;
         }
 
+        /**
+         * Marks the end of the pinch gesture by clearing the internal pinching flag.
+         *
+         * @param detector the ScaleGestureDetector that triggered the end of the gesture
+         */
         @Override
         public void onScaleEnd(ScaleGestureDetector detector) {
             isPinching = false;
@@ -370,29 +482,30 @@ public class SkyGLSurfaceView extends GLSurfaceView {
     // ========== Public API ==========
 
     /**
-     * Returns the SkyRenderer.
-     *
-     * @return The renderer
-     */
+         * Get the SkyRenderer used by this view.
+         *
+         * @return the SkyRenderer instance used by this view (never null)
+         */
     @NonNull
     public SkyRenderer getSkyRenderer() {
         return renderer;
     }
 
     /**
-     * Sets the gesture listener.
+     * Register or remove the listener that receives gesture callbacks from this view.
      *
-     * @param listener The listener, or null to remove
+     * @param listener the GestureListener to register, or `null` to remove any existing listener
      */
     public void setGestureListener(@Nullable GestureListener listener) {
         this.gestureListener = listener;
     }
 
     /**
-     * Sets the view orientation.
+     * Set the view orientation to the specified azimuth and elevation.
      *
-     * @param azimuth   Horizontal angle in radians
-     * @param elevation Vertical angle in radians
+     * @param azimuth   Horizontal angle in radians.
+     * @param elevation Vertical angle in radians; values are clamped to the range
+     *                  [-π/2 + 0.01, π/2 - 0.01].
      */
     public void setOrientation(float azimuth, float elevation) {
         this.azimuth = azimuth;
@@ -402,11 +515,14 @@ public class SkyGLSurfaceView extends GLSurfaceView {
     }
 
     /**
-     * Sets the view orientation with roll.
+     * Update the view orientation including an explicit roll.
      *
-     * @param azimuth   Horizontal angle in radians
-     * @param elevation Vertical angle in radians
-     * @param roll      Roll angle in radians
+     * Elevation is constrained to be between -π/2 + 0.01 and π/2 - 0.01 radians. This method
+     * updates the internal orientation state and applies the change to the renderer.
+     *
+     * @param azimuth   horizontal angle in radians
+     * @param elevation vertical angle in radians; will be clamped to the valid range
+     * @param roll      rotation around the viewing (look) direction in radians
      */
     public void setOrientation(float azimuth, float elevation, float roll) {
         this.azimuth = azimuth;
@@ -417,36 +533,38 @@ public class SkyGLSurfaceView extends GLSurfaceView {
     }
 
     /**
-     * Returns the current azimuth angle.
+     * Current azimuth angle of the view.
      *
-     * @return Azimuth in radians
+     * @return Azimuth angle in radians.
      */
     public float getAzimuth() {
         return azimuth;
     }
 
     /**
-     * Returns the current elevation angle.
+     * Retrieves the current elevation angle.
      *
-     * @return Elevation in radians
+     * @return the elevation angle in radians
      */
     public float getElevation() {
         return elevation;
     }
 
     /**
-     * Returns the current roll angle.
+     * Gets the view's roll angle.
      *
-     * @return Roll in radians
+     * @return the current roll angle in radians
      */
     public float getRoll() {
         return roll;
     }
 
     /**
-     * Sets the field of view.
+     * Updates the renderer's field of view (FOV) in degrees.
      *
-     * @param fovDegrees FOV in degrees
+     * The provided value is clamped to the current FOV limits before being applied.
+     *
+     * @param fovDegrees desired FOV in degrees; values outside the configured limits are clamped
      */
     public void setFieldOfView(float fovDegrees) {
         final float fov = Math.max(minFov, Math.min(maxFov, fovDegrees));
@@ -454,19 +572,19 @@ public class SkyGLSurfaceView extends GLSurfaceView {
     }
 
     /**
-     * Returns the current field of view.
+     * Gets the current field of view.
      *
-     * @return FOV in degrees
+     * @return the field of view, in degrees
      */
     public float getFieldOfView() {
         return renderer.getFieldOfView();
     }
 
     /**
-     * Sets the FOV limits for zoom.
+     * Set the allowed field-of-view range used for zoom, in degrees.
      *
-     * @param minFov Minimum FOV in degrees
-     * @param maxFov Maximum FOV in degrees
+     * @param minFov minimum field of view, in degrees (inclusive)
+     * @param maxFov maximum field of view, in degrees (inclusive)
      */
     public void setFovLimits(float minFov, float maxFov) {
         this.minFov = minFov;
@@ -474,28 +592,30 @@ public class SkyGLSurfaceView extends GLSurfaceView {
     }
 
     /**
-     * Sets the pan sensitivity.
+     * Adjusts drag responsiveness for changing the view orientation.
      *
-     * @param sensitivity Sensitivity factor (default 0.005)
+     * @param sensitivity sensitivity factor where larger values make panning respond more strongly; default 0.005
      */
     public void setPanSensitivity(float sensitivity) {
         this.panSensitivity = sensitivity;
     }
 
     /**
-     * Sets the zoom sensitivity.
+     * Adjusts how quickly pinch gestures change the field of view.
      *
-     * @param sensitivity Sensitivity factor (default 1.0)
+     * Larger values increase zoom speed; values between 0 and 1 decrease it. Default is 1.0.
+     *
+     * @param sensitivity multiplicative factor applied to pinch-zoom gestures
      */
     public void setZoomSensitivity(float sensitivity) {
         this.zoomSensitivity = sensitivity;
     }
 
     /**
-     * Points the view toward a celestial object.
+     * Point the view toward the specified celestial coordinates.
      *
-     * @param ra  Right Ascension in degrees
-     * @param dec Declination in degrees
+     * @param ra  Right Ascension in degrees; treated as azimuth and converted to radians.
+     * @param dec Declination in degrees; treated as elevation and converted to radians.
      */
     public void lookAt(float ra, float dec) {
         // Convert RA/Dec to azimuth/elevation
@@ -510,9 +630,13 @@ public class SkyGLSurfaceView extends GLSurfaceView {
     }
 
     /**
-     * Points the view toward a celestial object specified by a Vector3.
+     * Reorients the view to look along the given 3D direction vector.
      *
-     * @param direction The direction vector (will be normalized)
+     * The vector is normalized before use; if its length is effectively zero the view remains unchanged.
+     * Updates the internal azimuth (normalized to [0, 2π)) and elevation (radians) and applies the new view.
+     * If a GestureListener is set, its onOrientationChanged callback is invoked with the new azimuth and elevation.
+     *
+     * @param direction the direction vector in world coordinates; will be normalized before use
      */
     public void lookAt(@NonNull Vector3 direction) {
         // Convert Cartesian to spherical coordinates
@@ -538,7 +662,11 @@ public class SkyGLSurfaceView extends GLSurfaceView {
     }
 
     /**
-     * Resets the view to default orientation (looking at RA=0, Dec=0).
+     * Reset the view to the default orientation and field of view.
+     *
+     * Resets azimuth, elevation, and roll to the defaults (looking at RA=0, Dec=0),
+     * applies a 60° field of view, and notifies the GestureListener (if set)
+     * via onOrientationChanged and onFovChanged.
      */
     public void resetView() {
         azimuth = 0;
@@ -555,9 +683,9 @@ public class SkyGLSurfaceView extends GLSurfaceView {
     }
 
     /**
-     * Enables or disables night mode.
+     * Set the renderer's night mode, toggling a low-brightness color scheme for dark environments.
      *
-     * @param enabled true to enable night mode
+     * @param enabled true to enable night mode, false to disable it
      */
     public void setNightMode(boolean enabled) {
         queueEvent(() -> renderer.setNightMode(enabled));

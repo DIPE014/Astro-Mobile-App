@@ -49,19 +49,18 @@ public enum Shape {
     CROSS;
 
     /**
-     * Returns the default shape for rendering celestial objects.
+     * Default shape used for rendering celestial objects.
      *
-     * @return CIRCLE, the default shape
+     * @return the default Shape, CIRCLE
      */
     public static Shape getDefault() {
         return CIRCLE;
     }
 
     /**
-     * Returns whether this shape requires special rendering
-     * beyond a simple filled shape.
+     * Indicates whether the shape requires special rendering beyond a simple filled shape.
      *
-     * @return true if the shape needs special rendering treatment
+     * @return true if the shape is STAR or CROSS, false otherwise.
      */
     public boolean isComplex() {
         return this == STAR || this == CROSS;

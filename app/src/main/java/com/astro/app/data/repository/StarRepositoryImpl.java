@@ -61,15 +61,20 @@ public class StarRepositoryImpl implements StarRepository {
     private Map<String, StarData> starNameMap;
 
     /**
-     * Creates a StarRepositoryImpl with the provided parser.
+     * Constructs a StarRepositoryImpl that loads and caches star data using the provided parser.
      *
-     * @param protobufParser The parser for reading star data from binary files
+     * @param protobufParser parser used to parse star protobuf records from binary assets
      */
     @Inject
     public StarRepositoryImpl(@NonNull ProtobufParser protobufParser) {
         this.protobufParser = protobufParser;
     }
 
+    /**
+     * Provide the complete list of known stars, loading and caching them if they have not yet been loaded.
+     *
+     * @return the in-memory (cached) unmodifiable list of all StarData objects; an empty list if no stars are available
+     */
     @Override
     @NonNull
     public synchronized List<StarData> getAllStars() {
@@ -77,6 +82,12 @@ public class StarRepositoryImpl implements StarRepository {
         return cachedStars != null ? cachedStars : Collections.emptyList();
     }
 
+    /**
+     * Filter stars to those with apparent magnitude less than or equal to the given threshold.
+     *
+     * @param maxMagnitude the maximum apparent magnitude threshold; stars with magnitude less than or equal to this value are included
+     * @return a list of stars whose magnitude is less than or equal to {@code maxMagnitude}; may be empty
+     */
     @Override
     @NonNull
     public List<StarData> getStarsByMagnitude(float maxMagnitude) {
@@ -92,6 +103,12 @@ public class StarRepositoryImpl implements StarRepository {
         return filtered;
     }
 
+    /**
+     * Retrieve a star by its unique identifier.
+     *
+     * @param id the unique identifier of the star
+     * @return the StarData for the given id, or null if no star matches
+     */
     @Override
     @Nullable
     public StarData getStarById(@NonNull String id) {
@@ -99,6 +116,12 @@ public class StarRepositoryImpl implements StarRepository {
         return starIdMap != null ? starIdMap.get(id) : null;
     }
 
+    /**
+     * Retrieves a star by its name using a case-insensitive match.
+     *
+     * @param name the star's name to look up (matching is case-insensitive)
+     * @return the matching {@link StarData} if found, or `null` if no star has that name
+     */
     @Override
     @Nullable
     public StarData getStarByName(@NonNull String name) {
@@ -106,6 +129,14 @@ public class StarRepositoryImpl implements StarRepository {
         return starNameMap != null ? starNameMap.get(name.toLowerCase(Locale.ROOT)) : null;
     }
 
+    /**
+     * Searches stars by name using a case-insensitive substring match.
+     *
+     * The query is matched against each star's primary name and its alternate names.
+     *
+     * @param query the case-insensitive substring to match against primary and alternate star names
+     * @return a list of stars whose primary name or any alternate name contains the query (case-insensitive)
+     */
     @Override
     @NonNull
     public List<StarData> searchStars(@NonNull String query) {
@@ -133,6 +164,12 @@ public class StarRepositoryImpl implements StarRepository {
         return results;
     }
 
+    /**
+     * Retrieves all stars that belong to the specified constellation.
+     *
+     * @param constellationId the identifier of the constellation to filter by
+     * @return a list of matching StarData objects; empty if no stars are found for the given constellation
+     */
     @Override
     @NonNull
     public List<StarData> getStarsInConstellation(@NonNull String constellationId) {
@@ -149,8 +186,12 @@ public class StarRepositoryImpl implements StarRepository {
     }
 
     /**
-     * Ensures that the star cache is loaded.
-     * This method is synchronized to prevent multiple threads from loading simultaneously.
+     * Lazily loads star entries from the protobuf asset and populates in-memory caches.
+     *
+     * Ensures {@code cachedStars}, {@code starIdMap}, and {@code starNameMap} are initialized
+     * with {@code StarData} parsed from the {@code ProtobufParser}; stars are sorted by
+     * magnitude with the brightest first. If the cache is already initialized, the method
+     * returns immediately.
      */
     private synchronized void ensureCacheLoaded() {
         if (cachedStars != null) {
@@ -184,11 +225,11 @@ public class StarRepositoryImpl implements StarRepository {
     }
 
     /**
-     * Converts a {@link PointElementProto} to a {@link StarData} object.
-     *
-     * @param proto The protobuf point element
-     * @return A StarData object, or null if conversion fails
-     */
+         * Create a StarData instance from a PointElementProto.
+         *
+         * @param proto the protobuf point element to convert; its location must be present to produce a StarData
+         * @return the StarData populated from the proto, or `null` if the proto has no location or conversion fails
+         */
     @Nullable
     private StarData convertProtoToStarData(@NonNull PointElementProto proto) {
         try {
@@ -229,12 +270,13 @@ public class StarRepositoryImpl implements StarRepository {
     }
 
     /**
-     * Generates a unique star ID from coordinates.
-     *
-     * @param ra  Right Ascension in degrees
-     * @param dec Declination in degrees
-     * @return A unique identifier string
-     */
+         * Create a unique identifier for a star based on its coordinates.
+         *
+         * @param ra  Right Ascension in degrees
+         * @param dec Declination in degrees
+         * @return the identifier string in the form "star_<counter>_<raRounded>_<decRounded>",
+         *         where RA and DEC are multiplied by 1000 and rounded to integers and <counter> is a monotonic counter
+         */
     @NonNull
     private String generateStarId(float ra, float dec) {
         // Use counter with coordinate hash for uniqueness
@@ -245,15 +287,14 @@ public class StarRepositoryImpl implements StarRepository {
     }
 
     /**
-     * Generates a star name from coordinates.
-     *
-     * <p>For stars without named designations, generates a name based on
-     * the coordinate system.</p>
-     *
-     * @param ra  Right Ascension in degrees
-     * @param dec Declination in degrees
-     * @return A generated name string
-     */
+         * Generates a synthetic star name from celestial coordinates for untitled stars.
+         *
+         * <p>The generated name encodes Right Ascension as hours and minutes and Declination with sign.</p>
+         *
+         * @param ra  Right Ascension in degrees
+         * @param dec Declination in degrees
+         * @return A generated name string in the form "Star HHhMMm ±DD.D"
+         */
     @NonNull
     private String generateStarName(float ra, float dec) {
         // Convert RA to hours, minutes, seconds format
@@ -269,14 +310,14 @@ public class StarRepositoryImpl implements StarRepository {
     }
 
     /**
-     * Estimates apparent magnitude from rendered size.
-     *
-     * <p>Brighter stars have larger rendered sizes. This provides an
-     * approximate inverse mapping.</p>
-     *
-     * @param size The rendered size in pixels
-     * @return Estimated apparent magnitude
-     */
+         * Estimate an apparent magnitude corresponding to a rendered star size.
+         *
+         * <p>Values outside the expected rendered size range are clamped to [1, 8]. Larger sizes map to
+         * brighter magnitudes (numerically lower).</p>
+         *
+         * @param size the rendered size in pixels (values outside 1–8 are clamped)
+         * @return the estimated apparent magnitude, between -1.5 (brightest) and 6.5 (dimmest)
+         */
     private float estimateMagnitudeFromSize(int size) {
         // Map size range [1, 8] to magnitude range [6.5, -1.5]
         // Larger size = brighter star = lower magnitude

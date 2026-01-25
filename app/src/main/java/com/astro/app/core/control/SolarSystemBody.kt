@@ -83,7 +83,20 @@ enum class SolarSystemBody
     Earth(0, 0, TimeConstants.MILLISECONDS_PER_HOUR); // R.drawable.earth, R.string.earth
 
     // Taken from JPL's Planetary Positions page: http://ssd.jpl.nasa.gov/?planet_pos
-    // This gives us a good approximation for the years 1800 to 2050 AD.
+    /**
+     * Compute the orbital elements for this SolarSystemBody at the given date.
+     *
+     * Produces an OrbitalElements instance with values valid for approximately years 1800–2050.
+     *
+     * @param date The date for which to compute the orbital elements.
+     * @return An OrbitalElements containing:
+     *  - `a`: semi-major axis in astronomical units (AU),
+     *  - `e`: eccentricity (unitless),
+     *  - `i`: inclination in radians,
+     *  - `o`: longitude of the ascending node in radians,
+     *  - `w`: argument of perihelion in radians,
+     *  - `l`: mean longitude in radians.
+     */
     fun getOrbitalElements(date: Date): OrbitalElements {
         // Centuries since J2000
         val jc = julianCenturies(date).toFloat()

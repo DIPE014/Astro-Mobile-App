@@ -32,6 +32,15 @@ import java.util.*
  * @param degrees
  * @param axis - must be a unit vector.
  */
+/**
+ * Compute a 3x3 rotation matrix for a rotation about the specified axis.
+ *
+ * The `axis` is expected to be a normalized (unit) vector; this function does not normalize it.
+ *
+ * @param degrees Rotation angle in degrees.
+ * @param axis Rotation axis as a `Vector3` (must be unit length).
+ * @return A `Matrix3x3` representing the rotation by `degrees` about `axis`.
+ */
 fun calculateRotationMatrix(degrees: Float, axis: Vector3): Matrix3x3 {
     // Construct the rotation matrix about this vector
     val cosD = cos(degrees * DEGREES_TO_RADIANS)
@@ -55,5 +64,4 @@ fun calculateRotationMatrix(degrees: Float, axis: Vector3): Matrix3x3 {
         zxm + ys, yzm - xs, z * zm + cosD
     )
 }
-
 

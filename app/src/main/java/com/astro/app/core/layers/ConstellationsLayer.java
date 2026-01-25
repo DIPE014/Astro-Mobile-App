@@ -81,9 +81,9 @@ public class ConstellationsLayer extends AbstractLayer {
     public interface ConstellationRepository {
 
         /**
-         * Returns the list of all constellations.
+         * Retrieves all available constellations.
          *
-         * @return List of constellation data (never null, may be empty)
+         * @return a non-null list of ConstellationData objects; may be empty if no constellations are available
          */
         @NonNull
         List<ConstellationData> getConstellations();
@@ -98,43 +98,39 @@ public class ConstellationsLayer extends AbstractLayer {
         ConstellationData findById(@NonNull String constellationId);
 
         /**
-         * Finds constellations by name (partial match).
+         * Finds constellations whose names contain the given query string.
          *
-         * @param name The name to search for
-         * @return List of matching constellations
+         * @param name query string to match against constellation names; partial matches are allowed
+         * @return a list of constellations whose names match the query, or an empty list if none match
          */
         @NonNull
         List<ConstellationData> findByName(@NonNull String name);
 
         /**
-         * Returns star coordinates for the given constellation.
+         * Get star coordinates for the specified constellation.
          *
-         * <p>The returned map contains star IDs as keys and their
-         * coordinates as values. This is used for drawing constellation
-         * lines between stars.</p>
-         *
-         * @param constellation The constellation to get star coordinates for
-         * @return Map of star ID to coordinates
+         * @param constellation the constellation whose star coordinates to retrieve
+         * @return a non-null map from star ID to corresponding GeocentricCoords (may be empty)
          */
         @NonNull
         Map<String, GeocentricCoords> getStarCoordinates(@NonNull ConstellationData constellation);
     }
 
     /**
-     * Creates a ConstellationsLayer with the given repository.
+     * Constructs a ConstellationsLayer using the provided repository with constellation lines and names shown by default.
      *
-     * @param constellationRepository The repository providing constellation data
+     * @param constellationRepository repository providing constellation data; must not be null
      */
     public ConstellationsLayer(@NonNull ConstellationRepository constellationRepository) {
         this(constellationRepository, true, true);
     }
 
     /**
-     * Creates a ConstellationsLayer with custom visibility settings.
+     * Constructs a ConstellationsLayer configured with the given data source and visibility settings for lines and names.
      *
-     * @param constellationRepository The repository providing constellation data
-     * @param showLines               Whether to show constellation lines
-     * @param showNames               Whether to show constellation names
+     * @param constellationRepository the non-null repository that supplies constellation data and coordinates
+     * @param showLines               true to render constellation connecting lines, false to hide them
+     * @param showNames               true to render constellation name labels, false to hide them
      */
     public ConstellationsLayer(@NonNull ConstellationRepository constellationRepository,
                                boolean showLines,
@@ -148,6 +144,11 @@ public class ConstellationsLayer extends AbstractLayer {
         this.showNames = showNames;
     }
 
+    /**
+     * Initializes the layer by loading constellations from the repository and creating line and label primitives according to visibility flags.
+     *
+     * If `showLines` is true, adds line primitives for each constellation's defined line pairs. If `showNames` is true, adds label primitives positioned at the constellation center (or the average of its star coordinates when a center is not provided). Primitives are added to this layer's internal collections.
+     */
     @Override
     protected void initializeLayer() {
         Log.d(TAG, "Initializing constellations layer");
@@ -176,10 +177,14 @@ public class ConstellationsLayer extends AbstractLayer {
     }
 
     /**
-     * Creates line primitives for a constellation's pattern.
+     * Create line primitives for the given constellation by connecting its defined star pairs.
      *
-     * @param constellation The constellation data
-     * @param starCoords    Map of star ID to coordinates
+     * For each valid pair of star IDs in the constellation's line pairs, a LinePrimitive is
+     * created using coordinates looked up from the provided map and added to the layer. Pairs
+     * with missing coordinates are skipped and a warning is logged.
+     *
+     * @param constellation the constellation whose line pairs will be rendered
+     * @param starCoords    mapping from star ID to its geocentric coordinates used to position line endpoints
      */
     private void createConstellationLines(@NonNull ConstellationData constellation,
                                           @NonNull Map<String, GeocentricCoords> starCoords) {
@@ -210,10 +215,14 @@ public class ConstellationsLayer extends AbstractLayer {
     }
 
     /**
-     * Creates a label primitive for the constellation name.
+     * Create and add a label for the constellation positioned at its center.
      *
-     * @param constellation The constellation data
-     * @param starCoords    Map of star ID to coordinates
+     * If the constellation provides an explicit center, that position is used; otherwise the
+     * center is computed as the average of the provided star coordinates. If no center can be
+     * determined, no label is created.
+     *
+     * @param constellation the constellation data containing id, name, and optional center point
+     * @param starCoords    map of star ID to geocentric coordinates used to compute a center if needed
      */
     private void createConstellationLabel(@NonNull ConstellationData constellation,
                                           @NonNull Map<String, GeocentricCoords> starCoords) {
@@ -235,11 +244,11 @@ public class ConstellationsLayer extends AbstractLayer {
     }
 
     /**
-     * Calculates the center point of a set of star coordinates.
-     *
-     * @param starCoords Map of star ID to coordinates
-     * @return The center point, or null if the map is empty
-     */
+         * Computes the arithmetic mean of right ascension and declination across the given star coordinates.
+         *
+         * @param starCoords map from star identifier to its geocentric coordinates (RA/Dec in degrees)
+         * @return a GeocentricCoords whose RA and Dec are the averages of the input values, or `null` if `starCoords` is empty
+         */
     @Nullable
     private GeocentricCoords calculateCenter(@NonNull Map<String, GeocentricCoords> starCoords) {
         if (starCoords.isEmpty()) {
@@ -273,9 +282,9 @@ public class ConstellationsLayer extends AbstractLayer {
     }
 
     /**
-     * Returns whether constellation lines are shown.
+     * Indicates whether constellation lines are visible.
      *
-     * @return true if lines are shown
+     * @return `true` if constellation lines are visible, `false` otherwise
      */
     public boolean isShowLines() {
         return showLines;
@@ -293,73 +302,75 @@ public class ConstellationsLayer extends AbstractLayer {
     }
 
     /**
-     * Returns whether constellation names are shown.
+     * Indicates whether constellation names are visible.
      *
-     * @return true if names are shown
+     * @return `true` if constellation names are shown, `false` otherwise
      */
     public boolean isShowNames() {
         return showNames;
     }
 
     /**
-     * Sets the color for constellation lines.
+     * Updates the color used to draw constellation lines.
      *
-     * @param lineColor ARGB color value
+     * @param lineColor ARGB color value to use for lines
      */
     public void setLineColor(int lineColor) {
         this.lineColor = lineColor;
     }
 
     /**
-     * Returns the constellation line color.
+     * Get the color used to draw constellation lines.
      *
-     * @return ARGB color value
+     * @return the ARGB color value used for constellation lines
      */
     public int getLineColor() {
         return lineColor;
     }
 
     /**
-     * Sets the color for constellation labels.
+     * Sets the color used to draw constellation labels.
      *
-     * @param labelColor ARGB color value
+     * @param labelColor ARGB color value to use for labels
      */
     public void setLabelColor(int labelColor) {
         this.labelColor = labelColor;
     }
 
     /**
-     * Returns the constellation label color.
-     *
-     * @return ARGB color value
-     */
+         * The current ARGB color used for constellation labels.
+         *
+         * @return the ARGB color value used for constellation labels
+         */
     public int getLabelColor() {
         return labelColor;
     }
 
     /**
-     * Sets the line width for constellation lines.
-     *
-     * @param lineWidth Width in pixels
-     */
+         * Set the width used to draw constellation lines.
+         *
+         * <p>The width is specified in pixels; changes take effect only after the layer is redrawn.</p>
+         *
+         * @param lineWidth the line width in pixels
+         */
     public void setLineWidth(float lineWidth) {
         this.lineWidth = lineWidth;
     }
 
     /**
-     * Returns the constellation line width.
+     * Get the width used to draw constellation lines.
      *
-     * @return Width in pixels
+     * @return the line width in pixels
      */
     public float getLineWidth() {
         return lineWidth;
     }
 
     /**
-     * Returns the constellation repository.
-     *
-     * @return The constellation repository
-     */
+         * Provide access to the ConstellationRepository used by this layer.
+         *
+         * @return the ConstellationRepository instance backing this layer
+         */
     @NonNull
     public ConstellationRepository getConstellationRepository() {
         return constellationRepository;

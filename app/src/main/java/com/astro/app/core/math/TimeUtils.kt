@@ -30,8 +30,10 @@ public const val HOURS_TO_DEGREES = 360.0f / 24.0f
  * @author Brent Bryan
  */
 /**
- * Calculates the number of Julian Centuries from the epoch 2000.0
- * (equivalent to Julian Day 2451545.0).
+ * Compute the number of Julian centuries elapsed since J2000.0 for the given date.
+ *
+ * @param date The moment to evaluate (interpreted in UTC).
+ * @return Julian centuries since J2000.0 (Julian Day 2451545.0).
  */
 fun julianCenturies(date: Date): Double {
     val jd = julianDay(date)
@@ -40,11 +42,13 @@ fun julianCenturies(date: Date): Double {
 }
 
 /**
- * Calculates the Julian Day for a given date using the following formula:
- * JD = 367 * Y - INT(7 * (Y + INT((M + 9)/12))/4) + INT(275 * M / 9)
- * + D + 1721013.5 + UT/24
+ * Compute the Julian Day for the given Date interpreted in UTC.
  *
- * Note that this is only valid for the year range 1900 - 2099.
+ * The input Date's year, month, day and time components are read in GMT/UTC.
+ * Valid for dates in the year range 1900–2099.
+ *
+ * @param date The date and time to convert (interpreted in UTC).
+ * @return The Julian Day corresponding to the provided UTC date and time.
  */
 fun julianDay(date: Date): Double {
     val cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
@@ -62,8 +66,12 @@ fun julianDay(date: Date): Double {
 }
 
 /**
- * Converts the given Julian Day to Gregorian Date (in UT time zone).
- * Uses the algorithm from Jean Meeus "Astronomical Algorithms" (2nd ed.)
+ * Convert an astronomical Julian Day to a Gregorian calendar Date in UTC.
+ *
+ * The input `julianDay` is the astronomical Julian Day (days start at noon); the function returns the corresponding UTC calendar date and time.
+ *
+ * @param julianDay The Julian Day number to convert (astronomical convention).
+ * @return A `Date` representing the Gregorian date and time in UTC that corresponds to `julianDay`.
  */
 fun gregorianDate(julianDay: Double): Date {
     // Add 0.5 to convert from noon-based JD to midnight-based
@@ -102,8 +110,11 @@ fun gregorianDate(julianDay: Double): Date {
 }
 
 /**
- * Calculates local mean sidereal time in degrees. Note that longitude is
- * negative for western longitude values.
+ * Computes the local mean sidereal time for the given UTC date and longitude.
+ *
+ * @param date The date/time interpreted in UTC.
+ * @param longitude Geographic longitude in degrees; negative values denote west.
+ * @return Local mean sidereal time in degrees, normalized to [0, 360).
  */
 fun meanSiderealTime(date: Date, longitude: Float): Float {
     // First, calculate number of Julian days since J2000.0.
@@ -117,25 +128,32 @@ fun meanSiderealTime(date: Date, longitude: Float): Float {
 }
 
 /**
- * Normalizes the angle to the range 0 <= value < 360.
+ * Normalizes an angle to the range [0, 360).
+ *
+ * @param angleDegrees Angle in degrees; may be any real value.
+ * @return The equivalent angle in degrees within [0, 360).
  */
 private fun normalizeAngle(angleDegrees: Double): Double {
     return positiveMod(angleDegrees, 360.0)
 }
 
 /**
- * Normalizes the time to the range 0 <= value < 24.
+ * Normalize a time value in hours to the range [0, 24).
+ *
+ * @return The equivalent time constrained to be greater than or equal to 0 and less than 24.
  */
 fun normalizeHours(time: Double): Double {
     return positiveMod(time, 24.0)
 }
 
 /**
- * Take a universal time between 0 and 24 and return a triple
- * [hours, minutes, seconds].
+ * Convert a universal time in hours to an array of hours, minutes, and seconds.
  *
- * @param universalTime Universal time - presumed to be between 0 and 24.
- * @return [hours, minutes, seconds]
+ * @param universalTime Universal time in hours (typically in the range 0–24).
+ * @return An IntArray of length 3: [hours, minutes, seconds], where
+ *         - hours = floor(universalTime) (0–23),
+ *         - minutes = floor((universalTime - hours) * 60) (0–59),
+ *         - seconds = floor(((universalTime - hours) * 60) - minutes) (0–59).
  */
 fun clockTimeFromHrs(universalTime: Double): IntArray {
     val hms = IntArray(3)

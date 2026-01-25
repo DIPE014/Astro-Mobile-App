@@ -148,7 +148,10 @@ public class LabelRenderer {
     }
 
     /**
-     * Creates a new LabelRenderer.
+     * Create a new LabelRenderer and prepare its text paint used for drawing label glyphs.
+     *
+     * The constructor initializes the internal Paint instance with anti-aliasing enabled and a
+     * sans-serif typeface for composing label bitmaps.
      */
     public LabelRenderer() {
         textPaint = new Paint();
@@ -157,7 +160,12 @@ public class LabelRenderer {
     }
 
     /**
-     * Initializes the renderer. Must be called on the GL thread.
+     * Initializes OpenGL resources and shader state required for rendering labels.
+     *
+     * <p>Must be called on the GL thread. This method is idempotent: if the renderer is already
+     * initialized it returns immediately. On success it prepares and validates the shader program,
+     * queries attribute and uniform locations, creates vertex and texture buffers, and marks the
+     * renderer as initialized. If shader program creation fails the renderer remains uninitialized.
      */
     public void initialize() {
         if (initialized) {
@@ -197,11 +205,13 @@ public class LabelRenderer {
     }
 
     /**
-     * Updates the labels to be rendered.
+     * Replace the current set of labels and rebuild the texture atlas and vertex buffers.
      *
-     * <p>This regenerates the texture atlas with all labels.</p>
+     * <p>If {@code labels} is empty the renderer's labels are cleared. Otherwise each label's
+     * text is measured to determine atlas placement, a new texture atlas is generated, and
+     * the vertex/index buffers are updated for rendering.</p>
      *
-     * @param labels List of label primitives
+     * @param labels the list of label primitives to render; replaces any existing labels
      */
     public void updateLabels(@NonNull List<LabelPrimitive> labels) {
         if (labels.isEmpty()) {
@@ -234,7 +244,12 @@ public class LabelRenderer {
     }
 
     /**
-     * Creates the texture atlas containing all labels.
+     * Builds a texture atlas for all labels and prepares GL upload data.
+     *
+     * Lays out each label into a bitmap atlas (row-based packing, doubling height when needed),
+     * computes per-label UV coordinates and texel sizes, renders white text into the atlas
+     * using the configured Paint and fontScale, uploads the bitmap to the GL texture when
+     * the renderer is initialized, and updates labelCount.
      */
     private void createTextureAtlas() {
         if (labelDataList.isEmpty()) return;
@@ -313,7 +328,11 @@ public class LabelRenderer {
     }
 
     /**
-     * Updates the vertex buffer with billboard quads for all labels.
+     * Builds interleaved vertex and index buffers for all label billboards and uploads them to GL when initialized.
+     *
+     * Allocates a direct FloatBuffer for vertex attributes and a ShortBuffer for element indices, populates both
+     * from the current labelDataList, resets buffer positions, and, if the renderer has been initialized, uploads
+     * the data into the vertex and element array buffer objects.
      */
     private void updateVertexBuffer() {
         if (labelDataList.isEmpty()) return;
@@ -367,7 +386,16 @@ public class LabelRenderer {
     }
 
     /**
-     * Adds a label's vertex data to the buffer.
+     * Appends a label's billboarded quad (four vertices) into the renderer's vertex buffer.
+     *
+     * Computes a billboard oriented around the label's geocentric position, applies the
+     * label offset and world-space size derived from the label's pixel dimensions, extracts
+     * the label color from its ARGB integer, and writes four vertices with corresponding
+     * texture coordinates into the vertex buffer via addVertex(...).
+     *
+     * @param data       label layout and atlas UVs for the label to add
+     * @param labelIndex index of the label within the current label list (used to determine
+     *                   placement order in buffers)
      */
     private void addLabelToBuffer(LabelData data, int labelIndex) {
         LabelPrimitive label = data.primitive;
@@ -438,8 +466,18 @@ public class LabelRenderer {
     }
 
     /**
-     * Adds a single vertex to the buffer.
-     */
+         * Appends a vertex's attributes (position, color, and texture coordinates) to the internal vertex buffer.
+         *
+         * @param x world-space X coordinate of the vertex
+         * @param y world-space Y coordinate of the vertex
+         * @param z world-space Z coordinate of the vertex
+         * @param r red color component in the range 0.0 to 1.0
+         * @param g green color component in the range 0.0 to 1.0
+         * @param b blue color component in the range 0.0 to 1.0
+         * @param a alpha (opacity) component in the range 0.0 to 1.0
+         * @param u horizontal texture coordinate (atlas space, typically 0.0 to 1.0)
+         * @param v vertical texture coordinate (atlas space, typically 0.0 to 1.0)
+         */
     private void addVertex(float x, float y, float z, float r, float g, float b, float a,
                            float u, float v) {
         vertexBuffer.put(x);
@@ -454,9 +492,9 @@ public class LabelRenderer {
     }
 
     /**
-     * Draws all labels.
+     * Renders all prepared label quads into the current OpenGL ES 2.0 context using the provided matrix.
      *
-     * @param mvpMatrix The combined model-view-projection matrix
+     * @param mvpMatrix the combined model‑view‑projection matrix used to transform label vertices into clip space
      */
     public void draw(@NonNull float[] mvpMatrix) {
         if (!initialized || labelCount == 0) {
@@ -537,43 +575,47 @@ public class LabelRenderer {
     }
 
     /**
-     * Sets the font scale factor.
+     * Adjusts the multiplier applied to label font sizes when composing the texture atlas.
      *
-     * @param scale The scale factor (1.0 = normal size)
+     * @param scale multiplier for label font sizes; 1.0 preserves original size, values greater than 1 enlarge text, values between 0 and 1 reduce text size
      */
     public void setFontScale(float scale) {
         this.fontScale = scale;
     }
 
     /**
-     * Enables or disables night mode (red tint).
+     * Toggle night mode that applies a red tint to rendered labels.
      *
-     * @param enabled true to enable night mode
+     * @param enabled true to enable night mode, false to disable it
      */
     public void setNightMode(boolean enabled) {
         this.nightMode = enabled;
     }
 
     /**
-     * Returns the number of labels currently loaded.
+     * Gets the number of labels currently loaded.
      *
-     * @return Label count
+     * @return the number of labels currently loaded
      */
     public int getLabelCount() {
         return labelCount;
     }
 
     /**
-     * Checks if the renderer is ready to draw.
+     * Indicates whether the renderer is ready for drawing operations.
      *
-     * @return true if the renderer is initialized and has a valid shader program
+     * @return `true` if the renderer has been initialized and the shader program is present and valid, `false` otherwise.
      */
     public boolean isReady() {
         return initialized && shaderProgram != null && shaderProgram.isValid();
     }
 
     /**
-     * Releases all OpenGL resources.
+     * Releases GPU resources used by the renderer and clears cached label data.
+     *
+     * Deletes vertex/index buffers and the atlas texture, releases the shader program if present,
+     * resets the initialized flag, and clears the internal list of label data. Safe to call when
+     * the renderer is not initialized.
      */
     public void release() {
         if (initialized) {

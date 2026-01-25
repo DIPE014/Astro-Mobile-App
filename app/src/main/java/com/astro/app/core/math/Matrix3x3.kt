@@ -92,7 +92,9 @@ data class Matrix3x3(
         }
 
     /**
-     * Transposes the matrix, in place.
+     * Transposes this matrix in place so that rows become columns.
+     *
+     * Swaps the off-diagonal elements (xy <-> yx, xz <-> zx, yz <-> zy).
      */
     fun transpose() {
         var tmp: Float
@@ -107,7 +109,13 @@ data class Matrix3x3(
         zy = tmp
     }
 
-    operator fun times(m : Matrix3x3) = Matrix3x3(
+    /**
+             * Multiply this matrix by another 3×3 matrix.
+             *
+             * @param m The matrix to multiply on the right.
+             * @return The product matrix of this matrix and `m` (`this * m`).
+             */
+            operator fun times(m : Matrix3x3) = Matrix3x3(
             this.xx * m.xx + this.xy * m.yx + this.xz * m.zx,
             this.xx * m.xy + this.xy * m.yy + this.xz * m.zy,
             this.xx * m.xz + this.xy * m.yz + this.xz * m.zz,
@@ -118,14 +126,25 @@ data class Matrix3x3(
             this.zx * m.xy + this.zy * m.yy + this.zz * m.zy,
             this.zx * m.xz + this.zy * m.yz + this.zz * m.zz)
 
-    operator fun times(v : Vector3) = Vector3(
+    /**
+         * Transform a Vector3 by this 3x3 matrix.
+         *
+         * Multiplies this matrix by the given vector (matrix * vector) and returns the resulting vector.
+         *
+         * @param v The vector to multiply (treated as a column vector).
+         * @return The transformed Vector3 resulting from the matrix-vector multiplication.
+         */
+        operator fun times(v : Vector3) = Vector3(
         this.xx * v.x + this.xy * v.y + this.xz * v.z,
         this.yx * v.x + this.yy * v.y + this.yz * v.z,
         this.zx * v.x + this.zy * v.y + this.zz * v.z)
 
     /**
-     * Java can't call Kotlin's copy() method due to not supporting default params.
-     * Temporary shim until Java is all gone.
+     * Creates a copy of this matrix for Java interoperability.
+     *
+     * Provided so Java callers can obtain a duplicate when Kotlin's generated `copy` is not directly accessible.
+     *
+     * @return A new Matrix3x3 with the same components as this instance.
      */
     fun copyForJ() : Matrix3x3 {
         return copy()

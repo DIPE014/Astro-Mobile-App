@@ -33,12 +33,22 @@ import com.astro.app.core.math.MathUtils.sin
 /**
  * Updates the given vector with the supplied [RaDec].
  */
+/**
+ * Set this vector to the unit geocentric Cartesian coordinates corresponding to the given right ascension and declination.
+ *
+ * @param raDec Right ascension and declination (in degrees) defining the position on the celestial sphere.
+ */
 fun Vector3.updateFromRaDec(raDec: RaDec) {
     this.updateFromRaDec(raDec.ra, raDec.dec)
 }
 
 /**
- * Updates these coordinates with the given ra and dec in degrees.
+ * Set this vector to the unit-sphere geocentric Cartesian coordinates for the given right
+ * ascension and declination.
+ *
+ * @receiver Vector to update; after the call it represents a unit geocentric vector (x, y, z).
+ * @param ra Right ascension in degrees (0°–360°).
+ * @param dec Declination in degrees (−90°–90°).
  */
 private fun Vector3.updateFromRaDec(ra: Float, dec: Float) {
     val raRadians = ra * DEGREES_TO_RADIANS
@@ -48,27 +58,48 @@ private fun Vector3.updateFromRaDec(ra: Float, dec: Float) {
     this.z = sin(decRadians)
 }
 
-/** Returns the RA in degrees from the given vector assuming it's a unit vector in Geocentric coordinates  */
+/**
+ * Compute the right ascension from a unit geocentric vector.
+ *
+ * The vector is interpreted in geocentric coordinates and is assumed to lie on the unit sphere.
+ *
+ * @param v The unit geocentric vector.
+ * @return Right ascension in degrees.
+ */
 fun getRaOfUnitGeocentricVector(v: Vector3): Float {
     // Assumes unit sphere.
     return RADIANS_TO_DEGREES * atan2(v.y, v.x)
 }
 
-/** Returns the declination in degrees from the given vector assuming it's a unit vector in Geocentric coordinates  */
+/**
+ * Compute the declination (degrees) from a unit geocentric vector.
+ *
+ * Assumes `v` lies on the unit sphere in geocentric coordinates. Result is in degrees in the range −90 to 90.
+ *
+ * @param v The unit geocentric vector.
+ * @return The declination in degrees.
+ */
 fun getDecOfUnitGeocentricVector(v: Vector3): Float {
     // Assumes unit sphere.
     return RADIANS_TO_DEGREES * asin(v.z)
 }
 
 /**
- * Converts ra and dec to x,y,z Geocentric where the point is place on the unit sphere.
+ * Create a unit geocentric Cartesian vector from right ascension and declination.
+ *
+ * @param raDec Right ascension and declination in degrees.
+ * @return A `Vector3` on the unit sphere representing the geocentric coordinates corresponding to the given RA/Dec.
  */
 fun getGeocentricCoords(raDec: RaDec): Vector3 {
     return getGeocentricCoords(raDec.ra, raDec.dec)
 }
 
 /**
- * Converts ra and dec to x,y,z Geocentric where the point is place on the unit sphere.
+ * Create a unit-sphere geocentric Vector3 from right ascension and declination.
+ *
+ * @param ra Right ascension in degrees.
+ * @param dec Declination in degrees.
+ * @return A Vector3 whose components are the geocentric (x, y, z) coordinates on the unit sphere.
  */
 fun getGeocentricCoords(ra: Float, dec: Float): Vector3 {
     val coords = Vector3(0.0f, 0.0f, 0.0f)
@@ -80,10 +111,12 @@ fun getGeocentricCoords(ra: Float, dec: Float): Vector3 {
 private const val OBLIQUITY = 23.439281f * DEGREES_TO_RADIANS
 
 /**
- * Converts OrbitalElements into "HeliocentricCoordinates" - cartesian coordinates
- * centered on the sun with a z-axis pointing normal to Earth's orbital plane
- * and measured in Astronomical units.
- */
+ * Compute heliocentric Cartesian coordinates from the given orbital elements.
+ *
+ * @param elem Orbital elements describing the body's orbit (must provide anomaly, eccentricity,
+ * perihelion, ascending node, inclination, and orbital distance).
+ * @return A Vector3 containing the body's heliocentric Cartesian coordinates in astronomical units,
+ * with the Sun at the origin and the z-axis normal to Earth's orbital plane.
 fun heliocentricCoordinatesFromOrbitalElements(elem: OrbitalElements): Vector3 {
     val anomaly = elem.anomaly
     val ecc = elem.eccentricity
@@ -106,8 +139,10 @@ fun heliocentricCoordinatesFromOrbitalElements(elem: OrbitalElements): Vector3 {
 }
 
 /**
- * Converts to coordinates centered on Earth in the Earth's rotational plane to
- * coordinates in Earth's equatorial plane.
+ * Rotate a 3D position from Earth's orbital plane into Earth's equatorial plane using the J2000 obliquity.
+ *
+ * @param earthOrbitalPlane A vector expressed in Earth's orbital (ecliptic) plane coordinates.
+ * @return A new `Vector3` representing the same position in Earth's equatorial coordinates.
  */
 fun convertToEquatorialCoordinates(earthOrbitalPlane : Vector3): Vector3 {
     return Vector3(
@@ -116,4 +151,3 @@ fun convertToEquatorialCoordinates(earthOrbitalPlane : Vector3): Vector3 {
         earthOrbitalPlane.y * sin(OBLIQUITY) + earthOrbitalPlane.z * cos(OBLIQUITY)
     )
 }
-

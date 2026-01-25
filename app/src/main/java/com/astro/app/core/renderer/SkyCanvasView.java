@@ -32,7 +32,12 @@ public class SkyCanvasView extends View {
      * Listener interface for star selection events.
      */
     public interface OnStarSelectedListener {
-        void onStarSelected(StarData star);
+        /**
+ * Handle a star being selected by the user in the sky view.
+ *
+ * @param star the StarData representing the selected star
+ */
+void onStarSelected(StarData star);
     }
 
     private OnStarSelectedListener starSelectedListener;
@@ -88,16 +93,34 @@ public class SkyCanvasView extends View {
     // Use simple star map mode (guaranteed to show stars)
     private boolean useSimpleStarMap = true;
 
+    /**
+     * Creates a SkyCanvasView for the provided Context and initializes rendering state.
+     *
+     * @param context the Context the view is running in
+     */
     public SkyCanvasView(Context context) {
         super(context);
         init();
     }
 
+    /**
+     * Create a SkyCanvasView configured for use in layouts and initialize its rendering state.
+     *
+     * @param context the Context the view is running in, used to access resources and services
+     * @param attrs   the attributes from the XML tag that is inflating the view, or null
+     */
     public SkyCanvasView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
+    /**
+     * Initialize view interaction flags and configure Paint objects used for rendering.
+     *
+     * Sets the view to be clickable and focusable, and creates/configures the Paint
+     * instances used for stars, lines, labels, background, planets, constellation
+     * lines/labels, and grid drawing.
+     */
     private void init() {
         // Make the view clickable and focusable for touch events
         setClickable(true);
@@ -146,10 +169,13 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Sets the real star data from the repository.
-     * This replaces any demo data and converts coordinates for display.
+     * Replace the current star dataset with the provided list and refresh the view's rendering state.
      *
-     * @param starList List of StarData objects from the repository
+     * If `starList` is non-null the internal star collection is replaced and the constellation lookup is rebuilt;
+     * if `starList` is null the existing star data is cleared. The method then either recomputes star positions
+     * for the projection-based renderer or triggers a redraw for the simple star map mode.
+     *
+     * @param starList the new list of StarData objects to use for rendering, or `null` to clear existing stars
      */
     public void setStarData(List<StarData> starList) {
         this.realStarData.clear();
@@ -168,9 +194,12 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Builds a lookup map from star IDs to StarData for constellation rendering.
+     * Create a lookup mapping from star identifiers and lowercase names to their StarData for constellation rendering.
      *
-     * @param starList List of stars to index
+     * Clears the existing map, adds entries for non-null IDs, and adds entries for non-empty names using their
+     * lowercase form as a fallback key.
+     *
+     * @param starList the list of StarData objects to index; null entries are ignored
      */
     private void buildStarLookupMap(List<StarData> starList) {
         starLookupMap.clear();
@@ -187,9 +216,12 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Sets the constellation data for line rendering.
+     * Replace the view's constellation list used for drawing constellation lines and labels.
      *
-     * @param constellationList List of ConstellationData objects
+     * If `constellationList` is null the existing list is cleared. After updating the data the view
+     * is invalidated to trigger a redraw.
+     *
+     * @param constellationList the new list of ConstellationData to render, or null to clear existing constellations
      */
     public void setConstellationData(List<ConstellationData> constellationList) {
         this.constellations.clear();
@@ -222,16 +254,18 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Returns whether constellations are visible.
+     * Indicates whether constellation lines and labels are currently enabled for rendering.
+     *
+     * @return `true` if constellation rendering is enabled, `false` otherwise.
      */
     public boolean isConstellationsVisible() {
         return showConstellations;
     }
 
     /**
-     * Sets the visibility of the coordinate grid.
+     * Toggle the visibility of the sky coordinate grid and request a redraw.
      *
-     * @param visible true to show the grid
+     * @param visible true to show the grid, false to hide it
      */
     public void setGridVisible(boolean visible) {
         this.showGrid = visible;
@@ -240,17 +274,19 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Returns whether the coordinate grid is visible.
+     * Determines if the coordinate grid is currently visible.
+     *
+     * @return `true` if the coordinate grid is visible, `false` otherwise.
      */
     public boolean isGridVisible() {
         return showGrid;
     }
 
     /**
-     * Sets the observer's location for coordinate conversion.
+     * Update the observer's geographic location used for converting celestial coordinates to screen positions.
      *
-     * @param latitude  Observer's latitude in degrees (-90 to 90)
-     * @param longitude Observer's longitude in degrees (-180 to 180)
+     * @param latitude  observer latitude in degrees, positive north, valid range -90 to 90
+     * @param longitude observer longitude in degrees, positive east, valid range -180 to 180
      */
     public void setObserverLocation(double latitude, double longitude) {
         this.observerLatitude = latitude;
@@ -272,9 +308,9 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Gets the current view RA (approximation based on azimuth and LST).
+     * Approximate right ascension of the view center derived from local sidereal time and the azimuth offset.
      *
-     * @return Current view RA in degrees
+     * @return the view right ascension in degrees, normalized to the range [0, 360)
      */
     public float getViewRa() {
         // Approximate: convert azimuth to RA using LST
@@ -286,9 +322,11 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Gets the current view Dec (approximation based on altitude and latitude).
+     * Approximate declination of the view center in degrees.
      *
-     * @return Current view Dec in degrees
+     * <p>This is an approximation and currently uses the view's altitude offset as the declination value.
+     *
+     * @return the approximate declination (degrees) of the view center
      */
     public float getViewDec() {
         // Simplified approximation for view declination
@@ -298,9 +336,9 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Gets the current view azimuth.
+     * Current view azimuth of the sky canvas.
      *
-     * @return Azimuth in degrees (0 = North)
+     * @return Azimuth in degrees where 0 = North.
      */
     public float getViewAzimuth() {
         return azimuthOffset;
@@ -316,9 +354,12 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Sets the time for sky calculations (for time travel feature).
+     * Update the observation time used for sky calculations and request a redraw.
      *
-     * @param timeMillis time in milliseconds since epoch
+     * This changes the internal time used for Local Sidereal Time and projection computations
+     * and invalidates the view so the sky is re-rendered for the new time.
+     *
+     * @param timeMillis time in milliseconds since the Unix epoch (UTC)
      */
     public void setTime(long timeMillis) {
         this.observationTime = timeMillis;
@@ -327,7 +368,15 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Updates star screen positions based on current time, location, and orientation.
+     * Recomputes positions and visual attributes of rendered stars for the current observer, time, and view orientation.
+     *
+     * <p>Clears previously computed star and label buffers, then:
+     * - if no star catalog is present, inserts demo stars and requests a redraw;
+     * - otherwise computes each star's altitude/azimuth and, if visible (above the horizon and inside the field of view),
+     *   computes screen coordinates, display size (from magnitude), and color, and appends entries to the internal
+     *   star and label lists. Bright stars (magnitude &lt; 2.0) get a name label placed slightly above the star.
+     *
+     * <p>The method logs the number of rendered stars and invalidates the view to trigger a redraw.
      */
     private void updateStarPositions() {
         stars.clear();
@@ -379,9 +428,11 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Calculates the Local Sidereal Time for the observer's location.
+     * Compute the local sidereal time for the view's current observation time and longitude.
      *
-     * @return LST in degrees (0-360)
+     * Uses the view's observationTime (UTC) and observerLongitude to calculate LST.
+     *
+     * @return Local sidereal time in degrees within [0, 360).
      */
     private double calculateLocalSiderealTime() {
         // Use observation time (set by time travel) instead of current system time
@@ -470,12 +521,12 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Converts Altitude/Azimuth to normalized screen coordinates.
-     *
-     * @param altitude Altitude in degrees
-     * @param azimuth  Azimuth in degrees
-     * @return Array of [x, y] in range [0, 1], or null if outside FOV
-     */
+         * Convert an altitude/azimuth direction to normalized screen coordinates using the view's orientation and field of view.
+         *
+         * @param altitude Altitude in degrees (angle above the horizon).
+         * @param azimuth  Azimuth in degrees.
+         * @return         A two-element float array [x, y] with coordinates normalized to the range [0, 1], or `null` if the direction is behind the viewer or outside the current field of view.
+         */
     private float[] altAzToScreen(double altitude, double azimuth) {
         // Calculate angular distance from view center
         double viewAz = azimuthOffset;
@@ -532,11 +583,10 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Converts star magnitude to screen size.
-     * Brighter stars (lower magnitude) appear larger.
+     * Compute the display size in pixels for a star based on its apparent magnitude.
      *
-     * @param magnitude Star's apparent magnitude
-     * @return Size in pixels
+     * @param magnitude the star's apparent magnitude (smaller values are brighter)
+     * @return the pixel size to use when drawing the star; larger for brighter stars, clamped to the range 1–10
      */
     private float magnitudeToSize(float magnitude) {
         // Map magnitude range [-1.5, 6.5] to size range [8, 1]
@@ -566,6 +616,15 @@ public class SkyCanvasView extends View {
         labels.add(new Object[]{0.5f, 0.1f, "Polaris"});
     }
 
+    /**
+     * Render the sky view into the provided Canvas using the current state, mode, and data.
+     *
+     * When simple star map mode is enabled and real star data is available this draws, in order:
+     * background, optional grid, optional constellations, simple star map, optional planets, then center crosshair.
+     * Otherwise this draws: background, projected constellation lines, projected stars, labels, then center crosshair.
+     *
+     * @param canvas the Canvas to draw the view onto
+     */
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -638,12 +697,18 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Draws stars using RA/Dec to screen coordinate mapping with device orientation.
-     * The view is centered on where the device is pointing (azimuth/altitude).
-     *
-     * Uses proper spherical (gnomonic) projection to correctly handle the convergence
-     * of azimuth lines near the zenith.
-     */
+         * Renders the full-sky star layer centered on the device pointing using each star's RA/Dec.
+         *
+         * Converts star RA/Dec to altitude/azimuth using the current observation time and observer
+         * location, projects those coordinates into screen space with a spherical (gnomonic-like)
+         * projection around the view azimuth/altitude, and paints star markers and optional name
+         * labels for bright stars. Off-screen and behind-view objects are skipped; rendering
+         * respects the current field of view and nightMode coloring.
+         *
+         * @param canvas the Canvas to draw onto
+         * @param width  the view width in pixels
+         * @param height the view height in pixels
+         */
     private void drawSimpleStarMap(Canvas canvas, int width, int height) {
         int starsDrawn = 0;
 
@@ -833,8 +898,14 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Draws planets on the sky map.
-     * Uses proper spherical (gnomonic) projection for correct rendering near zenith.
+     * Renders visible planets onto the canvas using the view's current time, location, and orientation.
+     *
+     * For each planet in the internal planetData map this method:
+     * - converts RA/Dec to altitude/azimuth using the current Local Sidereal Time,
+     * - skips bodies below ~5° below the horizon,
+     * - projects visible bodies to screen coordinates with the view projection,
+     * - skips objects behind the viewer or well outside the viewport,
+     * - draws a circular marker and a text label with colors chosen for night/day mode.
      */
     private void drawPlanets(Canvas canvas, int width, int height) {
         if (planetData.isEmpty()) {
@@ -1175,11 +1246,17 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Finds a star for constellation rendering, with fallback strategies.
-     *
-     * @param starId The star ID to look up
-     * @return StarData if found, null otherwise
-     */
+         * Locate a StarData entry for a constellation reference, trying direct, case-insensitive,
+         * and coordinate-based fallbacks.
+         *
+         * <p>If {@code starId} starts with {@code "cstar_"} the suffix is parsed as
+         * {@code RA_Dec} in thousandths (e.g. {@code "cstar_12345_67890"} -> RA=12.345, Dec=67.890)
+         * and the nearest catalog star within 1.0° is returned.
+         *
+         * @param starId the star identifier, which may be an exact ID, a name (case-insensitive),
+         *               or a coordinate-based ID starting with {@code "cstar_"}
+         * @return the matching {@code StarData} if found, `null` otherwise
+         */
     private StarData findStarForConstellation(String starId) {
         // Try direct lookup first
         StarData star = starLookupMap.get(starId);
@@ -1213,13 +1290,13 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Finds the nearest star to the given celestial coordinates within a radius.
-     *
-     * @param ra     Target RA in degrees
-     * @param dec    Target Dec in degrees
-     * @param radius Maximum angular distance in degrees
-     * @return Nearest StarData if within radius, null otherwise
-     */
+         * Locate the nearest star within an angular radius around the specified RA/Dec.
+         *
+         * @param ra     target right ascension in degrees
+         * @param dec    target declination in degrees
+         * @param radius maximum angular distance in degrees
+         * @return the nearest StarData within the radius, or `null` if none found
+         */
     private StarData findNearestStarByCoords(float ra, float dec, float radius) {
         StarData nearest = null;
         float nearestDist = radius * radius;  // Use squared distance for comparison
@@ -1243,7 +1320,11 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Draws a crosshair at the center of the screen.
+     * Draws a centered crosshair overlay on the provided canvas.
+     *
+     * @param canvas the Canvas to draw into
+     * @param width  the view width in pixels (used to compute center)
+     * @param height the view height in pixels (used to compute center)
      */
     private void drawCrosshair(Canvas canvas, int width, int height) {
         float centerX = width / 2f;
@@ -1275,9 +1356,9 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Returns whether planets are currently visible.
+     * Indicates whether planets are shown on the view.
      *
-     * @return true if planets are shown
+     * @return true if planets are shown, false otherwise.
      */
     public boolean isPlanetsVisible() {
         return showPlanets;
@@ -1300,35 +1381,67 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Clears all planet data.
+     * Remove all stored planet entries and request a redraw of the view.
+     *
+     * Clears the internal planet data so no planets will be rendered and schedules the view to be redrawn.
      */
     public void clearPlanets() {
         planetData.clear();
         invalidate();
     }
 
+    /**
+     * Enable or disable night mode for the view's rendering.
+     *
+     * @param enabled true to enable the night-mode color scheme, false to use the day-mode color scheme
+     */
     public void setNightMode(boolean enabled) {
         this.nightMode = enabled;
         invalidate();
     }
 
+    /**
+     * Set the view's field of view used for projecting sky coordinates and refresh star positions.
+     *
+     * @param fov horizontal field of view in degrees; larger values include more of the sky
+     */
     public void setFieldOfView(float fov) {
         this.fieldOfView = fov;
         updateStarPositions();
     }
 
+    /**
+     * Replace the current rendered star list with the provided list and schedule a redraw.
+     *
+     * @param newStars list of star entries where each float[] is formatted as [x, y, size, color];
+     *                 x and y are screen coordinates, size is the visual radius, and color is the
+     *                 star color encoded as a float value used by the renderer.
+     */
     public void setStars(List<float[]> newStars) {
         stars.clear();
         stars.addAll(newStars);
         invalidate();
     }
 
+    /**
+     * Replace the currently rendered line segments and schedule a redraw of the view.
+     *
+     * @param newLines a list of float arrays representing line segments; each array must contain
+     *                 five elements in this order: [x1, y1, x2, y2, color].
+     */
     public void setLines(List<float[]> newLines) {
         lines.clear();
         lines.addAll(newLines);
         invalidate();
     }
 
+    /**
+     * Replace the current rendered labels with the provided list and invalidate the view.
+     *
+     * @param newLabels list of label entries; each entry must be an Object[] containing
+     *                  {Float x, Float y, String text} where x and y are label screen
+     *                  coordinates (pixels) and text is the label to draw
+     */
     public void setLabels(List<Object[]> newLabels) {
         labels.clear();
         labels.addAll(newLabels);
@@ -1336,11 +1449,11 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Enables or disables simple star map mode.
-     * Simple mode shows all stars using RA/Dec directly mapped to screen coordinates.
-     * Complex mode uses Alt/Az projection based on observer location and time.
+     * Toggle the simple star map rendering mode.
      *
-     * @param enabled true for simple mode (guaranteed visible stars), false for complex projection
+     * When disabled, recomputes star positions using the complex Alt/Az projection for the current observer/time; when enabled, stars are rendered using RA/Dec mapping.
+     *
+     * @param enabled true to enable simple RA/Dec-based rendering, false to use Alt/Az projection
      */
     public void setSimpleStarMapMode(boolean enabled) {
         this.useSimpleStarMap = enabled;
@@ -1351,18 +1464,18 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Returns whether simple star map mode is enabled.
+     * Indicates whether the view is currently using the simple star map rendering mode.
      *
-     * @return true if simple mode is active
+     * @return `true` if the simple star map rendering mode is enabled, `false` otherwise.
      */
     public boolean isSimpleStarMapMode() {
         return useSimpleStarMap;
     }
 
     /**
-     * Returns the number of stars currently loaded.
+     * Get the number of loaded stars.
      *
-     * @return count of stars in the star data list
+     * @return the number of stars currently loaded, or 0 if no star data is present
      */
     public int getStarCount() {
         return realStarData != null ? realStarData.size() : 0;
@@ -1377,6 +1490,16 @@ public class SkyCanvasView extends View {
         this.starSelectedListener = listener;
     }
 
+    /**
+     * Handle touch events on the sky view and notify the registered listener when a star is tapped.
+     *
+     * <p>On ACTION_UP, searches for the nearest star within a 50-pixel radius of the touch point and,
+     * if a star is found and a listener is registered, invokes {@code OnStarSelectedListener.onStarSelected}
+     * with that star.</p>
+     *
+     * @param event the MotionEvent describing the touch
+     * @return `true` indicating the touch event was consumed
+     */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         Log.d("TOUCH", "Touch at " + event.getX() + ", " + event.getY() + " action=" + event.getAction());

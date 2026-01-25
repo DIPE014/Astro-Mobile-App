@@ -13,6 +13,13 @@ import com.astro.app.core.control.space.Universe
 /**
  * Computes celestial coordinates of zenith from utc, lat long.
  */
+/**
+ * Compute the celestial coordinates (right ascension and declination) of the local zenith.
+ *
+ * @param utc The UTC date/time at which to compute the zenith coordinates.
+ * @param location Geographic coordinates (latitude, longitude) in degrees.
+ * @return An [RaDec] containing the right ascension and declination of the zenith, in degrees; the RA corresponds to the local mean sidereal time at the given longitude and the Dec equals the location latitude.
+ */
 fun calculateRADecOfZenith(utc: Date, location: LatLong): RaDec {
     // compute overhead RA in degrees
     val myRa = meanSiderealTime(utc, location.longitude)
@@ -25,7 +32,12 @@ fun calculateRADecOfZenith(utc: Date, location: LatLong): RaDec {
  * Return the date of the next full moon after today.
  */
 // TODO(serafini): This could also be error prone right around the time
-// of the full and new moons...
+/**
+ * Determines the UTC date and time of the next full Moon after the given reference time.
+ *
+ * @param now The reference UTC time from which to search for the next full Moon.
+ * @return The UTC `Date` of the next full Moon occurring after `now`.
+ */
 fun getNextFullMoon(now: Date): Date {
     val universe = Universe()
     val moon = universe.solarSystemObjectFor(SolarSystemBody.Moon)
@@ -46,8 +58,12 @@ fun getNextFullMoon(now: Date): Date {
 }
 
 /**
- * Return the date of the next full moon after today.
- * Slow incremental version, only correct to within an hour.
+ * Find the next full Moon after the given time.
+ *
+ * Performs an incremental hourly search and returns the Date at which the Moon reaches full phase.
+ *
+ * @param now The starting time to search from.
+ * @return A Date representing the approximate time of the next full Moon (accuracy roughly within one hour).
  */
 fun getNextFullMoonSlow(now: Date): Date {
     val universe = Universe()

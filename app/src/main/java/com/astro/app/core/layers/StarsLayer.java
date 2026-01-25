@@ -74,57 +74,58 @@ public class StarsLayer extends AbstractLayer {
     public interface StarRepository {
 
         /**
-         * Returns the list of all stars.
+         * Retrieve all available stars from the repository.
          *
-         * @return List of star data (never null, may be empty)
+         * @return a non-null list of StarData objects containing all known stars; may be empty
          */
         @NonNull
         List<StarData> getStars();
 
         /**
-         * Returns stars filtered by magnitude.
+         * Retrieve stars brighter than the specified magnitude.
          *
-         * @param maxMagnitude Maximum magnitude (lower = brighter)
-         * @return List of stars brighter than maxMagnitude
+         * @param maxMagnitude maximum magnitude; lower values indicate brighter stars
+         * @return non-null list of stars with magnitude less than `maxMagnitude` (may be empty)
          */
         @NonNull
         List<StarData> getStarsBrighterThan(float maxMagnitude);
 
         /**
-         * Finds a star by its ID.
+         * Finds the star with the specified identifier.
          *
-         * @param starId The star ID to find
-         * @return The star data, or null if not found
+         * @param starId non-null identifier of the star to look up
+         * @return the matching StarData, or null if no star has the given identifier
          */
         @Nullable
         StarData findById(@NonNull String starId);
 
         /**
-         * Finds stars by name (partial match).
+         * Find stars whose name contains the given text (partial match).
          *
-         * @param name The name to search for
-         * @return List of matching stars
+         * @param name substring to match against star names; matching is partial
+         * @return a non-null list of stars whose names match the provided text (may be empty)
          */
         @NonNull
         List<StarData> findByName(@NonNull String name);
     }
 
     /**
-     * Creates a StarsLayer with the given repository.
+     * Constructs a StarsLayer backed by the provided StarRepository using default magnitude and label settings.
      *
-     * @param starRepository The repository providing star data
+     * @param starRepository the non-null repository supplying star data for this layer
      */
     public StarsLayer(@NonNull StarRepository starRepository) {
         this(starRepository, DEFAULT_MAGNITUDE_LIMIT, DEFAULT_LABEL_MAGNITUDE_LIMIT, true);
     }
 
     /**
-     * Creates a StarsLayer with custom settings.
+     * Constructs a StarsLayer backed by the given StarRepository and configured with
+     * magnitude and label display limits.
      *
-     * @param starRepository       The repository providing star data
-     * @param magnitudeLimit       Maximum magnitude for stars to render
-     * @param labelMagnitudeLimit  Maximum magnitude for showing labels
-     * @param showLabels           Whether to show star labels
+     * @param starRepository      non-null repository that provides star data
+     * @param magnitudeLimit      maximum star magnitude to render (higher values include fainter stars)
+     * @param labelMagnitudeLimit maximum star magnitude eligible for labels (labels shown for stars with magnitude <= this)
+     * @param showLabels          true to enable label creation for eligible stars, false to disable labels
      */
     public StarsLayer(@NonNull StarRepository starRepository,
                       float magnitudeLimit,
@@ -137,6 +138,14 @@ public class StarsLayer extends AbstractLayer {
         this.showLabels = showLabels;
     }
 
+    /**
+     * Populates the layer with star point primitives and optional name labels according to the
+     * layer's magnitude and label visibility settings.
+     *
+     * The method loads stars filtered by the current magnitude limit, creates a point primitive
+     * for each loaded star, and—when label display is enabled—adds a label for named stars whose
+     * magnitude is less than or equal to the label magnitude limit.
+     */
     @Override
     protected void initializeLayer() {
         Log.d(TAG, "Initializing stars layer with magnitude limit: " + magnitudeLimit);
@@ -163,10 +172,10 @@ public class StarsLayer extends AbstractLayer {
     }
 
     /**
-     * Creates a point primitive from star data.
+     * Create a PointPrimitive used to render the given star.
      *
-     * @param star The star data
-     * @return A point primitive representing the star
+     * @param star the star data to convert into a point primitive
+     * @return the PointPrimitive representing the star's visual point
      */
     @NonNull
     private PointPrimitive createPointFromStar(@NonNull StarData star) {
@@ -175,11 +184,10 @@ public class StarsLayer extends AbstractLayer {
     }
 
     /**
-     * Creates a label primitive from star data.
-     *
-     * @param star The star data
-     * @return A label primitive, or null if the star has no name
-     */
+         * Create a label primitive for the given star if the star has a name.
+         *
+         * @return the `LabelPrimitive` for the star, or `null` if the star has no name
+         */
     @Nullable
     private LabelPrimitive createLabelFromStar(@NonNull StarData star) {
         String name = star.getName();
@@ -192,11 +200,14 @@ public class StarsLayer extends AbstractLayer {
     }
 
     /**
-     * Determines if a label should be shown for a star.
-     *
-     * @param star The star data
-     * @return true if a label should be shown
-     */
+         * Determines whether a label should be displayed for the given star.
+         *
+         * A label is shown only if the star has a non-empty name and its magnitude
+         * is less than or equal to the layer's label magnitude limit.
+         *
+         * @param star the star to evaluate
+         * @return `true` if the star has a non-empty name and its magnitude is less than or equal to the label magnitude limit, `false` otherwise
+         */
     private boolean shouldShowLabel(@NonNull StarData star) {
         // Only show labels for bright stars with names
         if (star.getName() == null || star.getName().isEmpty()) {
@@ -208,66 +219,66 @@ public class StarsLayer extends AbstractLayer {
     // ==================== Configuration Methods ====================
 
     /**
-     * Sets the magnitude limit for rendering stars.
+     * Update the maximum magnitude used to determine which stars are rendered.
      *
-     * <p>Changing this will require calling {@link #redraw()} to take effect.</p>
+     * <p>Changing this value requires calling {@link #redraw()} for the change to take effect.</p>
      *
-     * @param magnitudeLimit Maximum magnitude (lower = only brighter stars)
+     * @param magnitudeLimit maximum magnitude to include; lower values restrict rendering to brighter stars
      */
     public void setMagnitudeLimit(float magnitudeLimit) {
         this.magnitudeLimit = magnitudeLimit;
     }
 
     /**
-     * Returns the current magnitude limit.
+     * Get the current magnitude limit used to filter which stars are rendered.
      *
-     * @return Maximum magnitude for rendered stars
+     * @return the maximum magnitude; stars with magnitude greater than this value are excluded from rendering
      */
     public float getMagnitudeLimit() {
         return magnitudeLimit;
     }
 
     /**
-     * Sets the magnitude limit for showing star labels.
+     * Sets the maximum star magnitude eligible for displaying labels.
      *
-     * @param labelMagnitudeLimit Maximum magnitude for labeled stars
+     * @param labelMagnitudeLimit maximum magnitude (inclusive) for which named stars may receive labels
      */
     public void setLabelMagnitudeLimit(float labelMagnitudeLimit) {
         this.labelMagnitudeLimit = labelMagnitudeLimit;
     }
 
     /**
-     * Returns the current label magnitude limit.
+     * Gets the maximum star magnitude eligible for showing labels.
      *
-     * @return Maximum magnitude for labeled stars
+     * @return the maximum magnitude for which a star will receive a label
      */
     public float getLabelMagnitudeLimit() {
         return labelMagnitudeLimit;
     }
 
     /**
-     * Sets whether to show star labels.
+     * Enable or disable rendering of star labels in this layer.
      *
-     * @param showLabels true to show labels, false to hide them
+     * @param showLabels `true` to display labels, `false` to hide them
      */
     public void setShowLabels(boolean showLabels) {
         this.showLabels = showLabels;
     }
 
     /**
-     * Returns whether star labels are shown.
+     * Indicates whether star labels are displayed.
      *
-     * @return true if labels are shown
+     * @return true if labels are shown, false otherwise.
      */
     public boolean isShowLabels() {
         return showLabels;
     }
 
     /**
-     * Returns the star repository.
-     *
-     * @return The star repository
-     */
+         * Accesses the StarRepository backing this layer.
+         *
+         * @return the StarRepository used by this layer (never {@code null})
+         */
     @NonNull
     public StarRepository getStarRepository() {
         return starRepository;

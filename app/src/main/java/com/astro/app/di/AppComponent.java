@@ -47,10 +47,8 @@ public interface AppComponent {
     void inject(SettingsActivity activity);
 
     /**
-     * Injects dependencies into the SearchActivity.
-     *
-     * @param activity the activity instance to inject into
-     */
+ * Injects dependencies into a SearchActivity instance.
+ */
     void inject(SearchActivity activity);
 
     /**
@@ -61,18 +59,18 @@ public interface AppComponent {
     interface Builder {
 
         /**
-         * Sets the AppModule for this component.
-         *
-         * @param appModule the module providing application-level dependencies
-         * @return the builder instance for chaining
-         */
+ * Sets the AppModule instance to be used by the component.
+ *
+ * @param appModule the AppModule that provides application-scoped dependencies
+ * @return the Builder instance for chaining
+ */
         Builder appModule(AppModule appModule);
 
         /**
-         * Builds the AppComponent instance.
-         *
-         * @return the constructed AppComponent
-         */
+ * Create an AppComponent configured by this Builder.
+ *
+ * @return the constructed AppComponent
+ */
         AppComponent build();
     }
 }

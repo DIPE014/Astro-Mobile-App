@@ -7,6 +7,11 @@ package com.astro.app.core.control;
  */
 public class RealClock implements Clock {
 
+    /**
+     * Gets the current time in milliseconds since the Unix epoch.
+     *
+     * @return the current time in milliseconds since January 1, 1970 UTC
+     */
     @Override
     public long getTimeInMillisSinceEpoch() {
         return System.currentTimeMillis();
