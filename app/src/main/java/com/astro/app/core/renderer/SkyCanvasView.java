@@ -667,8 +667,9 @@ public class SkyCanvasView extends View {
             double starAlt = altAz[0];  // Altitude in degrees (0 = horizon, 90 = zenith)
             double starAz = altAz[1];   // Azimuth in degrees (0 = North, 90 = East)
 
-            // Skip stars below the horizon
-            if (starAlt < -5) {
+            // Skip stars well below the horizon (allow some below-horizon stars
+            // to be visible when view is near horizon level, prevents dark bottom edge)
+            if (starAlt < -20) {
                 continue;
             }
 
@@ -1047,7 +1048,7 @@ public class SkyCanvasView extends View {
 
     /**
      * Draws the coordinate grid (Alt/Az lines) on the sky map.
-     * Uses the same Alt/Az projection as stars for sensor-based view movement.
+     * Uses proper spherical projection to match star rendering.
      *
      * @param canvas Canvas to draw on
      * @param width  Canvas width
@@ -1069,71 +1070,97 @@ public class SkyCanvasView extends View {
 
         // Pixels per degree
         float pixelsPerDegree = Math.min(width, height) / fieldOfView;
-        double halfFov = fieldOfView / 2.0;
 
-        // Draw azimuth lines (every 30 degrees) - these are vertical-ish lines
+        // Draw altitude circles (every 15 degrees) using spherical projection
+        // These appear as curves, not straight lines, due to the projection
+        for (int alt = -15; alt <= 90; alt += 15) {
+            Paint linePaint = gridLinePaint;
+            if (alt == 0) {
+                // Horizon gets a special stronger line
+                linePaint = new Paint(gridLinePaint);
+                linePaint.setStrokeWidth(2f);
+                linePaint.setColor(nightMode ? Color.argb(120, 180, 100, 100) : Color.argb(120, 100, 200, 100));
+            }
+
+            // Draw altitude circle as a series of connected points
+            float lastX = -1, lastY = -1;
+            for (int az = 0; az <= 360; az += 5) {
+                float[] pos = projectToScreen(alt, az, altitudeOffset, azimuthOffset,
+                        centerX, centerY, pixelsPerDegree);
+                if (pos[2] > 0.5f) {
+                    float x = pos[0];
+                    float y = pos[1];
+                    if (lastX >= 0 && x >= -50 && x <= width + 50 && y >= -50 && y <= height + 50) {
+                        // Check for azimuth wraparound
+                        if (Math.abs(x - lastX) < width / 2) {
+                            canvas.drawLine(lastX, lastY, x, y, linePaint);
+                        }
+                    }
+                    lastX = x;
+                    lastY = y;
+                } else {
+                    lastX = -1;
+                    lastY = -1;
+                }
+            }
+
+            // Draw altitude label at azimuth 0 (North) if visible
+            float[] labelPos = projectToScreen(alt, 0, altitudeOffset, azimuthOffset,
+                    centerX, centerY, pixelsPerDegree);
+            if (labelPos[2] > 0.5f && labelPos[0] >= 0 && labelPos[0] <= width &&
+                labelPos[1] >= 0 && labelPos[1] <= height) {
+                String label = alt + "\u00b0";
+                canvas.drawText(label, labelPos[0] + 4, labelPos[1] - 4, gridLabelPaint);
+            }
+        }
+
+        // Draw azimuth lines (every 30 degrees) using spherical projection
         for (int az = 0; az < 360; az += 30) {
-            // Calculate angular distance from current view azimuth
-            double dAz = az - azimuthOffset;
-            if (dAz > 180) dAz -= 360;
-            if (dAz < -180) dAz += 360;
+            // Draw azimuth line as a series of connected points from horizon to zenith
+            float lastX = -1, lastY = -1;
+            for (int alt = -15; alt <= 90; alt += 5) {
+                float[] pos = projectToScreen(alt, az, altitudeOffset, azimuthOffset,
+                        centerX, centerY, pixelsPerDegree);
+                if (pos[2] > 0.5f) {
+                    float x = pos[0];
+                    float y = pos[1];
+                    if (lastX >= 0 && x >= -50 && x <= width + 50 && y >= -50 && y <= height + 50) {
+                        canvas.drawLine(lastX, lastY, x, y, gridLinePaint);
+                    }
+                    lastX = x;
+                    lastY = y;
+                } else {
+                    lastX = -1;
+                    lastY = -1;
+                }
+            }
 
-            // Only draw if in view
-            if (Math.abs(dAz) > halfFov) continue;
-
-            float x = centerX + (float)(dAz * pixelsPerDegree);
-
-            // Draw line from bottom to top of screen
-            canvas.drawLine(x, 0, x, height, gridLinePaint);
-
-            // Draw azimuth label
-            String label;
-            if (az == 0) label = "N";
-            else if (az == 90) label = "E";
-            else if (az == 180) label = "S";
-            else if (az == 270) label = "W";
-            else label = az + "\u00b0";
-            canvas.drawText(label, x + 4, height - 20, gridLabelPaint);
+            // Draw azimuth label at horizon level if visible
+            float[] labelPos = projectToScreen(5, az, altitudeOffset, azimuthOffset,
+                    centerX, centerY, pixelsPerDegree);
+            if (labelPos[2] > 0.5f && labelPos[0] >= 0 && labelPos[0] <= width &&
+                labelPos[1] >= 0 && labelPos[1] <= height) {
+                String label;
+                if (az == 0) label = "N";
+                else if (az == 90) label = "E";
+                else if (az == 180) label = "S";
+                else if (az == 270) label = "W";
+                else label = az + "\u00b0";
+                canvas.drawText(label, labelPos[0] + 4, labelPos[1] + 16, gridLabelPaint);
+            }
         }
 
-        // Draw altitude lines (every 15 degrees) - these are horizontal lines
-        for (int alt = 0; alt <= 90; alt += 15) {
-            // Calculate angular distance from current view altitude
-            double dAlt = alt - altitudeOffset;
-
-            // Only draw if in view
-            if (Math.abs(dAlt) > halfFov) continue;
-
-            float y = centerY - (float)(dAlt * pixelsPerDegree);
-
-            // Draw line from left to right of screen
-            canvas.drawLine(0, y, width, y, gridLinePaint);
-
-            // Draw altitude label
-            String label = alt + "\u00b0";
-            canvas.drawText(label, 4, y - 4, gridLabelPaint);
-        }
-
-        // Draw horizon line (altitude = 0) with stronger line if visible
-        double dAltHorizon = 0 - altitudeOffset;
-        if (Math.abs(dAltHorizon) <= halfFov) {
-            float horizonY = centerY - (float)(dAltHorizon * pixelsPerDegree);
-            Paint horizonPaint = new Paint(gridLinePaint);
-            horizonPaint.setStrokeWidth(2f);
-            horizonPaint.setColor(nightMode ? Color.argb(120, 180, 100, 100) : Color.argb(120, 100, 200, 100));
-            canvas.drawLine(0, horizonY, width, horizonY, horizonPaint);
-        }
-
-        // Draw zenith point (altitude = 90) if visible
-        double dAltZenith = 90 - altitudeOffset;
-        if (Math.abs(dAltZenith) <= halfFov) {
-            float zenithY = centerY - (float)(dAltZenith * pixelsPerDegree);
+        // Draw zenith marker if visible
+        float[] zenithPos = projectToScreen(90, 0, altitudeOffset, azimuthOffset,
+                centerX, centerY, pixelsPerDegree);
+        if (zenithPos[2] > 0.5f && zenithPos[0] >= 0 && zenithPos[0] <= width &&
+            zenithPos[1] >= 0 && zenithPos[1] <= height) {
             Paint zenithPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             zenithPaint.setColor(nightMode ? Color.argb(150, 200, 150, 150) : Color.argb(150, 200, 200, 255));
             zenithPaint.setStyle(Paint.Style.STROKE);
             zenithPaint.setStrokeWidth(2f);
-            canvas.drawCircle(centerX, zenithY, 15f, zenithPaint);
-            canvas.drawText("Zenith", centerX + 20, zenithY, gridLabelPaint);
+            canvas.drawCircle(zenithPos[0], zenithPos[1], 15f, zenithPaint);
+            canvas.drawText("Zenith", zenithPos[0] + 20, zenithPos[1], gridLabelPaint);
         }
     }
 

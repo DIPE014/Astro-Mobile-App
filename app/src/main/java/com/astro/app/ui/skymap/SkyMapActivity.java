@@ -270,9 +270,11 @@ public class SkyMapActivity extends AppCompatActivity {
             // Convert pitch to altitude (0 = horizon, 90 = zenith)
             // When phone is held upright facing forward, pitch is ~0
             // When tilted up toward sky, pitch becomes negative
-            // So altitude = -pitch, clamped to 0-90 range
+            // So altitude = -pitch
+            // Allow viewing slightly below horizon (-15°) to avoid dark bottom edge
+            // when looking near the horizon, and cap at 90° (zenith)
             float altitude = -pitch;
-            altitude = Math.max(0f, Math.min(90f, altitude));
+            altitude = Math.max(-15f, Math.min(90f, altitude));
 
             // Update the sky canvas view with new orientation
             final float finalAzimuth = azimuth;
@@ -1068,11 +1070,14 @@ public class SkyMapActivity extends AppCompatActivity {
      * Shows the time travel dialog to select a different date/time.
      */
     private void showTimeTravelDialog() {
+        Log.d(TAG, "TIME_TRAVEL: showTimeTravelDialog called");
         // Pass current time travel time (or current time if not in time travel mode)
         long currentTime = (timeTravelClock != null)
                 ? timeTravelClock.getCurrentTimeMillis()
                 : System.currentTimeMillis();
+        Log.d(TAG, "TIME_TRAVEL: Creating dialog with time " + new Date(currentTime));
         TimeTravelDialogFragment dialog = TimeTravelDialogFragment.newInstance(currentTime);
+        Log.d(TAG, "TIME_TRAVEL: Setting callback on dialog");
         dialog.setCallback(new TimeTravelDialogFragment.TimeTravelCallback() {
             @Override
             public void onTimeTravelSelected(int year, int month, int day, int hour, int minute) {
@@ -1104,7 +1109,9 @@ public class SkyMapActivity extends AppCompatActivity {
                 }
             }
         });
+        Log.d(TAG, "TIME_TRAVEL: Callback set, now showing dialog");
         dialog.show(getSupportFragmentManager(), "time_travel");
+        Log.d(TAG, "TIME_TRAVEL: Dialog show() called");
     }
 
     /**

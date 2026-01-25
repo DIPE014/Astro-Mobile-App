@@ -71,6 +71,7 @@ public class TimeTravelDialogFragment extends DialogFragment {
 
     public void setCallback(TimeTravelCallback callback) {
         this.callback = callback;
+        android.util.Log.d(TAG, "TIME_TRAVEL: setCallback called, callback is " + (callback != null ? "NOT NULL" : "NULL"));
     }
 
     @Override
@@ -97,6 +98,7 @@ public class TimeTravelDialogFragment extends DialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        android.util.Log.d(TAG, "TIME_TRAVEL: onViewCreated called, callback is " + (callback != null ? "NOT NULL" : "NULL"));
 
         // Initialize views
         tvSelectedDate = view.findViewById(R.id.tvSelectedDate);
@@ -137,14 +139,22 @@ public class TimeTravelDialogFragment extends DialogFragment {
         });
 
         btnGoToTime.setOnClickListener(v -> {
+            android.util.Log.d(TAG, "TIME_TRAVEL: Go To Time button clicked!");
+            android.util.Log.d(TAG, "TIME_TRAVEL: callback is " + (callback != null ? "NOT NULL" : "NULL"));
             if (callback != null) {
-                callback.onTimeTravelSelected(
-                        selectedDateTime.get(Calendar.YEAR),
-                        selectedDateTime.get(Calendar.MONTH) + 1,
-                        selectedDateTime.get(Calendar.DAY_OF_MONTH),
-                        selectedDateTime.get(Calendar.HOUR_OF_DAY),
-                        selectedDateTime.get(Calendar.MINUTE)
-                );
+                int year = selectedDateTime.get(Calendar.YEAR);
+                int month = selectedDateTime.get(Calendar.MONTH) + 1;
+                int day = selectedDateTime.get(Calendar.DAY_OF_MONTH);
+                int hour = selectedDateTime.get(Calendar.HOUR_OF_DAY);
+                int minute = selectedDateTime.get(Calendar.MINUTE);
+                android.util.Log.d(TAG, "TIME_TRAVEL: Calling callback with " + year + "-" + month + "-" + day + " " + hour + ":" + minute);
+                callback.onTimeTravelSelected(year, month, day, hour, minute);
+            } else {
+                android.util.Log.e(TAG, "TIME_TRAVEL: callback is NULL! Cannot invoke time travel.");
+                // Show toast to user so they know something went wrong
+                if (getContext() != null) {
+                    android.widget.Toast.makeText(getContext(), "Error: Dialog callback lost", android.widget.Toast.LENGTH_SHORT).show();
+                }
             }
             dismiss();
         });
