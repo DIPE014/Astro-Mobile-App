@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.astro.app.data.model.ConstellationData;
 import com.astro.app.data.model.StarData;
 
 import java.util.ArrayList;
@@ -60,6 +61,16 @@ public class SkyCanvasView extends View {
     private Paint planetPaint;
     private Paint planetLabelPaint;
 
+    // Constellation data
+    private List<ConstellationData> constellations = new CopyOnWriteArrayList<>();
+    private final java.util.Map<String, StarData> starLookupMap = new HashMap<>();
+    private boolean showConstellations = true;
+    private boolean showConstellationLabels = true;
+    private Paint constellationLinePaint;
+    private Paint constellationLabelPaint;
+    private static final int CONSTELLATION_LINE_COLOR = Color.argb(100, 100, 150, 255);
+    private static final int CONSTELLATION_LINE_COLOR_NIGHT = Color.argb(100, 150, 50, 50);
+
     // Rendered elements (computed from star data)
     private List<float[]> stars = new CopyOnWriteArrayList<>();  // x, y, size, color
     private List<float[]> lines = new CopyOnWriteArrayList<>();  // x1, y1, x2, y2, color
@@ -103,6 +114,16 @@ public class SkyCanvasView extends View {
         planetLabelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         planetLabelPaint.setTextSize(28f);
         planetLabelPaint.setColor(Color.rgb(255, 183, 77)); // Warm orange for planet labels
+
+        constellationLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        constellationLinePaint.setStyle(Paint.Style.STROKE);
+        constellationLinePaint.setStrokeWidth(1.5f);
+        constellationLinePaint.setColor(CONSTELLATION_LINE_COLOR);
+
+        constellationLabelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        constellationLabelPaint.setTextSize(22f);
+        constellationLabelPaint.setTextAlign(Paint.Align.CENTER);
+        constellationLabelPaint.setColor(Color.argb(180, 150, 180, 255));
     }
 
     /**
@@ -115,6 +136,8 @@ public class SkyCanvasView extends View {
         this.realStarData.clear();
         if (starList != null) {
             this.realStarData.addAll(starList);
+            // Build star lookup map for constellation line rendering
+            buildStarLookupMap(starList);
         }
         Log.d(TAG, "STARS: Received " + realStarData.size() + " stars from repository");
         if (useSimpleStarMap) {
@@ -123,6 +146,67 @@ public class SkyCanvasView extends View {
         } else {
             updateStarPositions();
         }
+    }
+
+    /**
+     * Builds a lookup map from star IDs to StarData for constellation rendering.
+     *
+     * @param starList List of stars to index
+     */
+    private void buildStarLookupMap(List<StarData> starList) {
+        starLookupMap.clear();
+        for (StarData star : starList) {
+            if (star.getId() != null) {
+                starLookupMap.put(star.getId(), star);
+            }
+            // Also index by name for fallback
+            if (star.getName() != null && !star.getName().isEmpty()) {
+                starLookupMap.put(star.getName().toLowerCase(), star);
+            }
+        }
+        Log.d(TAG, "CONSTELLATIONS: Built star lookup map with " + starLookupMap.size() + " entries");
+    }
+
+    /**
+     * Sets the constellation data for line rendering.
+     *
+     * @param constellationList List of ConstellationData objects
+     */
+    public void setConstellationData(List<ConstellationData> constellationList) {
+        this.constellations.clear();
+        if (constellationList != null) {
+            this.constellations.addAll(constellationList);
+        }
+        Log.d(TAG, "CONSTELLATIONS: Received " + constellations.size() + " constellations");
+        invalidate();
+    }
+
+    /**
+     * Sets the visibility of constellation lines.
+     *
+     * @param visible true to show constellation lines
+     */
+    public void setConstellationsVisible(boolean visible) {
+        this.showConstellations = visible;
+        Log.d(TAG, "CONSTELLATIONS: Visibility set to " + visible);
+        invalidate();
+    }
+
+    /**
+     * Sets the visibility of constellation labels.
+     *
+     * @param visible true to show constellation names
+     */
+    public void setConstellationLabelsVisible(boolean visible) {
+        this.showConstellationLabels = visible;
+        invalidate();
+    }
+
+    /**
+     * Returns whether constellations are visible.
+     */
+    public boolean isConstellationsVisible() {
+        return showConstellations;
     }
 
     /**
@@ -450,6 +534,10 @@ public class SkyCanvasView extends View {
 
         // Use simple star map mode if enabled and we have real star data
         if (useSimpleStarMap && realStarData != null && !realStarData.isEmpty()) {
+            // Draw constellation lines first (behind stars)
+            if (showConstellations) {
+                drawConstellations(canvas, width, height);
+            }
             Log.d(TAG, "STARS: Drawing " + realStarData.size() + " stars in simple map mode");
             drawSimpleStarMap(canvas, width, height);
             // Draw planets on top of stars
@@ -611,6 +699,163 @@ public class SkyCanvasView extends View {
         }
 
         Log.d(TAG, "PLANETS: Drew " + planetsDrawn + " planets on screen");
+    }
+
+    /**
+     * Draws constellation lines on the sky map.
+     * Uses the same RA/Dec to screen coordinate mapping as stars.
+     */
+    private void drawConstellations(Canvas canvas, int width, int height) {
+        if (constellations.isEmpty()) {
+            return;
+        }
+
+        // Set line paint color based on night mode
+        if (nightMode) {
+            constellationLinePaint.setColor(CONSTELLATION_LINE_COLOR_NIGHT);
+            constellationLabelPaint.setColor(Color.argb(150, 200, 100, 100));
+        } else {
+            constellationLinePaint.setColor(CONSTELLATION_LINE_COLOR);
+            constellationLabelPaint.setColor(Color.argb(180, 150, 180, 255));
+        }
+
+        int linesDrawn = 0;
+        int labelsDrawn = 0;
+
+        for (ConstellationData constellation : constellations) {
+            List<String> starIds = constellation.getStarIds();
+            List<int[]> lineIndices = constellation.getLineIndices();
+
+            // Build position map for this constellation's stars
+            java.util.Map<Integer, float[]> starPositions = new HashMap<>();
+
+            for (int i = 0; i < starIds.size(); i++) {
+                String starId = starIds.get(i);
+                StarData star = findStarForConstellation(starId);
+
+                if (star != null) {
+                    float ra = star.getRa();
+                    float dec = star.getDec();
+
+                    // Normalize RA
+                    if (ra < 0) ra += 360f;
+                    if (ra >= 360) ra -= 360f;
+
+                    // Convert to screen coordinates (same as stars)
+                    float x = (ra / 360f) * width;
+                    float y = ((90f - dec) / 180f) * height;
+
+                    starPositions.put(i, new float[]{x, y, ra, dec});
+                }
+            }
+
+            // Draw lines between stars
+            for (int[] indices : lineIndices) {
+                if (indices.length >= 2) {
+                    float[] start = starPositions.get(indices[0]);
+                    float[] end = starPositions.get(indices[1]);
+
+                    if (start != null && end != null) {
+                        // Check for RA wraparound (line crosses 0/360 boundary)
+                        float raDiff = Math.abs(start[2] - end[2]);
+                        if (raDiff > 180) {
+                            // Skip lines that would wrap around the screen
+                            // (This is a simplified handling - could draw two segments instead)
+                            continue;
+                        }
+
+                        canvas.drawLine(start[0], start[1], end[0], end[1], constellationLinePaint);
+                        linesDrawn++;
+                    }
+                }
+            }
+
+            // Draw constellation label at center
+            if (showConstellationLabels && constellation.hasCenterPoint()) {
+                float centerRa = constellation.getCenterRa();
+                float centerDec = constellation.getCenterDec();
+
+                // Normalize RA
+                if (centerRa < 0) centerRa += 360f;
+                if (centerRa >= 360) centerRa -= 360f;
+
+                float labelX = (centerRa / 360f) * width;
+                float labelY = ((90f - centerDec) / 180f) * height;
+
+                canvas.drawText(constellation.getName(), labelX, labelY, constellationLabelPaint);
+                labelsDrawn++;
+            }
+        }
+
+        Log.d(TAG, "CONSTELLATIONS: Drew " + linesDrawn + " lines, " + labelsDrawn + " labels");
+    }
+
+    /**
+     * Finds a star for constellation rendering, with fallback strategies.
+     *
+     * @param starId The star ID to look up
+     * @return StarData if found, null otherwise
+     */
+    private StarData findStarForConstellation(String starId) {
+        // Try direct lookup first
+        StarData star = starLookupMap.get(starId);
+        if (star != null) {
+            return star;
+        }
+
+        // Try lowercase lookup
+        star = starLookupMap.get(starId.toLowerCase());
+        if (star != null) {
+            return star;
+        }
+
+        // For coordinate-based IDs (cstar_RA_Dec format), extract coordinates and find nearest
+        if (starId.startsWith("cstar_")) {
+            try {
+                String[] parts = starId.substring(6).split("_");
+                if (parts.length >= 2) {
+                    float ra = Float.parseFloat(parts[0]) / 1000f;
+                    float dec = Float.parseFloat(parts[1]) / 1000f;
+
+                    // Find nearest star within 1 degree
+                    return findNearestStarByCoords(ra, dec, 1.0f);
+                }
+            } catch (NumberFormatException e) {
+                // Ignore parsing errors
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Finds the nearest star to the given celestial coordinates within a radius.
+     *
+     * @param ra     Target RA in degrees
+     * @param dec    Target Dec in degrees
+     * @param radius Maximum angular distance in degrees
+     * @return Nearest StarData if within radius, null otherwise
+     */
+    private StarData findNearestStarByCoords(float ra, float dec, float radius) {
+        StarData nearest = null;
+        float nearestDist = radius * radius;  // Use squared distance for comparison
+
+        for (StarData star : realStarData) {
+            float dRa = star.getRa() - ra;
+            float dDec = star.getDec() - dec;
+
+            // Handle RA wraparound
+            if (dRa > 180) dRa -= 360;
+            if (dRa < -180) dRa += 360;
+
+            float distSq = dRa * dRa + dDec * dDec;
+            if (distSq < nearestDist) {
+                nearestDist = distSq;
+                nearest = star;
+            }
+        }
+
+        return nearest;
     }
 
     /**

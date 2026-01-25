@@ -730,6 +730,15 @@ public class SkyMapActivity extends AppCompatActivity {
         skyCanvasView.setStarData(visibleStars);
         Log.d(TAG, "STARS: Star data passed to canvas view");
 
+        // Load and pass constellation data
+        if (constellationRepository != null) {
+            List<com.astro.app.data.model.ConstellationData> constellations =
+                    constellationRepository.getAllConstellations();
+            skyCanvasView.setConstellationData(constellations);
+            skyCanvasView.setConstellationsVisible(isConstellationsEnabled);
+            Log.d(TAG, "CONSTELLATIONS: Loaded " + constellations.size() + " constellations for canvas");
+        }
+
         // Set observer location - use current GPS coordinates if available, otherwise default
         // GPS updates will automatically update this via the LocationListener
         skyCanvasView.setObserverLocation(currentLatitude, currentLongitude);
@@ -956,6 +965,11 @@ public class SkyMapActivity extends AppCompatActivity {
         if (constellationsLayer != null) {
             constellationsLayer.setVisible(isConstellationsEnabled);
             skyGLSurfaceView.requestLayerUpdate();
+        }
+
+        // Update Canvas-based view
+        if (skyCanvasView != null) {
+            skyCanvasView.setConstellationsVisible(isConstellationsEnabled);
         }
 
         ImageView ivConstellations = findViewById(R.id.ivConstellations);
