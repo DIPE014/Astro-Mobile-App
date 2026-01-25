@@ -9,6 +9,7 @@ import com.astro.app.core.control.LocationController;
 import com.astro.app.core.control.MagneticDeclinationCalculator;
 import com.astro.app.core.control.RealMagneticDeclinationCalculator;
 import com.astro.app.core.control.SensorController;
+import com.astro.app.core.control.TimeTravelClock;
 import com.astro.app.data.parser.ProtobufParser;
 import com.astro.app.data.repository.ConstellationRepository;
 import com.astro.app.data.repository.ConstellationRepositoryImpl;
@@ -99,6 +100,18 @@ public class AppModule {
     @Singleton
     MagneticDeclinationCalculator provideMagneticDeclinationCalculator() {
         return new RealMagneticDeclinationCalculator();
+    }
+
+    /**
+     * Provides the TimeTravelClock for viewing the sky at different times.
+     * Singleton to ensure consistent time state across the app.
+     *
+     * @return the TimeTravelClock instance
+     */
+    @Provides
+    @Singleton
+    TimeTravelClock provideTimeTravelClock() {
+        return new TimeTravelClock();
     }
 
     /**

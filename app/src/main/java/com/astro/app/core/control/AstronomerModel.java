@@ -97,6 +97,14 @@ public interface AstronomerModel {
      */
     void setClock(Clock clock);
 
+    /**
+     * Sets the time directly (convenience method for time travel).
+     * Creates a temporary clock returning this specific time.
+     *
+     * @param timeMillis time in milliseconds since epoch
+     */
+    void setTime(long timeMillis);
+
     // ==================== Location Methods ====================
 
     /**

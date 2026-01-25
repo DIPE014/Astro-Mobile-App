@@ -48,6 +48,7 @@ public class SkyCanvasView extends View {
     private double observerLongitude = -74.0060;
     private float azimuthOffset = 0f;  // Device orientation in degrees
     private float altitudeOffset = 45f; // Device tilt (0 = horizon, 90 = zenith)
+    private long observationTime = System.currentTimeMillis(); // Time for sky calculations
 
     // Star data from repository
     private List<StarData> realStarData = new CopyOnWriteArrayList<>();
@@ -131,6 +132,16 @@ public class SkyCanvasView extends View {
     public void setOrientation(float azimuth, float altitude) {
         this.azimuthOffset = azimuth;
         this.altitudeOffset = altitude;
+        updateStarPositions();
+    }
+
+    /**
+     * Sets the time for sky calculations (for time travel feature).
+     *
+     * @param timeMillis time in milliseconds since epoch
+     */
+    public void setTime(long timeMillis) {
+        this.observationTime = timeMillis;
         updateStarPositions();
     }
 

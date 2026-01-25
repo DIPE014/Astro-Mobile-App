@@ -27,6 +27,8 @@ import com.astro.app.R;
 import com.astro.app.core.control.AstronomerModel;
 import com.astro.app.core.control.LocationController;
 import com.astro.app.core.control.SensorController;
+import com.astro.app.core.control.TimeTravelClock;
+import com.astro.app.ui.timetravel.TimeTravelDialogFragment;
 import com.astro.app.core.layers.ConstellationsLayer;
 import com.astro.app.core.layers.GridLayer;
 import com.astro.app.core.layers.StarsLayer;
@@ -96,6 +98,9 @@ public class SkyMapActivity extends AppCompatActivity {
 
     @Inject
     LocationController locationController;
+
+    @Inject
+    TimeTravelClock timeTravelClock;
 
     // Camera components
     private CameraManager cameraManager;
@@ -948,9 +953,69 @@ public class SkyMapActivity extends AppCompatActivity {
      * Shows the time travel dialog to select a different date/time.
      */
     private void showTimeTravelDialog() {
-        Toast.makeText(this, R.string.feature_coming_soon, Toast.LENGTH_SHORT).show();
-        // TODO: Implement time travel dialog
-        // This would allow users to see the sky at different dates/times
+        TimeTravelDialogFragment dialog = TimeTravelDialogFragment.newInstance();
+        dialog.setCallback(new TimeTravelDialogFragment.TimeTravelCallback() {
+            @Override
+            public void onTimeTravelSelected(int year, int month, int day, int hour, int minute) {
+                Log.d(TAG, "Time travel to: " + year + "-" + month + "-" + day + " " + hour + ":" + minute);
+                if (timeTravelClock != null) {
+                    timeTravelClock.travelToDateTime(year, month, day, hour, minute);
+                    updateTimeTravelIndicator(true);
+                    // Update sky view with new time
+                    updateSkyForTime(timeTravelClock.getCurrentTimeMillis());
+                }
+            }
+
+            @Override
+            public void onReturnToRealTime() {
+                Log.d(TAG, "Returning to real time");
+                if (timeTravelClock != null) {
+                    timeTravelClock.returnToRealTime();
+                    updateTimeTravelIndicator(false);
+                    // Update sky view with current time
+                    updateSkyForTime(System.currentTimeMillis());
+                }
+            }
+        });
+        dialog.show(getSupportFragmentManager(), "time_travel");
+    }
+
+    /**
+     * Updates the time travel indicator in the UI.
+     *
+     * @param active whether time travel is active
+     */
+    private void updateTimeTravelIndicator(boolean active) {
+        ImageView ivTimeTravel = findViewById(R.id.ivTimeTravel);
+        if (ivTimeTravel != null) {
+            int tintColor = active ? R.color.time_travel_active : R.color.icon_primary;
+            ivTimeTravel.setColorFilter(ContextCompat.getColor(this, tintColor));
+        }
+    }
+
+    /**
+     * Updates the sky view for a specific time.
+     *
+     * @param timeMillis the time in milliseconds since epoch
+     */
+    private void updateSkyForTime(long timeMillis) {
+        // Update astronomer model time
+        if (astronomerModel != null) {
+            astronomerModel.setTime(timeMillis);
+        }
+
+        // Reload star data for canvas with new time
+        if (skyCanvasView != null) {
+            skyCanvasView.setTime(timeMillis);
+            skyCanvasView.invalidate();
+        }
+
+        // Update GL surface view
+        if (skyGLSurfaceView != null) {
+            skyGLSurfaceView.requestLayerUpdate();
+        }
+
+        Log.d(TAG, "Sky updated for time: " + new java.util.Date(timeMillis));
     }
 
     /**
