@@ -57,6 +57,10 @@ class Moon : EarthOrbitingObject(SolarSystemBody.Moon) {
      * Determine the Moon's phase and return the resource ID of the correct
      * image.
      *
+     * Phase angle interpretation (from calculatePhaseAngle):
+     * - 0° = Full moon (Moon opposite Sun, fully illuminated)
+     * - 180° = New moon (Moon between Earth and Sun, not illuminated)
+     *
      * Note: Returns placeholder values. Replace with actual R.drawable.moon* values
      * when resources are added.
      */
@@ -65,29 +69,33 @@ class Moon : EarthOrbitingObject(SolarSystemBody.Moon) {
         val phase: Float = calculatePhaseAngle(time)
 
         // Next, figure out what resource id to return.
+        // Phase angle: 0° = full moon, 180° = new moon
         if (phase < 22.5f) {
-            // New moon.
-            return 0 // R.drawable.moon0
-        } else if (phase > 150.0f) {
-            // Full moon.
+            // Full moon (phase near 0°).
             return 4 // R.drawable.moon4
+        } else if (phase > 157.5f) {
+            // New moon (phase near 180°).
+            return 0 // R.drawable.moon0
         }
 
         // Either crescent, quarter, or gibbous. Need to see whether we are
         // waxing or waning. Calculate the phase angle one day in the future.
-        // If phase is increasing, we are waxing. If not, we are waning.
+        // Waning: phase angle increasing (toward new moon)
+        // Waxing: phase angle decreasing (toward full moon)
         val tomorrow = Date(time.time + 24 * 3600 * 1000)
         val phase2: Float = calculatePhaseAngle(tomorrow)
+        val isWaning = phase2 > phase
+
         if (phase < 67.5f) {
-            // Crescent
-            return if (phase2 > phase) 1 else 7 // R.drawable.moon1 : R.drawable.moon7
+            // Gibbous (near full moon)
+            return if (isWaning) 5 else 3 // waning gibbous : waxing gibbous
         } else if (phase < 112.5f) {
             // Quarter
-            return if (phase2 > phase) 2 else 6 // R.drawable.moon2 : R.drawable.moon6
+            return if (isWaning) 6 else 2 // waning quarter : waxing quarter
         }
 
-        // Gibbous
-        return if (phase2 > phase) 3 else 5 // R.drawable.moon3 : R.drawable.moon5
+        // Crescent (near new moon)
+        return if (isWaning) 7 else 1 // waning crescent : waxing crescent
     }
 
     override val bodySize = -0.83f

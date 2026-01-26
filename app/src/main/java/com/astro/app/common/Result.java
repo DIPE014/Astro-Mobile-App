@@ -165,7 +165,8 @@ public class Result<T> {
      */
     @NonNull
     public <R> Result<R> map(@NonNull Mapper<T, R> mapper) {
-        if (isSuccess && data != null) {
+        if (isSuccess) {
+            // Note: mapper must handle null input if data is null
             return Result.success(mapper.map(data));
         } else {
             return new Result<>(null, errorMessage, exception, false);

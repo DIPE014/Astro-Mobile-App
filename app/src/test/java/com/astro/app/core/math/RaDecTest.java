@@ -157,16 +157,11 @@ public class RaDecTest {
     @Test
     public void testDecDegreesFromDMS_Sirius() {
         // Sirius: Dec = -16 degrees 42' 58"
-        // Note: The function expects positive degree value, sign is handled separately
+        // For negative declinations, minutes and seconds are subtracted
         float dec = RaDec.decDegreesFromDMS(-16.0f, 42.0f, 58.0f);
 
-        // Expected: -16 + 42/60 + 58/3600 = -16 + 0.7 + 0.0161 = -15.28...
-        // Wait, the function just adds, so for negative it would be:
-        // -16 + 42/60 + 58/3600 which is wrong for negative declinations
-        // The actual behavior: -16 + 0.716... = -15.28...
-        // But astronomically, -16d 42' 58" should be about -16.716 degrees
-        // This test documents the current behavior
-        assertEquals(-15.2839f, dec, 0.01f);
+        // Expected: -16 - 42/60 - 58/3600 = -16 - 0.7 - 0.0161 = -16.7161 degrees
+        assertEquals(-16.7161f, dec, 0.01f);
     }
 
     // ============================================

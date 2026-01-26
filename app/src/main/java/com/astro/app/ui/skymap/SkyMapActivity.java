@@ -819,33 +819,6 @@ public class SkyMapActivity extends AppCompatActivity {
     private void initializeLayers() {
         SkyRenderer renderer = skyGLSurfaceView.getSkyRenderer();
 
-        // Create adapter for StarsLayer.StarRepository interface
-        StarsLayer.StarRepository starsLayerRepository = new StarsLayer.StarRepository() {
-            @NonNull
-            @Override
-            public List<StarData> getStars() {
-                return starRepository.getAllStars();
-            }
-
-            @NonNull
-            @Override
-            public List<StarData> getStarsBrighterThan(float maxMagnitude) {
-                return starRepository.getStarsByMagnitude(maxMagnitude);
-            }
-
-            @Nullable
-            @Override
-            public StarData findById(@NonNull String starId) {
-                return starRepository.getStarById(starId);
-            }
-
-            @NonNull
-            @Override
-            public List<StarData> findByName(@NonNull String name) {
-                return starRepository.searchStars(name);
-            }
-        };
-
         // Create adapter for ConstellationsLayer.ConstellationRepository interface
         ConstellationsLayer.ConstellationRepository constellationsLayerRepository =
                 new ConstellationsLayer.ConstellationRepository() {
@@ -885,7 +858,7 @@ public class SkyMapActivity extends AppCompatActivity {
         };
 
         // Create layers
-        starsLayer = new StarsLayer(starsLayerRepository);
+        starsLayer = new StarsLayer(starRepository);
         constellationsLayer = new ConstellationsLayer(constellationsLayerRepository);
         gridLayer = new GridLayer();
         planetsLayer = new PlanetsLayer(universe);

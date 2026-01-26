@@ -8,15 +8,17 @@ import androidx.annotation.Nullable;
 import com.astro.app.data.model.LabelPrimitive;
 import com.astro.app.data.model.PointPrimitive;
 import com.astro.app.data.model.StarData;
+import com.astro.app.data.repository.StarRepository;
 
 import java.util.List;
 
 /**
  * Layer for rendering stars in the sky map.
  *
- * <p>This layer converts {@link StarData} objects from a {@link StarRepository}
- * into point and label primitives for rendering. It supports magnitude-based
- * filtering to improve performance by limiting the number of rendered stars.</p>
+ * <p>This layer converts {@link StarData} objects from a
+ * {@link com.astro.app.data.repository.StarRepository} into point and label
+ * primitives for rendering. It supports magnitude-based filtering to improve
+ * performance by limiting the number of rendered stars.</p>
  *
  * <h3>Magnitude Filtering:</h3>
  * <p>Stars can be filtered by magnitude to reduce rendering load. Only stars
@@ -27,7 +29,7 @@ import java.util.List;
  * <p>Labels can be shown for named stars. The magnitude limit for labels can be
  * set independently to show names only for brighter stars.</p>
  *
- * @see StarRepository
+ * @see com.astro.app.data.repository.StarRepository
  * @see StarData
  */
 public class StarsLayer extends AbstractLayer {
@@ -66,50 +68,6 @@ public class StarsLayer extends AbstractLayer {
     private boolean showLabels;
 
     /**
-     * Interface for providing star data to the layer.
-     *
-     * <p>Implementations should handle loading star data from files,
-     * databases, or other sources.</p>
-     */
-    public interface StarRepository {
-
-        /**
-         * Returns the list of all stars.
-         *
-         * @return List of star data (never null, may be empty)
-         */
-        @NonNull
-        List<StarData> getStars();
-
-        /**
-         * Returns stars filtered by magnitude.
-         *
-         * @param maxMagnitude Maximum magnitude (lower = brighter)
-         * @return List of stars brighter than maxMagnitude
-         */
-        @NonNull
-        List<StarData> getStarsBrighterThan(float maxMagnitude);
-
-        /**
-         * Finds a star by its ID.
-         *
-         * @param starId The star ID to find
-         * @return The star data, or null if not found
-         */
-        @Nullable
-        StarData findById(@NonNull String starId);
-
-        /**
-         * Finds stars by name (partial match).
-         *
-         * @param name The name to search for
-         * @return List of matching stars
-         */
-        @NonNull
-        List<StarData> findByName(@NonNull String name);
-    }
-
-    /**
      * Creates a StarsLayer with the given repository.
      *
      * @param starRepository The repository providing star data
@@ -142,7 +100,7 @@ public class StarsLayer extends AbstractLayer {
         Log.d(TAG, "Initializing stars layer with magnitude limit: " + magnitudeLimit);
 
         // Get stars filtered by magnitude
-        List<StarData> stars = starRepository.getStarsBrighterThan(magnitudeLimit);
+        List<StarData> stars = starRepository.getStarsByMagnitude(magnitudeLimit);
         Log.d(TAG, "Found " + stars.size() + " stars brighter than magnitude " + magnitudeLimit);
 
         for (StarData star : stars) {
