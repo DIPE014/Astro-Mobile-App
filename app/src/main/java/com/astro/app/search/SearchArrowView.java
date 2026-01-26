@@ -328,8 +328,10 @@ public class SearchArrowView extends View {
 
         canvas.translate(centerX + offsetX, centerY + offsetY);
 
-        // Rotate arrow to point toward target
-        float rotationDegrees = (float) Math.toDegrees(-arrowAngle) - 90;
+        // Rotate arrow to point OUTWARD toward target direction
+        // arrowAngle points from view center toward target
+        // Arrow path points UP by default, so we rotate to point outward
+        float rotationDegrees = (float) Math.toDegrees(-arrowAngle) + 90;
         canvas.rotate(rotationDegrees);
 
         // Fade arrow as target comes into view

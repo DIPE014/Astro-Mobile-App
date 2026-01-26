@@ -1324,6 +1324,13 @@ public class SkyMapActivity extends AppCompatActivity {
         searchTargetName = data.getStringExtra(SearchActivity.EXTRA_RESULT_NAME);
         searchTargetRa = data.getFloatExtra(SearchActivity.EXTRA_RESULT_RA, 0f);
         searchTargetDec = data.getFloatExtra(SearchActivity.EXTRA_RESULT_DEC, 0f);
+        String resultType = data.getStringExtra(SearchActivity.EXTRA_RESULT_TYPE);
+
+        // For planets, recalculate position for current time (or time travel time)
+        // The search index stores positions at index build time which may be stale
+        if (resultType != null && (resultType.equals("PLANET") || resultType.equals("SUN") || resultType.equals("MOON"))) {
+            updatePlanetSearchTarget();
+        }
 
         Log.d(TAG, "Search target: " + searchTargetName + " at RA=" + searchTargetRa + ", Dec=" + searchTargetDec);
 
@@ -1388,6 +1395,41 @@ public class SkyMapActivity extends AppCompatActivity {
             searchArrowView.setVisibility(View.GONE);
         }
         searchTargetName = null;
+    }
+
+    /**
+     * Updates the search target coordinates for a planet based on current time.
+     *
+     * <p>Planet positions change over time, so we recalculate them here using
+     * the current observation time (or time travel time if active).</p>
+     */
+    private void updatePlanetSearchTarget() {
+        if (universe == null || searchTargetName == null) {
+            return;
+        }
+
+        // Get current observation time
+        long timeMillis = (timeTravelClock != null)
+                ? timeTravelClock.getCurrentTimeMillis()
+                : System.currentTimeMillis();
+        Date observationDate = new Date(timeMillis);
+
+        // Find the matching solar system body
+        for (SolarSystemBody body : SolarSystemBody.values()) {
+            if (body.name().equalsIgnoreCase(searchTargetName)) {
+                try {
+                    RaDec raDec = universe.getRaDec(body, observationDate);
+                    searchTargetRa = raDec.getRa();
+                    searchTargetDec = raDec.getDec();
+                    Log.d(TAG, "Updated planet position for " + searchTargetName +
+                            " at time " + observationDate + ": RA=" + searchTargetRa +
+                            ", Dec=" + searchTargetDec);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error calculating planet position: " + e.getMessage());
+                }
+                break;
+            }
+        }
     }
 
     /**
