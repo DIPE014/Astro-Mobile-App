@@ -18,6 +18,8 @@ import kotlin.math.floor
 
 public const val MINUTES_PER_HOUR = 60.0
 
+public const val SECONDS_PER_MINUTE = 60.0
+
 public const val SECONDS_PER_HOUR = 3600.0
 
 // Convert from hours to degrees
@@ -142,6 +144,7 @@ fun clockTimeFromHrs(universalTime: Double): IntArray {
     hms[0] = floor(universalTime).toInt()
     val remainderMins = MINUTES_PER_HOUR * (universalTime - hms[0])
     hms[1] = floor(remainderMins).toInt()
-    hms[2] = floor(remainderMins - hms[1]).toInt()
+    // Multiply fractional minutes by 60 to get seconds
+    hms[2] = floor((remainderMins - hms[1]) * SECONDS_PER_MINUTE).toInt()
     return hms
 }

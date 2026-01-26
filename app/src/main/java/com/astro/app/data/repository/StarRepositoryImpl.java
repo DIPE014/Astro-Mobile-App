@@ -43,9 +43,6 @@ public class StarRepositoryImpl implements StarRepository {
 
     private static final String TAG = "StarRepositoryImpl";
 
-    /** Counter for generating unique star IDs */
-    private static int starIdCounter = 0;
-
     private final ProtobufParser protobufParser;
 
     /** Cached list of all stars */
@@ -237,9 +234,8 @@ public class StarRepositoryImpl implements StarRepository {
      */
     @NonNull
     private String generateStarId(float ra, float dec) {
-        // Use counter with coordinate hash for uniqueness
-        return String.format(Locale.US, "star_%d_%d_%d",
-                ++starIdCounter,
+        // Use coordinate-based ID format for consistency
+        return String.format(Locale.US, "cstar_%d_%d",
                 Math.round(ra * 1000),
                 Math.round(dec * 1000));
     }

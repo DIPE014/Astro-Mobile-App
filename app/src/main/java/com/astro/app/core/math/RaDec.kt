@@ -63,7 +63,9 @@ data class RaDec(
 
         @JvmStatic
         fun decDegreesFromDMS(d: Float, m: Float, s: Float): Float {
-            return d + m / 60 + s / 60 / 60
+            // Apply sign of degrees to minutes and seconds for negative declinations
+            val sign = if (d < 0) -1f else 1f
+            return d + sign * (m / 60 + s / 3600)
         }
 
         @JvmStatic

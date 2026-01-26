@@ -56,6 +56,9 @@ public class LineRenderer {
     /** Indices per line segment (2 triangles) */
     private static final int INDICES_PER_SEGMENT = 6;
 
+    /** Maximum segments to avoid short index overflow (32767 / 4 = 8191) */
+    private static final int MAX_SEGMENTS = 8191;
+
     // Vertex shader for line rendering
     private static final String VERTEX_SHADER_CODE =
             "uniform mat4 uMVPMatrix;\n" +
@@ -178,6 +181,13 @@ public class LineRenderer {
         if (totalSegments == 0) {
             segmentCount = 0;
             return;
+        }
+
+        // Limit segments to prevent short index overflow
+        if (totalSegments > MAX_SEGMENTS) {
+            android.util.Log.w("LineRenderer", "Segment count " + totalSegments +
+                    " exceeds maximum " + MAX_SEGMENTS + ", truncating");
+            totalSegments = MAX_SEGMENTS;
         }
 
         segmentCount = totalSegments;

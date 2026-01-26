@@ -91,6 +91,25 @@ public class ErrorDialog extends DialogFragment {
     }
 
     @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        // Restore listeners from host activity/fragment after configuration changes
+        if (context instanceof OnRetryClickListener && retryClickListener == null) {
+            retryClickListener = (OnRetryClickListener) context;
+        }
+        if (context instanceof OnDismissListener && dismissListener == null) {
+            dismissListener = (OnDismissListener) context;
+        }
+        // Also check parent fragment
+        if (getParentFragment() instanceof OnRetryClickListener && retryClickListener == null) {
+            retryClickListener = (OnRetryClickListener) getParentFragment();
+        }
+        if (getParentFragment() instanceof OnDismissListener && dismissListener == null) {
+            dismissListener = (OnDismissListener) getParentFragment();
+        }
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {

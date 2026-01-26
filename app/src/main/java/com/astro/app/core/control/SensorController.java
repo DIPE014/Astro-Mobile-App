@@ -82,7 +82,8 @@ public class SensorController implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR && listener != null) {
-            listener.onOrientationChanged(event.values);
+            // Clone the array to prevent issues with mutable sensor data being reused
+            listener.onOrientationChanged(event.values.clone());
         }
     }
 

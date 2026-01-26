@@ -99,6 +99,15 @@ public final class GeocentricCoords {
      */
     @NonNull
     public static GeocentricCoords fromVector3(float x, float y, float z) {
+        // Normalize the vector to ensure valid asin input
+        float length = (float) Math.sqrt(x * x + y * y + z * z);
+        if (length > 0) {
+            x /= length;
+            y /= length;
+            z /= length;
+        }
+        // Clamp z to [-1, 1] to prevent NaN from asin
+        z = Math.max(-1.0f, Math.min(1.0f, z));
         float dec = (float) Math.toDegrees(Math.asin(z));
         float ra = (float) Math.toDegrees(Math.atan2(y, x));
         if (ra < 0) {

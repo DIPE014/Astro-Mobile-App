@@ -110,6 +110,15 @@ public class CameraPermissionHandler {
     }
 
     /**
+     * Checks if it's safe to show a dialog.
+     *
+     * @return true if the activity is in a valid state to show dialogs
+     */
+    private boolean canShowDialog() {
+        return activity != null && !activity.isFinishing() && !activity.isDestroyed();
+    }
+
+    /**
      * Checks if the camera permission is currently granted.
      *
      * @return true if CAMERA permission is granted
@@ -154,6 +163,9 @@ public class CameraPermissionHandler {
      * @param launcher The ActivityResultLauncher for permission requests
      */
     public void showRationaleDialog(@NonNull ActivityResultLauncher<String> launcher) {
+        if (!canShowDialog()) {
+            return;
+        }
         new AlertDialog.Builder(activity)
                 .setTitle(R.string.permission_camera_title)
                 .setMessage(R.string.permission_camera_rationale)
@@ -178,6 +190,9 @@ public class CameraPermissionHandler {
      * returns false (meaning the user selected "Don't ask again").</p>
      */
     public void showSettingsDialog() {
+        if (!canShowDialog()) {
+            return;
+        }
         new AlertDialog.Builder(activity)
                 .setTitle(R.string.permission_camera_title)
                 .setMessage(R.string.permission_camera_settings)

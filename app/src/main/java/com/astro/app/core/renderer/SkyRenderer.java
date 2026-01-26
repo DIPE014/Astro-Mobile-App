@@ -67,7 +67,7 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
 
     // Layers to render
     private final List<Layer> layers = new CopyOnWriteArrayList<>();
-    private boolean layersNeedUpdate = true;
+    private volatile boolean layersNeedUpdate = true;
 
     // View state
     private int screenWidth = 1;
@@ -84,7 +84,7 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     // View orientation
     private Vector3 lookDirection = new Vector3(1, 0, 0);
     private Vector3 upDirection = new Vector3(0, 0, 1);
-    private boolean viewMatrixNeedsUpdate = true;
+    private volatile boolean viewMatrixNeedsUpdate = true;
 
     // Custom transformation matrix (set externally)
     @Nullable
