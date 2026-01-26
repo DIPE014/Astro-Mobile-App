@@ -50,12 +50,18 @@ import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
 import com.astro.app.ui.starinfo.StarInfoActivity;
 import com.astro.app.search.SearchArrowView;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 
 import javax.inject.Inject;
 
@@ -148,6 +154,12 @@ public class SkyMapActivity extends AppCompatActivity {
     private String searchTargetName;
     private float searchTargetRa;
     private float searchTargetDec;
+
+    // Reticle selection
+    private ExtendedFloatingActionButton fabSelect;
+    private Handler reticleCheckHandler;
+    private Runnable reticleCheckRunnable;
+    private static final long RETICLE_CHECK_INTERVAL_MS = 500;  // Check every 500ms
 
     // State
     // Default to MAP mode (AR disabled) for better emulator compatibility
@@ -474,6 +486,9 @@ public class SkyMapActivity extends AppCompatActivity {
         // Search arrow view
         searchArrowView = findViewById(R.id.searchArrow);
 
+        // Select FAB for reticle selection
+        fabSelect = findViewById(R.id.fabSelect);
+
         // Create PreviewView programmatically for camera
         cameraPreview = new PreviewView(this);
         cameraPreview.setLayoutParams(new FrameLayout.LayoutParams(
@@ -613,6 +628,11 @@ public class SkyMapActivity extends AppCompatActivity {
         View fabSearch = findViewById(R.id.fabSearch);
         if (fabSearch != null) {
             fabSearch.setOnClickListener(v -> openSearch());
+        }
+
+        // Select FAB (for reticle selection)
+        if (fabSelect != null) {
+            fabSelect.setOnClickListener(v -> showObjectSelectionDialog());
         }
 
         // Close info panel
@@ -1397,6 +1417,254 @@ public class SkyMapActivity extends AppCompatActivity {
         searchTargetName = null;
     }
 
+    // ===================================================================
+    // RETICLE SELECTION METHODS
+    // ===================================================================
+
+    /**
+     * Starts periodic checking for objects in the reticle.
+     * Shows/hides the Select FAB based on whether objects are present.
+     */
+    private void startReticleChecking() {
+        if (reticleCheckHandler == null) {
+            reticleCheckHandler = new Handler(Looper.getMainLooper());
+        }
+        if (reticleCheckRunnable == null) {
+            reticleCheckRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    updateSelectButtonVisibility();
+                    reticleCheckHandler.postDelayed(this, RETICLE_CHECK_INTERVAL_MS);
+                }
+            };
+        }
+        reticleCheckHandler.post(reticleCheckRunnable);
+    }
+
+    /**
+     * Stops periodic checking for objects in the reticle.
+     */
+    private void stopReticleChecking() {
+        if (reticleCheckHandler != null && reticleCheckRunnable != null) {
+            reticleCheckHandler.removeCallbacks(reticleCheckRunnable);
+        }
+    }
+
+    /**
+     * Updates the visibility of the Select FAB based on objects in reticle.
+     */
+    private void updateSelectButtonVisibility() {
+        if (fabSelect == null || skyCanvasView == null) return;
+
+        List<SkyCanvasView.SelectableObject> objects = skyCanvasView.getObjectsInReticle();
+        boolean hasObjects = !objects.isEmpty();
+
+        if (hasObjects && fabSelect.getVisibility() != View.VISIBLE) {
+            fabSelect.setText(getString(R.string.select) + " (" + objects.size() + ")");
+            fabSelect.setVisibility(View.VISIBLE);
+            fabSelect.animate().alpha(1f).setDuration(200).start();
+        } else if (hasObjects) {
+            fabSelect.setText(getString(R.string.select) + " (" + objects.size() + ")");
+        } else if (!hasObjects && fabSelect.getVisibility() == View.VISIBLE) {
+            fabSelect.animate().alpha(0f).setDuration(200).withEndAction(() -> {
+                fabSelect.setVisibility(View.GONE);
+            }).start();
+            // Clear any highlight when no objects in reticle
+            skyCanvasView.clearHighlight();
+        }
+    }
+
+    /**
+     * Shows a bottom sheet dialog listing objects in the reticle.
+     */
+    private void showObjectSelectionDialog() {
+        if (skyCanvasView == null) return;
+
+        List<SkyCanvasView.SelectableObject> objects = skyCanvasView.getObjectsInReticle();
+        if (objects.isEmpty()) {
+            Toast.makeText(this, R.string.no_objects_in_reticle, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+
+        // Create dialog layout programmatically
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(
+                (int) getResources().getDimension(R.dimen.padding_medium),
+                (int) getResources().getDimension(R.dimen.padding_medium),
+                (int) getResources().getDimension(R.dimen.padding_medium),
+                (int) getResources().getDimension(R.dimen.padding_medium)
+        );
+        layout.setBackgroundColor(ContextCompat.getColor(this, R.color.surface));
+
+        // Title
+        TextView title = new TextView(this);
+        title.setText(R.string.objects_in_reticle);
+        title.setTextSize(20);
+        title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+        title.setPadding(0, 0, 0, (int) getResources().getDimension(R.dimen.padding_medium));
+        layout.addView(title);
+
+        // Create scrollable list
+        ScrollView scrollView = new ScrollView(this);
+        LinearLayout listLayout = new LinearLayout(this);
+        listLayout.setOrientation(LinearLayout.VERTICAL);
+
+        // Track currently selected item for highlight preview
+        final SkyCanvasView.SelectableObject[] selectedObject = {null};
+
+        for (SkyCanvasView.SelectableObject obj : objects) {
+            LinearLayout itemLayout = new LinearLayout(this);
+            itemLayout.setOrientation(LinearLayout.HORIZONTAL);
+            itemLayout.setPadding(
+                    (int) getResources().getDimension(R.dimen.padding_small),
+                    (int) getResources().getDimension(R.dimen.padding_medium),
+                    (int) getResources().getDimension(R.dimen.padding_small),
+                    (int) getResources().getDimension(R.dimen.padding_medium)
+            );
+            itemLayout.setBackgroundResource(android.R.drawable.list_selector_background);
+
+            // Object icon (placeholder - could be customized per type)
+            ImageView icon = new ImageView(this);
+            int iconRes = obj.type.equals("planet") ?
+                    android.R.drawable.presence_online :
+                    android.R.drawable.btn_star_big_on;
+            icon.setImageResource(iconRes);
+            icon.setColorFilter(ContextCompat.getColor(this,
+                    obj.type.equals("planet") ? R.color.planet_color : R.color.star_color));
+            LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
+                    (int) getResources().getDimension(R.dimen.icon_size_medium),
+                    (int) getResources().getDimension(R.dimen.icon_size_medium)
+            );
+            iconParams.rightMargin = (int) getResources().getDimension(R.dimen.margin_medium);
+            icon.setLayoutParams(iconParams);
+            itemLayout.addView(icon);
+
+            // Object info
+            LinearLayout infoLayout = new LinearLayout(this);
+            infoLayout.setOrientation(LinearLayout.VERTICAL);
+            infoLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+            TextView nameText = new TextView(this);
+            nameText.setText(obj.getDisplayName());
+            nameText.setTextSize(16);
+            nameText.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            infoLayout.addView(nameText);
+
+            TextView typeText = new TextView(this);
+            String typeString = obj.type.equals("planet") ?
+                    getString(R.string.object_planet) :
+                    getString(R.string.object_star);
+            if (obj.type.equals("star")) {
+                typeString += " (mag " + String.format("%.1f", obj.magnitude) + ")";
+            }
+            typeText.setText(typeString);
+            typeText.setTextSize(12);
+            typeText.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+            infoLayout.addView(typeText);
+
+            itemLayout.addView(infoLayout);
+
+            // Click handler - highlight object on tap
+            itemLayout.setOnClickListener(v -> {
+                selectedObject[0] = obj;
+                // Highlight the object on the sky view
+                if (obj.type.equals("planet")) {
+                    skyCanvasView.setHighlightedPlanet(obj.name);
+                } else {
+                    StarData star = skyCanvasView.getStarById(obj.id);
+                    if (star != null) {
+                        skyCanvasView.setHighlightedStar(star);
+                    }
+                }
+                Toast.makeText(this, getString(R.string.object_highlighted, obj.getDisplayName()),
+                        Toast.LENGTH_SHORT).show();
+            });
+
+            // Long press to confirm and open details
+            itemLayout.setOnLongClickListener(v -> {
+                dialog.dismiss();
+                openObjectDetails(obj);
+                return true;
+            });
+
+            listLayout.addView(itemLayout);
+
+            // Add divider
+            View divider = new View(this);
+            divider.setBackgroundColor(ContextCompat.getColor(this, R.color.divider));
+            LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    (int) getResources().getDimension(R.dimen.divider_height)
+            );
+            listLayout.addView(divider, dividerParams);
+        }
+
+        scrollView.addView(listLayout);
+        layout.addView(scrollView);
+
+        // Confirm button
+        MaterialButton confirmButton = new MaterialButton(this);
+        confirmButton.setText(R.string.confirm_selection);
+        confirmButton.setOnClickListener(v -> {
+            dialog.dismiss();
+            if (selectedObject[0] != null) {
+                openObjectDetails(selectedObject[0]);
+            } else if (!objects.isEmpty()) {
+                // If nothing selected, open details for first object
+                openObjectDetails(objects.get(0));
+            }
+        });
+        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        buttonParams.topMargin = (int) getResources().getDimension(R.dimen.margin_medium);
+        confirmButton.setLayoutParams(buttonParams);
+        layout.addView(confirmButton);
+
+        dialog.setContentView(layout);
+        dialog.setOnDismissListener(d -> {
+            // Clear highlight when dialog is dismissed without selection
+            if (skyCanvasView != null) {
+                skyCanvasView.clearHighlight();
+            }
+        });
+        dialog.show();
+    }
+
+    /**
+     * Opens the detail view for a selected object.
+     *
+     * @param obj The selectable object to show details for
+     */
+    private void openObjectDetails(SkyCanvasView.SelectableObject obj) {
+        if (obj.type.equals("planet")) {
+            // For planets, show a toast for now (could open planet detail activity)
+            Toast.makeText(this, getString(R.string.star_details_coming_soon, obj.name),
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            // For stars, open StarInfoActivity
+            StarData star = skyCanvasView.getStarById(obj.id);
+            if (star != null) {
+                Intent intent = new Intent(this, StarInfoActivity.class);
+                intent.putExtra(StarInfoActivity.EXTRA_STAR_ID, star.getId());
+                intent.putExtra(StarInfoActivity.EXTRA_STAR_NAME, star.getName());
+                intent.putExtra(StarInfoActivity.EXTRA_STAR_RA, star.getRa());
+                intent.putExtra(StarInfoActivity.EXTRA_STAR_DEC, star.getDec());
+                intent.putExtra(StarInfoActivity.EXTRA_STAR_MAGNITUDE, star.getMagnitude());
+                startActivity(intent);
+            }
+        }
+        // Clear highlight after opening details
+        if (skyCanvasView != null) {
+            skyCanvasView.clearHighlight();
+        }
+    }
+
     /**
      * Updates the search target coordinates for a planet based on current time.
      *
@@ -1528,6 +1796,9 @@ public class SkyMapActivity extends AppCompatActivity {
         if (isARModeEnabled && permissionHandler != null && permissionHandler.hasCameraPermission()) {
             startCameraPreview();
         }
+
+        // Start checking for objects in reticle
+        startReticleChecking();
     }
 
     /**
@@ -1552,6 +1823,9 @@ public class SkyMapActivity extends AppCompatActivity {
         if (locationController != null) {
             locationController.stop();
         }
+
+        // Stop checking for objects in reticle
+        stopReticleChecking();
 
         // Stop camera
         if (cameraManager != null) {

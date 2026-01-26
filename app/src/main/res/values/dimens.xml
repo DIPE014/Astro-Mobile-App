@@ -197,6 +197,8 @@
     <dimen name="sky_map_compass_margin">16dp</dimen>
     <dimen name="sky_map_crosshair_size">24dp</dimen>
     <dimen name="sky_map_crosshair_stroke">2dp</dimen>
+    <dimen name="sky_map_reticle_radius">40dp</dimen>
+    <dimen name="sky_map_reticle_stroke">2dp</dimen>
     <dimen name="sky_map_grid_stroke">0.5dp</dimen>
     <dimen name="sky_map_horizon_stroke">1dp</dimen>
     <dimen name="sky_map_touch_target_min">48dp</dimen>

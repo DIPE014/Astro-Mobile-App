@@ -217,21 +217,28 @@ public class SearchArrowView extends View {
             return;
         }
 
-        // Calculate angular difference
-        float dRa = normalizeAngle(targetRa - viewRa);
-        float dDec = targetDec - viewDec;
-
-        // Calculate total angular distance
-        double angularDistance = Math.sqrt(dRa * dRa + dDec * dDec);
+        // Calculate angular distance using proper spherical formula
+        // This correctly handles the RA compression near the poles
+        double angularDistance = calculateAngularDistance(viewRa, viewDec, targetRa, targetDec);
         this.distance = (float) Math.min(1.0, angularDistance / 90.0);
 
-        // Calculate arrow angle (pointing direction)
-        this.arrowAngle = (float) Math.atan2(dDec, dRa);
+        // Calculate arrow angle (pointing direction) using planar approximation
+        // This is fine for the arrow direction since we just need the general direction
+        float dRa = normalizeAngle(targetRa - viewRa);
+        float dDec = targetDec - viewDec;
+        // Account for RA compression at current declination for arrow direction
+        float raScale = (float) Math.cos(Math.toRadians((viewDec + targetDec) / 2.0));
+        this.arrowAngle = (float) Math.atan2(dDec, dRa * raScale);
 
         // Calculate focus progress (0 = far, 1 = centered)
-        // Consider "in focus" when within 10 degrees
+        // Consider "in focus" when within 10 degrees (more lenient threshold)
         float oldProgress = this.focusProgress;
         this.focusProgress = 1f - Math.min(1f, (float) angularDistance / 10f);
+
+        // Debug logging for troubleshooting
+        android.util.Log.d(TAG, String.format(
+            "SEARCH: view(RA=%.1f, Dec=%.1f) target(RA=%.1f, Dec=%.1f) dist=%.2f° focus=%.2f",
+            viewRa, viewDec, targetRa, targetDec, angularDistance, focusProgress));
 
         // Notify listener when target becomes centered (>95% focused)
         if (focusProgress >= 0.95f && oldProgress < 0.95f && targetCenteredListener != null) {
@@ -239,6 +246,38 @@ public class SearchArrowView extends View {
         }
 
         invalidate();
+    }
+
+    /**
+     * Calculates the angular distance between two points on the celestial sphere
+     * using the haversine formula. This properly handles RA wraparound and
+     * the compression of RA near the poles.
+     *
+     * @param ra1  First point RA in degrees
+     * @param dec1 First point Dec in degrees
+     * @param ra2  Second point RA in degrees
+     * @param dec2 Second point Dec in degrees
+     * @return Angular distance in degrees
+     */
+    private double calculateAngularDistance(float ra1, float dec1, float ra2, float dec2) {
+        // Convert to radians
+        double ra1Rad = Math.toRadians(ra1);
+        double dec1Rad = Math.toRadians(dec1);
+        double ra2Rad = Math.toRadians(ra2);
+        double dec2Rad = Math.toRadians(dec2);
+
+        // Haversine formula for angular distance on a sphere
+        double dRa = ra2Rad - ra1Rad;
+        double dDec = dec2Rad - dec1Rad;
+
+        double a = Math.sin(dDec / 2) * Math.sin(dDec / 2) +
+                   Math.cos(dec1Rad) * Math.cos(dec2Rad) *
+                   Math.sin(dRa / 2) * Math.sin(dRa / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        // Convert back to degrees
+        return Math.toDegrees(c);
     }
 
     /**

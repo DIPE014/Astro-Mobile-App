@@ -60,6 +60,8 @@
     <color name="star_default">#FFFFFF</color>
     <color name="star_highlight">#FFD700</color>
     <color name="star_selected">#00FFFF</color>
+    <color name="star_color">#FFFDE7</color>
+    <color name="planet_color">#FFB74D</color>
 
     <!-- Planet Colors -->
     <color name="planet_mercury">#B0B0B0</color>

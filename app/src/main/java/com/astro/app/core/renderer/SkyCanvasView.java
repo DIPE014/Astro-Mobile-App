@@ -81,6 +81,17 @@ public class SkyCanvasView extends View {
     private static final int GRID_LABEL_COLOR = Color.argb(150, 100, 200, 100);
     private static final int GRID_LABEL_COLOR_NIGHT = Color.argb(150, 150, 80, 80);
 
+    // Reticle settings for center selection
+    private static final int RETICLE_COLOR = Color.argb(80, 255, 255, 255);
+    private static final int RETICLE_COLOR_NIGHT = Color.argb(80, 200, 100, 100);
+    private static final int HIGHLIGHT_COLOR = Color.argb(255, 255, 80, 80);  // Red for highlighted objects
+    private float reticleRadiusPx = 120f;  // Default 120 pixels radius
+    private Paint reticlePaint;
+
+    // Highlighted object for selection preview
+    private StarData highlightedStar = null;
+    private String highlightedPlanetName = null;
+
     // Rendered elements (computed from star data)
     private List<float[]> stars = new CopyOnWriteArrayList<>();  // x, y, size, color
     private List<float[]> lines = new CopyOnWriteArrayList<>();  // x1, y1, x2, y2, color
@@ -144,6 +155,11 @@ public class SkyCanvasView extends View {
         gridLabelPaint.setTextSize(18f);
         gridLabelPaint.setTextAlign(Paint.Align.LEFT);
         gridLabelPaint.setColor(GRID_LABEL_COLOR);
+
+        reticlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        reticlePaint.setStyle(Paint.Style.STROKE);
+        reticlePaint.setStrokeWidth(3f);
+        reticlePaint.setColor(RETICLE_COLOR);
     }
 
     /**
@@ -273,29 +289,85 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Gets the current view RA (approximation based on azimuth and LST).
+     * Gets the current view RA by converting the view direction (Alt/Az) back to RA/Dec.
      *
-     * @return Current view RA in degrees
+     * @return Current view RA in degrees (0-360)
      */
     public float getViewRa() {
-        // Approximate: convert azimuth to RA using LST
-        // RA = LST - HA, where HA is related to azimuth
-        double lst = calculateLocalSiderealTime();
-        // Simplified: azimuth 0 (North) roughly corresponds to objects at meridian
-        float ra = (float) ((lst - azimuthOffset + 360) % 360);
-        return ra;
+        double[] raDec = altAzToRaDec(altitudeOffset, azimuthOffset);
+        return (float) raDec[0];
     }
 
     /**
-     * Gets the current view Dec (approximation based on altitude and latitude).
+     * Gets the current view Dec by converting the view direction (Alt/Az) back to RA/Dec.
      *
-     * @return Current view Dec in degrees
+     * @return Current view Dec in degrees (-90 to +90)
      */
     public float getViewDec() {
-        // Simplified approximation for view declination
-        // When looking at altitude 90 (zenith), Dec = latitude
-        // When looking at horizon (alt 0), Dec varies with azimuth
-        return altitudeOffset;
+        double[] raDec = altAzToRaDec(altitudeOffset, azimuthOffset);
+        return (float) raDec[1];
+    }
+
+    /**
+     * Converts Altitude/Azimuth to Right Ascension/Declination.
+     * This is the inverse of raDecToAltAz().
+     *
+     * @param altitude Altitude in degrees (0 = horizon, 90 = zenith)
+     * @param azimuth  Azimuth in degrees (0 = North, 90 = East)
+     * @return Array of [RA, Dec] in degrees
+     */
+    private double[] altAzToRaDec(double altitude, double azimuth) {
+        // Calculate Local Sidereal Time
+        double lst = calculateLocalSiderealTime();
+
+        // Convert to radians
+        double latRad = Math.toRadians(observerLatitude);
+        double altRad = Math.toRadians(altitude);
+        double azRad = Math.toRadians(azimuth);
+
+        // Calculate declination
+        // sin(dec) = sin(alt) * sin(lat) + cos(alt) * cos(lat) * cos(az)
+        double sinDec = Math.sin(altRad) * Math.sin(latRad) +
+                        Math.cos(altRad) * Math.cos(latRad) * Math.cos(azRad);
+        sinDec = Math.max(-1, Math.min(1, sinDec)); // Clamp to [-1, 1]
+        double dec = Math.toDegrees(Math.asin(sinDec));
+
+        // Calculate hour angle
+        // cos(HA) = (sin(alt) - sin(lat) * sin(dec)) / (cos(lat) * cos(dec))
+        double decRad = Math.toRadians(dec);
+        double cosLat = Math.cos(latRad);
+        double cosDec = Math.cos(decRad);
+
+        double cosHA;
+        if (Math.abs(cosLat) < 0.0001 || Math.abs(cosDec) < 0.0001) {
+            // At poles or looking at celestial pole
+            cosHA = 1;
+        } else {
+            cosHA = (Math.sin(altRad) - Math.sin(latRad) * Math.sin(decRad)) /
+                    (cosLat * cosDec);
+            cosHA = Math.max(-1, Math.min(1, cosHA)); // Clamp to [-1, 1]
+        }
+
+        double ha = Math.toDegrees(Math.acos(cosHA));
+
+        // Determine the sign of HA based on azimuth
+        // If azimuth > 180 (west of meridian), HA is positive
+        // If azimuth < 180 (east of meridian), HA is negative
+        if (azimuth > 180) {
+            ha = -ha;  // Objects in the west have negative hour angle approaching
+        }
+        // Actually, the convention varies. Let's use: sin(az) > 0 means HA is negative
+        if (Math.sin(azRad) > 0) {
+            ha = 360 - ha;
+        }
+
+        // Calculate RA from hour angle and LST
+        // RA = LST - HA
+        double ra = lst - ha;
+        if (ra < 0) ra += 360;
+        if (ra >= 360) ra -= 360;
+
+        return new double[]{ra, dec};
     }
 
     /**
@@ -696,7 +768,13 @@ public class SkyCanvasView extends View {
             // Get star color or default to white
             int color = star.getColor() != 0 ? star.getColor() : Color.WHITE;
 
-            if (nightMode) {
+            // Check if this star is highlighted
+            boolean isHighlighted = highlightedStar != null && star.getId().equals(highlightedStar.getId());
+
+            if (isHighlighted) {
+                starPaint.setColor(HIGHLIGHT_COLOR);  // Red highlight
+                size = size * 1.5f;  // Make highlighted star larger
+            } else if (nightMode) {
                 starPaint.setColor(Color.rgb(255, 100, 100)); // Red tint for night mode
             } else {
                 starPaint.setColor(color);
@@ -889,8 +967,14 @@ public class SkyCanvasView extends View {
                 continue;
             }
 
+            // Check if this planet is highlighted
+            boolean isHighlighted = highlightedPlanetName != null && name.equals(highlightedPlanetName);
+
             // Draw planet point (larger than stars)
-            if (nightMode) {
+            if (isHighlighted) {
+                planetPaint.setColor(HIGHLIGHT_COLOR);  // Red highlight
+                size = size * 1.5f;  // Make highlighted planet larger
+            } else if (nightMode) {
                 planetPaint.setColor(Color.rgb(255, 100, 100)); // Red tint for night mode
             } else {
                 planetPaint.setColor(color);
@@ -1300,7 +1384,8 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Draws a crosshair at the center of the screen.
+     * Draws a crosshair and reticle circle at the center of the screen.
+     * The reticle circle indicates the selection area for objects.
      */
     private void drawCrosshair(Canvas canvas, int width, int height) {
         float centerX = width / 2f;
@@ -1318,6 +1403,10 @@ public class SkyCanvasView extends View {
 
         // Draw small circle in center
         canvas.drawCircle(centerX, centerY, 5f, crosshairPaint);
+
+        // Draw reticle circle for selection area
+        reticlePaint.setColor(nightMode ? RETICLE_COLOR_NIGHT : RETICLE_COLOR);
+        canvas.drawCircle(centerX, centerY, reticleRadiusPx, reticlePaint);
     }
 
     /**
@@ -1432,6 +1521,239 @@ public class SkyCanvasView extends View {
      */
     public void setOnStarSelectedListener(OnStarSelectedListener listener) {
         this.starSelectedListener = listener;
+    }
+
+    /**
+     * Sets the reticle radius in pixels.
+     *
+     * @param radiusPx Reticle radius in pixels
+     */
+    public void setReticleRadius(float radiusPx) {
+        this.reticleRadiusPx = radiusPx;
+        invalidate();
+    }
+
+    /**
+     * Gets the reticle radius in pixels.
+     *
+     * @return Reticle radius in pixels
+     */
+    public float getReticleRadius() {
+        return reticleRadiusPx;
+    }
+
+    /**
+     * Data class representing a selectable object (star or planet) in the reticle.
+     */
+    public static class SelectableObject {
+        public final String id;
+        public final String name;
+        public final String type;  // "star" or "planet"
+        public final float magnitude;
+        public final float ra;
+        public final float dec;
+
+        public SelectableObject(String id, String name, String type, float magnitude, float ra, float dec) {
+            this.id = id;
+            this.name = name;
+            this.type = type;
+            this.magnitude = magnitude;
+            this.ra = ra;
+            this.dec = dec;
+        }
+
+        /**
+         * Returns a display name for the object.
+         */
+        public String getDisplayName() {
+            if (name != null && !name.isEmpty() && !name.equals("null")) {
+                return name;
+            }
+            return id;
+        }
+    }
+
+    /**
+     * Gets all celestial objects (stars and planets) within the center reticle.
+     *
+     * @return List of SelectableObject within the reticle area
+     */
+    public List<SelectableObject> getObjectsInReticle() {
+        List<SelectableObject> objects = new ArrayList<>();
+
+        int width = getWidth();
+        int height = getHeight();
+        if (width == 0 || height == 0) return objects;
+
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+
+        // Calculate LST for coordinate conversion
+        double lst = calculateLocalSiderealTime();
+
+        // Pixels per degree
+        float pixelsPerDegree = Math.min(width, height) / fieldOfView;
+
+        // Check stars
+        for (StarData star : realStarData) {
+            float ra = star.getRa();
+            float dec = star.getDec();
+
+            // Convert RA/Dec to Alt/Az
+            double[] altAz = raDecToAltAz(ra, dec, lst);
+            double starAlt = altAz[0];
+            double starAz = altAz[1];
+
+            // Use proper spherical projection
+            float[] screenPos = projectToScreen(starAlt, starAz,
+                    altitudeOffset, azimuthOffset,
+                    centerX, centerY, pixelsPerDegree);
+
+            // Skip if not visible (behind us)
+            if (screenPos[2] < 0.5f) {
+                continue;
+            }
+
+            float x = screenPos[0];
+            float y = screenPos[1];
+
+            // Check if within reticle
+            float distFromCenter = (float) Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+            if (distFromCenter <= reticleRadiusPx) {
+                objects.add(new SelectableObject(
+                        star.getId(),
+                        star.getName(),
+                        "star",
+                        star.getMagnitude(),
+                        star.getRa(),
+                        star.getDec()
+                ));
+            }
+        }
+
+        // Check planets if visible
+        if (showPlanets && !planetData.isEmpty()) {
+            for (java.util.Map.Entry<String, float[]> entry : planetData.entrySet()) {
+                String name = entry.getKey();
+                float[] data = entry.getValue();
+                float ra = data[0];
+                float dec = data[1];
+
+                // Convert RA/Dec to Alt/Az
+                double[] altAz = raDecToAltAz(ra, dec, lst);
+                double planetAlt = altAz[0];
+                double planetAz = altAz[1];
+
+                // Use proper spherical projection
+                float[] screenPos = projectToScreen(planetAlt, planetAz,
+                        altitudeOffset, azimuthOffset,
+                        centerX, centerY, pixelsPerDegree);
+
+                // Skip if not visible (behind us)
+                if (screenPos[2] < 0.5f) {
+                    continue;
+                }
+
+                float x = screenPos[0];
+                float y = screenPos[1];
+
+                // Check if within reticle
+                float distFromCenter = (float) Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                if (distFromCenter <= reticleRadiusPx) {
+                    objects.add(new SelectableObject(
+                            "planet_" + name.toLowerCase(),
+                            name,
+                            "planet",
+                            -2.0f,  // Planets are generally very bright
+                            ra,
+                            dec
+                    ));
+                }
+            }
+        }
+
+        // Sort by magnitude (brightest first for stars, planets first overall)
+        objects.sort((a, b) -> {
+            // Planets come first
+            if (!a.type.equals(b.type)) {
+                return a.type.equals("planet") ? -1 : 1;
+            }
+            // Then sort by magnitude (lower = brighter = first)
+            return Float.compare(a.magnitude, b.magnitude);
+        });
+
+        return objects;
+    }
+
+    /**
+     * Checks if there are any objects within the center reticle.
+     *
+     * @return true if at least one object is in the reticle
+     */
+    public boolean hasObjectsInReticle() {
+        return !getObjectsInReticle().isEmpty();
+    }
+
+    /**
+     * Sets the highlighted star for selection preview.
+     * The highlighted star will be drawn in red.
+     *
+     * @param star The star to highlight, or null to clear highlight
+     */
+    public void setHighlightedStar(StarData star) {
+        this.highlightedStar = star;
+        this.highlightedPlanetName = null;  // Clear planet highlight
+        invalidate();
+    }
+
+    /**
+     * Sets the highlighted planet for selection preview.
+     * The highlighted planet will be drawn in red.
+     *
+     * @param planetName The planet name to highlight, or null to clear highlight
+     */
+    public void setHighlightedPlanet(String planetName) {
+        this.highlightedPlanetName = planetName;
+        this.highlightedStar = null;  // Clear star highlight
+        invalidate();
+    }
+
+    /**
+     * Clears all object highlights.
+     */
+    public void clearHighlight() {
+        this.highlightedStar = null;
+        this.highlightedPlanetName = null;
+        invalidate();
+    }
+
+    /**
+     * Gets the currently highlighted star, if any.
+     *
+     * @return The highlighted StarData, or null if none
+     */
+    public StarData getHighlightedStar() {
+        return highlightedStar;
+    }
+
+    /**
+     * Gets the currently highlighted planet name, if any.
+     *
+     * @return The highlighted planet name, or null if none
+     */
+    public String getHighlightedPlanetName() {
+        return highlightedPlanetName;
+    }
+
+    /**
+     * Gets a StarData object by its ID.
+     *
+     * @param starId The star ID to look up
+     * @return The StarData, or null if not found
+     */
+    public StarData getStarById(String starId) {
+        if (starId == null) return null;
+        return starLookupMap.get(starId);
     }
 
     @Override
