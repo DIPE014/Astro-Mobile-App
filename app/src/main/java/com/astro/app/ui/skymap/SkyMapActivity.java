@@ -3,6 +3,7 @@ package com.astro.app.ui.skymap;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.GradientDrawable;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -605,6 +606,9 @@ public class SkyMapActivity extends AppCompatActivity {
             btnPlanets.setOnClickListener(v -> togglePlanets());
         }
 
+        // Initialize toggle button visual states
+        initializeToggleButtonStates();
+
         // Search FAB
         View fabSearch = findViewById(R.id.fabSearch);
         if (fabSearch != null) {
@@ -996,6 +1000,35 @@ public class SkyMapActivity extends AppCompatActivity {
     }
 
     /**
+     * Updates a toggle button's visual state with green (ON) or red (OFF) indicators.
+     *
+     * @param icon            The ImageView icon for the toggle
+     * @param buttonContainer The parent View container for the button
+     * @param isEnabled       Whether the toggle is enabled
+     */
+    private void updateToggleButtonVisual(ImageView icon, View buttonContainer, boolean isEnabled) {
+        if (icon != null) {
+            int iconColor = isEnabled ? R.color.icon_primary : R.color.icon_inactive;
+            icon.setColorFilter(ContextCompat.getColor(this, iconColor));
+        }
+
+        if (buttonContainer != null) {
+            GradientDrawable background = new GradientDrawable();
+            background.setCornerRadius(12f);
+            if (isEnabled) {
+                // Green for ON state
+                background.setColor(ContextCompat.getColor(this, R.color.toggle_on_bg));
+                background.setStroke(3, ContextCompat.getColor(this, R.color.toggle_on));
+            } else {
+                // Red for OFF state
+                background.setColor(ContextCompat.getColor(this, R.color.toggle_off_bg));
+                background.setStroke(3, ContextCompat.getColor(this, R.color.toggle_off));
+            }
+            buttonContainer.setBackground(background);
+        }
+    }
+
+    /**
      * Toggles constellation lines visibility.
      */
     private void toggleConstellations() {
@@ -1010,11 +1043,10 @@ public class SkyMapActivity extends AppCompatActivity {
             skyCanvasView.setConstellationsVisible(isConstellationsEnabled);
         }
 
+        // Update visual state with green/red indicator
+        View btnConstellations = findViewById(R.id.btnConstellations);
         ImageView ivConstellations = findViewById(R.id.ivConstellations);
-        if (ivConstellations != null) {
-            int tintColor = isConstellationsEnabled ? R.color.icon_primary : R.color.icon_inactive;
-            ivConstellations.setColorFilter(ContextCompat.getColor(this, tintColor));
-        }
+        updateToggleButtonVisual(ivConstellations, btnConstellations, isConstellationsEnabled);
     }
 
     /**
@@ -1032,11 +1064,31 @@ public class SkyMapActivity extends AppCompatActivity {
             skyCanvasView.setGridVisible(isGridEnabled);
         }
 
+        // Update visual state with green/red indicator
+        View btnGrid = findViewById(R.id.btnGrid);
         ImageView ivGrid = findViewById(R.id.ivGrid);
-        if (ivGrid != null) {
-            int tintColor = isGridEnabled ? R.color.icon_primary : R.color.icon_inactive;
-            ivGrid.setColorFilter(ContextCompat.getColor(this, tintColor));
-        }
+        updateToggleButtonVisual(ivGrid, btnGrid, isGridEnabled);
+    }
+
+    /**
+     * Initializes the visual state of all toggle buttons on startup.
+     * This ensures buttons display correct green/red indicators based on initial settings.
+     */
+    private void initializeToggleButtonStates() {
+        // Constellations toggle
+        View btnConstellations = findViewById(R.id.btnConstellations);
+        ImageView ivConstellations = findViewById(R.id.ivConstellations);
+        updateToggleButtonVisual(ivConstellations, btnConstellations, isConstellationsEnabled);
+
+        // Grid toggle
+        View btnGrid = findViewById(R.id.btnGrid);
+        ImageView ivGrid = findViewById(R.id.ivGrid);
+        updateToggleButtonVisual(ivGrid, btnGrid, isGridEnabled);
+
+        // Planets toggle
+        View btnPlanets = findViewById(R.id.btnPlanets);
+        ImageView ivPlanets = findViewById(R.id.ivPlanets);
+        updateToggleButtonVisual(ivPlanets, btnPlanets, isPlanetsEnabled);
     }
 
     /**
@@ -1165,12 +1217,10 @@ public class SkyMapActivity extends AppCompatActivity {
             }
         }
 
-        // Update icon color to indicate state
+        // Update visual state with green/red indicator
+        View btnPlanets = findViewById(R.id.btnPlanets);
         ImageView ivPlanets = findViewById(R.id.ivPlanets);
-        if (ivPlanets != null) {
-            int tintColor = isPlanetsEnabled ? R.color.icon_primary : R.color.icon_inactive;
-            ivPlanets.setColorFilter(ContextCompat.getColor(this, tintColor));
-        }
+        updateToggleButtonVisual(ivPlanets, btnPlanets, isPlanetsEnabled);
 
         Log.d(TAG, "Planets visibility toggled to: " + isPlanetsEnabled);
     }
@@ -1277,18 +1327,21 @@ public class SkyMapActivity extends AppCompatActivity {
 
         Log.d(TAG, "Search target: " + searchTargetName + " at RA=" + searchTargetRa + ", Dec=" + searchTargetDec);
 
-        // Show search arrow
+        // Show search arrow to guide user to target
+        // NOTE: Don't immediately set orientation - let the arrow guide the user
         if (searchArrowView != null) {
             searchArrowView.setTarget(searchTargetRa, searchTargetDec, searchTargetName);
             searchArrowView.setVisibility(View.VISIBLE);
+            searchArrowView.setOnClickListener(v -> clearSearchTarget());
+
+            // Auto-dismiss when target is centered
+            searchArrowView.setOnTargetCenteredListener(() -> {
+                Toast.makeText(this, getString(R.string.search_target_found, searchTargetName), Toast.LENGTH_SHORT).show();
+                searchArrowView.postDelayed(this::clearSearchTarget, 2000);
+            });
 
             // Update arrow pointing based on current view direction
             updateSearchArrow();
-        }
-
-        // Navigate to target location
-        if (skyCanvasView != null) {
-            skyCanvasView.setOrientation(searchTargetRa, searchTargetDec);
         }
 
         Toast.makeText(this, getString(R.string.search_navigating_to, searchTargetName), Toast.LENGTH_SHORT).show();

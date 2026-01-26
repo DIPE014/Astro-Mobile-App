@@ -184,8 +184,22 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
             // Extract star positions as IDs for this constellation
             List<String> starIds = extractStarIds(proto);
 
-            // Extract line connections
+            // Extract star coordinates for direct rendering
+            List<GeocentricCoords> starCoordinates = extractStarCoordinates(proto);
+
+            // Extract line connections (index-based approach)
             List<int[]> lineIndices = extractLineIndices(proto, starIds.size());
+
+            // Extract line segments directly from protobuf (coordinate-based approach)
+            // This is more reliable as it doesn't depend on matching vertices to points
+            List<float[]> lineSegments = extractLineSegments(proto);
+
+            // Debug logging for constellation data extraction
+            Log.d(TAG, "Constellation '" + name + "': points=" + proto.getPointCount() +
+                    ", lines=" + proto.getLineCount() + ", starIds=" + starIds.size() +
+                    ", starCoords=" + starCoordinates.size() +
+                    ", lineIndices=" + lineIndices.size() +
+                    ", lineSegments=" + lineSegments.size());
 
             // Extract center point from search location
             GeocentricCoords centerPoint = extractCenterPoint(proto);
@@ -194,7 +208,9 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
                     .setId(id)
                     .setName(name)
                     .setStarIds(starIds)
-                    .setLineIndices(lineIndices);
+                    .setStarCoordinates(starCoordinates)
+                    .setLineIndices(lineIndices)
+                    .setLineSegments(lineSegments);
 
             if (centerPoint != null) {
                 builder.setCenterPoint(centerPoint);
@@ -300,10 +316,73 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
     }
 
     /**
+     * Extracts star coordinates from the constellation's point elements.
+     *
+     * <p>Each point in the constellation represents a star position.
+     * The coordinates are stored for direct use in rendering.</p>
+     *
+     * @param proto The astronomical source proto
+     * @return A list of GeocentricCoords for each star
+     */
+    @NonNull
+    private List<GeocentricCoords> extractStarCoordinates(@NonNull AstronomicalSourceProto proto) {
+        List<GeocentricCoords> coords = new ArrayList<>();
+
+        for (int i = 0; i < proto.getPointCount(); i++) {
+            PointElementProto point = proto.getPoint(i);
+            if (point.hasLocation()) {
+                GeocentricCoordinatesProto loc = point.getLocation();
+                coords.add(GeocentricCoords.fromDegrees(
+                        loc.getRightAscension(),
+                        loc.getDeclination()
+                ));
+            }
+        }
+
+        return coords;
+    }
+
+    /**
+     * Extracts line segments directly from the protobuf line elements.
+     *
+     * <p>Each line segment is stored as [startRa, startDec, endRa, endDec].
+     * This approach uses the raw line vertices without trying to match to points.</p>
+     *
+     * @param proto The astronomical source proto
+     * @return A list of line segments with coordinates
+     */
+    @NonNull
+    private List<float[]> extractLineSegments(@NonNull AstronomicalSourceProto proto) {
+        List<float[]> segments = new ArrayList<>();
+
+        for (LineElementProto line : proto.getLineList()) {
+            List<GeocentricCoordinatesProto> vertices = line.getVertexList();
+
+            // Each pair of consecutive vertices forms a line segment
+            for (int i = 0; i < vertices.size() - 1; i++) {
+                GeocentricCoordinatesProto start = vertices.get(i);
+                GeocentricCoordinatesProto end = vertices.get(i + 1);
+
+                segments.add(new float[] {
+                        start.getRightAscension(),
+                        start.getDeclination(),
+                        end.getRightAscension(),
+                        end.getDeclination()
+                });
+            }
+        }
+
+        return segments;
+    }
+
+    /**
      * Extracts line connection indices from the constellation's line elements.
      *
      * <p>Lines in the protobuf contain vertex coordinates. We need to map these
      * to indices in our star list by finding the closest matching stars.</p>
+     *
+     * <p>If no points are available, we create a sequential list of all line vertices
+     * and use sequential indices.</p>
      *
      * @param proto    The astronomical source proto
      * @param starCount The number of stars in the constellation
@@ -322,7 +401,16 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
             }
         }
 
+        // If no points exist, use line vertices directly as star positions
+        if (starCoords.isEmpty()) {
+            Log.d(TAG, "No points in constellation, using line vertices directly");
+            // This case is handled by building coordinates from lines in extractStarCoordinatesFromLines
+            return lineIndices;
+        }
+
         // For each line, find the star indices that match the vertices
+        int matchedLines = 0;
+        int unmatchedLines = 0;
         for (LineElementProto line : proto.getLineList()) {
             List<GeocentricCoordinatesProto> vertices = line.getVertexList();
 
@@ -335,8 +423,15 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
 
                 if (startIndex >= 0 && endIndex >= 0 && startIndex != endIndex) {
                     lineIndices.add(new int[]{startIndex, endIndex});
+                    matchedLines++;
+                } else {
+                    unmatchedLines++;
                 }
             }
+        }
+
+        if (unmatchedLines > 0) {
+            Log.d(TAG, "Line matching: " + matchedLines + " matched, " + unmatchedLines + " unmatched");
         }
 
         return lineIndices;
@@ -367,8 +462,9 @@ public class ConstellationRepositoryImpl implements ConstellationRepository {
             }
         }
 
-        // Only return if within a reasonable threshold (1 degree)
-        return closestDist < 1.0f ? closestIndex : -1;
+        // Use a generous threshold of 10 degrees since line vertices may not exactly match point coordinates
+        // The protobuf line vertices should be close to the constellation stars
+        return closestDist < 10.0f ? closestIndex : -1;
     }
 
     /**

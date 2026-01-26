@@ -6,7 +6,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
@@ -42,6 +44,8 @@ public class SearchArrowView extends View {
     private Paint circlePaint;
     private Paint labelPaint;
     private Paint backgroundPaint;
+    private Paint closeButtonPaint;
+    private Paint closeButtonIconPaint;
 
     // Colors
     private static final int COLOR_ARROW_NEAR = 0xFFFF5722;    // Orange-red when close
@@ -49,6 +53,15 @@ public class SearchArrowView extends View {
     private static final int COLOR_CIRCLE = 0xFFBB86FC;        // Primary purple
     private static final int COLOR_LABEL = 0xFFFFFFFF;         // White
     private static final int COLOR_BACKGROUND = 0x80000000;    // Semi-transparent black
+    private static final int COLOR_CLOSE_BUTTON = 0xFFCF6679;  // Red for close
+
+    // Close button
+    private static final float CLOSE_BUTTON_SIZE = 48f;
+    private static final float CLOSE_BUTTON_MARGIN = 24f;
+    private RectF closeButtonRect = new RectF();
+
+    // Callback for auto-dismiss
+    private OnTargetCenteredListener targetCenteredListener;
 
     // Target coordinates (RA/Dec in degrees)
     private float targetRa = 0f;
@@ -115,6 +128,18 @@ public class SearchArrowView extends View {
         backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         backgroundPaint.setColor(COLOR_BACKGROUND);
         backgroundPaint.setStyle(Paint.Style.FILL);
+
+        // Close button paint
+        closeButtonPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        closeButtonPaint.setColor(COLOR_CLOSE_BUTTON);
+        closeButtonPaint.setStyle(Paint.Style.FILL);
+
+        // Close button icon paint (X)
+        closeButtonIconPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        closeButtonIconPaint.setColor(Color.WHITE);
+        closeButtonIconPaint.setStyle(Paint.Style.STROKE);
+        closeButtonIconPaint.setStrokeWidth(4f);
+        closeButtonIconPaint.setStrokeCap(Paint.Cap.ROUND);
 
         // Create arrow path
         arrowPath = new Path();
@@ -205,7 +230,13 @@ public class SearchArrowView extends View {
 
         // Calculate focus progress (0 = far, 1 = centered)
         // Consider "in focus" when within 10 degrees
+        float oldProgress = this.focusProgress;
         this.focusProgress = 1f - Math.min(1f, (float) angularDistance / 10f);
+
+        // Notify listener when target becomes centered (>95% focused)
+        if (focusProgress >= 0.95f && oldProgress < 0.95f && targetCenteredListener != null) {
+            targetCenteredListener.onTargetCentered();
+        }
 
         invalidate();
     }
@@ -253,6 +284,36 @@ public class SearchArrowView extends View {
             float labelY = centerY + (focusProgress > 0.5f ? 0 : ARROW_OFFSET + ARROW_SIZE);
             canvas.drawText(targetName, centerX, labelY + 50, labelPaint);
         }
+
+        // Draw close button (X) in top-right corner
+        drawCloseButton(canvas, width, height);
+
+        // Draw "Tap anywhere to dismiss" hint at bottom
+        labelPaint.setTextSize(24f);
+        canvas.drawText("Tap X to dismiss", centerX, height - 40, labelPaint);
+        labelPaint.setTextSize(32f);  // Reset
+    }
+
+    /**
+     * Draws the close button (X) in the top-right corner.
+     */
+    private void drawCloseButton(Canvas canvas, int width, int height) {
+        float right = width - CLOSE_BUTTON_MARGIN;
+        float top = CLOSE_BUTTON_MARGIN;
+        float left = right - CLOSE_BUTTON_SIZE;
+        float bottom = top + CLOSE_BUTTON_SIZE;
+
+        closeButtonRect.set(left, top, right, bottom);
+
+        // Draw circle background
+        float centerX = left + CLOSE_BUTTON_SIZE / 2;
+        float centerY = top + CLOSE_BUTTON_SIZE / 2;
+        canvas.drawCircle(centerX, centerY, CLOSE_BUTTON_SIZE / 2, closeButtonPaint);
+
+        // Draw X icon
+        float inset = CLOSE_BUTTON_SIZE / 4;
+        canvas.drawLine(left + inset, top + inset, right - inset, bottom - inset, closeButtonIconPaint);
+        canvas.drawLine(right - inset, top + inset, left + inset, bottom - inset, closeButtonIconPaint);
     }
 
     /**
@@ -340,6 +401,41 @@ public class SearchArrowView extends View {
      */
     public float getFocusProgress() {
         return focusProgress;
+    }
+
+    /**
+     * Sets a listener for when the target becomes centered.
+     */
+    public void setOnTargetCenteredListener(OnTargetCenteredListener listener) {
+        this.targetCenteredListener = listener;
+    }
+
+    /**
+     * Callback interface for when target is centered.
+     */
+    public interface OnTargetCenteredListener {
+        void onTargetCentered();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_UP && isActive) {
+            float x = event.getX();
+            float y = event.getY();
+
+            // Check if close button was tapped
+            if (closeButtonRect.contains(x, y)) {
+                performClick();
+                return true;
+            }
+        }
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean performClick() {
+        super.performClick();
+        return true;
     }
 
     @Override

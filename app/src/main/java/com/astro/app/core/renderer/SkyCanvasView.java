@@ -10,6 +10,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.astro.app.data.model.ConstellationData;
+import com.astro.app.data.model.GeocentricCoords;
 import com.astro.app.data.model.StarData;
 
 import java.util.ArrayList;
@@ -944,62 +945,118 @@ public class SkyCanvasView extends View {
         int labelsDrawn = 0;
 
         for (ConstellationData constellation : constellations) {
-            List<String> starIds = constellation.getStarIds();
             List<int[]> lineIndices = constellation.getLineIndices();
 
             // Build position map for this constellation's stars (screen coords)
             // Format: [x, y, visible, starAz] where visible is 1.0 if in front
             java.util.Map<Integer, float[]> starPositions = new HashMap<>();
 
-            for (int i = 0; i < starIds.size(); i++) {
-                String starId = starIds.get(i);
-                StarData star = findStarForConstellation(starId);
+            // Use embedded coordinates if available (preferred), otherwise fall back to star lookup
+            boolean hasEmbeddedCoords = constellation.hasStarCoordinates();
+            int starCount = hasEmbeddedCoords ? constellation.getStarCoordinates().size() : constellation.getStarIds().size();
 
-                if (star != null) {
-                    float ra = star.getRa();
-                    float dec = star.getDec();
+            for (int i = 0; i < starCount; i++) {
+                float ra, dec;
 
-                    // Convert RA/Dec to Alt/Az
-                    double[] altAz = raDecToAltAz(ra, dec, lst);
-                    double starAlt = altAz[0];
-                    double starAz = altAz[1];
+                if (hasEmbeddedCoords) {
+                    // Use embedded coordinates directly from constellation data
+                    GeocentricCoords coords = constellation.getStarCoordinatesAt(i);
+                    if (coords == null) continue;
+                    ra = coords.getRa();
+                    dec = coords.getDec();
+                } else {
+                    // Fall back to star lookup (legacy path)
+                    String starId = constellation.getStarIds().get(i);
+                    StarData star = findStarForConstellation(starId);
+                    if (star == null) continue;
+                    ra = star.getRa();
+                    dec = star.getDec();
+                }
 
-                    // Use proper spherical projection
-                    float[] screenPos = projectToScreen(starAlt, starAz,
+                // Convert RA/Dec to Alt/Az
+                double[] altAz = raDecToAltAz(ra, dec, lst);
+                double starAlt = altAz[0];
+                double starAz = altAz[1];
+
+                // Use proper spherical projection
+                float[] screenPos = projectToScreen(starAlt, starAz,
+                        altitudeOffset, azimuthOffset,
+                        centerX, centerY, pixelsPerDegree);
+
+                // Store screen position, visibility flag, and azimuth
+                starPositions.put(i, new float[]{screenPos[0], screenPos[1], screenPos[2], (float)starAz});
+            }
+
+            // Draw lines - prefer direct line segments, fall back to index-based approach
+            if (constellation.hasLineSegments()) {
+                // Use direct line segments from protobuf (more reliable)
+                for (float[] segment : constellation.getLineSegments()) {
+                    float startRa = segment[0];
+                    float startDec = segment[1];
+                    float endRa = segment[2];
+                    float endDec = segment[3];
+
+                    // Convert start RA/Dec to Alt/Az
+                    double[] startAltAz = raDecToAltAz(startRa, startDec, lst);
+                    double[] endAltAz = raDecToAltAz(endRa, endDec, lst);
+
+                    // Project to screen
+                    float[] startScreen = projectToScreen(startAltAz[0], startAltAz[1],
+                            altitudeOffset, azimuthOffset,
+                            centerX, centerY, pixelsPerDegree);
+                    float[] endScreen = projectToScreen(endAltAz[0], endAltAz[1],
                             altitudeOffset, azimuthOffset,
                             centerX, centerY, pixelsPerDegree);
 
-                    // Store screen position, visibility flag, and azimuth
-                    starPositions.put(i, new float[]{screenPos[0], screenPos[1], screenPos[2], (float)starAz});
-                }
-            }
+                    // Skip if either point is behind us
+                    if (startScreen[2] < 0.5f || endScreen[2] < 0.5f) {
+                        continue;
+                    }
 
-            // Draw lines between stars
-            for (int[] indices : lineIndices) {
-                if (indices.length >= 2) {
-                    float[] start = starPositions.get(indices[0]);
-                    float[] end = starPositions.get(indices[1]);
-
-                    if (start != null && end != null) {
-                        // Skip if either star is behind us
-                        if (start[2] < 0.5f || end[2] < 0.5f) {
+                    // Only draw if at least one endpoint is on screen
+                    boolean startOnScreen = startScreen[0] >= -50 && startScreen[0] <= width + 50 &&
+                                            startScreen[1] >= -50 && startScreen[1] <= height + 50;
+                    boolean endOnScreen = endScreen[0] >= -50 && endScreen[0] <= width + 50 &&
+                                          endScreen[1] >= -50 && endScreen[1] <= height + 50;
+                    if (startOnScreen || endOnScreen) {
+                        // Check for azimuth wraparound
+                        float azDiff = Math.abs((float)startAltAz[1] - (float)endAltAz[1]);
+                        if (azDiff > 180) {
                             continue;
                         }
 
-                        // Only draw if at least one endpoint is on screen
-                        boolean startOnScreen = start[0] >= -50 && start[0] <= width + 50 &&
-                                                start[1] >= -50 && start[1] <= height + 50;
-                        boolean endOnScreen = end[0] >= -50 && end[0] <= width + 50 &&
-                                              end[1] >= -50 && end[1] <= height + 50;
-                        if (startOnScreen || endOnScreen) {
-                            // Check for azimuth wraparound (stars on opposite sides of sky)
-                            float azDiff = Math.abs(start[3] - end[3]);
-                            if (azDiff > 180) {
-                                continue; // Skip lines that would wrap around
+                        canvas.drawLine(startScreen[0], startScreen[1], endScreen[0], endScreen[1], constellationLinePaint);
+                        linesDrawn++;
+                    }
+                }
+            } else {
+                // Fall back to index-based approach (legacy)
+                for (int[] indices : lineIndices) {
+                    if (indices.length >= 2) {
+                        float[] start = starPositions.get(indices[0]);
+                        float[] end = starPositions.get(indices[1]);
+
+                        if (start != null && end != null) {
+                            // Skip if either star is behind us
+                            if (start[2] < 0.5f || end[2] < 0.5f) {
+                                continue;
                             }
 
-                            canvas.drawLine(start[0], start[1], end[0], end[1], constellationLinePaint);
-                            linesDrawn++;
+                            // Only draw if at least one endpoint is on screen
+                            boolean startOnScreen = start[0] >= -50 && start[0] <= width + 50 &&
+                                                    start[1] >= -50 && start[1] <= height + 50;
+                            boolean endOnScreen = end[0] >= -50 && end[0] <= width + 50 &&
+                                                  end[1] >= -50 && end[1] <= height + 50;
+                            if (startOnScreen || endOnScreen) {
+                                // Check for azimuth wraparound (stars on opposite sides of sky)
+                                float azDiff = Math.abs(start[3] - end[3]);
+                                if (azDiff > 180) {
+                                    continue; // Skip lines that would wrap around
+                                }
+
+                                canvas.drawLine(start[0], start[1], end[0], end[1], constellationLinePaint);
+                                linesDrawn++;
+                            }
                         }
                     }
                 }
@@ -1201,8 +1258,8 @@ public class SkyCanvasView extends View {
                     float ra = Float.parseFloat(parts[0]) / 1000f;
                     float dec = Float.parseFloat(parts[1]) / 1000f;
 
-                    // Find nearest star within 1 degree
-                    return findNearestStarByCoords(ra, dec, 1.0f);
+                    // Find nearest star within 5 degrees (increased tolerance for constellation matching)
+                    return findNearestStarByCoords(ra, dec, 5.0f);
                 }
             } catch (NumberFormatException e) {
                 // Ignore parsing errors

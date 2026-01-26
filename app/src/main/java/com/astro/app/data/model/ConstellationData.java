@@ -58,6 +58,21 @@ public class ConstellationData {
     @NonNull
     private final List<int[]> lineIndices;
 
+    /**
+     * List of star coordinates matching starIds order.
+     * Each entry is the RA/Dec position of the corresponding star.
+     */
+    @NonNull
+    private final List<GeocentricCoords> starCoordinates;
+
+    /**
+     * Direct line segments from the protobuf data.
+     * Each entry is a pair of coordinates: [startRa, startDec, endRa, endDec].
+     * This is used when line vertices don't match point coordinates.
+     */
+    @NonNull
+    private final List<float[]> lineSegments;
+
     /** Center point of the constellation for labeling */
     @Nullable
     private final GeocentricCoords centerPoint;
@@ -77,6 +92,13 @@ public class ConstellationData {
             copiedLines.add(new int[] {line[0], line[1]});
         }
         this.lineIndices = Collections.unmodifiableList(copiedLines);
+        this.starCoordinates = Collections.unmodifiableList(new ArrayList<>(builder.starCoordinates));
+        // Deep copy lineSegments
+        List<float[]> copiedSegments = new ArrayList<>();
+        for (float[] segment : builder.lineSegments) {
+            copiedSegments.add(new float[] {segment[0], segment[1], segment[2], segment[3]});
+        }
+        this.lineSegments = Collections.unmodifiableList(copiedSegments);
         this.centerPoint = builder.centerPoint;
     }
 
@@ -141,6 +163,62 @@ public class ConstellationData {
      */
     public int getLineCount() {
         return lineIndices.size();
+    }
+
+    /**
+     * Returns the list of star coordinates in this constellation.
+     *
+     * <p>Coordinates are in the same order as {@link #getStarIds()}.</p>
+     *
+     * @return An unmodifiable list of star coordinates
+     */
+    @NonNull
+    public List<GeocentricCoords> getStarCoordinates() {
+        return starCoordinates;
+    }
+
+    /**
+     * Returns the coordinates of a star at the specified index.
+     *
+     * @param index The index in the star list
+     * @return The star coordinates, or null if index is out of bounds or coordinates not available
+     */
+    @Nullable
+    public GeocentricCoords getStarCoordinatesAt(int index) {
+        if (index >= 0 && index < starCoordinates.size()) {
+            return starCoordinates.get(index);
+        }
+        return null;
+    }
+
+    /**
+     * Checks if this constellation has embedded star coordinates.
+     *
+     * @return true if star coordinates are available
+     */
+    public boolean hasStarCoordinates() {
+        return !starCoordinates.isEmpty();
+    }
+
+    /**
+     * Returns the direct line segments for this constellation.
+     *
+     * <p>Each float[] contains [startRa, startDec, endRa, endDec] in degrees.</p>
+     *
+     * @return An unmodifiable list of line segments
+     */
+    @NonNull
+    public List<float[]> getLineSegments() {
+        return lineSegments;
+    }
+
+    /**
+     * Checks if this constellation has direct line segments.
+     *
+     * @return true if line segments are available
+     */
+    public boolean hasLineSegments() {
+        return !lineSegments.isEmpty();
     }
 
     /**
@@ -296,6 +374,12 @@ public class ConstellationData {
         @NonNull
         private List<int[]> lineIndices = new ArrayList<>();
 
+        @NonNull
+        private List<GeocentricCoords> starCoordinates = new ArrayList<>();
+
+        @NonNull
+        private List<float[]> lineSegments = new ArrayList<>();
+
         @Nullable
         private GeocentricCoords centerPoint = null;
 
@@ -382,6 +466,65 @@ public class ConstellationData {
         @NonNull
         public Builder addLine(int startIndex, int endIndex) {
             this.lineIndices.add(new int[] {startIndex, endIndex});
+            return this;
+        }
+
+        /**
+         * Sets the star coordinates list.
+         *
+         * @param coordinates List of star coordinates matching starIds order
+         * @return This builder for method chaining
+         */
+        @NonNull
+        public Builder setStarCoordinates(@Nullable List<GeocentricCoords> coordinates) {
+            this.starCoordinates = coordinates != null ? new ArrayList<>(coordinates) : new ArrayList<>();
+            return this;
+        }
+
+        /**
+         * Adds a star coordinate to the constellation.
+         *
+         * @param ra  Right Ascension in degrees
+         * @param dec Declination in degrees
+         * @return This builder for method chaining
+         */
+        @NonNull
+        public Builder addStarCoordinate(float ra, float dec) {
+            this.starCoordinates.add(GeocentricCoords.fromDegrees(ra, dec));
+            return this;
+        }
+
+        /**
+         * Sets the line segments list.
+         *
+         * @param segments List of line segments [startRa, startDec, endRa, endDec]
+         * @return This builder for method chaining
+         */
+        @NonNull
+        public Builder setLineSegments(@Nullable List<float[]> segments) {
+            this.lineSegments = new ArrayList<>();
+            if (segments != null) {
+                for (float[] segment : segments) {
+                    if (segment != null && segment.length >= 4) {
+                        this.lineSegments.add(new float[] {segment[0], segment[1], segment[2], segment[3]});
+                    }
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Adds a line segment to the constellation.
+         *
+         * @param startRa  Start Right Ascension in degrees
+         * @param startDec Start Declination in degrees
+         * @param endRa    End Right Ascension in degrees
+         * @param endDec   End Declination in degrees
+         * @return This builder for method chaining
+         */
+        @NonNull
+        public Builder addLineSegment(float startRa, float startDec, float endRa, float endDec) {
+            this.lineSegments.add(new float[] {startRa, startDec, endRa, endDec});
             return this;
         }
 

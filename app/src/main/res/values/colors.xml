@@ -152,6 +152,12 @@
     <!-- Time Travel Colors -->
     <color name="time_travel_active">#FF9800</color>
 
+    <!-- Toggle Button State Colors -->
+    <color name="toggle_on">#4CAF50</color>
+    <color name="toggle_on_bg">#1A4CAF50</color>
+    <color name="toggle_off">#CF6679</color>
+    <color name="toggle_off_bg">#1ACF6679</color>
+
     <!-- Material Design 3 Color Tokens -->
     <color name="md_theme_dark_primary">#BB86FC</color>
     <color name="md_theme_dark_onPrimary">#1C1B1F</color>
