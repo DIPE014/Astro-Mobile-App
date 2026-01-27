@@ -206,6 +206,9 @@ public class SearchArrowView extends View {
     /**
      * Updates the current view direction and recalculates arrow position.
      *
+     * The arrow angle is calculated by converting both view and target directions
+     * to 3D unit vectors, then computing the relative direction on the viewing plane.
+     *
      * @param viewRa  Current view Right Ascension in degrees
      * @param viewDec Current view Declination in degrees
      */
@@ -218,17 +221,13 @@ public class SearchArrowView extends View {
         }
 
         // Calculate angular distance using proper spherical formula
-        // This correctly handles the RA compression near the poles
+        // This correctly handles RA wraparound and compression near poles
         double angularDistance = calculateAngularDistance(viewRa, viewDec, targetRa, targetDec);
         this.distance = (float) Math.min(1.0, angularDistance / 90.0);
 
-        // Calculate arrow angle (pointing direction) using planar approximation
-        // This is fine for the arrow direction since we just need the general direction
-        float dRa = normalizeAngle(targetRa - viewRa);
-        float dDec = targetDec - viewDec;
-        // Account for RA compression at current declination for arrow direction
-        float raScale = (float) Math.cos(Math.toRadians((viewDec + targetDec) / 2.0));
-        this.arrowAngle = (float) Math.atan2(dDec, dRa * raScale);
+        // Calculate arrow angle using 3D vector math (like stardroid)
+        // This correctly handles all edge cases including near-pole viewing
+        this.arrowAngle = calculateArrowAngle(viewRa, viewDec, targetRa, targetDec);
 
         // Calculate focus progress (0 = far, 1 = centered)
         // Consider "in focus" when within 10 degrees (more lenient threshold)
@@ -237,8 +236,9 @@ public class SearchArrowView extends View {
 
         // Debug logging for troubleshooting
         android.util.Log.d(TAG, String.format(
-            "SEARCH: view(RA=%.1f, Dec=%.1f) target(RA=%.1f, Dec=%.1f) dist=%.2f° focus=%.2f",
-            viewRa, viewDec, targetRa, targetDec, angularDistance, focusProgress));
+            "SEARCH: view(RA=%.1f, Dec=%.1f) target(RA=%.1f, Dec=%.1f) dist=%.2f° arrow=%.1f° focus=%.2f",
+            viewRa, viewDec, targetRa, targetDec, angularDistance,
+            Math.toDegrees(arrowAngle), focusProgress));
 
         // Notify listener when target becomes centered (>95% focused)
         if (focusProgress >= 0.95f && oldProgress < 0.95f && targetCenteredListener != null) {
@@ -246,6 +246,98 @@ public class SearchArrowView extends View {
         }
 
         invalidate();
+    }
+
+    /**
+     * Calculates the arrow angle in screen coordinates using 3D spherical geometry.
+     *
+     * This method converts RA/Dec to 3D unit vectors and computes the direction
+     * from the current view to the target on the viewing plane. This approach
+     * correctly handles all edge cases including viewing near the celestial poles.
+     *
+     * The coordinate system used:
+     * - X axis points to RA=0, Dec=0
+     * - Y axis points to RA=90, Dec=0
+     * - Z axis points to Dec=90 (North Celestial Pole)
+     *
+     * On screen (phone held upright):
+     * - RIGHT on screen corresponds to increasing RA (East) when looking North
+     * - UP on screen corresponds to increasing Dec (toward pole) when at horizon
+     *
+     * @param viewRa   View direction RA in degrees
+     * @param viewDec  View direction Dec in degrees
+     * @param targetRa Target RA in degrees
+     * @param targetDec Target Dec in degrees
+     * @return Arrow angle in radians (0 = right, PI/2 = up in screen coordinates)
+     */
+    private float calculateArrowAngle(float viewRa, float viewDec, float targetRa, float targetDec) {
+        // Convert to radians
+        double viewRaRad = Math.toRadians(viewRa);
+        double viewDecRad = Math.toRadians(viewDec);
+        double targetRaRad = Math.toRadians(targetRa);
+        double targetDecRad = Math.toRadians(targetDec);
+
+        // Convert view direction to 3D unit vector
+        // Standard astronomical: x = cos(dec)*cos(ra), y = cos(dec)*sin(ra), z = sin(dec)
+        double vx = Math.cos(viewDecRad) * Math.cos(viewRaRad);
+        double vy = Math.cos(viewDecRad) * Math.sin(viewRaRad);
+        double vz = Math.sin(viewDecRad);
+
+        // Convert target to 3D unit vector
+        double tx = Math.cos(targetDecRad) * Math.cos(targetRaRad);
+        double ty = Math.cos(targetDecRad) * Math.sin(targetRaRad);
+        double tz = Math.sin(targetDecRad);
+
+        // Build local coordinate system at view point:
+        // "up" on screen points toward increasing Dec (toward celestial north pole when viewing from equator)
+        // "right" on screen points toward increasing RA (East)
+
+        // Up vector: perpendicular to view in the direction of increasing Dec
+        // This is the component of the celestial north pole perpendicular to the view direction
+        // Celestial north pole is at (0, 0, 1)
+        double dot = vz;  // dot product of view with north pole
+        double upX = 0 - vx * dot;
+        double upY = 0 - vy * dot;
+        double upZ = 1 - vz * dot;
+
+        // Normalize up vector
+        double upLen = Math.sqrt(upX * upX + upY * upY + upZ * upZ);
+        if (upLen < 0.0001) {
+            // Looking directly at pole - up direction is arbitrary, use x-axis
+            upX = 1; upY = 0; upZ = 0;
+            upLen = 1;
+        }
+        upX /= upLen;
+        upY /= upLen;
+        upZ /= upLen;
+
+        // Right vector: cross product of up and view (right-handed: up × view = right)
+        // This points East when looking North at the equator
+        double rightX = upY * vz - upZ * vy;
+        double rightY = upZ * vx - upX * vz;
+        double rightZ = upX * vy - upY * vx;
+
+        // Normalize right vector
+        double rightLen = Math.sqrt(rightX * rightX + rightY * rightY + rightZ * rightZ);
+        if (rightLen > 0.0001) {
+            rightX /= rightLen;
+            rightY /= rightLen;
+            rightZ /= rightLen;
+        }
+
+        // Project target onto the viewing plane
+        // First, get the component of target relative to view
+        double relX = tx - vx;
+        double relY = ty - vy;
+        double relZ = tz - vz;
+
+        // Project onto right and up axes
+        double screenRight = relX * rightX + relY * rightY + relZ * rightZ;
+        double screenUp = relX * upX + relY * upY + relZ * upZ;
+
+        // Calculate angle in screen coordinates
+        // atan2(y, x) where y is up and x is right gives angle from right (East)
+        return (float) Math.atan2(screenUp, screenRight);
     }
 
     /**

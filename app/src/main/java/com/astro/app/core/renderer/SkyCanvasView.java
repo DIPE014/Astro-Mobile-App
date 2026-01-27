@@ -16,9 +16,12 @@ import com.astro.app.data.model.StarData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import com.astro.app.core.math.TimeUtilsKt;
 
 /**
  * Canvas-based sky renderer that displays real star data.
@@ -312,6 +315,11 @@ public class SkyCanvasView extends View {
      * Converts Altitude/Azimuth to Right Ascension/Declination.
      * This is the inverse of raDecToAltAz().
      *
+     * Standard astronomical conventions:
+     * - Azimuth: 0 = North, 90 = East, 180 = South, 270 = West
+     * - Hour Angle: positive West of meridian, negative East of meridian
+     * - RA = LST - HA
+     *
      * @param altitude Altitude in degrees (0 = horizon, 90 = zenith)
      * @param azimuth  Azimuth in degrees (0 = North, 90 = East)
      * @return Array of [RA, Dec] in degrees
@@ -351,21 +359,20 @@ public class SkyCanvasView extends View {
         double ha = Math.toDegrees(Math.acos(cosHA));
 
         // Determine the sign of HA based on azimuth
-        // If azimuth > 180 (west of meridian), HA is positive
-        // If azimuth < 180 (east of meridian), HA is negative
-        if (azimuth > 180) {
-            ha = -ha;  // Objects in the west have negative hour angle approaching
-        }
-        // Actually, the convention varies. Let's use: sin(az) > 0 means HA is negative
+        // Standard convention:
+        // - sin(Az) > 0 (East, Az 0-180): HA is negative (object hasn't crossed meridian)
+        // - sin(Az) < 0 (West, Az 180-360): HA is positive (object has crossed meridian)
         if (Math.sin(azRad) > 0) {
-            ha = 360 - ha;
+            ha = -ha;
         }
 
         // Calculate RA from hour angle and LST
         // RA = LST - HA
         double ra = lst - ha;
-        if (ra < 0) ra += 360;
-        if (ra >= 360) ra -= 360;
+
+        // Normalize RA to 0-360 range
+        while (ra < 0) ra += 360;
+        while (ra >= 360) ra -= 360;
 
         return new double[]{ra, dec};
     }
@@ -453,50 +460,26 @@ public class SkyCanvasView extends View {
 
     /**
      * Calculates the Local Sidereal Time for the observer's location.
+     * Uses the proven implementation from TimeUtils matching stardroid.
+     *
+     * The formula is:
+     * 1. Calculate Julian Day (including fractional day for current time)
+     * 2. Calculate days since J2000.0: delta = JD - 2451545.0
+     * 3. Greenwich Sidereal Time: GST = 280.461 + 360.98564737 * delta
+     * 4. Local Sidereal Time: LST = GST + longitude
      *
      * @return LST in degrees (0-360)
      */
     private double calculateLocalSiderealTime() {
-        // Use observation time (set by time travel) instead of current system time
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        cal.setTimeInMillis(observationTime);
-
-        // Julian Date calculation
-        int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH) + 1;
-        int day = cal.get(Calendar.DAY_OF_MONTH);
-        int hour = cal.get(Calendar.HOUR_OF_DAY);
-        int minute = cal.get(Calendar.MINUTE);
-        int second = cal.get(Calendar.SECOND);
-
-        double ut = hour + minute / 60.0 + second / 3600.0;
-
-        if (month <= 2) {
-            year -= 1;
-            month += 12;
-        }
-
-        double a = Math.floor(year / 100.0);
-        double b = 2 - a + Math.floor(a / 4.0);
-        double jd = Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + b - 1524.5;
-
-        // Days since J2000.0
-        double d = jd - 2451545.0;
-
-        // Greenwich Sidereal Time
-        double gst = 280.46061837 + 360.98564736629 * d + 0.000387933 * Math.pow(d / 36525.0, 2);
-        gst = gst % 360;
-        if (gst < 0) gst += 360;
-
-        // Local Sidereal Time
-        double lst = gst + observerLongitude;
-        lst = lst % 360;
-        if (lst < 0) lst += 360;
+        // Use the proven meanSiderealTime implementation from TimeUtils.kt
+        // This correctly handles the time of day in the Julian Day calculation
+        Date observationDate = new Date(observationTime);
+        double lst = TimeUtilsKt.meanSiderealTime(observationDate, (float) observerLongitude);
 
         // Log LST for time travel debugging (only log occasionally to avoid spam)
         if (lastLoggedLst < 0 || Math.abs(lst - lastLoggedLst) > 1.0) {
             Log.d(TAG, "TIME_TRAVEL: LST = " + String.format("%.2f", lst) + "° for time " +
-                new java.util.Date(observationTime));
+                new Date(observationTime));
             lastLoggedLst = lst;
         }
 
