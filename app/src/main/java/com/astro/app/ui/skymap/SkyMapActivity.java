@@ -246,7 +246,16 @@ public class SkyMapActivity extends AppCompatActivity {
 
     /**
      * Sets up the SensorController to receive orientation updates.
-     * Converts rotation vector to azimuth/altitude and updates the sky view.
+     * Uses matrix-based transformation (matching stardroid's approach) to convert
+     * sensor data to celestial coordinates, then to Alt/Az for display.
+     *
+     * The correct transformation flow is:
+     * 1. Rotation vector sensor → pass to AstronomerModel
+     * 2. AstronomerModel calculates celestial pointing using matrix math
+     * 3. Convert celestial pointing (RA/Dec) to local coordinates (Alt/Az)
+     * 4. Update SkyCanvasView with Alt/Az
+     *
+     * This approach avoids the errors introduced by early Euler angle conversion.
      */
     private void setupSensorController() {
         if (sensorController == null) {
@@ -255,56 +264,109 @@ public class SkyMapActivity extends AppCompatActivity {
         }
 
         sensorController.setListener(rotationVector -> {
-            // Convert rotation vector to rotation matrix
-            float[] rotationMatrix = new float[9];
-            SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVector);
+            // Pass rotation vector directly to AstronomerModel for matrix-based transformation
+            // This matches stardroid's approach and avoids Euler angle conversion errors
+            if (astronomerModel != null) {
+                astronomerModel.setPhoneSensorValues(rotationVector);
 
-            // Remap coordinate system for device orientation (phone held upright looking at sky)
-            float[] remappedMatrix = new float[9];
-            SensorManager.remapCoordinateSystem(rotationMatrix,
-                    SensorManager.AXIS_X, SensorManager.AXIS_Z, remappedMatrix);
+                // Get the celestial pointing (RA/Dec) calculated via matrix transformation
+                com.astro.app.common.model.Pointing pointing = astronomerModel.getPointing();
+                float viewRa = pointing.getRightAscension();
+                float viewDec = pointing.getDeclination();
 
-            // Get orientation angles from remapped rotation matrix
-            float[] orientationAngles = new float[3];
-            SensorManager.getOrientation(remappedMatrix, orientationAngles);
+                // Convert celestial coordinates (RA/Dec) to local coordinates (Alt/Az)
+                // This requires observer's location and Local Sidereal Time
+                float[] altAz = raDecToAltAzForView(viewRa, viewDec);
+                float altitude = altAz[0];
+                float azimuth = altAz[1];
 
-            // Convert radians to degrees
-            // orientationAngles[0] = azimuth (rotation around Z axis, -pi to pi)
-            // orientationAngles[1] = pitch (rotation around X axis, -pi/2 to pi/2)
-            // orientationAngles[2] = roll (rotation around Y axis, -pi to pi)
-            float azimuth = (float) Math.toDegrees(orientationAngles[0]);
-            float pitch = (float) Math.toDegrees(orientationAngles[1]);
+                // Update the sky canvas view with new orientation
+                final float finalAzimuth = azimuth;
+                final float finalAltitude = altitude;
+                runOnUiThread(() -> {
+                    if (skyCanvasView != null) {
+                        skyCanvasView.setOrientation(finalAzimuth, finalAltitude);
+                    }
 
-            // Normalize azimuth to 0-360 range (0 = North, 90 = East)
-            if (azimuth < 0) {
-                azimuth += 360f;
+                    // Update search arrow if active
+                    if (searchArrowView != null && searchArrowView.isActive()) {
+                        updateSearchArrow();
+                    }
+                });
             }
-
-            // Convert pitch to altitude (0 = horizon, 90 = zenith, -90 = nadir)
-            // When phone is held upright facing forward, pitch is ~0
-            // When tilted up toward sky, pitch becomes negative
-            // When tilted down toward ground, pitch becomes positive
-            // So altitude = -pitch
-            // Allow full 360° rotation: -90° (looking down) to +90° (looking up)
-            float altitude = -pitch;
-            altitude = Math.max(-90f, Math.min(90f, altitude));
-
-            // Update the sky canvas view with new orientation
-            final float finalAzimuth = azimuth;
-            final float finalAltitude = altitude;
-            runOnUiThread(() -> {
-                if (skyCanvasView != null) {
-                    skyCanvasView.setOrientation(finalAzimuth, finalAltitude);
-                }
-
-                // Update search arrow if active
-                if (searchArrowView != null && searchArrowView.isActive()) {
-                    updateSearchArrow();
-                }
-            });
         });
 
-        Log.d(TAG, "SensorController listener set up for compass tracking");
+        Log.d(TAG, "SensorController listener set up with matrix-based transformation (stardroid approach)");
+    }
+
+    /**
+     * Converts Right Ascension/Declination to Altitude/Azimuth for the view direction.
+     * This is the same formula used in SkyCanvasView for star positions.
+     *
+     * @param ra  Right Ascension in degrees (0-360)
+     * @param dec Declination in degrees (-90 to +90)
+     * @return float array [altitude, azimuth] in degrees
+     */
+    private float[] raDecToAltAzForView(float ra, float dec) {
+        // Calculate Local Sidereal Time
+        double lst = calculateLocalSiderealTimeForView();
+
+        // Convert to radians
+        double latRad = Math.toRadians(currentLatitude);
+        double decRad = Math.toRadians(dec);
+
+        // Hour Angle = LST - RA
+        double ha = lst - ra;
+        if (ha < 0) ha += 360;
+        double haRad = Math.toRadians(ha);
+
+        // Calculate altitude
+        // sin(alt) = sin(dec) * sin(lat) + cos(dec) * cos(lat) * cos(HA)
+        double sinAlt = Math.sin(decRad) * Math.sin(latRad) +
+                        Math.cos(decRad) * Math.cos(latRad) * Math.cos(haRad);
+        double altitude = Math.toDegrees(Math.asin(Math.max(-1, Math.min(1, sinAlt))));
+
+        // Calculate azimuth
+        // cos(A) = (sin(dec) - sin(alt) * sin(lat)) / (cos(alt) * cos(lat))
+        double cosAlt = Math.cos(Math.toRadians(altitude));
+        double azimuth;
+        if (Math.abs(cosAlt) < 0.0001 || Math.abs(Math.cos(latRad)) < 0.0001) {
+            // At poles or looking at celestial pole - azimuth is undefined
+            azimuth = 0;
+        } else {
+            double cosA = (Math.sin(decRad) - Math.sin(Math.toRadians(altitude)) * Math.sin(latRad)) /
+                          (cosAlt * Math.cos(latRad));
+            cosA = Math.max(-1, Math.min(1, cosA)); // Clamp to [-1, 1]
+            azimuth = Math.toDegrees(Math.acos(cosA));
+
+            // Determine the sign based on hour angle
+            // If sin(HA) > 0, object is West of meridian, azimuth > 180
+            if (Math.sin(haRad) > 0) {
+                azimuth = 360 - azimuth;
+            }
+        }
+
+        return new float[]{(float) altitude, (float) azimuth};
+    }
+
+    /**
+     * Calculates the Local Sidereal Time for the view transformation.
+     * Uses the same formula as SkyCanvasView for consistency.
+     *
+     * LST = GST + longitude
+     * GST = 280.461 + 360.98564737 * (JD - 2451545.0)
+     *
+     * @return LST in degrees (0-360)
+     */
+    private double calculateLocalSiderealTimeForView() {
+        // Get current observation time (or time travel time if active)
+        long timeMillis = (timeTravelClock != null)
+                ? timeTravelClock.getCurrentTimeMillis()
+                : System.currentTimeMillis();
+
+        // Use TimeUtils for consistent LST calculation
+        Date observationDate = new Date(timeMillis);
+        return com.astro.app.core.math.TimeUtilsKt.meanSiderealTime(observationDate, (float) currentLongitude);
     }
 
     /**
@@ -1149,8 +1211,27 @@ public class SkyMapActivity extends AppCompatActivity {
                 if (timeTravelClock != null) {
                     timeTravelClock.returnToRealTime();
                     updateTimeTravelIndicator(false);
-                    // Update sky view with current time
-                    updateSkyForTime(System.currentTimeMillis());
+
+                    // Reset AstronomerModel to use real-time clock (not a fixed time)
+                    if (astronomerModel != null) {
+                        astronomerModel.setClock(new com.astro.app.core.control.RealClock());
+                    }
+
+                    // Update sky view to refresh with current time
+                    if (skyCanvasView != null) {
+                        skyCanvasView.setTime(System.currentTimeMillis());
+                        skyCanvasView.invalidate();
+                    }
+
+                    // Update planets layer
+                    if (planetsLayer != null) {
+                        planetsLayer.setTime(System.currentTimeMillis());
+                    }
+
+                    // Update GL surface
+                    if (skyGLSurfaceView != null) {
+                        skyGLSurfaceView.requestLayerUpdate();
+                    }
                 }
             }
         });
