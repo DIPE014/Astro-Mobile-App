@@ -1,255 +1,211 @@
-# Implementation Plan
+# Astro-Mobile-App Implementation Plan
 
-## Overview
+## Phase 8: New Features
 
-Build an Android astronomy AR app by adapting core features from `stardroid` (Sky Map) and adding AI constellation recognition.
+All 7 initial phases are complete (251 passing tests). This plan covers the next stage.
+
+**AI/ML features excluded** - will be added in a future phase.
 
 ---
 
-## Phase 1: Project Setup
+## Current State
+
+### Completed (Phases 1-7)
+- Canvas-based star/constellation rendering
+- AR camera mode with CameraX
+- Night mode
+- Settings activity
+- Star tap-to-select with info panel
+- 251 unit tests passing
+
+### Placeholder Features (show "Coming Soon")
+- Time Travel button (`btnTimeTravel`)
+- Planets button (`btnPlanets`)
+- Search FAB (`fabSearch`)
+
+### Issue to Fix
+- GPS hardcoded to New York (SkyMapActivity line 591)
+
+---
+
+## Branch Strategy
+
+```
+trung/test (base)
+    ├── feature/gps-tracking ──────> merge to trung/test
+    ├── feature/magnitude-control ─> merge to trung/test
+    ├── feature/time-travel ───────> merge to trung/test
+    ├── feature/planets ───────────> merge to trung/test
+    ├── feature/search ────────────> merge to trung/test
+    └── feature/constellation-lines > merge to trung/test
+```
+
+---
+
+## Feature 1: Real-time GPS Tracking
+**Branch:** `feature/gps-tracking`
+**Priority:** HIGHEST (foundation for all other features)
 
 ### Tasks
-- [ ] Set up Android project in Android Studio
-- [ ] Configure build.gradle with dependencies
-- [ ] Copy math utilities from stardroid (`stardroid/app/.../math/`)
-- [ ] Copy binary data files (`stars.binary`, `constellations.binary`)
-- [ ] Copy protocol buffer definition (`source.proto`)
-- [ ] Create basic MainActivity
+- [ ] Wire LocationController to SkyMapActivity via Dagger
+- [ ] Implement LocationListener in SkyMapActivity
+- [ ] Update SkyCanvasView.setObserverLocation() on GPS change
+- [ ] Update AstronomerModel with real location
+- [ ] Add GPS status indicator in UI
+- [ ] Handle permission flow and fallback to default location
 
-### Files to Copy from Stardroid
-```
-FROM: stardroid/app/src/main/java/com/google/android/stardroid/math/
-  - Vector3.kt
-  - Matrix3x3.kt
-  - Matrix4x4.kt
-  - RaDec.kt
-  - LatLong.kt
-  - Astronomy.kt
-  - CoordinateManipulations.kt
-  - Geometry.kt
-TO: app/src/main/java/com/astro/app/core/math/
-
-FROM: stardroid/app/src/main/assets/
-  - stars.binary
-  - constellations.binary
-  - messier.binary
-TO: app/src/main/assets/
-
-FROM: stardroid/datamodel/src/main/proto/
-  - source.proto
-TO: datamodel/src/main/proto/
-```
-
-### Dependencies (build.gradle)
-```groovy
-dependencies {
-    // Core Android
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.11.0'
-
-    // Dagger 2
-    implementation 'com.google.dagger:dagger:2.50'
-    annotationProcessor 'com.google.dagger:dagger-compiler:2.50'
-
-    // CameraX
-    implementation 'androidx.camera:camera-camera2:1.3.1'
-    implementation 'androidx.camera:camera-lifecycle:1.3.1'
-    implementation 'androidx.camera:camera-view:1.3.1'
-
-    // Location
-    implementation 'com.google.android.gms:play-services-location:21.1.0'
-
-    // ML
-    implementation 'org.tensorflow:tensorflow-lite:2.14.0'
-
-    // Protocol Buffers
-    implementation 'com.google.protobuf:protobuf-javalite:3.25.1'
-
-    // Utilities
-    implementation 'com.google.guava:guava:33.0.0-android'
-}
-```
+### Files to Modify
+- `app/.../ui/skymap/SkyMapActivity.java`
+- `app/.../core/renderer/SkyCanvasView.java`
+- `app/.../di/AppModule.java`
 
 ---
 
-## Phase 2: Core Astronomy Engine (Backend)
+## Feature 2: Time Travel
+**Branch:** `feature/time-travel`
+**Priority:** HIGH
 
 ### Tasks
-- [ ] Adapt AstronomerModel from stardroid
-- [ ] Implement LocationController (GPS)
-- [ ] Implement SensorController (accelerometer, gyroscope, magnetometer)
-- [ ] Create StarRepository to load binary data
-- [ ] Calculate visible stars based on device pointing
+- [ ] Create `TimeTravelClock.java` (port from stardroid)
+  - 13 speed levels: -1 week/sec to +1 week/sec
+  - Methods: setTimeTravelDate(), accelerate(), decelerate(), pause()
+- [ ] Create `TimeTravelDialog.java` with Material Design 3
+  - Date picker, time picker, quick presets
+- [ ] Create `TimePlayerView.java` overlay
+  - Rewind/Pause/Forward buttons, speed indicator, date display
+- [ ] Integrate with SkyMapActivity
+- [ ] Update star positions when time changes
 
-### Key Files to Create
-```
-core/control/AstronomerModel.java    - Coordinate transformation
-core/control/LocationController.java - GPS location
-core/control/SensorController.java   - Device orientation
-data/StarRepository.java             - Load star data
-```
+### Files to Create
+- `app/.../core/control/TimeTravelClock.java`
+- `app/.../ui/dialog/TimeTravelDialog.java`
+- `app/.../ui/skymap/TimePlayerView.java`
+- `res/layout/dialog_time_travel.xml`
+- `res/layout/layout_time_player.xml`
 
-### Adapt from Stardroid
-```
-stardroid/app/.../control/AstronomerModelImpl.kt → Simplify, convert to Java
-stardroid/app/.../control/LocationController.java → Modernize with FusedLocationProvider
-stardroid/app/.../control/SensorOrientationController.java → Simplify
-```
+### Reference
+- Stardroid: `control/TimeTravelClock.java`
 
 ---
 
-## Phase 3: Basic UI (Frontend)
+## Feature 3: Planets Layer
+**Branch:** `feature/planets`
+**Priority:** HIGH
 
 ### Tasks
-- [ ] Create SkyMapActivity (main screen)
-- [ ] Create XML layout with camera preview area
-- [ ] Add basic Canvas overlay for star rendering
-- [ ] Implement touch gestures (pan, zoom)
-- [ ] Create StarInfoActivity for star details
+- [ ] Add planet drawable icons (10 planets)
+- [ ] Update SolarSystemBody.kt with real resource IDs
+- [ ] Create `PlanetPositionCalculator.java`
+- [ ] Create `PlanetsLayer.java`
+- [ ] Add planet rendering to SkyCanvasView
+- [ ] Implement togglePlanets() in SkyMapActivity
 
-### Key Files to Create
-```
-ui/skymap/SkyMapActivity.java
-ui/skymap/SkyOverlayView.java        - Custom view for star overlay
-ui/starinfo/StarInfoActivity.java
-res/layout/activity_sky_map.xml
-res/layout/activity_star_info.xml
-```
+### Files to Create
+- `app/.../core/control/PlanetPositionCalculator.java`
+- `app/.../core/layers/PlanetsLayer.java`
+- `res/drawable/ic_planet_*.xml` (10 icons)
+
+### Reference
+- Stardroid: `ephemeris/SolarSystemBody.kt`, `ephemeris/OrbitalElements.kt`
 
 ---
 
-## Phase 4: Camera AR Integration
+## Feature 4: Search with Point-To Arrow
+**Branch:** `feature/search`
+**Priority:** MEDIUM-HIGH
 
 ### Tasks
-- [ ] Add CameraX preview
-- [ ] Overlay star rendering on camera feed
-- [ ] Align camera FOV with sky coordinates
-- [ ] Add tap-to-select star interaction
+- [ ] Create `PrefixStore.java` (Trie for fast prefix search)
+- [ ] Create `SearchIndex.java` (index stars, constellations, planets)
+- [ ] Create `SearchResult.java`
+- [ ] Create `SearchActivity.java` with Material search bar
+- [ ] Create `SearchResultAdapter.java`
+- [ ] Create `SearchArrowView.java` (directional arrow overlay)
+- [ ] Integrate with SkyMapActivity
 
-### Key Files to Create
-```
-ui/skymap/CameraManager.java         - CameraX setup
-core/renderer/SkyRenderer.java       - OpenGL or Canvas rendering
-```
+### Files to Create
+- `app/.../search/PrefixStore.java`
+- `app/.../search/SearchIndex.java`
+- `app/.../search/SearchResult.java`
+- `app/.../ui/search/SearchActivity.java`
+- `app/.../ui/search/SearchViewModel.java`
+- `app/.../ui/search/SearchResultAdapter.java`
+- `app/.../ui/skymap/SearchArrowView.java`
+- `res/layout/activity_search.xml`
+- `res/layout/item_search_result.xml`
+
+### Reference
+- Stardroid: `search/PrefixStore.kt`, `renderer/SearchArrow.java`
 
 ---
 
-## Phase 5: AI Constellation Recognition (Backend)
-
-### Target Constellations (5-10)
-1. Orion
-2. Big Dipper (Ursa Major)
-3. Cassiopeia
-4. Scorpius
-5. Leo
-6. Cygnus
-7. Southern Cross
-8. Gemini
+## Feature 5: Magnitude Control
+**Branch:** `feature/magnitude-control`
+**Priority:** MEDIUM
 
 ### Tasks
-- [ ] Set up TensorFlow Lite
-- [ ] Create ImageProcessor for camera frames
-- [ ] Create ConstellationRecognizer class
-- [ ] Obtain/train constellation classifier model
-- [ ] Add UI toggle: GPS Mode / AI Mode
+- [ ] Add magnitude slider to SettingsActivity (range 3.0-8.0)
+- [ ] Update SettingsViewModel with magnitude LiveData
+- [ ] Persist to SharedPreferences
+- [ ] Apply to StarsLayer on change
 
-### Key Files to Create
-```
-ml/ConstellationRecognizer.java      - TFLite inference
-ml/ImageProcessor.java               - Preprocess camera frames
-assets/models/constellation.tflite   - ML model file
-```
-
-### ML Model Options
-1. **Use pre-trained**: Search TensorFlow Hub for star/constellation models
-2. **Train custom**: Use Stellarium screenshots as training data
+### Files to Modify
+- `app/.../ui/settings/SettingsActivity.java`
+- `app/.../ui/settings/SettingsViewModel.java`
+- `res/layout/activity_settings.xml`
 
 ---
 
-## Phase 6: Polish
+## Feature 6: Enhanced Constellation Lines
+**Branch:** `feature/constellation-lines`
+**Priority:** LOW
 
 ### Tasks
-- [ ] Night mode (red theme for dark adaptation)
-- [ ] Settings screen
-- [ ] Error handling
-- [ ] Performance optimization
-- [ ] Testing
+- [ ] Add line style options (thickness, opacity, color)
+- [ ] Update ConstellationsLayer with configurable styles
+- [ ] Add optional glow effect
+
+### Files to Modify
+- `app/.../core/layers/ConstellationsLayer.java`
+- `app/.../ui/settings/SettingsActivity.java`
 
 ---
 
-## Shared Interfaces (Define First)
+## Implementation Order
 
-All roles should agree on these data models:
+```
+Week 1:
+  ├── feature/gps-tracking ─────> merge
+  └── feature/magnitude-control ─> merge
 
-```java
-// common/model/StarData.java
-public class StarData {
-    public String name;
-    public float ra;           // Right Ascension (backend)
-    public float dec;          // Declination (backend)
-    public float screenX;      // Screen position (frontend uses)
-    public float screenY;
-    public float magnitude;    // Brightness
-}
+Week 2:
+  ├── feature/time-travel ──────> merge
+  └── feature/planets ──────────> merge
 
-// common/model/Pointing.java
-public class Pointing {
-    public float azimuth;      // Compass direction
-    public float altitude;     // Angle above horizon
-}
+Week 3:
+  └── feature/search ───────────> merge
 
-// common/model/RecognizedConstellation.java
-public class RecognizedConstellation {
-    public String name;
-    public float confidence;   // 0.0 to 1.0
-}
+Week 4:
+  └── feature/constellation-lines > merge
 ```
 
 ---
 
-## Work Assignment
+## Stardroid Reference Files
 
-### Frontend
-**Folders**: `ui/`, `res/`
-
-- XML layouts and themes
-- SkyMapActivity, StarInfoActivity
-- Camera preview display
-- Touch interactions (pan, zoom, tap)
-- Night mode UI
-
-### Backend
-**Folders**: `core/`
-
-- Copy and adapt stardroid math utilities
-- AstronomerModel (coordinate transformation)
-- SensorController (device orientation)
-- LocationController (GPS)
-- SkyRenderer (OpenGL rendering)
-
-### Database
-**Folders**: `data/`
-
-- StarRepository (load star catalogs)
-- Binary data file parsing (protobuf)
-- Star search functionality
-- Caching and data management
-
-### AI/ML
-**Folders**: `ml/`
-
-- ConstellationRecognizer (TFLite inference)
-- ImageProcessor (camera frame preprocessing)
-- Train/obtain constellation model
-- Integration with camera feed
+| Feature | Stardroid Reference |
+|---------|-------------------|
+| Time Travel | `control/TimeTravelClock.java` |
+| Planets | `ephemeris/SolarSystemBody.kt`, `ephemeris/OrbitalElements.kt` |
+| Search | `search/PrefixStore.kt`, `renderer/SearchArrow.java` |
+| Orbital Math | `math/Astronomy.kt`, `ephemeris/SolarSystemRenderable.kt` |
 
 ---
 
-## Testing Checkpoints
+## Verification
 
-1. **After Phase 1**: App compiles and runs
-2. **After Phase 2**: Logs show correct RA/Dec when moving phone
-3. **After Phase 3**: Stars appear on screen
-4. **After Phase 4**: Camera preview with stars overlaid
-5. **After Phase 5**: ML can identify Orion constellation
-6. **Final**: Full demo with both GPS and AI modes
+After each feature branch merge:
+1. Run all unit tests: `./gradlew test`
+2. Build debug APK: `./gradlew assembleDebug`
+3. Manual test on device
+4. Update `docs/PROGRESS.md`

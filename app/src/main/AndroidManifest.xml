@@ -33,12 +33,25 @@
 
         <activity
             android:name=".ui.skymap.SkyMapActivity"
+            android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AstroApp.Fullscreen" />
 
         <activity
             android:name=".ui.starinfo.StarInfoActivity"
+            android:exported="false"
             android:theme="@style/Theme.AstroApp" />
+
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AstroApp" />
+
+        <activity
+            android:name=".ui.search.SearchActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AstroApp"
+            android:windowSoftInputMode="adjustResize" />
 
     </application>
 

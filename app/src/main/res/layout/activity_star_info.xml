@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fitsSystemWindows="true"
+    tools:context=".ui.StarInfoActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:fitsSystemWindows="true"
+        app:elevation="@dimen/elevation_none">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsingToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/image_thumbnail_large"
+            android:fitsSystemWindows="true"
+            app:collapsedTitleTextAppearance="@style/TextAppearance.AstroApp.TitleLarge"
+            app:contentScrim="@color/surface"
+            app:expandedTitleMarginBottom="@dimen/margin_medium"
+            app:expandedTitleMarginStart="@dimen/margin_medium"
+            app:expandedTitleTextAppearance="@style/TextAppearance.AstroApp.HeadlineLarge"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:scrimAnimationDuration="@integer/animation_duration_normal"
+            app:statusBarScrim="@color/surface">
+
+            <!-- Star/Constellation Image Background -->
+            <FrameLayout
+                android:id="@+id/starImageContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/background_variant"
+                android:fitsSystemWindows="true"
+                app:layout_collapseMode="parallax">
+
+                <ImageView
+                    android:id="@+id/ivStarImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/cd_star_icon"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/btn_star_big_on"
+                    app:tint="@color/star_highlight" />
+
+                <!-- Gradient Overlay for readability -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/overlay_dark" />
+
+            </FrameLayout>
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                app:layout_collapseMode="pin"
+                app:navigationContentDescription="@string/cd_back_button"
+                app:navigationIcon="@android:drawable/ic_menu_revert"
+                app:navigationIconTint="@color/icon_primary">
+
+                <!-- Favorite Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnFavorite"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="@dimen/touch_target_min"
+                    android:layout_height="@dimen/touch_target_min"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="@dimen/margin_small"
+                    android:contentDescription="@string/cd_favorite_button"
+                    app:icon="@android:drawable/btn_star"
+                    app:iconTint="@color/icon_primary"
+                    app:rippleColor="@color/ripple_primary" />
+
+                <!-- Share Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnShare"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="@dimen/touch_target_min"
+                    android:layout_height="@dimen/touch_target_min"
+                    android:layout_gravity="end"
+                    android:contentDescription="@string/cd_share_button"
+                    app:icon="@android:drawable/ic_menu_share"
+                    app:iconTint="@color/icon_primary"
+                    app:rippleColor="@color/ripple_primary" />
+
+            </com.google.android.material.appbar.MaterialToolbar>
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/padding_large">
+
+            <!-- Star Name Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                android:paddingTop="@dimen/padding_large">
+
+                <TextView
+                    android:id="@+id/tvStarName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.AstroApp.HeadlineMedium"
+                    android:textColor="@color/text_primary"
+                    tools:text="Polaris" />
+
+                <TextView
+                    android:id="@+id/tvStarAlternateNames"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_extra_small"
+                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                    android:textColor="@color/text_secondary"
+                    tools:text="Alpha Ursae Minoris, North Star" />
+
+            </LinearLayout>
+
+            <!-- Quick Stats Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardQuickStats"
+                style="@style/Widget.AstroApp.CardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/margin_medium"
+                android:layout_marginTop="@dimen/margin_medium">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/padding_medium">
+
+                    <!-- Magnitude -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/star_magnitude"
+                            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                            android:textColor="@color/text_tertiary" />
+
+                        <TextView
+                            android:id="@+id/tvMagnitude"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.TitleLarge"
+                            android:textColor="@color/primary"
+                            tools:text="1.97" />
+
+                    </LinearLayout>
+
+                    <!-- Vertical Divider -->
+                    <View
+                        android:layout_width="@dimen/divider_height"
+                        android:layout_height="match_parent"
+                        android:background="@color/divider" />
+
+                    <!-- Distance -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/star_distance"
+                            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                            android:textColor="@color/text_tertiary" />
+
+                        <TextView
+                            android:id="@+id/tvDistance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.TitleLarge"
+                            android:textColor="@color/primary"
+                            tools:text="433 ly" />
+
+                    </LinearLayout>
+
+                    <!-- Vertical Divider -->
+                    <View
+                        android:layout_width="@dimen/divider_height"
+                        android:layout_height="match_parent"
+                        android:background="@color/divider" />
+
+                    <!-- Constellation -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/star_constellation"
+                            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                            android:textColor="@color/text_tertiary" />
+
+                        <TextView
+                            android:id="@+id/tvConstellation"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.TitleMedium"
+                            android:textColor="@color/primary"
+                            tools:text="Ursa Minor" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Position Details Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPosition"
+                style="@style/Widget.AstroApp.CardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/margin_medium"
+                android:layout_marginTop="@dimen/margin_medium">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/padding_medium">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/star_info"
+                        android:textAppearance="@style/TextAppearance.AstroApp.TitleMedium"
+                        android:textColor="@color/text_primary" />
+
+                    <!-- Right Ascension -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_medium"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/star_right_ascension"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvRightAscension"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary"
+                            tools:text="2h 31m 49s" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginVertical="@dimen/margin_small"
+                        android:background="@color/divider" />
+
+                    <!-- Declination -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/star_declination"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvDeclination"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary"
+                            tools:text="+89° 15' 51&quot;" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginVertical="@dimen/margin_small"
+                        android:background="@color/divider" />
+
+                    <!-- Spectral Type -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/star_spectral_type"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvSpectralType"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary"
+                            tools:text="F7 Ib" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginVertical="@dimen/margin_small"
+                        android:background="@color/divider" />
+
+                    <!-- Apparent Magnitude -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/star_apparent_magnitude"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvApparentMagnitude"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary"
+                            tools:text="1.97" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginVertical="@dimen/margin_small"
+                        android:background="@color/divider" />
+
+                    <!-- Absolute Magnitude -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/star_absolute_magnitude"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvAbsoluteMagnitude"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary"
+                            tools:text="-3.64" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Physical Properties Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPhysical"
+                style="@style/Widget.AstroApp.CardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/margin_medium"
+                android:layout_marginTop="@dimen/margin_medium">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/padding_medium">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Physical Properties"
+                        android:textAppearance="@style/TextAppearance.AstroApp.TitleMedium"
+                        android:textColor="@color/text_primary" />
+
+                    <!-- Temperature -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_medium"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/star_temperature"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvTemperature"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary"
+                            tools:text="6,015 K" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginVertical="@dimen/margin_small"
+                        android:background="@color/divider" />
+
+                    <!-- Radius -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/star_radius"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvRadius"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary"
+                            tools:text="37.5 R" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginVertical="@dimen/margin_small"
+                        android:background="@color/divider" />
+
+                    <!-- Mass -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/star_mass"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvMass"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary"
+                            tools:text="5.4 M" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginVertical="@dimen/margin_small"
+                        android:background="@color/divider" />
+
+                    <!-- Luminosity -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/star_luminosity"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvLuminosity"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:textColor="@color/text_primary"
+                            tools:text="2,500 L" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Locate in Sky Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLocateInSky"
+                style="@style/Widget.AstroApp.Button"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_height_large"
+                android:layout_marginHorizontal="@dimen/margin_medium"
+                android:layout_marginTop="@dimen/margin_large"
+                android:text="Locate in Sky Map"
+                android:textAllCaps="false"
+                app:cornerRadius="@dimen/button_corner_radius"
+                app:icon="@android:drawable/ic_menu_compass"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/button_icon_padding"
+                app:rippleColor="@color/ripple" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

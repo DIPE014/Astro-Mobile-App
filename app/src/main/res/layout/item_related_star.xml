@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/list_item_height_two_line"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/list_item_padding_horizontal"
+    android:paddingVertical="@dimen/list_item_padding_vertical"
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground">
+
+    <!-- Star Icon -->
+    <ImageView
+        android:id="@+id/ivStarIcon"
+        android:layout_width="@dimen/icon_size_medium"
+        android:layout_height="@dimen/icon_size_medium"
+        android:layout_marginEnd="@dimen/list_item_icon_margin_end"
+        android:src="@android:drawable/btn_star_big_on"
+        android:contentDescription="@string/cd_star_icon"
+        app:tint="@color/star_highlight"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+    <!-- Text Container -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvRelatedStarName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+            android:textColor="@color/text_primary"
+            android:ellipsize="end"
+            android:maxLines="1"
+            tools:text="Sirius" />
+
+        <TextView
+            android:id="@+id/tvRelatedStarMagnitude"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_extra_small"
+            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+            android:textColor="@color/text_secondary"
+            android:ellipsize="end"
+            android:maxLines="1"
+            tools:text="Magnitude: -1.46" />
+
+    </LinearLayout>
+
+</LinearLayout>

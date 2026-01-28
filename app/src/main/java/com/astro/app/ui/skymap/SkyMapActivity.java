@@ -1,21 +1,92 @@
 package com.astro.app.ui.skymap;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.GradientDrawable;
+import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.astro.app.AstroApplication;
 import com.astro.app.R;
+import com.astro.app.core.control.AstronomerModel;
+import com.astro.app.core.control.LocationController;
+import com.astro.app.core.control.SensorController;
+import com.astro.app.core.control.SolarSystemBody;
+import com.astro.app.core.control.TimeTravelClock;
+import com.astro.app.core.control.space.Universe;
+import com.astro.app.core.math.RaDec;
+import com.astro.app.ui.timetravel.TimeTravelDialogFragment;
+import com.astro.app.core.layers.ConstellationsLayer;
+import com.astro.app.core.layers.PlanetsLayer;
+import com.astro.app.core.layers.GridLayer;
+import com.astro.app.core.layers.StarsLayer;
+import com.astro.app.core.math.LatLong;
+import com.astro.app.core.renderer.SkyCanvasView;
+import com.astro.app.core.renderer.SkyGLSurfaceView;
+import com.astro.app.core.renderer.SkyRenderer;
+import com.astro.app.data.model.StarData;
+import com.astro.app.data.repository.ConstellationRepository;
+import com.astro.app.data.repository.StarRepository;
+import com.astro.app.ui.search.SearchActivity;
+import com.astro.app.ui.settings.SettingsActivity;
+import com.astro.app.ui.settings.SettingsViewModel;
+import com.astro.app.ui.starinfo.StarInfoActivity;
+import com.astro.app.search.SearchArrowView;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+
+import javax.inject.Inject;
 
 /**
- * FRONTEND - Person A
- *
  * Main AR sky view activity.
- * Shows camera preview with star overlay.
+ *
+ * <p>This activity provides two viewing modes:
+ * <ul>
+ *   <li><b>AR Mode</b>: Camera preview with star overlay</li>
+ *   <li><b>Map Mode</b>: Full-screen star map without camera</li>
+ * </ul>
+ * </p>
+ *
+ * <h3>Features:</h3>
+ * <ul>
+ *   <li>CameraX preview integration</li>
+ *   <li>OpenGL sky overlay with stars and constellations</li>
+ *   <li>Tap-to-select celestial objects</li>
+ *   <li>Device sensor-based orientation tracking</li>
+ *   <li>Toggle between AR and map modes</li>
+ * </ul>
  */
 public class SkyMapActivity extends AppCompatActivity {
+
+    private static final String TAG = "SkyMapActivity";
 
     private static final int PERMISSION_REQUEST_CODE = 100;
     private static final String[] REQUIRED_PERMISSIONS = {
@@ -23,13 +94,132 @@ public class SkyMapActivity extends AppCompatActivity {
             Manifest.permission.ACCESS_FINE_LOCATION
     };
 
-    // TODO: Add reference to SkyDataProvider (from Backend)
-    // private SkyDataProvider skyDataProvider;
+    // ViewModels
+    private SkyMapViewModel viewModel;
+    private SettingsViewModel settingsViewModel;
+
+    // Injected dependencies
+    @Inject
+    StarRepository starRepository;
+
+    @Inject
+    ConstellationRepository constellationRepository;
+
+    @Inject
+    SensorController sensorController;
+
+    @Inject
+    AstronomerModel astronomerModel;
+
+    @Inject
+    LocationController locationController;
+
+    @Inject
+    TimeTravelClock timeTravelClock;
+
+    @Inject
+    Universe universe;
+
+    // Camera components
+    private CameraManager cameraManager;
+    private CameraPermissionHandler permissionHandler;
+    private AROverlayManager arOverlayManager;
+
+    // Views
+    private FrameLayout cameraPreviewContainer;
+    private FrameLayout skyOverlayContainer;
+    private PreviewView cameraPreview;
+    private SkyGLSurfaceView skyGLSurfaceView;
+    private SkyCanvasView skyCanvasView;
+    private MaterialButton btnArToggle;
+    private MaterialCardView infoPanel;
+    private TextView tvInfoPanelName;
+    private TextView tvInfoPanelType;
+    private TextView tvInfoPanelMagnitude;
+    private TextView tvInfoPanelRA;
+    private TextView tvInfoPanelDec;
+    private FrameLayout loadingOverlay;
+    private View gpsIndicator;
+    private ImageView ivGpsIcon;
+    private TextView tvGpsStatus;
+
+    // Layers
+    private StarsLayer starsLayer;
+    private ConstellationsLayer constellationsLayer;
+    private GridLayer gridLayer;
+    private PlanetsLayer planetsLayer;
+
+    // Search
+    private SearchArrowView searchArrowView;
+    private String searchTargetName;
+    private float searchTargetRa;
+    private float searchTargetDec;
+
+    // Reticle selection
+    private ExtendedFloatingActionButton fabSelect;
+    private Handler reticleCheckHandler;
+    private Runnable reticleCheckRunnable;
+    private static final long RETICLE_CHECK_INTERVAL_MS = 500;  // Check every 500ms
+
+    // State
+    // Default to MAP mode (AR disabled) for better emulator compatibility
+    // On devices without camera or on emulator, this ensures stars are visible
+    private boolean isARModeEnabled = false;
+    private boolean isConstellationsEnabled = true;
+    private boolean isGridEnabled = false;
+    private boolean isPlanetsEnabled = false;
+    @Nullable
+    private StarData selectedStar;
+
+    // GPS state
+    private boolean isGpsEnabled = false;
+    private float currentLatitude = 40.7128f;  // Default: New York
+    private float currentLongitude = -74.0060f;
+    private static final float DEFAULT_LATITUDE = 40.7128f;
+    private static final float DEFAULT_LONGITUDE = -74.0060f;
+
+    // Permission launcher
+    private final ActivityResultLauncher<String> cameraPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (permissionHandler != null) {
+                    permissionHandler.handlePermissionResult(isGranted);
+                }
+            });
+
+    // Search activity launcher
+    private final ActivityResultLauncher<Intent> searchActivityLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    handleSearchResult(result.getData());
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Keep screen on while using the sky map
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         setContentView(R.layout.activity_sky_map);
+
+        // Diagnostic toast to verify activity is running
+        android.widget.Toast.makeText(this, "SkyMap Started", android.widget.Toast.LENGTH_LONG).show();
+
+        // Initialize ViewModels
+        viewModel = new ViewModelProvider(this).get(SkyMapViewModel.class);
+        settingsViewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
+
+        // Inject dependencies
+        ((AstroApplication) getApplication()).getAppComponent().inject(this);
+
+        initializeViews();
+        initializeManagers();
+        setupViewModel();
+        setupSensorController();
+        setupLocationController();
+        observeViewModel();
+        setupClickListeners();
 
         if (hasPermissions()) {
             initializeSkyMap();
@@ -38,6 +228,508 @@ public class SkyMapActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sets up the ViewModel with dependencies.
+     */
+    private void setupViewModel() {
+        // Set dependencies on the ViewModel
+        if (astronomerModel != null) {
+            viewModel.setAstronomerModel(astronomerModel);
+        }
+        if (starRepository != null) {
+            viewModel.setStarRepository(starRepository);
+        }
+        if (constellationRepository != null) {
+            viewModel.setConstellationRepository(constellationRepository);
+        }
+    }
+
+    /**
+     * Sets up the SensorController to receive orientation updates.
+     * Uses matrix-based transformation (matching stardroid's approach) to convert
+     * sensor data to celestial coordinates, then to Alt/Az for display.
+     *
+     * The correct transformation flow is:
+     * 1. Rotation vector sensor → pass to AstronomerModel
+     * 2. AstronomerModel calculates celestial pointing using matrix math
+     * 3. Convert celestial pointing (RA/Dec) to local coordinates (Alt/Az)
+     * 4. Update SkyCanvasView with Alt/Az
+     *
+     * This approach avoids the errors introduced by early Euler angle conversion.
+     */
+    private void setupSensorController() {
+        if (sensorController == null) {
+            Log.w(TAG, "SensorController is null, compass tracking unavailable");
+            return;
+        }
+
+        sensorController.setListener(rotationVector -> {
+            // Pass rotation vector directly to AstronomerModel for matrix-based transformation
+            // This matches stardroid's approach and avoids Euler angle conversion errors
+            if (astronomerModel != null) {
+                astronomerModel.setPhoneSensorValues(rotationVector);
+
+                // Get the celestial pointing (RA/Dec) calculated via matrix transformation
+                com.astro.app.common.model.Pointing pointing = astronomerModel.getPointing();
+                float viewRa = pointing.getRightAscension();
+                float viewDec = pointing.getDeclination();
+
+                // Convert celestial coordinates (RA/Dec) to local coordinates (Alt/Az)
+                // This requires observer's location and Local Sidereal Time
+                float[] altAz = raDecToAltAzForView(viewRa, viewDec);
+                float altitude = altAz[0];
+                float azimuth = altAz[1];
+
+                // Update the sky canvas view with new orientation
+                final float finalAzimuth = azimuth;
+                final float finalAltitude = altitude;
+                runOnUiThread(() -> {
+                    if (skyCanvasView != null) {
+                        skyCanvasView.setOrientation(finalAzimuth, finalAltitude);
+                    }
+
+                    // Update search arrow if active
+                    if (searchArrowView != null && searchArrowView.isActive()) {
+                        updateSearchArrow();
+                    }
+                });
+            }
+        });
+
+        Log.d(TAG, "SensorController listener set up with matrix-based transformation (stardroid approach)");
+    }
+
+    /**
+     * Converts Right Ascension/Declination to Altitude/Azimuth for the view direction.
+     * This is the same formula used in SkyCanvasView for star positions.
+     *
+     * @param ra  Right Ascension in degrees (0-360)
+     * @param dec Declination in degrees (-90 to +90)
+     * @return float array [altitude, azimuth] in degrees
+     */
+    private float[] raDecToAltAzForView(float ra, float dec) {
+        // Calculate Local Sidereal Time
+        double lst = calculateLocalSiderealTimeForView();
+
+        // Convert to radians
+        double latRad = Math.toRadians(currentLatitude);
+        double decRad = Math.toRadians(dec);
+
+        // Hour Angle = LST - RA
+        double ha = lst - ra;
+        if (ha < 0) ha += 360;
+        double haRad = Math.toRadians(ha);
+
+        // Calculate altitude
+        // sin(alt) = sin(dec) * sin(lat) + cos(dec) * cos(lat) * cos(HA)
+        double sinAlt = Math.sin(decRad) * Math.sin(latRad) +
+                        Math.cos(decRad) * Math.cos(latRad) * Math.cos(haRad);
+        double altitude = Math.toDegrees(Math.asin(Math.max(-1, Math.min(1, sinAlt))));
+
+        // Calculate azimuth
+        // cos(A) = (sin(dec) - sin(alt) * sin(lat)) / (cos(alt) * cos(lat))
+        double cosAlt = Math.cos(Math.toRadians(altitude));
+        double azimuth;
+        if (Math.abs(cosAlt) < 0.0001 || Math.abs(Math.cos(latRad)) < 0.0001) {
+            // At poles or looking at celestial pole - azimuth is undefined
+            azimuth = 0;
+        } else {
+            double cosA = (Math.sin(decRad) - Math.sin(Math.toRadians(altitude)) * Math.sin(latRad)) /
+                          (cosAlt * Math.cos(latRad));
+            cosA = Math.max(-1, Math.min(1, cosA)); // Clamp to [-1, 1]
+            azimuth = Math.toDegrees(Math.acos(cosA));
+
+            // Determine the sign based on hour angle
+            // If sin(HA) > 0, object is West of meridian, azimuth > 180
+            if (Math.sin(haRad) > 0) {
+                azimuth = 360 - azimuth;
+            }
+        }
+
+        return new float[]{(float) altitude, (float) azimuth};
+    }
+
+    /**
+     * Calculates the Local Sidereal Time for the view transformation.
+     * Uses the same formula as SkyCanvasView for consistency.
+     *
+     * LST = GST + longitude
+     * GST = 280.461 + 360.98564737 * (JD - 2451545.0)
+     *
+     * @return LST in degrees (0-360)
+     */
+    private double calculateLocalSiderealTimeForView() {
+        // Get current observation time (or time travel time if active)
+        long timeMillis = (timeTravelClock != null)
+                ? timeTravelClock.getCurrentTimeMillis()
+                : System.currentTimeMillis();
+
+        // Use TimeUtils for consistent LST calculation
+        Date observationDate = new Date(timeMillis);
+        return com.astro.app.core.math.TimeUtilsKt.meanSiderealTime(observationDate, (float) currentLongitude);
+    }
+
+    /**
+     * Sets up the LocationController to receive GPS updates.
+     */
+    private void setupLocationController() {
+        if (locationController == null) {
+            Log.w(TAG, "LocationController is null, GPS tracking unavailable");
+            updateGpsIndicator(false, getString(R.string.gps_unavailable));
+            return;
+        }
+
+        locationController.setListener((latitude, longitude) -> {
+            Log.d(TAG, "GPS: Location updated - lat=" + latitude + ", lon=" + longitude);
+
+            // Store current location
+            currentLatitude = latitude;
+            currentLongitude = longitude;
+            isGpsEnabled = true;
+
+            // Update the sky canvas view with new location
+            runOnUiThread(() -> {
+                if (skyCanvasView != null) {
+                    skyCanvasView.setObserverLocation(latitude, longitude);
+                }
+
+                // Update astronomer model with real location
+                if (astronomerModel != null) {
+                    astronomerModel.setLocation(new LatLong(latitude, longitude));
+                }
+
+                // Update GPS indicator to show connected status
+                updateGpsIndicator(true, String.format("%.2f°, %.2f°", latitude, longitude));
+            });
+        });
+
+        // Initial GPS indicator state
+        updateGpsIndicator(false, getString(R.string.gps_searching));
+    }
+
+    /**
+     * Updates the GPS status indicator in the UI.
+     *
+     * @param connected Whether GPS has obtained a fix
+     * @param statusText Text to display (coordinates or status message)
+     */
+    private void updateGpsIndicator(boolean connected, String statusText) {
+        if (ivGpsIcon != null) {
+            int iconColor = connected ? R.color.gps_connected : R.color.gps_searching;
+            ivGpsIcon.setColorFilter(ContextCompat.getColor(this, iconColor));
+        }
+        if (tvGpsStatus != null) {
+            tvGpsStatus.setText(statusText);
+        }
+    }
+
+    /**
+     * Observes LiveData from ViewModels.
+     */
+    private void observeViewModel() {
+        // Observe night mode from settings
+        settingsViewModel.getNightMode().observe(this, nightMode -> {
+            if (nightMode != null) {
+                viewModel.setNightMode(nightMode);
+            }
+        });
+
+        // Observe settings changes
+        settingsViewModel.getSettingsChanged().observe(this, changed -> {
+            if (changed != null && changed) {
+                applySettings();
+                settingsViewModel.clearSettingsChangedFlag();
+            }
+        });
+
+        // Observe magnitude limit changes to reload star data
+        settingsViewModel.getMagnitudeLimit().observe(this, magnitude -> {
+            if (magnitude != null && skyCanvasView != null) {
+                Log.d(TAG, "Magnitude limit changed to: " + magnitude);
+                loadStarDataForCanvas();
+            }
+        });
+
+        // Observe ViewModel night mode state
+        viewModel.getNightMode().observe(this, this::onNightModeChanged);
+
+        // Observe selected object
+        viewModel.getSelectedObject().observe(this, object -> {
+            if (object instanceof StarData) {
+                showStarInfo((StarData) object);
+            } else if (object == null) {
+                hideInfoPanel();
+            }
+        });
+
+        // Observe errors
+        viewModel.getErrorMessage().observe(this, error -> {
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(this, error, Toast.LENGTH_SHORT).show();
+                viewModel.clearError();
+            }
+        });
+
+        // Observe loading state
+        viewModel.isLoading().observe(this, loading -> {
+            showLoading(loading != null && loading);
+        });
+    }
+
+    /**
+     * Called when night mode state changes from ViewModel.
+     */
+    private void onNightModeChanged(@Nullable Boolean nightMode) {
+        if (nightMode == null) return;
+
+        if (skyGLSurfaceView != null) {
+            skyGLSurfaceView.setNightMode(nightMode);
+        }
+
+        // Also update Canvas-based renderer
+        if (skyCanvasView != null) {
+            skyCanvasView.setNightMode(nightMode);
+        }
+
+        MaterialButton btnNightMode = findViewById(R.id.btnNightMode);
+        if (btnNightMode != null) {
+            int tintColor = nightMode ? R.color.night_mode_red : R.color.icon_primary;
+            btnNightMode.setIconTint(ContextCompat.getColorStateList(this, tintColor));
+        }
+    }
+
+    /**
+     * Applies current settings from SettingsViewModel.
+     */
+    private void applySettings() {
+        // Apply to StarsLayer
+        if (starsLayer != null) {
+            settingsViewModel.applyToStarsLayer(starsLayer);
+        }
+
+        // Apply to ConstellationsLayer
+        if (constellationsLayer != null) {
+            settingsViewModel.applyToConstellationsLayer(constellationsLayer);
+        }
+
+        // Apply to AstronomerModel
+        if (astronomerModel != null) {
+            settingsViewModel.applyToAstronomerModel(astronomerModel);
+        }
+
+        // Trigger layer redraw
+        if (skyGLSurfaceView != null) {
+            skyGLSurfaceView.requestLayerUpdate();
+        }
+
+        Log.d(TAG, "Settings applied");
+    }
+
+    /**
+     * Initializes view references.
+     */
+    private void initializeViews() {
+        cameraPreviewContainer = findViewById(R.id.cameraPreview);
+        skyOverlayContainer = findViewById(R.id.skyOverlayContainer);
+        infoPanel = findViewById(R.id.infoPanel);
+        tvInfoPanelName = findViewById(R.id.tvInfoPanelName);
+        tvInfoPanelType = findViewById(R.id.tvInfoPanelType);
+        tvInfoPanelMagnitude = findViewById(R.id.tvInfoPanelMagnitude);
+        tvInfoPanelRA = findViewById(R.id.tvInfoPanelRA);
+        tvInfoPanelDec = findViewById(R.id.tvInfoPanelDec);
+        loadingOverlay = findViewById(R.id.loadingOverlay);
+        btnArToggle = findViewById(R.id.btnArToggle);
+
+        // GPS indicator views
+        gpsIndicator = findViewById(R.id.gpsIndicator);
+        ivGpsIcon = findViewById(R.id.ivGpsIcon);
+        tvGpsStatus = findViewById(R.id.tvGpsStatus);
+
+        // Search arrow view
+        searchArrowView = findViewById(R.id.searchArrow);
+
+        // Select FAB for reticle selection
+        fabSelect = findViewById(R.id.fabSelect);
+
+        // Create PreviewView programmatically for camera
+        cameraPreview = new PreviewView(this);
+        cameraPreview.setLayoutParams(new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT));
+        cameraPreviewContainer.addView(cameraPreview);
+
+        // ============================================================
+        // Use Canvas-based renderer (works without OpenGL)
+        // This avoids OpenGL issues on emulators
+        // ============================================================
+        skyCanvasView = new SkyCanvasView(this);
+        FrameLayout container = findViewById(R.id.skyOverlayContainer);
+        container.addView(skyCanvasView, new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT));
+
+        Log.d(TAG, "SkyCanvasView created - Canvas2D rendering enabled");
+
+        // Set up star selection listener to open StarInfoActivity when a star is tapped
+        skyCanvasView.setOnStarSelectedListener(star -> {
+            // Debug toast to confirm star was tapped
+            Toast.makeText(this, "Selected: " + star.getName(), Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Star selected: " + star.getName() + " (id=" + star.getId() + ")");
+
+            Intent intent = new Intent(this, StarInfoActivity.class);
+            intent.putExtra(StarInfoActivity.EXTRA_STAR_ID, star.getId());
+            intent.putExtra(StarInfoActivity.EXTRA_STAR_NAME, star.getName());
+            intent.putExtra(StarInfoActivity.EXTRA_STAR_RA, star.getRa());
+            intent.putExtra(StarInfoActivity.EXTRA_STAR_DEC, star.getDec());
+            intent.putExtra(StarInfoActivity.EXTRA_STAR_MAGNITUDE, star.getMagnitude());
+            startActivity(intent);
+        });
+
+        // Create a dummy SkyGLSurfaceView for compatibility (won't be displayed)
+        // This prevents null pointer exceptions in other parts of the code
+        SkyRenderer renderer = new SkyRenderer();
+        skyGLSurfaceView = new SkyGLSurfaceView(this, renderer);
+    }
+
+    /**
+     * Initializes camera and AR managers.
+     */
+    private void initializeManagers() {
+        // Initialize camera manager
+        cameraManager = new CameraManager(this);
+        cameraManager.setPreviewView(cameraPreview);
+
+        // Initialize permission handler
+        permissionHandler = new CameraPermissionHandler(this);
+        permissionHandler.setCallback(new CameraPermissionHandler.PermissionCallback() {
+            @Override
+            public void onPermissionGranted() {
+                startCameraPreview();
+            }
+
+            @Override
+            public void onPermissionDenied(boolean shouldShowRationale) {
+                if (shouldShowRationale) {
+                    permissionHandler.showRationaleDialog(cameraPermissionLauncher);
+                } else {
+                    // Permission permanently denied - show settings dialog
+                    permissionHandler.showSettingsDialog();
+                    // Fall back to map-only mode
+                    setARModeEnabled(false);
+                }
+            }
+        });
+
+        // Initialize AR overlay manager
+        arOverlayManager = new AROverlayManager(starRepository);
+        arOverlayManager.setSkyView(skyGLSurfaceView);
+        arOverlayManager.setObjectSelectionCallback((star, screenX, screenY) -> {
+            if (star != null) {
+                viewModel.selectObject(star);
+            } else {
+                viewModel.clearSelection();
+            }
+        });
+    }
+
+    /**
+     * Sets up click listeners for UI elements.
+     */
+    private void setupClickListeners() {
+        // Back button
+        MaterialButton btnBack = findViewById(R.id.btnBack);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
+
+        // AR toggle button
+        if (btnArToggle != null) {
+            btnArToggle.setOnClickListener(v -> toggleARMode());
+        }
+
+        // Settings button
+        View btnSettings = findViewById(R.id.btnSettings);
+        if (btnSettings != null) {
+            btnSettings.setOnClickListener(v -> openSettings());
+        }
+
+        // Night mode toggle
+        MaterialButton btnNightMode = findViewById(R.id.btnNightMode);
+        if (btnNightMode != null) {
+            btnNightMode.setOnClickListener(v -> viewModel.toggleNightMode());
+        }
+
+        // Constellations toggle
+        View btnConstellations = findViewById(R.id.btnConstellations);
+        if (btnConstellations != null) {
+            btnConstellations.setOnClickListener(v -> toggleConstellations());
+        }
+
+        // Grid toggle
+        View btnGrid = findViewById(R.id.btnGrid);
+        if (btnGrid != null) {
+            btnGrid.setOnClickListener(v -> toggleGrid());
+        }
+
+        // Time Travel button
+        View btnTimeTravel = findViewById(R.id.btnTimeTravel);
+        if (btnTimeTravel != null) {
+            btnTimeTravel.setOnClickListener(v -> showTimeTravelDialog());
+        }
+
+        // Planets toggle button
+        View btnPlanets = findViewById(R.id.btnPlanets);
+        if (btnPlanets != null) {
+            btnPlanets.setOnClickListener(v -> togglePlanets());
+        }
+
+        // Initialize toggle button visual states
+        initializeToggleButtonStates();
+
+        // Search FAB
+        View fabSearch = findViewById(R.id.fabSearch);
+        if (fabSearch != null) {
+            fabSearch.setOnClickListener(v -> openSearch());
+        }
+
+        // Select FAB (for reticle selection)
+        if (fabSelect != null) {
+            fabSelect.setOnClickListener(v -> showObjectSelectionDialog());
+        }
+
+        // Close info panel
+        View btnCloseInfoPanel = findViewById(R.id.btnCloseInfoPanel);
+        if (btnCloseInfoPanel != null) {
+            btnCloseInfoPanel.setOnClickListener(v -> viewModel.clearSelection());
+        }
+
+        // Info panel details button
+        MaterialButton btnDetails = findViewById(R.id.btnInfoPanelDetails);
+        if (btnDetails != null) {
+            btnDetails.setOnClickListener(v -> {
+                if (selectedStar != null) {
+                    openStarDetails(selectedStar);
+                }
+            });
+        }
+
+        // Set up tap gesture on sky view
+        skyGLSurfaceView.setGestureListener(new SkyGLSurfaceView.SimpleGestureListener() {
+            @Override
+            public void onTap(float x, float y) {
+                arOverlayManager.handleTap(x, y);
+            }
+
+            @Override
+            public void onOrientationChanged(float azimuth, float elevation) {
+                arOverlayManager.setOrientation(azimuth, elevation);
+            }
+        });
+    }
+
+    /**
+     * Checks if all required permissions are granted.
+     */
     private boolean hasPermissions() {
         for (String permission : REQUIRED_PERMISSIONS) {
             if (ContextCompat.checkSelfPermission(this, permission)
@@ -48,6 +740,9 @@ public class SkyMapActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Requests required permissions.
+     */
     private void requestPermissions() {
         ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, PERMISSION_REQUEST_CODE);
     }
@@ -57,32 +752,1175 @@ public class SkyMapActivity extends AppCompatActivity {
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
-            if (hasPermissions()) {
-                initializeSkyMap();
+            // Check individual permission results
+            boolean cameraGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_GRANTED;
+            boolean locationGranted = hasLocationPermission();
+
+            // Handle location permission result
+            if (!locationGranted) {
+                // Location permission denied - use default location
+                Toast.makeText(this, R.string.permission_location_denied, Toast.LENGTH_SHORT).show();
+                currentLatitude = DEFAULT_LATITUDE;
+                currentLongitude = DEFAULT_LONGITUDE;
+                updateGpsIndicator(false, getString(R.string.gps_disabled));
+                Log.d(TAG, "GPS: Permission denied, using default location");
             } else {
-                // TODO: Show message that permissions are required
-                finish();
+                // Start GPS tracking
+                if (locationController != null) {
+                    locationController.start();
+                    updateGpsIndicator(false, getString(R.string.gps_searching));
+                }
+            }
+
+            // Handle camera permission result
+            if (cameraGranted || locationGranted) {
+                // At least one useful permission granted, initialize sky map
+                if (!cameraGranted) {
+                    Toast.makeText(this, R.string.permission_camera_denied_fallback, Toast.LENGTH_LONG).show();
+                    setARModeEnabled(false);
+                    initializeSkyMapOnly();
+                } else {
+                    initializeSkyMap();
+                }
+            } else {
+                // Neither permission granted - still show sky map in basic mode
+                Toast.makeText(this, R.string.permission_camera_denied_fallback, Toast.LENGTH_LONG).show();
+                setARModeEnabled(false);
+                initializeSkyMapOnly();
             }
         }
     }
 
+    /**
+     * Initializes the sky map with all features.
+     */
     private void initializeSkyMap() {
-        // TODO: Initialize camera preview
-        // TODO: Initialize star overlay renderer
-        // TODO: Connect to SkyDataProvider (Backend)
+        showLoading(true);
+
+        // Initialize layers
+        initializeLayers();
+
+        // Load real star data into Canvas view
+        loadStarDataForCanvas();
+
+        // Calibrate AR overlay
+        arOverlayManager.calibrate(
+                cameraManager.getHorizontalFov(),
+                cameraManager.getVerticalFov()
+        );
+
+        // Start camera if in AR mode, otherwise set up map-only mode
+        if (isARModeEnabled) {
+            startCameraPreview();
+        } else {
+            arOverlayManager.setARModeEnabled(false);
+            // Hide camera preview container for map-only mode
+            cameraPreviewContainer.setVisibility(View.GONE);
+        }
+
+        // Update AR toggle button to reflect current state
+        updateARToggleButton();
+
+        showLoading(false);
+    }
+
+    /**
+     * Initializes the sky map without camera (map-only mode).
+     */
+    private void initializeSkyMapOnly() {
+        showLoading(true);
+
+        // Initialize layers
+        initializeLayers();
+
+        // Load real star data into Canvas view
+        loadStarDataForCanvas();
+
+        // Set map-only mode
+        arOverlayManager.setARModeEnabled(false);
+        arOverlayManager.calibrateDefault();
+
+        // Hide camera preview
+        cameraPreviewContainer.setVisibility(View.GONE);
+
+        showLoading(false);
+    }
+
+    /**
+     * Loads star data from the repository and passes it to the Canvas view.
+     */
+    private void loadStarDataForCanvas() {
+        if (skyCanvasView == null) {
+            Log.e(TAG, "STARS: Cannot load star data - skyCanvasView is null");
+            return;
+        }
+        if (starRepository == null) {
+            Log.e(TAG, "STARS: Cannot load star data - starRepository is null");
+            return;
+        }
+
+        // Get magnitude limit from settings (default 6.5 for naked eye visibility)
+        Float magnitudeLimit = settingsViewModel.getMagnitudeLimit().getValue();
+        if (magnitudeLimit == null) {
+            magnitudeLimit = 6.5f;
+        }
+
+        // Load stars up to the configured magnitude limit
+        List<StarData> visibleStars = starRepository.getStarsByMagnitude(magnitudeLimit);
+        Log.d(TAG, "STARS: Loaded " + visibleStars.size() + " stars with magnitude <= " + magnitudeLimit);
+
+        if (visibleStars.isEmpty()) {
+            Log.e(TAG, "STARS: No stars loaded! Check protobuf parsing and assets.");
+            // Try loading all stars as a fallback
+            List<StarData> allStars = starRepository.getAllStars();
+            Log.d(TAG, "STARS: Total stars in repository: " + allStars.size());
+        }
+
+        // Pass star data to the canvas view
+        skyCanvasView.setStarData(visibleStars);
+        Log.d(TAG, "STARS: Star data passed to canvas view");
+
+        // Load and pass constellation data
+        if (constellationRepository != null) {
+            List<com.astro.app.data.model.ConstellationData> constellations =
+                    constellationRepository.getAllConstellations();
+            skyCanvasView.setConstellationData(constellations);
+            skyCanvasView.setConstellationsVisible(isConstellationsEnabled);
+            Log.d(TAG, "CONSTELLATIONS: Loaded " + constellations.size() + " constellations for canvas");
+        }
+
+        // Set observer location - use current GPS coordinates if available, otherwise default
+        // GPS updates will automatically update this via the LocationListener
+        skyCanvasView.setObserverLocation(currentLatitude, currentLongitude);
+        Log.d(TAG, "STARS: Observer location set to " + currentLatitude + ", " + currentLongitude);
+
+        // Set default view direction (looking north at 45 degrees altitude)
+        skyCanvasView.setOrientation(0f, 45f);
+    }
+
+    /**
+     * Initializes the rendering layers.
+     */
+    private void initializeLayers() {
+        SkyRenderer renderer = skyGLSurfaceView.getSkyRenderer();
+
+        // Create adapter for ConstellationsLayer.ConstellationRepository interface
+        ConstellationsLayer.ConstellationRepository constellationsLayerRepository =
+                new ConstellationsLayer.ConstellationRepository() {
+            @NonNull
+            @Override
+            public List<com.astro.app.data.model.ConstellationData> getConstellations() {
+                return constellationRepository.getAllConstellations();
+            }
+
+            @Nullable
+            @Override
+            public com.astro.app.data.model.ConstellationData findById(@NonNull String constellationId) {
+                return constellationRepository.getConstellationById(constellationId);
+            }
+
+            @NonNull
+            @Override
+            public List<com.astro.app.data.model.ConstellationData> findByName(@NonNull String name) {
+                return constellationRepository.searchConstellations(name);
+            }
+
+            @NonNull
+            @Override
+            public java.util.Map<String, com.astro.app.data.model.GeocentricCoords> getStarCoordinates(
+                    @NonNull com.astro.app.data.model.ConstellationData constellation) {
+                java.util.Map<String, com.astro.app.data.model.GeocentricCoords> coords =
+                        new java.util.HashMap<>();
+                for (String starId : constellation.getStarIds()) {
+                    StarData star = starRepository.getStarById(starId);
+                    if (star != null) {
+                        coords.put(starId, com.astro.app.data.model.GeocentricCoords.fromDegrees(
+                                star.getRa(), star.getDec()));
+                    }
+                }
+                return coords;
+            }
+        };
+
+        // Create layers
+        starsLayer = new StarsLayer(starRepository);
+        constellationsLayer = new ConstellationsLayer(constellationsLayerRepository);
+        gridLayer = new GridLayer();
+        planetsLayer = new PlanetsLayer(universe);
+
+        // Configure initial visibility
+        starsLayer.setVisible(true);
+        constellationsLayer.setVisible(isConstellationsEnabled);
+        gridLayer.setVisible(isGridEnabled);
+        planetsLayer.setVisible(isPlanetsEnabled);
+
+        // Add layers to renderer
+        List<com.astro.app.core.layers.Layer> layers = new ArrayList<>();
+        layers.add(gridLayer);
+        layers.add(constellationsLayer);
+        layers.add(starsLayer);
+        layers.add(planetsLayer);
+
+        renderer.setLayers(layers);
+
+        // Update layer data
+        starsLayer.initialize();
+        constellationsLayer.initialize();
+        gridLayer.initialize();
+        planetsLayer.initialize();
+
+        renderer.requestLayerUpdate();
+
+        // Debug logging to verify layer initialization
+        Log.d(TAG, "Layers initialized - Stars: " + starsLayer.getPoints().size() +
+                " points, Constellations: " + constellationsLayer.getLines().size() +
+                " lines, Grid visible: " + gridLayer.isVisible());
+    }
+
+    /**
+     * Starts the camera preview.
+     */
+    private void startCameraPreview() {
+        if (!permissionHandler.hasCameraPermission()) {
+            permissionHandler.checkAndRequestPermission(cameraPermissionLauncher);
+            return;
+        }
+
+        cameraManager.startCamera(this, new CameraManager.CameraCallback() {
+            @Override
+            public void onCameraStarted() {
+                Log.d(TAG, "Camera started successfully");
+                cameraPreviewContainer.setVisibility(View.VISIBLE);
+                arOverlayManager.setARModeEnabled(true);
+                updateARToggleButton();
+            }
+
+            @Override
+            public void onCameraError(String message) {
+                Log.e(TAG, "Camera error: " + message);
+                Toast.makeText(SkyMapActivity.this,
+                        getString(R.string.camera_error, message),
+                        Toast.LENGTH_SHORT).show();
+                // Fall back to map-only mode
+                setARModeEnabled(false);
+            }
+        });
+    }
+
+    /**
+     * Stops the camera preview.
+     */
+    private void stopCameraPreview() {
+        cameraManager.stopCamera();
+        cameraPreviewContainer.setVisibility(View.GONE);
+    }
+
+    /**
+     * Toggles between AR mode and map-only mode.
+     */
+    private void toggleARMode() {
+        setARModeEnabled(!isARModeEnabled);
+    }
+
+    /**
+     * Sets the AR mode state.
+     *
+     * @param enabled true for AR mode, false for map-only mode
+     */
+    private void setARModeEnabled(boolean enabled) {
+        isARModeEnabled = enabled;
+
+        // Update GL surface transparency based on mode
+        if (skyGLSurfaceView != null) {
+            if (enabled) {
+                // AR mode: transparent surface to show camera behind
+                skyGLSurfaceView.setZOrderOnTop(true);
+                skyGLSurfaceView.getHolder().setFormat(android.graphics.PixelFormat.TRANSLUCENT);
+            } else {
+                // MAP mode: opaque surface to show dark blue background
+                skyGLSurfaceView.setZOrderOnTop(false);
+                skyGLSurfaceView.getHolder().setFormat(android.graphics.PixelFormat.OPAQUE);
+            }
+        }
+
+        if (enabled) {
+            if (permissionHandler.hasCameraPermission()) {
+                startCameraPreview();
+            } else {
+                permissionHandler.checkAndRequestPermission(cameraPermissionLauncher);
+            }
+        } else {
+            stopCameraPreview();
+            arOverlayManager.setARModeEnabled(false);
+        }
+
+        updateARToggleButton();
+    }
+
+    /**
+     * Updates the AR toggle button appearance.
+     */
+    private void updateARToggleButton() {
+        if (btnArToggle != null) {
+            if (isARModeEnabled) {
+                btnArToggle.setIconResource(android.R.drawable.ic_menu_camera);
+                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
+            } else {
+                btnArToggle.setIconResource(android.R.drawable.ic_menu_gallery);
+                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_inactive));
+            }
+        }
+    }
+
+    /**
+     * Opens the settings activity.
+     */
+    private void openSettings() {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
+    /**
+     * Updates a toggle button's visual state with green (ON) or red (OFF) indicators.
+     *
+     * @param icon            The ImageView icon for the toggle
+     * @param buttonContainer The parent View container for the button
+     * @param isEnabled       Whether the toggle is enabled
+     */
+    private void updateToggleButtonVisual(ImageView icon, View buttonContainer, boolean isEnabled) {
+        if (icon != null) {
+            int iconColor = isEnabled ? R.color.icon_primary : R.color.icon_inactive;
+            icon.setColorFilter(ContextCompat.getColor(this, iconColor));
+        }
+
+        if (buttonContainer != null) {
+            GradientDrawable background = new GradientDrawable();
+            background.setCornerRadius(12f);
+            if (isEnabled) {
+                // Green for ON state
+                background.setColor(ContextCompat.getColor(this, R.color.toggle_on_bg));
+                background.setStroke(3, ContextCompat.getColor(this, R.color.toggle_on));
+            } else {
+                // Red for OFF state
+                background.setColor(ContextCompat.getColor(this, R.color.toggle_off_bg));
+                background.setStroke(3, ContextCompat.getColor(this, R.color.toggle_off));
+            }
+            buttonContainer.setBackground(background);
+        }
+    }
+
+    /**
+     * Toggles constellation lines visibility.
+     */
+    private void toggleConstellations() {
+        isConstellationsEnabled = !isConstellationsEnabled;
+        if (constellationsLayer != null) {
+            constellationsLayer.setVisible(isConstellationsEnabled);
+            skyGLSurfaceView.requestLayerUpdate();
+        }
+
+        // Update Canvas-based view
+        if (skyCanvasView != null) {
+            skyCanvasView.setConstellationsVisible(isConstellationsEnabled);
+        }
+
+        // Update visual state with green/red indicator
+        View btnConstellations = findViewById(R.id.btnConstellations);
+        ImageView ivConstellations = findViewById(R.id.ivConstellations);
+        updateToggleButtonVisual(ivConstellations, btnConstellations, isConstellationsEnabled);
+    }
+
+    /**
+     * Toggles coordinate grid visibility.
+     */
+    private void toggleGrid() {
+        isGridEnabled = !isGridEnabled;
+        if (gridLayer != null) {
+            gridLayer.setVisible(isGridEnabled);
+            skyGLSurfaceView.requestLayerUpdate();
+        }
+
+        // Update Canvas-based view
+        if (skyCanvasView != null) {
+            skyCanvasView.setGridVisible(isGridEnabled);
+        }
+
+        // Update visual state with green/red indicator
+        View btnGrid = findViewById(R.id.btnGrid);
+        ImageView ivGrid = findViewById(R.id.ivGrid);
+        updateToggleButtonVisual(ivGrid, btnGrid, isGridEnabled);
+    }
+
+    /**
+     * Initializes the visual state of all toggle buttons on startup.
+     * This ensures buttons display correct green/red indicators based on initial settings.
+     */
+    private void initializeToggleButtonStates() {
+        // Constellations toggle
+        View btnConstellations = findViewById(R.id.btnConstellations);
+        ImageView ivConstellations = findViewById(R.id.ivConstellations);
+        updateToggleButtonVisual(ivConstellations, btnConstellations, isConstellationsEnabled);
+
+        // Grid toggle
+        View btnGrid = findViewById(R.id.btnGrid);
+        ImageView ivGrid = findViewById(R.id.ivGrid);
+        updateToggleButtonVisual(ivGrid, btnGrid, isGridEnabled);
+
+        // Planets toggle
+        View btnPlanets = findViewById(R.id.btnPlanets);
+        ImageView ivPlanets = findViewById(R.id.ivPlanets);
+        updateToggleButtonVisual(ivPlanets, btnPlanets, isPlanetsEnabled);
+    }
+
+    /**
+     * Shows the time travel dialog to select a different date/time.
+     */
+    private void showTimeTravelDialog() {
+        Log.d(TAG, "TIME_TRAVEL: showTimeTravelDialog called");
+        // Pass current time travel time (or current time if not in time travel mode)
+        long currentTime = (timeTravelClock != null)
+                ? timeTravelClock.getCurrentTimeMillis()
+                : System.currentTimeMillis();
+        Log.d(TAG, "TIME_TRAVEL: Creating dialog with time " + new Date(currentTime));
+        TimeTravelDialogFragment dialog = TimeTravelDialogFragment.newInstance(currentTime);
+        Log.d(TAG, "TIME_TRAVEL: Setting callback on dialog");
+        dialog.setCallback(new TimeTravelDialogFragment.TimeTravelCallback() {
+            @Override
+            public void onTimeTravelSelected(int year, int month, int day, int hour, int minute) {
+                Log.d(TAG, "TIME_TRAVEL: Callback received: " + year + "-" + month + "-" + day + " " + hour + ":" + minute);
+                if (timeTravelClock != null) {
+                    timeTravelClock.travelToDateTime(year, month, day, hour, minute);
+                    long newTime = timeTravelClock.getCurrentTimeMillis();
+                    Log.d(TAG, "TIME_TRAVEL: Clock set to: " + new Date(newTime));
+                    Toast.makeText(SkyMapActivity.this,
+                        "Time travel to: " + year + "-" + month + "-" + day + " " + hour + ":" + minute,
+                        Toast.LENGTH_SHORT).show();
+                    updateTimeTravelIndicator(true);
+                    // Update sky view with new time
+                    updateSkyForTime(newTime);
+                } else {
+                    Log.e(TAG, "TIME_TRAVEL: timeTravelClock is NULL!");
+                    Toast.makeText(SkyMapActivity.this, "Error: TimeTravelClock not initialized", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onReturnToRealTime() {
+                Log.d(TAG, "Returning to real time");
+                if (timeTravelClock != null) {
+                    timeTravelClock.returnToRealTime();
+                    updateTimeTravelIndicator(false);
+
+                    // Reset AstronomerModel to use real-time clock (not a fixed time)
+                    if (astronomerModel != null) {
+                        astronomerModel.setClock(new com.astro.app.core.control.RealClock());
+                    }
+
+                    // Update sky view to refresh with current time
+                    if (skyCanvasView != null) {
+                        skyCanvasView.setTime(System.currentTimeMillis());
+                        skyCanvasView.invalidate();
+                    }
+
+                    // Update planets layer
+                    if (planetsLayer != null) {
+                        planetsLayer.setTime(System.currentTimeMillis());
+                    }
+
+                    // Update GL surface
+                    if (skyGLSurfaceView != null) {
+                        skyGLSurfaceView.requestLayerUpdate();
+                    }
+                }
+            }
+        });
+        Log.d(TAG, "TIME_TRAVEL: Callback set, now showing dialog");
+        dialog.show(getSupportFragmentManager(), "time_travel");
+        Log.d(TAG, "TIME_TRAVEL: Dialog show() called");
+    }
+
+    /**
+     * Updates the time travel indicator in the UI.
+     *
+     * @param active whether time travel is active
+     */
+    private void updateTimeTravelIndicator(boolean active) {
+        ImageView ivTimeTravel = findViewById(R.id.ivTimeTravel);
+        if (ivTimeTravel != null) {
+            int tintColor = active ? R.color.time_travel_active : R.color.icon_primary;
+            ivTimeTravel.setColorFilter(ContextCompat.getColor(this, tintColor));
+        }
+    }
+
+    /**
+     * Updates the sky view for a specific time.
+     *
+     * @param timeMillis the time in milliseconds since epoch
+     */
+    private void updateSkyForTime(long timeMillis) {
+        Log.d(TAG, "TIME_TRAVEL: updateSkyForTime called with: " + new Date(timeMillis));
+
+        // Update astronomer model time
+        if (astronomerModel != null) {
+            astronomerModel.setTime(timeMillis);
+            Log.d(TAG, "TIME_TRAVEL: AstronomerModel time set");
+        } else {
+            Log.w(TAG, "TIME_TRAVEL: astronomerModel is null!");
+        }
+
+        // Reload star data for canvas with new time
+        if (skyCanvasView != null) {
+            Log.d(TAG, "TIME_TRAVEL: Calling skyCanvasView.setTime()");
+            skyCanvasView.setTime(timeMillis);
+            // Note: setTime() already calls invalidate(), but call it again to be sure
+            skyCanvasView.invalidate();
+            Log.d(TAG, "TIME_TRAVEL: skyCanvasView invalidated");
+        } else {
+            Log.w(TAG, "TIME_TRAVEL: skyCanvasView is null!");
+        }
+
+        // Update planets layer for new time
+        if (planetsLayer != null) {
+            planetsLayer.setTime(timeMillis);
+        }
+
+        // Update planet positions in canvas if planets are enabled
+        if (isPlanetsEnabled) {
+            updatePlanetPositions();
+        }
+
+        // Update GL surface view
+        if (skyGLSurfaceView != null) {
+            skyGLSurfaceView.requestLayerUpdate();
+        }
+
+        Log.d(TAG, "TIME_TRAVEL: Sky updated for time: " + new Date(timeMillis));
+    }
+
+    /**
+     * Toggles visibility of planets in the sky view.
+     */
+    private void togglePlanets() {
+        isPlanetsEnabled = !isPlanetsEnabled;
+
+        // Update planets layer visibility
+        if (planetsLayer != null) {
+            planetsLayer.setVisible(isPlanetsEnabled);
+            skyGLSurfaceView.requestLayerUpdate();
+        }
+
+        // Update SkyCanvasView planet visibility
+        if (skyCanvasView != null) {
+            skyCanvasView.setPlanetsVisible(isPlanetsEnabled);
+            if (isPlanetsEnabled) {
+                updatePlanetPositions();
+            }
+        }
+
+        // Update visual state with green/red indicator
+        View btnPlanets = findViewById(R.id.btnPlanets);
+        ImageView ivPlanets = findViewById(R.id.ivPlanets);
+        updateToggleButtonVisual(ivPlanets, btnPlanets, isPlanetsEnabled);
+
+        Log.d(TAG, "Planets visibility toggled to: " + isPlanetsEnabled);
+    }
+
+    /**
+     * Updates planet positions in the SkyCanvasView based on current time.
+     */
+    private void updatePlanetPositions() {
+        if (skyCanvasView == null || universe == null) {
+            return;
+        }
+
+        // Get current observation time
+        long timeMillis = (timeTravelClock != null)
+                ? timeTravelClock.getCurrentTimeMillis()
+                : System.currentTimeMillis();
+        Date observationDate = new Date(timeMillis);
+
+        // Update each planet position
+        for (SolarSystemBody body : SolarSystemBody.values()) {
+            if (body == SolarSystemBody.Earth) {
+                continue; // Skip Earth
+            }
+
+            try {
+                RaDec raDec = universe.getRaDec(body, observationDate);
+                int color = getPlanetColor(body);
+                float size = getPlanetSize(body);
+                skyCanvasView.setPlanet(body.name(), raDec.getRa(), raDec.getDec(), color, size);
+            } catch (Exception e) {
+                Log.e(TAG, "Error updating planet " + body.name() + ": " + e.getMessage());
+            }
+        }
+
+        Log.d(TAG, "Planet positions updated for time: " + observationDate);
+    }
+
+    /**
+     * Gets the display color for a solar system body.
+     */
+    private int getPlanetColor(SolarSystemBody body) {
+        switch (body) {
+            case Sun:
+                return 0xFFFFD700;      // Gold
+            case Moon:
+                return 0xFFF4F4F4;     // Near white
+            case Mercury:
+                return 0xFFB0B0B0;  // Gray
+            case Venus:
+                return 0xFFE6E6CC;    // Pale yellow
+            case Mars:
+                return 0xFFFF6347;     // Red-orange
+            case Jupiter:
+                return 0xFFD4A574;  // Tan/brown
+            case Saturn:
+                return 0xFFF4D59E;   // Pale gold
+            case Uranus:
+                return 0xFFAFDBF5;   // Pale blue
+            case Neptune:
+                return 0xFF5B5DDF; // Deep blue
+            case Pluto:
+                return 0xFFCCBBAA;    // Brownish gray
+            default:
+                return 0xFFFFFFFF;
+        }
+    }
+
+    /**
+     * Gets the display size for a solar system body.
+     */
+    private float getPlanetSize(SolarSystemBody body) {
+        switch (body) {
+            case Sun:
+            case Moon:
+                return 12f;
+            case Venus:
+            case Jupiter:
+                return 9f;
+            case Mars:
+            case Saturn:
+                return 7f;
+            default:
+                return 5f;
+        }
+    }
+
+    /**
+     * Opens the search activity to search for celestial objects.
+     */
+    private void openSearch() {
+        Intent intent = new Intent(this, SearchActivity.class);
+        searchActivityLauncher.launch(intent);
+    }
+
+    /**
+     * Handles the result from SearchActivity.
+     *
+     * @param data The result intent containing search target info
+     */
+    private void handleSearchResult(Intent data) {
+        searchTargetName = data.getStringExtra(SearchActivity.EXTRA_RESULT_NAME);
+        searchTargetRa = data.getFloatExtra(SearchActivity.EXTRA_RESULT_RA, 0f);
+        searchTargetDec = data.getFloatExtra(SearchActivity.EXTRA_RESULT_DEC, 0f);
+        String resultType = data.getStringExtra(SearchActivity.EXTRA_RESULT_TYPE);
+
+        // For planets, recalculate position for current time (or time travel time)
+        // The search index stores positions at index build time which may be stale
+        if (resultType != null && (resultType.equals("PLANET") || resultType.equals("SUN") || resultType.equals("MOON"))) {
+            updatePlanetSearchTarget();
+        }
+
+        Log.d(TAG, "Search target: " + searchTargetName + " at RA=" + searchTargetRa + ", Dec=" + searchTargetDec);
+
+        // Show search arrow to guide user to target
+        // NOTE: Don't immediately set orientation - let the arrow guide the user
+        if (searchArrowView != null) {
+            searchArrowView.setTarget(searchTargetRa, searchTargetDec, searchTargetName);
+            searchArrowView.setVisibility(View.VISIBLE);
+            searchArrowView.setOnClickListener(v -> clearSearchTarget());
+
+            // Auto-dismiss when target is centered
+            searchArrowView.setOnTargetCenteredListener(() -> {
+                Toast.makeText(this, getString(R.string.search_target_found, searchTargetName), Toast.LENGTH_SHORT).show();
+                searchArrowView.postDelayed(this::clearSearchTarget, 2000);
+            });
+
+            // Update arrow pointing based on current view direction
+            updateSearchArrow();
+        }
+
+        Toast.makeText(this, getString(R.string.search_navigating_to, searchTargetName), Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Updates the search arrow position based on current view direction.
+     */
+    private void updateSearchArrow() {
+        if (searchArrowView == null || !searchArrowView.isActive()) {
+            return;
+        }
+
+        // Get current view direction from skyCanvasView or sensor controller
+        float viewRa = 0f;
+        float viewDec = 45f;
+
+        if (skyCanvasView != null) {
+            // Assuming skyCanvasView has getOrientation method or similar
+            viewRa = skyCanvasView.getViewRa();
+            viewDec = skyCanvasView.getViewDec();
+        }
+
+        searchArrowView.updatePointing(viewRa, viewDec);
+
+        // Check if we're close to the target (within 5 degrees)
+        float dRa = Math.abs(searchTargetRa - viewRa);
+        float dDec = Math.abs(searchTargetDec - viewDec);
+        if (dRa > 180) dRa = 360 - dRa;  // Handle wraparound
+
+        double distance = Math.sqrt(dRa * dRa + dDec * dDec);
+        if (distance < 5.0) {
+            // Close to target, hide arrow after a delay
+            searchArrowView.postDelayed(this::clearSearchTarget, 3000);
+        }
+    }
+
+    /**
+     * Clears the current search target.
+     */
+    private void clearSearchTarget() {
+        if (searchArrowView != null) {
+            searchArrowView.clearTarget();
+            searchArrowView.setVisibility(View.GONE);
+        }
+        searchTargetName = null;
+    }
+
+    // ===================================================================
+    // RETICLE SELECTION METHODS
+    // ===================================================================
+
+    /**
+     * Starts periodic checking for objects in the reticle.
+     * Shows/hides the Select FAB based on whether objects are present.
+     */
+    private void startReticleChecking() {
+        if (reticleCheckHandler == null) {
+            reticleCheckHandler = new Handler(Looper.getMainLooper());
+        }
+        if (reticleCheckRunnable == null) {
+            reticleCheckRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    updateSelectButtonVisibility();
+                    reticleCheckHandler.postDelayed(this, RETICLE_CHECK_INTERVAL_MS);
+                }
+            };
+        }
+        reticleCheckHandler.post(reticleCheckRunnable);
+    }
+
+    /**
+     * Stops periodic checking for objects in the reticle.
+     */
+    private void stopReticleChecking() {
+        if (reticleCheckHandler != null && reticleCheckRunnable != null) {
+            reticleCheckHandler.removeCallbacks(reticleCheckRunnable);
+        }
+    }
+
+    /**
+     * Updates the visibility of the Select FAB based on objects in reticle.
+     */
+    private void updateSelectButtonVisibility() {
+        if (fabSelect == null || skyCanvasView == null) return;
+
+        List<SkyCanvasView.SelectableObject> objects = skyCanvasView.getObjectsInReticle();
+        boolean hasObjects = !objects.isEmpty();
+
+        if (hasObjects && fabSelect.getVisibility() != View.VISIBLE) {
+            fabSelect.setText(getString(R.string.select) + " (" + objects.size() + ")");
+            fabSelect.setVisibility(View.VISIBLE);
+            fabSelect.animate().alpha(1f).setDuration(200).start();
+        } else if (hasObjects) {
+            fabSelect.setText(getString(R.string.select) + " (" + objects.size() + ")");
+        } else if (!hasObjects && fabSelect.getVisibility() == View.VISIBLE) {
+            fabSelect.animate().alpha(0f).setDuration(200).withEndAction(() -> {
+                fabSelect.setVisibility(View.GONE);
+            }).start();
+            // Clear any highlight when no objects in reticle
+            skyCanvasView.clearHighlight();
+        }
+    }
+
+    /**
+     * Shows a bottom sheet dialog listing objects in the reticle.
+     */
+    private void showObjectSelectionDialog() {
+        if (skyCanvasView == null) return;
+
+        List<SkyCanvasView.SelectableObject> objects = skyCanvasView.getObjectsInReticle();
+        if (objects.isEmpty()) {
+            Toast.makeText(this, R.string.no_objects_in_reticle, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+
+        // Create dialog layout programmatically
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(
+                (int) getResources().getDimension(R.dimen.padding_medium),
+                (int) getResources().getDimension(R.dimen.padding_medium),
+                (int) getResources().getDimension(R.dimen.padding_medium),
+                (int) getResources().getDimension(R.dimen.padding_medium)
+        );
+        layout.setBackgroundColor(ContextCompat.getColor(this, R.color.surface));
+
+        // Title
+        TextView title = new TextView(this);
+        title.setText(R.string.objects_in_reticle);
+        title.setTextSize(20);
+        title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+        title.setPadding(0, 0, 0, (int) getResources().getDimension(R.dimen.padding_medium));
+        layout.addView(title);
+
+        // Create scrollable list
+        ScrollView scrollView = new ScrollView(this);
+        LinearLayout listLayout = new LinearLayout(this);
+        listLayout.setOrientation(LinearLayout.VERTICAL);
+
+        // Track currently selected item for highlight preview
+        final SkyCanvasView.SelectableObject[] selectedObject = {null};
+
+        for (SkyCanvasView.SelectableObject obj : objects) {
+            LinearLayout itemLayout = new LinearLayout(this);
+            itemLayout.setOrientation(LinearLayout.HORIZONTAL);
+            itemLayout.setPadding(
+                    (int) getResources().getDimension(R.dimen.padding_small),
+                    (int) getResources().getDimension(R.dimen.padding_medium),
+                    (int) getResources().getDimension(R.dimen.padding_small),
+                    (int) getResources().getDimension(R.dimen.padding_medium)
+            );
+            itemLayout.setBackgroundResource(android.R.drawable.list_selector_background);
+
+            // Object icon (placeholder - could be customized per type)
+            ImageView icon = new ImageView(this);
+            int iconRes = obj.type.equals("planet") ?
+                    android.R.drawable.presence_online :
+                    android.R.drawable.btn_star_big_on;
+            icon.setImageResource(iconRes);
+            icon.setColorFilter(ContextCompat.getColor(this,
+                    obj.type.equals("planet") ? R.color.planet_color : R.color.star_color));
+            LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
+                    (int) getResources().getDimension(R.dimen.icon_size_medium),
+                    (int) getResources().getDimension(R.dimen.icon_size_medium)
+            );
+            iconParams.rightMargin = (int) getResources().getDimension(R.dimen.margin_medium);
+            icon.setLayoutParams(iconParams);
+            itemLayout.addView(icon);
+
+            // Object info
+            LinearLayout infoLayout = new LinearLayout(this);
+            infoLayout.setOrientation(LinearLayout.VERTICAL);
+            infoLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+            TextView nameText = new TextView(this);
+            nameText.setText(obj.getDisplayName());
+            nameText.setTextSize(16);
+            nameText.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            infoLayout.addView(nameText);
+
+            TextView typeText = new TextView(this);
+            String typeString = obj.type.equals("planet") ?
+                    getString(R.string.object_planet) :
+                    getString(R.string.object_star);
+            if (obj.type.equals("star")) {
+                typeString += " (mag " + String.format("%.1f", obj.magnitude) + ")";
+            }
+            typeText.setText(typeString);
+            typeText.setTextSize(12);
+            typeText.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+            infoLayout.addView(typeText);
+
+            itemLayout.addView(infoLayout);
+
+            // Click handler - highlight object on tap
+            itemLayout.setOnClickListener(v -> {
+                selectedObject[0] = obj;
+                // Highlight the object on the sky view
+                if (obj.type.equals("planet")) {
+                    skyCanvasView.setHighlightedPlanet(obj.name);
+                } else {
+                    StarData star = skyCanvasView.getStarById(obj.id);
+                    if (star != null) {
+                        skyCanvasView.setHighlightedStar(star);
+                    }
+                }
+                Toast.makeText(this, getString(R.string.object_highlighted, obj.getDisplayName()),
+                        Toast.LENGTH_SHORT).show();
+            });
+
+            // Long press to confirm and open details
+            itemLayout.setOnLongClickListener(v -> {
+                dialog.dismiss();
+                openObjectDetails(obj);
+                return true;
+            });
+
+            listLayout.addView(itemLayout);
+
+            // Add divider
+            View divider = new View(this);
+            divider.setBackgroundColor(ContextCompat.getColor(this, R.color.divider));
+            LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    (int) getResources().getDimension(R.dimen.divider_height)
+            );
+            listLayout.addView(divider, dividerParams);
+        }
+
+        scrollView.addView(listLayout);
+        layout.addView(scrollView);
+
+        // Confirm button
+        MaterialButton confirmButton = new MaterialButton(this);
+        confirmButton.setText(R.string.confirm_selection);
+        confirmButton.setOnClickListener(v -> {
+            dialog.dismiss();
+            if (selectedObject[0] != null) {
+                openObjectDetails(selectedObject[0]);
+            } else if (!objects.isEmpty()) {
+                // If nothing selected, open details for first object
+                openObjectDetails(objects.get(0));
+            }
+        });
+        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        buttonParams.topMargin = (int) getResources().getDimension(R.dimen.margin_medium);
+        confirmButton.setLayoutParams(buttonParams);
+        layout.addView(confirmButton);
+
+        dialog.setContentView(layout);
+        dialog.setOnDismissListener(d -> {
+            // Clear highlight when dialog is dismissed without selection
+            if (skyCanvasView != null) {
+                skyCanvasView.clearHighlight();
+            }
+        });
+        dialog.show();
+    }
+
+    /**
+     * Opens the detail view for a selected object.
+     *
+     * @param obj The selectable object to show details for
+     */
+    private void openObjectDetails(SkyCanvasView.SelectableObject obj) {
+        if (obj.type.equals("planet")) {
+            // For planets, show a toast for now (could open planet detail activity)
+            Toast.makeText(this, getString(R.string.star_details_coming_soon, obj.name),
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            // For stars, open StarInfoActivity
+            StarData star = skyCanvasView.getStarById(obj.id);
+            if (star != null) {
+                Intent intent = new Intent(this, StarInfoActivity.class);
+                intent.putExtra(StarInfoActivity.EXTRA_STAR_ID, star.getId());
+                intent.putExtra(StarInfoActivity.EXTRA_STAR_NAME, star.getName());
+                intent.putExtra(StarInfoActivity.EXTRA_STAR_RA, star.getRa());
+                intent.putExtra(StarInfoActivity.EXTRA_STAR_DEC, star.getDec());
+                intent.putExtra(StarInfoActivity.EXTRA_STAR_MAGNITUDE, star.getMagnitude());
+                startActivity(intent);
+            }
+        }
+        // Clear highlight after opening details
+        if (skyCanvasView != null) {
+            skyCanvasView.clearHighlight();
+        }
+    }
+
+    /**
+     * Updates the search target coordinates for a planet based on current time.
+     *
+     * <p>Planet positions change over time, so we recalculate them here using
+     * the current observation time (or time travel time if active).</p>
+     */
+    private void updatePlanetSearchTarget() {
+        if (universe == null || searchTargetName == null) {
+            return;
+        }
+
+        // Get current observation time
+        long timeMillis = (timeTravelClock != null)
+                ? timeTravelClock.getCurrentTimeMillis()
+                : System.currentTimeMillis();
+        Date observationDate = new Date(timeMillis);
+
+        // Find the matching solar system body
+        for (SolarSystemBody body : SolarSystemBody.values()) {
+            if (body.name().equalsIgnoreCase(searchTargetName)) {
+                try {
+                    RaDec raDec = universe.getRaDec(body, observationDate);
+                    searchTargetRa = raDec.getRa();
+                    searchTargetDec = raDec.getDec();
+                    Log.d(TAG, "Updated planet position for " + searchTargetName +
+                            " at time " + observationDate + ": RA=" + searchTargetRa +
+                            ", Dec=" + searchTargetDec);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error calculating planet position: " + e.getMessage());
+                }
+                break;
+            }
+        }
+    }
+
+    /**
+     * Shows information about a selected star.
+     *
+     * @param star The star to display info for
+     */
+    private void showStarInfo(@NonNull StarData star) {
+        selectedStar = star;
+
+        tvInfoPanelName.setText(star.getName());
+        tvInfoPanelType.setText(getString(R.string.star_type_format,
+                star.getConstellationId() != null ? star.getConstellationId() : getString(R.string.unknown)));
+        tvInfoPanelMagnitude.setText(String.format("%.2f", star.getMagnitude()));
+        tvInfoPanelRA.setText(formatRA(star.getRa()));
+        tvInfoPanelDec.setText(formatDec(star.getDec()));
+
+        infoPanel.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Hides the info panel.
+     */
+    private void hideInfoPanel() {
+        infoPanel.setVisibility(View.GONE);
+        selectedStar = null;
+    }
+
+    /**
+     * Opens the star details activity.
+     *
+     * @param star The star to show details for
+     */
+    private void openStarDetails(@NonNull StarData star) {
+        Intent intent = new Intent(this, StarInfoActivity.class);
+        intent.putExtra(StarInfoActivity.EXTRA_STAR_ID, star.getId());
+        intent.putExtra(StarInfoActivity.EXTRA_STAR_NAME, star.getName());
+        intent.putExtra(StarInfoActivity.EXTRA_STAR_RA, star.getRa());
+        intent.putExtra(StarInfoActivity.EXTRA_STAR_DEC, star.getDec());
+        intent.putExtra(StarInfoActivity.EXTRA_STAR_MAGNITUDE, star.getMagnitude());
+        startActivity(intent);
+    }
+
+    /**
+     * Formats Right Ascension for display.
+     *
+     * @param raDegrees RA in degrees
+     * @return Formatted string (e.g., "2h 31m")
+     */
+    private String formatRA(float raDegrees) {
+        float raHours = raDegrees / 15.0f;
+        int hours = (int) raHours;
+        int minutes = (int) ((raHours - hours) * 60);
+        return String.format("%dh %dm", hours, minutes);
+    }
+
+    /**
+     * Formats Declination for display.
+     *
+     * @param decDegrees Dec in degrees
+     * @return Formatted string (e.g., "+89 15'")
+     */
+    private String formatDec(float decDegrees) {
+        String sign = decDegrees >= 0 ? "+" : "";
+        int degrees = (int) decDegrees;
+        int minutes = (int) (Math.abs(decDegrees - degrees) * 60);
+        return String.format("%s%d %d'", sign, degrees, minutes);
+    }
+
+    /**
+     * Shows or hides the loading overlay.
+     *
+     * @param show true to show loading, false to hide
+     */
+    private void showLoading(boolean show) {
+        loadingOverlay.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // TODO: Start sensor updates
-        // skyDataProvider.start();
+        skyGLSurfaceView.onResume();
+
+        // Start sensors
+        if (sensorController != null) {
+            sensorController.start();
+        }
+
+        // Start GPS location updates if permission is granted
+        if (locationController != null && hasLocationPermission()) {
+            locationController.start();
+            updateGpsIndicator(false, getString(R.string.gps_searching));
+        }
+
+        // Resume camera if AR mode is enabled
+        if (isARModeEnabled && permissionHandler != null && permissionHandler.hasCameraPermission()) {
+            startCameraPreview();
+        }
+
+        // Start checking for objects in reticle
+        startReticleChecking();
+    }
+
+    /**
+     * Checks if location permission is granted.
+     */
+    private boolean hasLocationPermission() {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // TODO: Stop sensor updates to save battery
-        // skyDataProvider.stop();
+        skyGLSurfaceView.onPause();
+
+        // Stop sensors to save battery
+        if (sensorController != null) {
+            sensorController.stop();
+        }
+
+        // Stop GPS location updates to save battery
+        if (locationController != null) {
+            locationController.stop();
+        }
+
+        // Stop checking for objects in reticle
+        stopReticleChecking();
+
+        // Stop camera
+        if (cameraManager != null) {
+            cameraManager.stopCamera();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // Release camera resources
+        if (cameraManager != null) {
+            cameraManager.release();
+        }
     }
 }

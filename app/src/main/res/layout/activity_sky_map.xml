@@ -1,0 +1,571 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_dark"
+    tools:context=".ui.SkyMapActivity">
+
+    <!-- Camera Preview Layer -->
+    <FrameLayout
+        android:id="@+id/cameraPreview"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/background_dark"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Sky Overlay Layer (OpenGL/Canvas rendering) -->
+    <FrameLayout
+        android:id="@+id/skyOverlayContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Top Control Bar -->
+    <LinearLayout
+        android:id="@+id/topControls"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/overlay_dark"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/padding_small"
+        android:paddingVertical="@dimen/padding_extra_small"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Back Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBack"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:contentDescription="@string/cd_back_button"
+            app:icon="@android:drawable/ic_menu_revert"
+            app:iconTint="@color/icon_primary"
+            app:rippleColor="@color/ripple" />
+
+        <!-- AR Mode Toggle Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnArToggle"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:contentDescription="@string/cd_ar_toggle"
+            app:icon="@android:drawable/ic_menu_camera"
+            app:iconTint="@color/icon_primary"
+            app:rippleColor="@color/ripple" />
+
+        <!-- Spacer -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- Night Mode Toggle -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNightMode"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:contentDescription="@string/cd_night_mode_toggle"
+            app:icon="@android:drawable/ic_menu_view"
+            app:iconTint="@color/icon_primary"
+            app:rippleColor="@color/ripple" />
+
+        <!-- Settings Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSettings"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:contentDescription="@string/cd_settings_icon"
+            app:icon="@android:drawable/ic_menu_preferences"
+            app:iconTint="@color/icon_primary"
+            app:rippleColor="@color/ripple" />
+
+    </LinearLayout>
+
+    <!-- Info Panel (Slide-up panel for celestial object info) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/infoPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_medium"
+        android:layout_marginEnd="@dimen/margin_medium"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:visibility="gone"
+        app:cardBackgroundColor="@color/sky_map_info_panel"
+        app:cardCornerRadius="@dimen/card_corner_radius"
+        app:cardElevation="@dimen/elevation_medium"
+        app:layout_constraintBottom_toTopOf="@id/bottomControls"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/sky_map_info_panel_padding">
+
+            <!-- Close Button -->
+            <ImageButton
+                android:id="@+id/btnCloseInfoPanel"
+                android:layout_width="@dimen/icon_size_medium"
+                android:layout_height="@dimen/icon_size_medium"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cd_close_button"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/icon_secondary" />
+
+            <!-- Object Name -->
+            <TextView
+                android:id="@+id/tvInfoPanelName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_medium"
+                android:textAppearance="@style/TextAppearance.AstroApp.TitleLarge"
+                android:textColor="@color/text_primary"
+                app:layout_constraintEnd_toStartOf="@id/btnCloseInfoPanel"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Polaris" />
+
+            <!-- Object Type -->
+            <TextView
+                android:id="@+id/tvInfoPanelType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_extra_small"
+                android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                android:textColor="@color/tertiary"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvInfoPanelName"
+                tools:text="Star - Ursa Minor" />
+
+            <!-- Divider -->
+            <View
+                android:id="@+id/infoPanelDivider"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/divider_height"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:background="@color/divider"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvInfoPanelType" />
+
+            <!-- Quick Info Row -->
+            <LinearLayout
+                android:id="@+id/infoPanelQuickInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/infoPanelDivider">
+
+                <!-- Magnitude -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/star_magnitude"
+                        android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                        android:textColor="@color/text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvInfoPanelMagnitude"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                        android:textColor="@color/text_primary"
+                        tools:text="1.97" />
+
+                </LinearLayout>
+
+                <!-- RA -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/star_right_ascension"
+                        android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                        android:textColor="@color/text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvInfoPanelRA"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                        android:textColor="@color/text_primary"
+                        tools:text="2h 31m" />
+
+                </LinearLayout>
+
+                <!-- Dec -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/star_declination"
+                        android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                        android:textColor="@color/text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvInfoPanelDec"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                        android:textColor="@color/text_primary"
+                        tools:text="+89° 15'" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- More Details Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnInfoPanelDetails"
+                style="@style/Widget.AstroApp.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:text="@string/star_details"
+                android:textAllCaps="false"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/infoPanelQuickInfo"
+                app:rippleColor="@color/ripple_primary" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Bottom Control Bar -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/bottomControls"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="@color/overlay_dark"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="@dimen/elevation_none"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/bottom_nav_height"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/padding_medium">
+
+            <!-- Constellations Toggle -->
+            <LinearLayout
+                android:id="@+id/btnConstellations"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="@dimen/padding_small">
+
+                <ImageView
+                    android:id="@+id/ivConstellations"
+                    android:layout_width="@dimen/bottom_nav_icon_size"
+                    android:layout_height="@dimen/bottom_nav_icon_size"
+                    android:contentDescription="@string/show_constellations"
+                    android:src="@android:drawable/ic_menu_myplaces"
+                    app:tint="@color/icon_primary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_extra_small"
+                    android:text="@string/object_constellation"
+                    android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+            <!-- Grid Toggle -->
+            <LinearLayout
+                android:id="@+id/btnGrid"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="@dimen/padding_small">
+
+                <ImageView
+                    android:id="@+id/ivGrid"
+                    android:layout_width="@dimen/bottom_nav_icon_size"
+                    android:layout_height="@dimen/bottom_nav_icon_size"
+                    android:contentDescription="@string/show_grid"
+                    android:src="@android:drawable/ic_menu_agenda"
+                    app:tint="@color/icon_inactive" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_extra_small"
+                    android:text="@string/show_grid"
+                    android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+            <!-- Time Travel -->
+            <LinearLayout
+                android:id="@+id/btnTimeTravel"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="@dimen/padding_small">
+
+                <ImageView
+                    android:id="@+id/ivTimeTravel"
+                    android:layout_width="@dimen/bottom_nav_icon_size"
+                    android:layout_height="@dimen/bottom_nav_icon_size"
+                    android:contentDescription="@string/time_travel"
+                    android:src="@android:drawable/ic_menu_recent_history"
+                    app:tint="@color/icon_inactive" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_extra_small"
+                    android:text="@string/time_travel"
+                    android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+            <!-- Planets Toggle -->
+            <LinearLayout
+                android:id="@+id/btnPlanets"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="@dimen/padding_small">
+
+                <ImageView
+                    android:id="@+id/ivPlanets"
+                    android:layout_width="@dimen/bottom_nav_icon_size"
+                    android:layout_height="@dimen/bottom_nav_icon_size"
+                    android:contentDescription="@string/show_planets"
+                    android:src="@android:drawable/presence_online"
+                    app:tint="@color/icon_primary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_extra_small"
+                    android:text="@string/object_planet"
+                    android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Search FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabSearch"
+        style="@style/Widget.AstroApp.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/fab_margin"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:contentDescription="@string/cd_search_icon"
+        android:src="@android:drawable/ic_menu_search"
+        app:fabSize="normal"
+        app:layout_constraintBottom_toTopOf="@id/bottomControls"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:rippleColor="@color/ripple_primary" />
+
+    <!-- Select FAB (appears when objects are in reticle) -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabSelect"
+        style="@style/Widget.AstroApp.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:contentDescription="@string/cd_select_button"
+        android:text="@string/select"
+        android:visibility="gone"
+        app:icon="@android:drawable/ic_menu_view"
+        app:layout_constraintBottom_toTopOf="@id/bottomControls"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:rippleColor="@color/ripple_primary"
+        tools:visibility="visible" />
+
+    <!-- GPS Status Indicator -->
+    <LinearLayout
+        android:id="@+id/gpsIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_medium"
+        android:layout_marginTop="@dimen/margin_small"
+        android:background="@drawable/bg_gps_indicator"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/padding_small"
+        android:paddingVertical="@dimen/padding_extra_small"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topControls">
+
+        <ImageView
+            android:id="@+id/ivGpsIcon"
+            android:layout_width="@dimen/icon_size_small"
+            android:layout_height="@dimen/icon_size_small"
+            android:contentDescription="@string/cd_gps_status"
+            android:src="@android:drawable/ic_menu_mylocation"
+            app:tint="@color/gps_searching" />
+
+        <TextView
+            android:id="@+id/tvGpsStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_extra_small"
+            android:text="@string/gps_searching"
+            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+            android:textColor="@color/text_secondary" />
+
+    </LinearLayout>
+
+    <!-- Compass Indicator -->
+    <FrameLayout
+        android:id="@+id/compassContainer"
+        android:layout_width="@dimen/sky_map_compass_size"
+        android:layout_height="@dimen/sky_map_compass_size"
+        android:layout_marginStart="@dimen/sky_map_compass_margin"
+        android:layout_marginBottom="@dimen/margin_medium"
+        app:layout_constraintBottom_toTopOf="@id/bottomControls"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- Compass View will be added programmatically -->
+        <ImageView
+            android:id="@+id/ivCompass"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/direction_north"
+            android:src="@android:drawable/ic_menu_compass"
+            app:tint="@color/sky_map_compass" />
+
+    </FrameLayout>
+
+    <!-- Center Crosshair -->
+    <View
+        android:id="@+id/crosshairHorizontal"
+        android:layout_width="@dimen/sky_map_crosshair_size"
+        android:layout_height="@dimen/sky_map_crosshair_stroke"
+        android:background="@color/sky_map_crosshair"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/crosshairVertical"
+        android:layout_width="@dimen/sky_map_crosshair_stroke"
+        android:layout_height="@dimen/sky_map_crosshair_size"
+        android:background="@color/sky_map_crosshair"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Search Arrow Overlay -->
+    <com.astro.app.search.SearchArrowView
+        android:id="@+id/searchArrow"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone" />
+
+    <!-- Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/scrim"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                app:indicatorColor="@color/primary"
+                app:indicatorSize="@dimen/progress_indicator_size"
+                app:trackColor="@color/surface_variant"
+                app:trackThickness="@dimen/progress_indicator_stroke_width" />
+
+            <TextView
+                android:id="@+id/tvLoadingMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:text="@string/sky_map_loading"
+                android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                android:textColor="@color/text_primary" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

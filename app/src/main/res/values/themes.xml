@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Base Dark Theme for Astro App -->
+    <style name="Theme.AstroApp" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Primary Colors -->
+        <item name="colorPrimary">@color/md_theme_dark_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_dark_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_dark_onPrimaryContainer</item>
+        <item name="colorPrimaryInverse">@color/md_theme_dark_inversePrimary</item>
+
+        <!-- Secondary Colors -->
+        <item name="colorSecondary">@color/md_theme_dark_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_dark_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md_theme_dark_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md_theme_dark_onSecondaryContainer</item>
+
+        <!-- Tertiary Colors -->
+        <item name="colorTertiary">@color/md_theme_dark_tertiary</item>
+        <item name="colorOnTertiary">@color/md_theme_dark_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md_theme_dark_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md_theme_dark_onTertiaryContainer</item>
+
+        <!-- Error Colors -->
+        <item name="colorError">@color/md_theme_dark_error</item>
+        <item name="colorOnError">@color/md_theme_dark_onError</item>
+        <item name="colorErrorContainer">@color/md_theme_dark_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md_theme_dark_onErrorContainer</item>
+
+        <!-- Background Colors -->
+        <item name="android:colorBackground">@color/md_theme_dark_background</item>
+        <item name="colorOnBackground">@color/md_theme_dark_onBackground</item>
+
+        <!-- Surface Colors -->
+        <item name="colorSurface">@color/md_theme_dark_surface</item>
+        <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
+        <item name="colorSurfaceVariant">@color/md_theme_dark_surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/md_theme_dark_onSurfaceVariant</item>
+        <item name="colorSurfaceInverse">@color/md_theme_dark_inverseSurface</item>
+        <item name="colorOnSurfaceInverse">@color/md_theme_dark_inverseOnSurface</item>
+
+        <!-- Outline Colors -->
+        <item name="colorOutline">@color/md_theme_dark_outline</item>
+        <item name="colorOutlineVariant">@color/md_theme_dark_outlineVariant</item>
+
+        <!-- Status Bar and Navigation Bar -->
+        <item name="android:statusBarColor">@color/status_bar</item>
+        <item name="android:navigationBarColor">@color/navigation_bar</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+
+        <!-- Window Attributes -->
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+
+        <!-- Text Appearance -->
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:textColorTertiary">@color/text_tertiary</item>
+        <item name="android:textColorHint">@color/text_hint</item>
+        <item name="android:textColorLink">@color/text_link</item>
+
+        <!-- Material Components -->
+        <item name="materialButtonStyle">@style/Widget.AstroApp.Button</item>
+        <item name="materialCardViewStyle">@style/Widget.AstroApp.CardView</item>
+        <item name="bottomNavigationStyle">@style/Widget.AstroApp.BottomNavigation</item>
+        <item name="toolbarStyle">@style/Widget.AstroApp.Toolbar</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.AstroApp.BottomSheetDialog</item>
+
+        <!-- Shape Appearance -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.AstroApp.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.AstroApp.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.AstroApp.LargeComponent</item>
+    </style>
+
+    <!-- Fullscreen Theme for SkyMapActivity -->
+    <style name="Theme.AstroApp.Fullscreen" parent="Theme.AstroApp">
+        <!-- Hide System UI -->
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
+        <!-- Translucent System Bars -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- Immersive Mode Support -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
+
+        <!-- Dark Background for Sky Map -->
+        <item name="android:windowBackground">@color/background_dark</item>
+
+        <!-- Keep Screen On -->
+        <item name="android:keepScreenOn">true</item>
+    </style>
+
+    <!-- Night Mode Theme - Red Tinted for Preserving Night Vision -->
+    <style name="Theme.AstroApp.NightMode" parent="Theme.AstroApp.Fullscreen">
+        <!-- Night Mode Primary Colors -->
+        <item name="colorPrimary">@color/night_mode_primary</item>
+        <item name="colorOnPrimary">@color/night_mode_background</item>
+        <item name="colorPrimaryContainer">@color/night_mode_primary_variant</item>
+        <item name="colorOnPrimaryContainer">@color/night_mode_text_primary</item>
+
+        <!-- Night Mode Secondary Colors -->
+        <item name="colorSecondary">@color/night_mode_secondary</item>
+        <item name="colorOnSecondary">@color/night_mode_background</item>
+        <item name="colorSecondaryContainer">@color/night_mode_primary_variant</item>
+        <item name="colorOnSecondaryContainer">@color/night_mode_text_secondary</item>
+
+        <!-- Night Mode Tertiary Colors -->
+        <item name="colorTertiary">@color/night_mode_accent</item>
+        <item name="colorOnTertiary">@color/night_mode_background</item>
+
+        <!-- Night Mode Background -->
+        <item name="android:colorBackground">@color/night_mode_background</item>
+        <item name="colorOnBackground">@color/night_mode_text_primary</item>
+
+        <!-- Night Mode Surface -->
+        <item name="colorSurface">@color/night_mode_surface</item>
+        <item name="colorOnSurface">@color/night_mode_on_surface</item>
+        <item name="colorSurfaceVariant">@color/night_mode_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/night_mode_text_secondary</item>
+
+        <!-- Night Mode Outline -->
+        <item name="colorOutline">@color/night_mode_divider</item>
+        <item name="colorOutlineVariant">@color/night_mode_divider</item>
+
+        <!-- Night Mode Window Background -->
+        <item name="android:windowBackground">@color/night_mode_background</item>
+
+        <!-- Night Mode Text Colors -->
+        <item name="android:textColorPrimary">@color/night_mode_text_primary</item>
+        <item name="android:textColorSecondary">@color/night_mode_text_secondary</item>
+        <item name="android:textColorHint">@color/night_mode_text_secondary</item>
+
+        <!-- Night Mode Status Bar -->
+        <item name="android:statusBarColor">@color/night_mode_background</item>
+        <item name="android:navigationBarColor">@color/night_mode_background</item>
+    </style>
+
+    <!-- Splash Screen Theme -->
+    <style name="Theme.AstroApp.Splash" parent="Theme.AstroApp">
+        <item name="android:windowBackground">@color/background_dark</item>
+        <item name="android:statusBarColor">@color/background_dark</item>
+        <item name="android:navigationBarColor">@color/background_dark</item>
+    </style>
+
+    <!-- Dialog Themes -->
+    <style name="Theme.AstroApp.Dialog" parent="Theme.Material3.Dark.Dialog">
+        <item name="colorPrimary">@color/md_theme_dark_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
+        <item name="colorSurface">@color/dialog_background</item>
+        <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
+        <item name="android:windowBackground">@color/dialog_background</item>
+    </style>
+
+    <style name="Theme.AstroApp.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorPrimary">@color/md_theme_dark_primary</item>
+        <item name="colorSurface">@color/dialog_background</item>
+        <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/TextAppearance.AstroApp.AlertDialog.Title</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/TextAppearance.AstroApp.AlertDialog.Body</item>
+    </style>
+
+    <!-- Time Travel Dialog Theme -->
+    <style name="Theme.AstroApp.Dialog.TimeTravel" parent="Theme.Material3.Dark.Dialog">
+        <item name="colorPrimary">@color/md_theme_dark_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
+    <!-- Date Picker Theme -->
+    <style name="Theme.AstroApp.DatePicker" parent="ThemeOverlay.Material3.MaterialCalendar">
+        <item name="colorPrimary">@color/md_theme_dark_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
+    </style>
+
+    <!-- Time Picker Theme -->
+    <style name="Theme.AstroApp.TimePicker" parent="ThemeOverlay.Material3.MaterialTimePicker">
+        <item name="colorPrimary">@color/md_theme_dark_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
+    </style>
+
+    <!-- Bottom Sheet Dialog Theme -->
+    <style name="ThemeOverlay.AstroApp.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.AstroApp.BottomSheet</item>
+        <item name="colorSurface">@color/bottom_sheet_background</item>
+        <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
+    </style>
+
+    <!-- Widget Styles -->
+    <style name="Widget.AstroApp.Button" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/button_primary</item>
+        <item name="android:textColor">@color/button_text</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.AstroApp.SmallComponent</item>
+    </style>
+
+    <style name="Widget.AstroApp.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">@color/outline</item>
+        <item name="android:textColor">@color/md_theme_dark_primary</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.AstroApp.SmallComponent</item>
+    </style>
+
+    <style name="Widget.AstroApp.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/md_theme_dark_primary</item>
+    </style>
+
+    <style name="Widget.AstroApp.Button.Icon" parent="Widget.Material3.Button.IconButton">
+        <item name="iconTint">@color/icon_primary</item>
+    </style>
+
+    <style name="Widget.AstroApp.CardView" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">@color/card_background</item>
+        <item name="cardCornerRadius">@dimen/corner_radius_medium</item>
+        <item name="cardElevation">@dimen/elevation_small</item>
+        <item name="strokeColor">@color/card_stroke</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="Widget.AstroApp.CardView.Elevated" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardBackgroundColor">@color/card_background_elevated</item>
+        <item name="cardCornerRadius">@dimen/corner_radius_medium</item>
+        <item name="cardElevation">@dimen/elevation_medium</item>
+    </style>
+
+    <style name="Widget.AstroApp.BottomNavigation" parent="Widget.Material3.BottomNavigationView">
+        <item name="backgroundTint">@color/surface</item>
+        <item name="itemIconTint">@color/icon_primary</item>
+        <item name="itemTextColor">@color/text_primary</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.AstroApp.BottomNavigation.ActiveIndicator</item>
+    </style>
+
+    <style name="Widget.AstroApp.BottomNavigation.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/md_theme_dark_primaryContainer</item>
+    </style>
+
+    <style name="Widget.AstroApp.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:background">@color/toolbar_background</item>
+        <item name="titleTextColor">@color/text_primary</item>
+        <item name="subtitleTextColor">@color/text_secondary</item>
+    </style>
+
+    <style name="Widget.AstroApp.BottomSheet" parent="Widget.Material3.BottomSheet">
+        <item name="backgroundTint">@color/bottom_sheet_background</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.AstroApp.BottomSheet</item>
+    </style>
+
+    <style name="Widget.AstroApp.SearchBar" parent="Widget.Material3.SearchBar">
+        <item name="backgroundTint">@color/surface_variant</item>
+        <item name="android:textColorHint">@color/text_hint</item>
+    </style>
+
+    <style name="Widget.AstroApp.FloatingActionButton" parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="backgroundTint">@color/md_theme_dark_primaryContainer</item>
+        <item name="tint">@color/md_theme_dark_onPrimaryContainer</item>
+    </style>
+
+    <style name="Widget.AstroApp.Slider" parent="Widget.Material3.Slider">
+        <item name="thumbColor">@color/md_theme_dark_primary</item>
+        <item name="trackColorActive">@color/md_theme_dark_primary</item>
+        <item name="trackColorInactive">@color/surface_variant</item>
+    </style>
+
+    <style name="Widget.AstroApp.Switch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="thumbTint">@color/md_theme_dark_primary</item>
+        <item name="trackTint">@color/surface_variant</item>
+    </style>
+
+    <style name="Widget.AstroApp.Chip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipBackgroundColor">@color/surface_variant</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="chipStrokeColor">@color/outline</item>
+    </style>
+
+    <!-- Shape Appearances -->
+    <style name="ShapeAppearance.AstroApp.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/corner_radius_small</item>
+    </style>
+
+    <style name="ShapeAppearance.AstroApp.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/corner_radius_medium</item>
+    </style>
+
+    <style name="ShapeAppearance.AstroApp.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/corner_radius_large</item>
+    </style>
+
+    <style name="ShapeAppearance.AstroApp.BottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">@dimen/corner_radius_large</item>
+        <item name="cornerSizeTopRight">@dimen/corner_radius_large</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <style name="ShapeAppearance.AstroApp.Circle" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!-- Text Appearances -->
+    <style name="TextAppearance.AstroApp.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textColor">@color/text_tertiary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.AlertDialog.Title" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <style name="TextAppearance.AstroApp.AlertDialog.Body" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- Star Label Text Style -->
+    <style name="TextAppearance.AstroApp.StarLabel" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_size_star_label</item>
+        <item name="android:shadowColor">@color/black_alpha_70</item>
+        <item name="android:shadowDx">1</item>
+        <item name="android:shadowDy">1</item>
+        <item name="android:shadowRadius">2</item>
+    </style>
+
+    <!-- Constellation Label Text Style -->
+    <style name="TextAppearance.AstroApp.ConstellationLabel" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:textColor">@color/constellation_name</item>
+        <item name="android:textSize">@dimen/text_size_constellation_label</item>
+        <item name="android:textStyle">italic</item>
+    </style>
+
+</resources>
