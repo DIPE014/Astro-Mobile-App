@@ -32,4 +32,9 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Development docs (local only)
 CLAUDE.md
+docs/PLAN.md
+docs/PROGRESS.md
+build_output.txt

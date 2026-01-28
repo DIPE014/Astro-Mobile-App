@@ -4,36 +4,71 @@
 
 ```
 ┌─────────────────────────────────────┐
-│           UI Layer                  │  ← Frontend (Java + XML)
-│   Activities, Fragments, Views      │
+│           UI Layer                  │  Activities, Fragments, Views
+│   SkyMapActivity, SearchActivity    │
 ├─────────────────────────────────────┤
-│         Common Layer                │  ← Shared models
-│      StarData, Pointing, etc.       │
+│         Common Layer                │  Shared models & interfaces
+│   StarData, Pointing, GeocentricCoords
 ├─────────────────────────────────────┤
-│          Core Layer                 │  ← Backend (Java)
-│  AstronomerModel, Sensors, Render   │
+│          Core Layer                 │  Astronomy engine
+│  AstronomerModel, Layers, Renderer  │
 ├─────────────────────────────────────┤
-│        Data & ML Layer              │  ← Backend (Java)
-│   StarRepository, ConstellationML   │
+│          Data Layer                 │  Data access
+│   StarRepository, ProtobufParser    │
 └─────────────────────────────────────┘
 ```
 
-## Packages
+## Key Packages
 
-| Package | Owner | Purpose |
-|---------|-------|---------|
-| `ui/` | Frontend | Activities, Fragments, XML layouts |
-| `common/` | Both | Shared data models and interfaces |
-| `core/control/` | Backend | Astronomy calculations, sensors |
-| `core/math/` | Backend | Vector math (from stardroid) |
-| `core/renderer/` | Backend | OpenGL sky rendering |
-| `data/` | Backend | Star data loading |
-| `ml/` | Backend | Constellation recognition |
+| Package | Purpose |
+|---------|---------|
+| `ui/skymap/` | Main AR sky view activity |
+| `ui/search/` | Search activity and results |
+| `ui/starinfo/` | Star detail view |
+| `ui/settings/` | App settings |
+| `core/control/` | AstronomerModel, sensors, location, time |
+| `core/math/` | Vector3, Matrix3x3, coordinate math |
+| `core/layers/` | Stars, planets, constellations, grid layers |
+| `core/renderer/` | SkyCanvasView, OpenGL rendering |
+| `data/` | Repositories, protobuf parsing |
+| `search/` | Search index, arrow view |
+| `common/model/` | Shared data models |
 
 ## Data Flow
 
-1. **Sensors** → SensorController → device orientation
-2. **GPS** → LocationController → user position
-3. **AstronomerModel** combines both → sky pointing direction
-4. **StarRepository** loads star data → visible stars list
-5. **UI** renders stars on camera preview
+```
+┌──────────────┐    ┌─────────────────┐    ┌───────────────┐
+│   Sensors    │───>│ AstronomerModel │───>│ SkyCanvasView │
+│ (Rotation)   │    │ (Coordinate     │    │ (Rendering)   │
+└──────────────┘    │  Transform)     │    └───────────────┘
+                    └─────────────────┘
+┌──────────────┐           │
+│     GPS      │───────────┘
+│ (Location)   │
+└──────────────┘
+
+┌──────────────┐    ┌─────────────────┐
+│ Star Binary  │───>│ StarRepository  │───> Stars Layer
+│   Files      │    │ (Data Loading)  │
+└──────────────┘    └─────────────────┘
+```
+
+## Coordinate Transformation
+
+The app converts between multiple coordinate systems:
+
+1. **Phone Coordinates** - Raw sensor data (x, y, z in device frame)
+2. **Local Coordinates** - North, East, Up at observer's location
+3. **Celestial Coordinates** - Right Ascension / Declination (fixed to stars)
+4. **Horizontal Coordinates** - Altitude / Azimuth (local sky position)
+5. **Screen Coordinates** - Pixels on display
+
+The `AstronomerModel` handles the critical phone→celestial transformation using matrix math.
+
+## Dependency Injection
+
+Uses Dagger 2 for dependency injection:
+
+- `AppComponent` - Application-level dependencies
+- `AppModule` - Provides singletons (repositories, controllers)
+- Components injected into Activities via `AstroApplication`
