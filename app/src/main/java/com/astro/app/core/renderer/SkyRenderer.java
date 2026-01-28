@@ -72,7 +72,7 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
     // View state
     private int screenWidth = 1;
     private int screenHeight = 1;
-    private float fieldOfView = 60.0f; // degrees
+    private volatile float fieldOfView = 60.0f; // degrees (volatile for thread-safe access)
     private float nearPlane = 0.01f;
     private float farPlane = 100.0f;
 
@@ -191,9 +191,8 @@ public class SkyRenderer implements GLSurfaceView.Renderer {
             renderCallback.onPreRender(this);
         }
 
-        // DIAGNOSTIC: Temporarily set bright red to verify GL is working
-        // If you see RED, OpenGL is working. If you see the View background color, it's not.
-        GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);  // Bright red
+        // Clear with configured background color
+        GLES20.glClearColor(bgRed, bgGreen, bgBlue, bgAlpha);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
         // Update view matrix if needed

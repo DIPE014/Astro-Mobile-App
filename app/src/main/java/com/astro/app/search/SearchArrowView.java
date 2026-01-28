@@ -568,6 +568,8 @@ public class SearchArrowView extends View {
     @Override
     public boolean performClick() {
         super.performClick();
+        // Dismiss the target when close button is clicked
+        clearTarget();
         return true;
     }
 

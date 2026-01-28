@@ -42,7 +42,7 @@ android {
 
 protobuf {
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.25.1'
+        artifact = 'com.google.protobuf:protoc:3.25.5'
     }
     generateProtoTasks {
         all().each { task ->
@@ -76,8 +76,8 @@ dependencies {
     // Location
     implementation 'com.google.android.gms:play-services-location:21.1.0'
 
-    // Protocol Buffers
-    implementation 'com.google.protobuf:protobuf-javalite:3.25.1'
+    // Protocol Buffers (3.25.5 fixes CVE-2024-7254)
+    implementation 'com.google.protobuf:protobuf-javalite:3.25.5'
 
     // Utilities
     implementation 'com.google.guava:guava:33.0.0-android'

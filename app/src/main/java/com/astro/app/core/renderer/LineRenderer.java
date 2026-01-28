@@ -206,6 +206,8 @@ public class LineRenderer {
 
         // Fill buffers
         short vertexIndex = 0;
+        int segmentsWritten = 0;
+        outerLoop:
         for (LinePrimitive line : lines) {
             List<GeocentricCoords> vertices = line.getVertices();
             if (vertices.size() < 2) continue;
@@ -219,6 +221,11 @@ public class LineRenderer {
             float lineWidth = line.getLineWidth() * lineWidthFactor * 0.001f;
 
             for (int i = 0; i < vertices.size() - 1; i++) {
+                // Guard: stop if we've written all allocated segments
+                if (segmentsWritten >= segmentCount) {
+                    break outerLoop;
+                }
+
                 GeocentricCoords start = vertices.get(i);
                 GeocentricCoords end = vertices.get(i + 1);
 
@@ -236,6 +243,7 @@ public class LineRenderer {
                 indexBuffer.put((short) (baseIndex + 2));
 
                 vertexIndex++;
+                segmentsWritten++;
             }
         }
 
