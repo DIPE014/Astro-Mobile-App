@@ -1,36 +1,64 @@
 # Setup Guide
 
 ## Requirements
-- Android Studio Hedgehog (2023.1.1) or newer
-- JDK 17
-- Android SDK 34
-- Physical Android device (recommended for sensors/camera)
 
-## Steps
+- Android Studio Hedgehog (2023.1.1) or newer
+- JDK 11 or higher
+- Android SDK 34
+- Physical Android device (required for sensors/camera)
+
+## Quick Start
 
 1. **Clone the repository**
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/DIPE014/Astro-Mobile-App.git
    cd Astro-Mobile-App
    ```
 
 2. **Open in Android Studio**
    - File → Open → Select project folder
+   - Wait for Gradle sync to complete
 
-3. **Sync Gradle**
-   - Android Studio will prompt to sync
-
-4. **Copy star data from stardroid**
-   ```bash
-   cp ../stardroid/app/src/main/assets/stars.binary app/src/main/assets/
-   cp ../stardroid/app/src/main/assets/constellations.binary app/src/main/assets/
-   ```
-
-5. **Run on device**
-   - Connect Android device
+3. **Run on device**
+   - Connect an Android device via USB
+   - Enable USB debugging on the device
    - Click Run (green play button)
 
-## Permissions Required
-- Camera
-- Location (Fine + Coarse)
-- Sensors (automatic)
+## Build from Command Line
+
+```bash
+# Debug build
+./gradlew assembleDebug
+
+# Run tests
+./gradlew test
+
+# Install on connected device
+./gradlew installDebug
+```
+
+## Permissions
+
+The app requires these permissions (granted at runtime):
+
+| Permission | Purpose |
+|------------|---------|
+| Camera | AR camera preview |
+| Fine Location | Accurate sky positioning |
+| Coarse Location | Fallback location |
+
+Sensors (accelerometer, magnetometer, gyroscope) don't require explicit permission.
+
+## Troubleshooting
+
+**Stars not showing?**
+- Make sure location permission is granted
+- Wait a few seconds for data to load
+
+**Orientation wrong?**
+- Calibrate compass by moving phone in figure-8 pattern
+- Make sure you're not near magnetic interference
+
+**Build fails?**
+- Sync Gradle files (File → Sync Project with Gradle Files)
+- Check JDK version matches project requirements
