@@ -1,72 +1,91 @@
-# Project Structure Guide
+# Project Structure
 
-## Folder Overview
+## Overview
 
 ```
 Astro-Mobile-App/
-├── app/                    # Android application module
-├── datamodel/              # Protocol buffer definitions
-├── docs/                   # Documentation (you are here)
-├── gradle/                 # Gradle wrapper
-├── build.gradle            # Root build config
-├── settings.gradle         # Module settings
-└── README.md               # Project overview
+├── app/                        # Android application
+│   ├── src/main/
+│   │   ├── java/com/astro/app/ # Source code
+│   │   ├── assets/             # Binary data files
+│   │   ├── proto/              # Protocol buffer definitions
+│   │   └── res/                # Android resources
+│   └── src/test/               # Unit tests
+├── docs/                       # Documentation
+└── gradle/                     # Build system
 ```
 
 ---
 
-## App Module Structure
-
-### Source Code (`app/src/main/java/com/astro/app/`)
+## Source Code (`app/src/main/java/com/astro/app/`)
 
 ```
 com/astro/app/
-├── AstroApplication.java       # App entry point, Dagger setup
-├── MainActivity.java           # Main activity
+├── AstroApplication.java           # App entry point, Dagger setup
+├── MainActivity.java               # Launch activity
 │
-├── ui/                         # [FRONTEND]
-│   ├── skymap/                 # Main AR sky view screen
-│   │   ├── SkyMapActivity.java
-│   │   ├── SkyMapFragment.java
-│   │   └── SkyOverlayView.java
-│   ├── starinfo/               # Star detail screen
-│   │   └── StarInfoActivity.java
-│   └── settings/               # Settings screen
-│       └── SettingsActivity.java
+├── ui/                             # User Interface
+│   ├── skymap/
+│   │   └── SkyMapActivity.java     # Main AR sky view
+│   ├── starinfo/
+│   │   └── StarInfoActivity.java   # Star detail screen
+│   ├── search/
+│   │   └── SearchActivity.java     # Search screen
+│   ├── settings/
+│   │   └── SettingsActivity.java   # App settings
+│   └── timetravel/
+│       └── TimeTravelDialogFragment.java
 │
-├── core/                       # [BACKEND]
-│   ├── control/                # Controllers
-│   │   ├── AstronomerModel.java      # Core coordinate math
-│   │   ├── LocationController.java   # GPS handling
-│   │   └── SensorController.java     # Device sensors
-│   ├── math/                   # Math utilities (from stardroid)
-│   │   ├── Vector3.java
-│   │   ├── Matrix3x3.java
-│   │   ├── RaDec.java
-│   │   └── ...
-│   ├── layers/                 # Data layers
-│   │   ├── Layer.java
-│   │   ├── StarsLayer.java
-│   │   └── ConstellationsLayer.java
-│   └── renderer/               # Sky rendering
-│       └── SkyRenderer.java
+├── core/                           # Astronomy Engine
+│   ├── control/
+│   │   ├── AstronomerModel.java    # Coordinate transformation interface
+│   │   ├── AstronomerModelImpl.java # Matrix-based transformation
+│   │   ├── SensorController.java   # Device sensor handling
+│   │   ├── LocationController.java # GPS handling
+│   │   ├── TimeTravelClock.java    # Time manipulation
+│   │   └── space/
+│   │       ├── Universe.kt         # Solar system calculations
+│   │       └── SolarSystemBody.kt  # Planet definitions
+│   ├── math/
+│   │   ├── Vector3.kt              # 3D vector operations
+│   │   ├── Matrix3x3.kt            # 3x3 matrix operations
+│   │   ├── RaDec.kt                # Right Ascension / Declination
+│   │   ├── LatLong.kt              # Geographic coordinates
+│   │   └── TimeUtils.kt            # Julian day, sidereal time
+│   ├── layers/
+│   │   ├── StarsLayer.java         # Star rendering data
+│   │   ├── PlanetsLayer.java       # Planet rendering data
+│   │   ├── ConstellationsLayer.java # Constellation lines
+│   │   └── GridLayer.java          # Coordinate grid
+│   └── renderer/
+│       ├── SkyCanvasView.java      # Canvas-based sky renderer
+│       ├── SkyRenderer.java        # OpenGL renderer
+│       └── SkyGLSurfaceView.java   # GL surface view
 │
-├── data/                       # [DATABASE]
-│   └── StarRepository.java     # Load and manage star data
+├── data/                           # Data Layer
+│   ├── model/
+│   │   ├── StarData.java           # Star data model
+│   │   ├── ConstellationData.java  # Constellation model
+│   │   └── GeocentricCoords.java   # 3D celestial coordinates
+│   ├── repository/
+│   │   ├── StarRepository.java     # Star data interface
+│   │   ├── StarRepositoryImpl.java # Star data implementation
+│   │   └── ConstellationRepository.java
+│   └── parser/
+│       └── ProtobufParser.java     # Binary file parser
 │
-├── ml/                         # [AI/ML]
-│   ├── ConstellationRecognizer.java  # ML inference
-│   └── ImageProcessor.java           # Image preprocessing
+├── search/                         # Search System
+│   ├── PrefixStore.java            # Trie for autocomplete
+│   ├── SearchIndex.java            # Aggregates searchable objects
+│   ├── SearchResult.java           # Search result model
+│   └── SearchArrowView.java        # Directional arrow overlay
 │
-├── di/                         # Dependency injection
-│   ├── AppComponent.java
-│   └── AppModule.java
+├── common/model/                   # Shared Models
+│   └── Pointing.java               # View direction
 │
-└── common/                     # [SHARED - Both]
-    └── model/                  # Data models
-        ├── StarData.java
-        ├── Pointing.java
-        └── RecognizedConstellation.java
+└── di/                             # Dependency Injection
+    ├── AppComponent.java           # Dagger component
+    └── AppModule.java              # Dagger module
 ```
 
 ---
@@ -75,20 +94,19 @@ com/astro/app/
 
 ```
 res/
-├── layout/                     # [FRONTEND]
+├── layout/                     # XML layouts
 │   ├── activity_main.xml
 │   ├── activity_sky_map.xml
 │   ├── activity_star_info.xml
-│   └── fragment_sky_map.xml
-│
-├── values/                     # [FRONTEND]
+│   ├── activity_search.xml
+│   ├── activity_settings.xml
+│   └── dialog_time_travel.xml
+├── values/
 │   ├── colors.xml              # Color definitions
 │   ├── strings.xml             # Text strings
 │   ├── themes.xml              # App themes
 │   └── dimens.xml              # Dimensions
-│
-└── drawable/                   # [FRONTEND]
-    └── (icons, images)
+└── drawable/                   # Icons, shapes
 ```
 
 ---
@@ -97,107 +115,17 @@ res/
 
 ```
 assets/
-├── stars.binary                # Star catalog (from stardroid)
-├── constellations.binary       # Constellation data (from stardroid)
-├── messier.binary              # Deep sky objects (from stardroid)
-└── models/
-    └── constellation.tflite    # ML model (to be added)
+├── stars.binary                # Star catalog (~9000 stars)
+├── constellations.binary       # 88 constellation definitions
+└── messier.binary              # Deep sky objects (not used yet)
 ```
 
 ---
 
-## DataModel Module
+## Tests (`app/src/test/`)
 
-```
-datamodel/
-└── src/main/proto/
-    └── source.proto            # Protocol buffer schema (from stardroid)
-```
-
----
-
-## Language Reference
-
-| Folder | Language | File Extension |
-|--------|----------|----------------|
-| `ui/` | Java | `.java` |
-| `core/` | Java | `.java` |
-| `data/` | Java | `.java` |
-| `ml/` | Java | `.java` |
-| `common/` | Java | `.java` |
-| `res/layout/` | XML | `.xml` |
-| `res/values/` | XML | `.xml` |
-| `datamodel/` | Protocol Buffers | `.proto` |
-
----
-
-## Who Works Where
-
-### Frontend
-```
-├── ui/**/*.java           # All UI code
-├── res/layout/*.xml       # All layouts
-├── res/values/*.xml       # Colors, strings, themes
-└── res/drawable/*         # Images, icons
-```
-
-### Backend
-```
-├── core/**/*.java         # Astronomy engine, sensors, location
-└── core/renderer/*.java   # Sky rendering
-```
-
-### Database
-```
-├── data/**/*.java         # Repositories, data loading
-└── assets/*.binary        # Star catalog files
-```
-
-### AI/ML
-```
-├── ml/**/*.java           # ML inference code
-└── assets/models/*.tflite # ML model files
-```
-
-### Shared (All roles)
-```
-├── common/model/*.java    # Shared data models
-└── MainActivity.java      # May need coordination
-```
-
----
-
-## Key Interfaces Between Roles
-
-### Backend provides (Frontend uses):
-```java
-public interface PointingProvider {
-    Pointing getCurrentPointing();
-    void addPointingListener(PointingListener listener);
-}
-```
-
-### Database provides (Frontend/Backend use):
-```java
-public interface StarDataProvider {
-    List<StarData> getVisibleStars();
-    StarData getStarAtPosition(float screenX, float screenY);
-    StarData searchByName(String name);
-}
-```
-
-### AI/ML provides (Frontend uses):
-```java
-public interface ConstellationRecognizer {
-    RecognizedConstellation recognize(Bitmap cameraFrame);
-}
-```
-
-### Frontend provides (All use):
-```java
-public interface ScreenInfo {
-    int getScreenWidth();
-    int getScreenHeight();
-    float getFieldOfView();
-}
-```
+251+ unit tests covering:
+- Vector and matrix operations
+- Coordinate transformations
+- Time calculations
+- Star data parsing

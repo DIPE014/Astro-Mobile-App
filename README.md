@@ -1,76 +1,98 @@
-# Astro-Mobile-App
+# Astro - AR Night Sky Explorer
 
-An Android astronomy AR app that shows stars when you point your camera at the sky.
+An Android augmented reality app that lets you explore the night sky. Point your phone at the sky and see stars, planets, and constellations overlaid on your camera view.
 
 ## Features
 
-- **GPS + Time based positioning**: Uses device location and time to calculate visible stars
-- **AR Camera Overlay**: Shows star names and constellations overlaid on camera view
-- **AI Constellation Recognition**: Uses ML to identify constellations from camera (alternative to GPS)
+### Real-Time Star Map
+- **9,000+ stars** rendered with accurate positions and colors
+- Stars positioned using GPS location and device sensors
+- Brightness-based sizing (brighter stars appear larger)
+
+### Planets
+- All major planets: Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune
+- Sun and Moon tracking
+- Positions calculated using real orbital mechanics (JPL ephemeris data)
+
+### Constellation Lines
+- 88 constellations with connecting lines
+- Constellation names displayed at center
+- Toggle on/off for cleaner viewing
+
+### Search & Navigate
+- Search for any star, planet, or constellation
+- Directional arrow guides you to off-screen objects
+- Auto-dismisses when target is centered
+
+### Time Travel
+- View the sky at any date/time in history or future
+- Watch planets move through their orbits
+- Quick presets: sunrise, sunset, lunar eclipse dates
+
+### AR Camera Mode
+- Overlay sky data on live camera feed
+- Point your phone at the sky to identify objects
+- Toggle between AR and map-only modes
+
+### Additional Features
+- **Night Mode** - Red-tinted display preserves dark adaptation
+- **Coordinate Grid** - Alt/Az grid overlay for reference
+- **Magnitude Control** - Filter stars by brightness
+- **GPS Tracking** - Automatic location updates
+
+## Screenshots
+
+*Coming soon*
+
+## Requirements
+
+- Android 8.0 (API 26) or higher
+- Camera permission (for AR mode)
+- Location permission (for accurate star positions)
+- Device with accelerometer and magnetometer sensors
+
+## Installation
+
+### From Source
+1. Clone the repository
+2. Open in Android Studio
+3. Build and run on your device
+
+```bash
+git clone https://github.com/your-repo/Astro-Mobile-App.git
+cd Astro-Mobile-App
+```
+
+### From APK
+Download the latest release APK from the Releases page.
+
+## How It Works
+
+The app combines several data sources to show you the correct sky:
+
+1. **Your Location** - GPS provides latitude/longitude
+2. **Current Time** - Determines Earth's rotation and planet positions
+3. **Device Orientation** - Accelerometer and magnetometer track where you're pointing
+4. **Star Database** - 9,000+ stars with precise celestial coordinates (RA/Dec)
+5. **Orbital Mechanics** - Calculates real-time positions of planets
+
+All this data is transformed through coordinate math to render the correct portion of the sky on your screen.
 
 ## Tech Stack
 
-- **Language**: Java + XML
+- **Language**: Java + Kotlin
 - **Min SDK**: 26 (Android 8.0)
-- **Key Libraries**: CameraX, TensorFlow Lite, Protocol Buffers, Dagger 2
+- **Camera**: CameraX
+- **Rendering**: Custom Canvas renderer
+- **Data**: Protocol Buffers for star catalog
+- **DI**: Dagger 2
 
-## Project Structure
+## Credits
 
-```
-Astro-Mobile-App/
-├── app/                          # Main Android application
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/astro/app/
-│   │   │   │   ├── ui/           # [FRONTEND] Activities, Fragments
-│   │   │   │   │   ├── skymap/   # Main AR sky view
-│   │   │   │   │   ├── starinfo/ # Star detail screen
-│   │   │   │   │   └── settings/ # App settings
-│   │   │   │   ├── core/         # [BACKEND] Astronomy engine
-│   │   │   │   │   ├── control/  # AstronomerModel, sensors, location
-│   │   │   │   │   ├── math/     # Vector3, Matrix, coordinates
-│   │   │   │   │   ├── layers/   # Star/constellation data layers
-│   │   │   │   │   └── renderer/ # OpenGL sky renderer
-│   │   │   │   ├── data/         # [DATABASE] Repositories, star catalogs
-│   │   │   │   ├── ml/           # [AI/ML] Constellation recognition
-│   │   │   │   └── common/       # [SHARED] Models, interfaces
-│   │   │   │       └── model/    # StarData, Pointing, etc.
-│   │   │   ├── assets/           # Binary data files
-│   │   │   │   └── models/       # TFLite ML models
-│   │   │   └── res/              # [FRONTEND] Android resources
-│   │   │       ├── layout/       # XML layouts
-│   │   │       ├── values/       # Colors, strings, themes
-│   │   │       └── drawable/     # Images, icons
-│   │   └── test/                 # Unit tests
-│   └── build.gradle
-├── datamodel/                    # Protocol buffer definitions
-│   └── src/main/proto/
-├── docs/                         # Documentation
-│   ├── PLAN.md                   # Implementation plan
-│   └── STRUCTURE.md              # Detailed structure guide
-├── gradle/
-├── build.gradle                  # Root build file
-├── settings.gradle
-└── README.md                     # This file
-```
+Core astronomy calculations adapted from [Sky Map (stardroid)](https://github.com/sky-map-team/stardroid) under Apache 2.0 License.
 
-## Work Division
+Star catalog data from the Hipparcos mission.
 
-| Role | Folders | Language |
-|------|---------|----------|
-| Frontend | `ui/`, `res/` | Java + XML |
-| Backend | `core/` | Java |
-| Database | `data/` | Java |
-| AI/ML | `ml/` | Java |
-| Shared | `common/model/` | Java |
+## License
 
-## Getting Started
-
-1. Open project in Android Studio
-2. Sync Gradle
-3. Copy star data files from `stardroid` project (see docs/PLAN.md)
-4. Run on device with camera and GPS
-
-## Adapted From
-
-Core astronomy features adapted from [stardroid (Sky Map)](https://github.com/sky-map-team/stardroid) - Apache 2.0 License
+Apache 2.0 License - See [LICENSE](LICENSE) for details.

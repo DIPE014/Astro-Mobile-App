@@ -3,37 +3,72 @@
 ## Overview
 
 ```
-┌─────────────────────────────────────┐
-│           UI Layer                  │  ← Frontend (Java + XML)
-│   Activities, Fragments, Views      │
-├─────────────────────────────────────┤
-│         Common Layer                │  ← Shared models
-│      StarData, Pointing, etc.       │
-├─────────────────────────────────────┤
-│          Core Layer                 │  ← Backend (Java)
-│  AstronomerModel, Sensors, Render   │
-├─────────────────────────────────────┤
-│        Data & ML Layer              │  ← Backend (Java)
-│   StarRepository, ConstellationML   │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────┐
+│              UI Layer                   │
+│   SkyMapActivity, SearchActivity, etc.  │
+├─────────────────────────────────────────┤
+│            Core Layer                   │
+│  AstronomerModel, Sensors, Renderer     │
+├─────────────────────────────────────────┤
+│            Data Layer                   │
+│   StarRepository, ConstellationRepo     │
+└─────────────────────────────────────────┘
 ```
-
-## Packages
-
-| Package | Owner | Purpose |
-|---------|-------|---------|
-| `ui/` | Frontend | Activities, Fragments, XML layouts |
-| `common/` | Both | Shared data models and interfaces |
-| `core/control/` | Backend | Astronomy calculations, sensors |
-| `core/math/` | Backend | Vector math (from stardroid) |
-| `core/renderer/` | Backend | OpenGL sky rendering |
-| `data/` | Backend | Star data loading |
-| `ml/` | Backend | Constellation recognition |
 
 ## Data Flow
 
-1. **Sensors** → SensorController → device orientation
-2. **GPS** → LocationController → user position
-3. **AstronomerModel** combines both → sky pointing direction
-4. **StarRepository** loads star data → visible stars list
-5. **UI** renders stars on camera preview
+```
+┌──────────┐     ┌───────────────────┐     ┌──────────────┐
+│  Sensors │────▶│  AstronomerModel  │────▶│ SkyCanvasView│
+└──────────┘     └───────────────────┘     └──────────────┘
+      │                   │                       │
+      ▼                   ▼                       ▼
+ Rotation            Celestial              Rendered
+  Vector             Pointing                 Sky
+                         │
+      ┌──────────────────┼──────────────────┐
+      ▼                  ▼                  ▼
+┌──────────┐      ┌───────────┐      ┌──────────┐
+│   GPS    │      │ Star Data │      │  Planets │
+└──────────┘      └───────────┘      └──────────┘
+```
+
+## Key Components
+
+### AstronomerModel
+Transforms device sensor data into celestial coordinates using matrix math.
+
+**Input**: Rotation vector from sensors, GPS location, current time
+**Output**: Celestial pointing (RA/Dec of view center)
+
+### SkyCanvasView
+Renders the sky view using Android Canvas.
+
+**Input**: Star data, planet positions, view orientation
+**Output**: Rendered sky with stars, planets, constellations
+
+### StarRepository
+Loads star data from protobuf binary files.
+
+**Source**: `stars.binary` (Hipparcos catalog)
+**Output**: List of StarData objects
+
+### PlanetsLayer
+Calculates planet positions using orbital mechanics.
+
+**Input**: Current time (or time-travel time)
+**Output**: RA/Dec positions for each planet
+
+## Coordinate Systems
+
+| System | Description |
+|--------|-------------|
+| RA/Dec | Celestial coordinates (fixed to stars) |
+| Alt/Az | Local coordinates (relative to horizon) |
+| Screen | Pixel coordinates for rendering |
+
+## Threading
+
+- **UI Thread**: Touch events, view updates
+- **Sensor Thread**: Orientation updates (60Hz)
+- **Background**: Star data loading, search indexing
