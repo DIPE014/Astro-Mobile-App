@@ -42,6 +42,7 @@ import com.astro.app.core.math.LatLong;
 import com.astro.app.core.renderer.SkyCanvasView;
 import com.astro.app.core.renderer.SkyGLSurfaceView;
 import com.astro.app.core.renderer.SkyRenderer;
+import com.astro.app.core.math.Vector3;
 import com.astro.app.data.model.StarData;
 import com.astro.app.data.repository.ConstellationRepository;
 import com.astro.app.data.repository.StarRepository;
@@ -154,6 +155,14 @@ public class SkyMapActivity extends AppCompatActivity {
     private String searchTargetName;
     private float searchTargetRa;
     private float searchTargetDec;
+    private boolean searchTargetBelowHorizonNotified = false;
+    private boolean searchTargetInViewNotified = false;
+    private float lastViewAzimuth = 0f;
+    private float lastViewAltitude = 45f;
+    @Nullable
+    private Vector3 lastViewDirection = null;
+    @Nullable
+    private Vector3 lastViewUp = null;
 
     // Reticle selection
     private ExtendedFloatingActionButton fabSelect;
@@ -273,6 +282,8 @@ public class SkyMapActivity extends AppCompatActivity {
                 com.astro.app.common.model.Pointing pointing = astronomerModel.getPointing();
                 float viewRa = pointing.getRightAscension();
                 float viewDec = pointing.getDeclination();
+                lastViewDirection = pointing.getLineOfSight();
+                lastViewUp = pointing.getPerpendicular();
 
                 // Convert celestial coordinates (RA/Dec) to local coordinates (Alt/Az)
                 // This requires observer's location and Local Sidereal Time
@@ -287,6 +298,9 @@ public class SkyMapActivity extends AppCompatActivity {
                     if (skyCanvasView != null) {
                         skyCanvasView.setOrientation(finalAzimuth, finalAltitude);
                     }
+
+                    lastViewAzimuth = finalAzimuth;
+                    lastViewAltitude = finalAltitude;
 
                     // Update search arrow if active
                     if (searchArrowView != null && searchArrowView.isActive()) {
@@ -1413,6 +1427,12 @@ public class SkyMapActivity extends AppCompatActivity {
      */
     private void openSearch() {
         Intent intent = new Intent(this, SearchActivity.class);
+        intent.putExtra(SearchActivity.EXTRA_OBSERVER_LAT, (double) currentLatitude);
+        intent.putExtra(SearchActivity.EXTRA_OBSERVER_LON, (double) currentLongitude);
+        long observationTime = (timeTravelClock != null)
+                ? timeTravelClock.getCurrentTimeMillis()
+                : System.currentTimeMillis();
+        intent.putExtra(SearchActivity.EXTRA_OBSERVATION_TIME, observationTime);
         searchActivityLauncher.launch(intent);
     }
 
@@ -1426,6 +1446,8 @@ public class SkyMapActivity extends AppCompatActivity {
         searchTargetRa = data.getFloatExtra(SearchActivity.EXTRA_RESULT_RA, 0f);
         searchTargetDec = data.getFloatExtra(SearchActivity.EXTRA_RESULT_DEC, 0f);
         String resultType = data.getStringExtra(SearchActivity.EXTRA_RESULT_TYPE);
+        searchTargetBelowHorizonNotified = false;
+        searchTargetInViewNotified = false;
 
         // For planets, recalculate position for current time (or time travel time)
         // The search index stores positions at index build time which may be stale
@@ -1434,6 +1456,24 @@ public class SkyMapActivity extends AppCompatActivity {
         }
 
         Log.d(TAG, "Search target: " + searchTargetName + " at RA=" + searchTargetRa + ", Dec=" + searchTargetDec);
+
+        // Highlight selected planet in the sky view (if applicable)
+        if (skyCanvasView != null) {
+            if (resultType != null && (resultType.equals("PLANET") || resultType.equals("SUN") || resultType.equals("MOON"))) {
+                SolarSystemBody body = findSolarSystemBody(searchTargetName);
+                if (body != null) {
+                    int color = getPlanetColor(body);
+                    float size = getPlanetSize(body);
+                    skyCanvasView.setPlanet(body.name(), searchTargetRa, searchTargetDec, color, size);
+                    skyCanvasView.setHighlightedPlanet(body.name());
+                } else {
+                    skyCanvasView.setPlanet(searchTargetName, searchTargetRa, searchTargetDec, 0xFFFF4444, 10f);
+                    skyCanvasView.setHighlightedPlanet(searchTargetName);
+                }
+            } else {
+                skyCanvasView.setHighlightedPlanet(null);
+            }
+        }
 
         // Show search arrow to guide user to target
         // NOTE: Don't immediately set orientation - let the arrow guide the user
@@ -1445,7 +1485,6 @@ public class SkyMapActivity extends AppCompatActivity {
             // Auto-dismiss when target is centered
             searchArrowView.setOnTargetCenteredListener(() -> {
                 Toast.makeText(this, getString(R.string.search_target_found, searchTargetName), Toast.LENGTH_SHORT).show();
-                searchArrowView.postDelayed(this::clearSearchTarget, 2000);
             });
 
             // Update arrow pointing based on current view direction
@@ -1463,28 +1502,74 @@ public class SkyMapActivity extends AppCompatActivity {
             return;
         }
 
-        // Get current view direction from skyCanvasView or sensor controller
+        // Use AstronomerModel pointing when available (most direct sensor-derived RA/Dec)
         float viewRa = 0f;
         float viewDec = 45f;
 
-        if (skyCanvasView != null) {
-            // Assuming skyCanvasView has getOrientation method or similar
-            viewRa = skyCanvasView.getViewRa();
-            viewDec = skyCanvasView.getViewDec();
+        if (astronomerModel != null) {
+            com.astro.app.common.model.Pointing pointing = astronomerModel.getPointing();
+            viewRa = pointing.getRightAscension();
+            viewDec = pointing.getDeclination();
+            if (searchArrowView != null) {
+                searchArrowView.updatePointing(pointing.getLineOfSight(), pointing.getPerpendicular());
+            }
+            Log.d(TAG, "SEARCH_ARROW: using AstronomerModel vectors");
+        } else if (lastViewDirection != null && lastViewUp != null) {
+            RaDec raDec = RaDec.fromGeocentricCoords(lastViewDirection);
+            viewRa = raDec.getRa();
+            viewDec = raDec.getDec();
+            if (searchArrowView != null) {
+                searchArrowView.updatePointing(lastViewDirection, lastViewUp);
+            }
+            Log.d(TAG, "SEARCH_ARROW: using cached sensor vectors");
+        } else if (skyCanvasView != null) {
+            skyCanvasView.setTime(System.currentTimeMillis());
+            float viewAz = lastViewAzimuth;
+            float viewAlt = lastViewAltitude;
+            double[] raDec = altAzToRaDecForView(viewAlt, viewAz);
+            viewRa = (float) raDec[0];
+            viewDec = (float) raDec[1];
+            Log.d(TAG, "SEARCH_ARROW: astronomerModel null, using alt/az fallback");
         }
 
-        searchArrowView.updatePointing(viewRa, viewDec);
-
-        // Check if we're close to the target (within 5 degrees)
-        float dRa = Math.abs(searchTargetRa - viewRa);
-        float dDec = Math.abs(searchTargetDec - viewDec);
-        if (dRa > 180) dRa = 360 - dRa;  // Handle wraparound
-
-        double distance = Math.sqrt(dRa * dRa + dDec * dDec);
-        if (distance < 5.0) {
-            // Close to target, hide arrow after a delay
-            searchArrowView.postDelayed(this::clearSearchTarget, 3000);
+        if (searchArrowView != null && astronomerModel == null) {
+            searchArrowView.updatePointing(viewRa, viewDec);
         }
+
+        // Log target visibility and notify if below horizon
+        float targetAlt = 0f;
+        float targetAz = 0f;
+        double[] targetAltAz = raDecToAltAz(searchTargetRa, searchTargetDec);
+        if (targetAltAz != null) {
+            targetAlt = (float) targetAltAz[0];
+            targetAz = (float) targetAltAz[1];
+        }
+        Log.d(TAG, "SEARCH_VISIBILITY: target=" + searchTargetName + " alt=" + targetAlt +
+                " az=" + targetAz + " viewRa=" + viewRa + " viewDec=" + viewDec);
+        if (targetAlt < 0 && !searchTargetBelowHorizonNotified) {
+            searchTargetBelowHorizonNotified = true;
+            Toast.makeText(this, getString(R.string.search_target_below_horizon, searchTargetName),
+                    Toast.LENGTH_LONG).show();
+            Log.d(TAG, "SEARCH_VISIBILITY: target below horizon");
+        }
+
+        // Notify when target is within the camera field of view
+        float fov = skyCanvasView != null ? skyCanvasView.getFieldOfView() : 60f;
+        double angularDistance = calculateAngularDistance(viewRa, viewDec, searchTargetRa, searchTargetDec);
+        boolean targetInView = angularDistance <= (fov / 2f);
+        if (targetInView && !searchTargetInViewNotified) {
+            searchTargetInViewNotified = true;
+            Toast.makeText(this, getString(R.string.search_target_in_view, searchTargetName),
+                    Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "SEARCH_VISIBILITY: target in view (distance=" + angularDistance + "°)");
+        }
+
+        // Hide only the arrow (keep overlay/search active) when target is in view.
+        if (searchArrowView != null) {
+            searchArrowView.setArrowVisible(!targetInView);
+        }
+
+        // Keep search active until user dismisses it.
     }
 
     /**
@@ -1496,6 +1581,98 @@ public class SkyMapActivity extends AppCompatActivity {
             searchArrowView.setVisibility(View.GONE);
         }
         searchTargetName = null;
+        searchTargetBelowHorizonNotified = false;
+        searchTargetInViewNotified = false;
+        if (skyCanvasView != null) {
+            skyCanvasView.setHighlightedPlanet(null);
+        }
+    }
+
+    /**
+     * Calculates angular distance between two RA/Dec points in degrees.
+     */
+    private double calculateAngularDistance(float ra1, float dec1, float ra2, float dec2) {
+        double ra1Rad = Math.toRadians(ra1);
+        double dec1Rad = Math.toRadians(dec1);
+        double ra2Rad = Math.toRadians(ra2);
+        double dec2Rad = Math.toRadians(dec2);
+
+        double dRa = ra2Rad - ra1Rad;
+        double dDec = dec2Rad - dec1Rad;
+
+        double a = Math.sin(dDec / 2) * Math.sin(dDec / 2) +
+                Math.cos(dec1Rad) * Math.cos(dec2Rad) *
+                        Math.sin(dRa / 2) * Math.sin(dRa / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return Math.toDegrees(c);
+    }
+
+    /**
+     * Converts Altitude/Azimuth to Right Ascension/Declination using current
+     * observer location and time.
+     *
+     * @param altitude Altitude in degrees (0 = horizon, 90 = zenith)
+     * @param azimuth  Azimuth in degrees (0 = North, 90 = East)
+     * @return double array [RA, Dec] in degrees
+     */
+    private double[] altAzToRaDecForView(double altitude, double azimuth) {
+        double lst = calculateLocalSiderealTimeForView();
+
+        double latRad = Math.toRadians(currentLatitude);
+        double altRad = Math.toRadians(altitude);
+        double azRad = Math.toRadians(azimuth);
+
+        double sinDec = Math.sin(altRad) * Math.sin(latRad) +
+                Math.cos(altRad) * Math.cos(latRad) * Math.cos(azRad);
+        double dec = Math.toDegrees(Math.asin(sinDec));
+
+        double cosHa = (Math.sin(altRad) - Math.sin(latRad) * Math.sin(Math.toRadians(dec))) /
+                (Math.cos(latRad) * Math.cos(Math.toRadians(dec)));
+        cosHa = Math.max(-1, Math.min(1, cosHa));
+
+        double ha = Math.toDegrees(Math.acos(cosHa));
+        if (Math.sin(azRad) > 0) {
+            ha = 360 - ha;
+        }
+
+        double ra = lst - ha;
+        while (ra < 0) ra += 360;
+        while (ra >= 360) ra -= 360;
+
+        return new double[]{ra, dec};
+    }
+
+    /**
+     * Converts Right Ascension/Declination to Altitude/Azimuth for the observer.
+     *
+     * @param ra  Right Ascension in degrees (0-360)
+     * @param dec Declination in degrees (-90 to +90)
+     * @return double array [altitude, azimuth] in degrees
+     */
+    private double[] raDecToAltAz(float ra, float dec) {
+        double lst = calculateLocalSiderealTimeForView();
+
+        double latRad = Math.toRadians(currentLatitude);
+        double decRad = Math.toRadians(dec);
+
+        double ha = lst - ra;
+        if (ha < 0) ha += 360;
+        double haRad = Math.toRadians(ha);
+
+        double sinAlt = Math.sin(decRad) * Math.sin(latRad) +
+                Math.cos(decRad) * Math.cos(latRad) * Math.cos(haRad);
+        double altitude = Math.toDegrees(Math.asin(sinAlt));
+
+        double cosA = (Math.sin(decRad) - Math.sin(Math.toRadians(altitude)) * Math.sin(latRad)) /
+                (Math.cos(Math.toRadians(altitude)) * Math.cos(latRad));
+        cosA = Math.max(-1, Math.min(1, cosA));
+        double azimuth = Math.toDegrees(Math.acos(cosA));
+
+        if (Math.sin(haRad) > 0) {
+            azimuth = 360 - azimuth;
+        }
+
+        return new double[]{altitude, azimuth};
     }
 
     // ===================================================================
@@ -1779,6 +1956,19 @@ public class SkyMapActivity extends AppCompatActivity {
                 break;
             }
         }
+    }
+
+    @Nullable
+    private SolarSystemBody findSolarSystemBody(@Nullable String name) {
+        if (name == null) {
+            return null;
+        }
+        for (SolarSystemBody body : SolarSystemBody.values()) {
+            if (body.name().equalsIgnoreCase(name)) {
+                return body;
+            }
+        }
+        return null;
     }
 
     /**

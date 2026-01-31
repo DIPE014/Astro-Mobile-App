@@ -10,8 +10,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.astro.app.R;
+import com.astro.app.core.math.TimeUtilsKt;
 import com.astro.app.search.SearchResult;
 
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +34,10 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
 
     private final List<SearchResult> results = new ArrayList<>();
     private final OnResultClickListener listener;
+    private boolean hasObserver = false;
+    private double observerLat = 0.0;
+    private double observerLon = 0.0;
+    private long observationTimeMillis = System.currentTimeMillis();
 
     /**
      * Creates an adapter with the given click listener.
@@ -50,6 +56,17 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
     public void setResults(@NonNull List<SearchResult> newResults) {
         results.clear();
         results.addAll(newResults);
+        notifyDataSetChanged();
+    }
+
+    /**
+     * Sets observer data used for visibility hints.
+     */
+    public void setObserver(double latitude, double longitude, long timeMillis) {
+        this.observerLat = latitude;
+        this.observerLon = longitude;
+        this.observationTimeMillis = timeMillis;
+        this.hasObserver = true;
         notifyDataSetChanged();
     }
 
@@ -75,11 +92,12 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
     /**
      * ViewHolder for search result items.
      */
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
         private final ImageView ivIcon;
         private final TextView tvName;
         private final TextView tvType;
         private final TextView tvCoords;
+        private final TextView tvVisibility;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -87,6 +105,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
             tvName = itemView.findViewById(R.id.tvResultName);
             tvType = itemView.findViewById(R.id.tvResultType);
             tvCoords = itemView.findViewById(R.id.tvResultCoords);
+            tvVisibility = itemView.findViewById(R.id.tvResultVisibility);
         }
 
         void bind(@NonNull SearchResult result, @NonNull OnResultClickListener listener) {
@@ -96,6 +115,20 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
             // Format coordinates
             String coords = formatCoords(result.getRa(), result.getDec());
             tvCoords.setText(coords);
+
+            if (hasObserver) {
+                double alt = getAltitude(result.getRa(), result.getDec());
+                if (alt < 0) {
+                    tvVisibility.setText(R.string.search_visibility_below_horizon);
+                    tvVisibility.setTextColor(itemView.getContext().getColor(R.color.gps_searching));
+                } else {
+                    tvVisibility.setText(R.string.search_visibility_visible_now);
+                    tvVisibility.setTextColor(itemView.getContext().getColor(R.color.text_tertiary));
+                }
+                tvVisibility.setVisibility(View.VISIBLE);
+            } else {
+                tvVisibility.setVisibility(View.GONE);
+            }
 
             // Set icon based on type
             int iconRes = getIconForType(result.getObjectType());
@@ -124,6 +157,21 @@ public class SearchResultAdapter extends RecyclerView.Adapter<SearchResultAdapte
             int decMin = (int) (Math.abs(dec - decDeg) * 60);
 
             return String.format("%dh %dm, %s%d° %d'", hours, minutes, sign, decDeg, decMin);
+        }
+
+        private double getAltitude(float ra, float dec) {
+            double lst = TimeUtilsKt.meanSiderealTime(new Date(observationTimeMillis), (float) observerLon);
+
+            double latRad = Math.toRadians(observerLat);
+            double decRad = Math.toRadians(dec);
+
+            double ha = lst - ra;
+            if (ha < 0) ha += 360;
+            double haRad = Math.toRadians(ha);
+
+            double sinAlt = Math.sin(decRad) * Math.sin(latRad) +
+                    Math.cos(decRad) * Math.cos(latRad) * Math.cos(haRad);
+            return Math.toDegrees(Math.asin(sinAlt));
         }
 
         /**

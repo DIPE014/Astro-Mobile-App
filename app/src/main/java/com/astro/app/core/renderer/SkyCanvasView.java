@@ -64,6 +64,8 @@ public class SkyCanvasView extends View {
     private boolean showPlanets = false;
     private Paint planetPaint;
     private Paint planetLabelPaint;
+    private Paint highlightRingPaint;
+    private Paint highlightGlowPaint;
 
     // Constellation data
     private List<ConstellationData> constellations = new CopyOnWriteArrayList<>();
@@ -138,6 +140,15 @@ public class SkyCanvasView extends View {
         planetLabelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         planetLabelPaint.setTextSize(28f);
         planetLabelPaint.setColor(Color.rgb(255, 183, 77)); // Warm orange for planet labels
+
+        highlightRingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        highlightRingPaint.setStyle(Paint.Style.STROKE);
+        highlightRingPaint.setStrokeWidth(4f);
+        highlightRingPaint.setColor(HIGHLIGHT_COLOR);
+
+        highlightGlowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        highlightGlowPaint.setStyle(Paint.Style.FILL);
+        highlightGlowPaint.setColor(HIGHLIGHT_COLOR);
 
         constellationLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         constellationLinePaint.setStyle(Paint.Style.STROKE);
@@ -396,6 +407,15 @@ public class SkyCanvasView extends View {
     }
 
     /**
+     * Gets the current field of view in degrees.
+     *
+     * @return Field of view in degrees
+     */
+    public float getFieldOfView() {
+        return fieldOfView;
+    }
+
+    /**
      * Sets the time for sky calculations (for time travel feature).
      *
      * @param timeMillis time in milliseconds since epoch
@@ -651,6 +671,8 @@ public class SkyCanvasView extends View {
             // Draw planets on top of stars
             if (showPlanets) {
                 drawPlanets(canvas, width, height);
+            } else if (highlightedPlanetName != null) {
+                drawHighlightedPlanetOverlay(canvas, width, height);
             }
         } else {
             // Draw constellation lines (from complex projection mode)
@@ -927,11 +949,6 @@ public class SkyCanvasView extends View {
             double planetAlt = altAz[0];
             double planetAz = altAz[1];
 
-            // Skip planets below horizon
-            if (planetAlt < -5) {
-                continue;
-            }
-
             // Use proper spherical projection
             float[] screenPos = projectToScreen(planetAlt, planetAz,
                     altitudeOffset, azimuthOffset,
@@ -956,13 +973,28 @@ public class SkyCanvasView extends View {
             // Draw planet point (larger than stars)
             if (isHighlighted) {
                 planetPaint.setColor(HIGHLIGHT_COLOR);  // Red highlight
-                size = size * 1.5f;  // Make highlighted planet larger
+                size = size * 2.0f;  // Make highlighted planet larger
             } else if (nightMode) {
                 planetPaint.setColor(Color.rgb(255, 100, 100)); // Red tint for night mode
             } else {
                 planetPaint.setColor(color);
             }
             canvas.drawCircle(x, y, size, planetPaint);
+
+            if (isHighlighted) {
+                float pulse = (float) (0.75f + 0.25f *
+                        Math.sin((System.currentTimeMillis() % 1200L) / 1200.0 * Math.PI * 2.0));
+                float ringRadius = size * (2.2f * pulse);
+                int glowAlpha = (int) (80 + 60 * pulse);
+
+                highlightGlowPaint.setAlpha(glowAlpha);
+                canvas.drawCircle(x, y, ringRadius, highlightGlowPaint);
+
+                highlightRingPaint.setAlpha(200);
+                canvas.drawCircle(x, y, ringRadius, highlightRingPaint);
+
+                postInvalidateOnAnimation();
+            }
 
             // Draw planet name label
             if (nightMode) {
@@ -978,6 +1010,73 @@ public class SkyCanvasView extends View {
         if (planetsDrawn > 0) {
             Log.d(TAG, "PLANETS: Drew " + planetsDrawn + " planets on screen");
         }
+    }
+
+    /**
+     * Draws only the highlighted planet when planets are hidden.
+     */
+    private void drawHighlightedPlanetOverlay(Canvas canvas, int width, int height) {
+        if (highlightedPlanetName == null) {
+            return;
+        }
+
+        float[] data = planetData.get(highlightedPlanetName);
+        if (data == null) {
+            return;
+        }
+
+        double lst = calculateLocalSiderealTime();
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+        float pixelsPerDegree = Math.min(width, height) / fieldOfView;
+
+        float ra = data[0];
+        float dec = data[1];
+        int color = Float.floatToIntBits(data[2]);
+        float size = data[3];
+
+        double[] altAz = raDecToAltAz(ra, dec, lst);
+        double planetAlt = altAz[0];
+        double planetAz = altAz[1];
+
+        float[] screenPos = projectToScreen(planetAlt, planetAz,
+                altitudeOffset, azimuthOffset,
+                centerX, centerY, pixelsPerDegree);
+
+        if (screenPos[2] < 0.5f) {
+            return;
+        }
+
+        float x = screenPos[0];
+        float y = screenPos[1];
+
+        if (x < -50 || x > width + 50 || y < -50 || y > height + 50) {
+            return;
+        }
+
+        planetPaint.setColor(HIGHLIGHT_COLOR);
+        float drawSize = size * 2.0f;
+        canvas.drawCircle(x, y, drawSize, planetPaint);
+
+        float pulse = (float) (0.75f + 0.25f *
+                Math.sin((System.currentTimeMillis() % 1200L) / 1200.0 * Math.PI * 2.0));
+        float ringRadius = drawSize * (2.2f * pulse);
+        int glowAlpha = (int) (80 + 60 * pulse);
+
+        highlightGlowPaint.setAlpha(glowAlpha);
+        canvas.drawCircle(x, y, ringRadius, highlightGlowPaint);
+
+        highlightRingPaint.setAlpha(200);
+        canvas.drawCircle(x, y, ringRadius, highlightRingPaint);
+
+        if (nightMode) {
+            planetLabelPaint.setColor(Color.rgb(255, 120, 120));
+        } else {
+            planetLabelPaint.setColor(Color.rgb(255, 183, 77));
+        }
+        canvas.drawText(highlightedPlanetName, x + drawSize + 6, y + 6, planetLabelPaint);
+
+        postInvalidateOnAnimation();
     }
 
     /**

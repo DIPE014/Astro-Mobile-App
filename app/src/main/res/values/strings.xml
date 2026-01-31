@@ -97,6 +97,10 @@
     <string name="clear_history">Clear History</string>
     <string name="search_navigating_to">Navigating to %1$s</string>
     <string name="search_target_found">Found %1$s!</string>
+    <string name="search_target_below_horizon">%1$s is below the horizon right now.</string>
+    <string name="search_target_in_view">%1$s is in view</string>
+    <string name="search_visibility_below_horizon">Below horizon</string>
+    <string name="search_visibility_visible_now">Visible now</string>
 
     <!-- Settings -->
     <string name="settings_display">Display</string>
