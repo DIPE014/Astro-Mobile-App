@@ -627,7 +627,8 @@ public class SearchArrowView extends View {
                 return true;
             }
         }
-        return super.onTouchEvent(event);
+        // Let touches pass through to underlying views.
+        return false;
     }
 
     @Override

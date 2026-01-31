@@ -421,6 +421,31 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:rippleColor="@color/ripple_primary" />
 
+    <!-- Show Detail Button (appears for search targets that have education content) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSearchDetails"
+        style="@style/Widget.AstroApp.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/margin_small"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:minHeight="@dimen/touch_target_min"
+        android:paddingHorizontal="@dimen/padding_medium"
+        android:paddingVertical="@dimen/padding_small"
+        android:backgroundTint="@color/md_theme_dark_primaryContainer"
+        android:text="@string/show_detail"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:icon="@android:drawable/ic_menu_info_details"
+        app:iconPadding="@dimen/padding_extra_small"
+        app:iconSize="20dp"
+        app:iconTint="@color/md_theme_dark_onPrimaryContainer"
+        android:textColor="@color/md_theme_dark_onPrimaryContainer"
+        app:layout_constraintBottom_toTopOf="@id/bottomControls"
+        app:layout_constraintEnd_toStartOf="@id/fabSearch"
+        tools:visibility="visible" />
+
     <!-- Select FAB (appears when objects are in reticle) -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabSelect"

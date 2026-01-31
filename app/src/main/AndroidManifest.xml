@@ -53,6 +53,11 @@
             android:theme="@style/Theme.AstroApp"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.education.EducationDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AstroApp" />
+
     </application>
 
 </manifest>

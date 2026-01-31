@@ -1,0 +1,122 @@
+[
+  {
+    "id": "mercury",
+    "name": "Mercury",
+    "summary": "Mercury is the closest planet to the Sun and the smallest of the eight planets.",
+    "facts": [
+      "A Mercury day is very long: one sunrise to the next lasts about 176 Earth days.",
+      "It has almost no atmosphere, so temperatures swing from extremely hot to extremely cold.",
+      "Its surface is covered with craters, similar to the Moon."
+    ],
+    "howToSpot": "Look very low near the horizon shortly after sunset or before sunrise. It is never far from the Sun in the sky.",
+    "funFact": "Because it stays close to the Sun, Mercury is often hard to observe for long."
+  },
+  {
+    "id": "venus",
+    "name": "Venus",
+    "summary": "Venus is a bright planet often called the Morning Star or Evening Star.",
+    "facts": [
+      "Venus has thick clouds and a very strong greenhouse effect, making it the hottest planet.",
+      "Its rotation is very slow and opposite the direction of most planets (retrograde).",
+      "It is similar in size to Earth, but its surface conditions are extreme."
+    ],
+    "howToSpot": "Find the brightest 'star' near the Sun after sunset or before sunrise. Venus is usually the brightest object in the sky after the Moon.",
+    "funFact": "On Venus, a day is longer than a year."
+  },
+  {
+    "id": "earth",
+    "name": "Earth",
+    "summary": "Earth is our home planet and the only one known to have liquid water on the surface and life.",
+    "facts": [
+      "About 71% of Earth's surface is covered by oceans.",
+      "Earth's atmosphere protects life and helps keep temperatures stable.",
+      "Earth has one natural satellite: the Moon."
+    ],
+    "howToSpot": "In a sky app, Earth is usually not shown in the sky view because you are standing on it.",
+    "funFact": "Earth's magnetic field helps shield us from charged particles from the Sun."
+  },
+  {
+    "id": "mars",
+    "name": "Mars",
+    "summary": "Mars is often called the Red Planet because of iron rich dust on its surface.",
+    "facts": [
+      "Mars has two small moons: Phobos and Deimos.",
+      "A day on Mars is close to an Earth day: about 24.6 hours.",
+      "Mars has the largest volcano in the solar system: Olympus Mons."
+    ],
+    "howToSpot": "Mars often looks like a bright reddish 'star'. It can be very bright during good oppositions.",
+    "funFact": "Mars is a key target for robotic exploration and future human missions."
+  },
+  {
+    "id": "jupiter",
+    "name": "Jupiter",
+    "summary": "Jupiter is the largest planet and a gas giant with many moons.",
+    "facts": [
+      "Jupiter has a famous storm called the Great Red Spot.",
+      "It rotates very fast, taking about 10 hours to spin once.",
+      "You can often see its four largest moons (Galilean moons) with binoculars."
+    ],
+    "howToSpot": "Jupiter looks like a very bright, steady light. If you zoom in, you may notice small points (moons) lined up beside it.",
+    "funFact": "Jupiter's strong gravity helps shape the paths of many objects in the solar system."
+  },
+  {
+    "id": "saturn",
+    "name": "Saturn",
+    "summary": "Saturn is a gas giant famous for its bright ring system.",
+    "facts": [
+      "Saturn's rings are made of countless pieces of ice and rock.",
+      "It is less dense than water, meaning it would float in a giant ocean (as a thought experiment).",
+      "Saturn has many moons; Titan is the largest and has a thick atmosphere."
+    ],
+    "howToSpot": "Saturn looks like a bright, steady star. Through a small telescope, its rings are usually visible.",
+    "funFact": "Saturn's rings are very wide but extremely thin compared to their width."
+  },
+  {
+    "id": "uranus",
+    "name": "Uranus",
+    "summary": "Uranus is an ice giant and appears as a small blue green disk through larger telescopes.",
+    "facts": [
+      "Uranus rotates on its side, with an extreme tilt of about 98 degrees.",
+      "It has faint rings and many moons.",
+      "Its blue green color comes from methane in the atmosphere."
+    ],
+    "howToSpot": "Hard to see with the naked eye. Best found by searching in the app and then using binoculars or a telescope at a dark site.",
+    "funFact": "Because it is tilted, Uranus has very unusual seasons."
+  },
+  {
+    "id": "neptune",
+    "name": "Neptune",
+    "summary": "Neptune is the farthest major planet from the Sun and is an ice giant with strong winds.",
+    "facts": [
+      "Neptune has some of the fastest winds in the solar system.",
+      "It appears deep blue due to methane and atmospheric effects.",
+      "It has a large moon named Triton."
+    ],
+    "howToSpot": "Not visible to most people without a telescope. Use the app search and a telescope to locate it.",
+    "funFact": "Neptune was the first planet found using math predictions before it was widely observed."
+  },
+  {
+    "id": "sun",
+    "name": "Sun",
+    "summary": "The Sun is a star at the center of our solar system and provides the light and heat that support life on Earth.",
+    "facts": [
+      "The Sun is a ball of hot plasma where nuclear fusion turns hydrogen into helium.",
+      "It contains most of the solar system's mass.",
+      "Sunlight takes about 8 minutes to reach Earth."
+    ],
+    "howToSpot": "Never look directly at the Sun without proper eye protection. Use safe solar filters for observation.",
+    "funFact": "The Sun's magnetic activity can create sunspots and solar flares."
+  },
+  {
+    "id": "moon",
+    "name": "Moon",
+    "summary": "The Moon is Earth's natural satellite and changes appearance through phases as it orbits Earth.",
+    "facts": [
+      "The Moon's phases are caused by how much of its sunlit side we can see from Earth.",
+      "The same side of the Moon generally faces Earth (tidal locking).",
+      "The Moon's gravity causes most ocean tides on Earth."
+    ],
+    "howToSpot": "The Moon is easy to see and is a great object for binoculars or a small telescope, especially near first quarter when shadows show craters clearly.",
+    "funFact": "The Moon is moving away from Earth by a few centimeters each year."
+  }
+]
