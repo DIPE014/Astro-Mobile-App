@@ -7,11 +7,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageCaptureException;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
+
+import java.io.File;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -68,6 +72,9 @@ public class CameraManager {
     private Preview preview;
 
     @Nullable
+    private ImageCapture imageCapture;
+
+    @Nullable
     private PreviewView previewView;
 
     @Nullable
@@ -90,6 +97,25 @@ public class CameraManager {
          * @param message Error description
          */
         void onCameraError(String message);
+    }
+
+    /**
+     * Callback interface for image capture events.
+     */
+    public interface ImageCaptureCallback {
+        /**
+         * Called when an image has been successfully captured.
+         *
+         * @param imageFile The file containing the captured image
+         */
+        void onImageCaptured(File imageFile);
+
+        /**
+         * Called when an error occurs during image capture.
+         *
+         * @param message Error description
+         */
+        void onError(String message);
     }
 
     /**
@@ -174,6 +200,11 @@ public class CameraManager {
             // Set up the preview surface provider
             preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
+            // Build the image capture use case
+            imageCapture = new ImageCapture.Builder()
+                    .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+                    .build();
+
             // Select back camera
             CameraSelector cameraSelector = new CameraSelector.Builder()
                     .requireLensFacing(CameraSelector.LENS_FACING_BACK)
@@ -183,7 +214,8 @@ public class CameraManager {
             camera = cameraProvider.bindToLifecycle(
                     lifecycleOwner,
                     cameraSelector,
-                    preview
+                    preview,
+                    imageCapture
             );
 
             isCameraRunning = true;
@@ -217,6 +249,7 @@ public class CameraManager {
         isCameraRunning = false;
         camera = null;
         preview = null;
+        imageCapture = null;
     }
 
     /**
@@ -226,6 +259,44 @@ public class CameraManager {
      */
     public boolean isCameraRunning() {
         return isCameraRunning;
+    }
+
+    /**
+     * Captures a still image and saves it to the specified file.
+     *
+     * <p>The camera must be running before calling this method. The callback
+     * is invoked on the main thread when the image is saved or if an error occurs.</p>
+     *
+     * @param outputFile The file where the captured image will be saved
+     * @param callback   Callback for capture events
+     */
+    public void captureImage(@NonNull File outputFile, @NonNull ImageCaptureCallback callback) {
+        if (imageCapture == null) {
+            Log.e(TAG, "ImageCapture not initialized. Call startCamera() first.");
+            callback.onError("Camera not started");
+            return;
+        }
+
+        ImageCapture.OutputFileOptions outputOptions =
+                new ImageCapture.OutputFileOptions.Builder(outputFile).build();
+
+        imageCapture.takePicture(
+                outputOptions,
+                ContextCompat.getMainExecutor(context),
+                new ImageCapture.OnImageSavedCallback() {
+                    @Override
+                    public void onImageSaved(@NonNull ImageCapture.OutputFileResults results) {
+                        Log.d(TAG, "Image captured successfully: " + outputFile.getAbsolutePath());
+                        callback.onImageCaptured(outputFile);
+                    }
+
+                    @Override
+                    public void onError(@NonNull ImageCaptureException exception) {
+                        Log.e(TAG, "Image capture failed", exception);
+                        callback.onError("Image capture failed: " + exception.getMessage());
+                    }
+                }
+        );
     }
 
     /**
