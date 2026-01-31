@@ -90,4 +90,17 @@ public interface StarRepository {
      */
     @NonNull
     List<StarData> getStarsInConstellation(@NonNull String constellationId);
+
+    /**
+     * Finds a star by its Hipparcos catalog ID.
+     *
+     * <p>The Hipparcos catalog contains about 118,000 stars with precise
+     * astrometric data. This method is useful for plate solving results
+     * where stars are identified by their Hipparcos ID.</p>
+     *
+     * @param hipparcosId The Hipparcos catalog number
+     * @return The star with the given Hipparcos ID, or null if not found
+     */
+    @Nullable
+    StarData getStarByHipparcosId(int hipparcosId);
 }

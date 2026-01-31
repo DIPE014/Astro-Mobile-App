@@ -38,6 +38,9 @@ public class StarData extends CelestialObject {
     /** Represents unknown distance */
     public static final float DISTANCE_UNKNOWN = -1.0f;
 
+    /** Represents unknown Hipparcos ID */
+    public static final int HIPPARCOS_UNKNOWN = -1;
+
     /** Default rendering size for stars */
     private static final int DEFAULT_SIZE = 3;
 
@@ -58,6 +61,9 @@ public class StarData extends CelestialObject {
     /** Size for rendering (in pixels at default zoom) */
     private final int size;
 
+    /** Hipparcos catalog ID, or HIPPARCOS_UNKNOWN if not in the catalog */
+    private final int hipparcosId;
+
     /**
      * Private constructor. Use {@link Builder} to create instances.
      *
@@ -70,6 +76,7 @@ public class StarData extends CelestialObject {
         this.distance = builder.distance;
         this.constellationId = builder.constellationId;
         this.size = builder.size;
+        this.hipparcosId = builder.hipparcosId;
     }
 
     /**
@@ -143,6 +150,27 @@ public class StarData extends CelestialObject {
      */
     public int getSize() {
         return size;
+    }
+
+    /**
+     * Returns the Hipparcos catalog ID for this star.
+     *
+     * <p>The Hipparcos catalog contains about 118,000 stars with precise
+     * positions and parallax measurements.</p>
+     *
+     * @return The Hipparcos ID, or {@link #HIPPARCOS_UNKNOWN} if not in the catalog
+     */
+    public int getHipparcosId() {
+        return hipparcosId;
+    }
+
+    /**
+     * Checks if this star has a Hipparcos catalog ID.
+     *
+     * @return true if the star has a valid Hipparcos ID
+     */
+    public boolean hasHipparcosId() {
+        return hipparcosId != HIPPARCOS_UNKNOWN;
     }
 
     /**
@@ -246,6 +274,7 @@ public class StarData extends CelestialObject {
         @Nullable
         private String constellationId = null;
         private int size = DEFAULT_SIZE;
+        private int hipparcosId = HIPPARCOS_UNKNOWN;
 
         /**
          * Creates a new Builder instance.
@@ -316,6 +345,18 @@ public class StarData extends CelestialObject {
         @NonNull
         public Builder setSize(int size) {
             this.size = size;
+            return this;
+        }
+
+        /**
+         * Sets the Hipparcos catalog ID.
+         *
+         * @param hipparcosId The Hipparcos ID, or {@link StarData#HIPPARCOS_UNKNOWN}
+         * @return This builder for method chaining
+         */
+        @NonNull
+        public Builder setHipparcosId(int hipparcosId) {
+            this.hipparcosId = hipparcosId;
             return this;
         }
 

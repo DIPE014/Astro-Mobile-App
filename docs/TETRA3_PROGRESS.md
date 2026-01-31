@@ -2,31 +2,31 @@
 
 ## Current Status
 
-**Phase**: 1 (Chaquopy Setup)
+**Phase**: 3 (PlateSolveService)
 **Last Updated**: 2026-02-01
-**Last Task Completed**: Initial planning and CLAUDE.md setup
-**Next Task**: Add Chaquopy plugin to settings.gradle and app/build.gradle
+**Last Task Completed**: Phase 2 complete - Camera Capture with ImageCapture use case
+**Next Task**: Create ml/model/SolveStatus.java enum
 
 ---
 
 ## Phase Checklist
 
-### Phase 1: Chaquopy Setup
-- [ ] Add Chaquopy plugin to `settings.gradle`
-- [ ] Add Chaquopy plugin to `app/build.gradle`
-- [ ] Configure Python dependencies (tetra3, numpy, scipy, Pillow)
-- [ ] Configure NDK abiFilters
-- [ ] Create `app/src/main/python/__init__.py`
-- [ ] Create `app/src/main/python/tetra3_wrapper.py`
-- [ ] Test: Build compiles with Chaquopy
-- [ ] Commit: `[chore] Add Chaquopy plugin for Python support`
+### Phase 1: Chaquopy Setup - COMPLETE
+- [x] Add Chaquopy plugin to `settings.gradle`
+- [x] Add Chaquopy plugin to `app/build.gradle`
+- [x] Configure Python dependencies (tetra3, numpy, scipy, Pillow)
+- [x] Configure NDK abiFilters
+- [x] Create `app/src/main/python/__init__.py`
+- [x] Create `app/src/main/python/tetra3_wrapper.py`
+- [x] Test: Build compiles with Chaquopy
+- [x] Commit: `[chore] Add Chaquopy plugin for Python support`
 
-### Phase 2: Camera Capture
-- [ ] Add ImageCapture use case to `CameraManager.java`
-- [ ] Add `captureImage()` method with callback
-- [ ] Add `ImageCaptureCallback` interface
-- [ ] Test: Can capture and save image file
-- [ ] Commit changes
+### Phase 2: Camera Capture - COMPLETE
+- [x] Add ImageCapture use case to `CameraManager.java`
+- [x] Add `captureImage()` method with callback
+- [x] Add `ImageCaptureCallback` interface
+- [x] Test: Build compiles with ImageCapture
+- [x] Commit: `[feat] Add ImageCapture support to CameraManager`
 
 ### Phase 3: PlateSolveService
 - [ ] Create `ml/model/SolveStatus.java` enum
@@ -65,18 +65,20 @@
 - [x] Read tetra3_implementation_guide.docx and understand Tetra3 algorithm
 - [x] Create implementation plan in CLAUDE.md
 - [x] Set up progress tracking (this file)
+- [x] **Phase 1: Chaquopy Setup** - commit 985cc3a
+- [x] **Phase 2: Camera Capture** - commit 2b37be0
 
 ---
 
 ## In Progress
 
-- [ ] Starting Phase 1: Chaquopy Setup
+- [ ] Starting Phase 3: PlateSolveService
 
 ---
 
 ## Blocked / Issues
 
-None currently.
+**Note**: Chaquopy installs older numpy (1.19.5) and scipy (1.4.1) than tetra3 requires (1.21.1 and 1.7.1). Build succeeds with warnings. Core functionality should work but may need testing on device.
 
 ---
 
@@ -86,6 +88,7 @@ None currently.
 2. **Tetra3 database** - Need to generate `hip_database_fov85.npz` on a PC with Python, then copy to `app/src/main/assets/tetra3/`
 3. **Chaquopy requires NDK** - Make sure Android NDK is installed in Android Studio
 4. **App size will increase** - Expected ~150-170MB total after adding Python runtime and Tetra3 database
+5. **Version warnings** - numpy/scipy versions are older than tetra3 officially requires; build works but monitor for runtime issues
 
 ---
 
@@ -93,4 +96,5 @@ None currently.
 
 | Commit | Description | Phase |
 |--------|-------------|-------|
-| (pending) | Add Chaquopy plugin | 1 |
+| 985cc3a | Add Chaquopy plugin for Python support | 1 |
+| 2b37be0 | Add ImageCapture support to CameraManager | 2 |

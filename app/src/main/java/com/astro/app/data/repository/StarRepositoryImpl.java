@@ -57,6 +57,10 @@ public class StarRepositoryImpl implements StarRepository {
     @Nullable
     private Map<String, StarData> starNameMap;
 
+    /** Map from Hipparcos ID to StarData for fast lookup */
+    @Nullable
+    private Map<Integer, StarData> hipparcosIdMap;
+
     /**
      * Creates a StarRepositoryImpl with the provided parser.
      *
@@ -145,6 +149,13 @@ public class StarRepositoryImpl implements StarRepository {
         return results;
     }
 
+    @Override
+    @Nullable
+    public StarData getStarByHipparcosId(int hipparcosId) {
+        ensureCacheLoaded();
+        return hipparcosIdMap != null ? hipparcosIdMap.get(hipparcosId) : null;
+    }
+
     /**
      * Ensures that the star cache is loaded.
      * This method is synchronized to prevent multiple threads from loading simultaneously.
@@ -160,6 +171,7 @@ public class StarRepositoryImpl implements StarRepository {
         List<StarData> stars = new ArrayList<>(protos.size());
         Map<String, StarData> idMap = new HashMap<>();
         Map<String, StarData> nameMap = new HashMap<>();
+        Map<Integer, StarData> hipMap = new HashMap<>();
 
         for (PointElementProto proto : protos) {
             StarData star = convertProtoToStarData(proto);
@@ -167,6 +179,9 @@ public class StarRepositoryImpl implements StarRepository {
                 stars.add(star);
                 idMap.put(star.getId(), star);
                 nameMap.put(star.getName().toLowerCase(Locale.ROOT), star);
+                if (star.hasHipparcosId()) {
+                    hipMap.put(star.getHipparcosId(), star);
+                }
             }
         }
 
@@ -176,6 +191,7 @@ public class StarRepositoryImpl implements StarRepository {
         cachedStars = Collections.unmodifiableList(stars);
         starIdMap = idMap;
         starNameMap = nameMap;
+        hipparcosIdMap = hipMap;
 
         Log.d(TAG, "Loaded " + stars.size() + " stars");
     }
