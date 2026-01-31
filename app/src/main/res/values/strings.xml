@@ -293,4 +293,5 @@
     <string name="plate_solve_hip_id">HIP %1$d</string>
     <string name="plate_solve_pixel_coords">(%1$.0f, %2$.0f)</string>
     <string name="identify_stars">Identify Stars</string>
+    <string name="plate_solve_identify_stars">Identify stars in the sky</string>
 </resources>

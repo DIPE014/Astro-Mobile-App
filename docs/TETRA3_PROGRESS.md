@@ -2,10 +2,10 @@
 
 ## Current Status
 
-**Phase**: 4 (UI)
+**Phase**: 5 (Integration)
 **Last Updated**: 2026-02-01
-**Last Task Completed**: Phase 3 complete - PlateSolveService with Hipparcos ID support
-**Next Task**: Create activity_photo_capture.xml layout
+**Last Task Completed**: Phase 4 complete - UI activities and layouts
+**Next Task**: Add "Identify Stars" button to SkyMapActivity
 
 ---
 
@@ -39,23 +39,23 @@
 - [x] Test: Build compiles, all tests pass
 - [x] Commit: `[feat] Add PlateSolveService and Hipparcos ID support`
 
-### Phase 4: UI
-- [ ] Create `activity_photo_capture.xml` layout
-- [ ] Create `activity_plate_solve_result.xml` layout
-- [ ] Create `item_detected_star.xml` layout
-- [ ] Create `ui/platesolve/PhotoCaptureActivity.java`
-- [ ] Create `ui/platesolve/PlateSolveResultActivity.java`
-- [ ] Create `ui/platesolve/PlateSolveResultViewModel.java`
-- [ ] Create `ui/platesolve/StarOverlayView.java`
-- [ ] Register activities in `AndroidManifest.xml`
-- [ ] Add inject methods to `AppComponent.java`
-- [ ] Test: UI flow works end-to-end
-- [ ] Commit changes
+### Phase 4: UI - COMPLETE
+- [x] Create `activity_photo_capture.xml` layout
+- [x] Create `activity_plate_solve_result.xml` layout
+- [x] Create `item_detected_star.xml` layout
+- [x] Create `ui/platesolve/PhotoCaptureActivity.java`
+- [x] Create `ui/platesolve/PlateSolveResultActivity.java`
+- [x] Create `ui/platesolve/PlateSolveResultViewModel.java`
+- [x] Create `ui/platesolve/StarOverlayView.java`
+- [x] Register activities in `AndroidManifest.xml`
+- [x] Add inject methods to `AppComponent.java`
+- [x] Test: Build compiles, all tests pass
+- [x] Commit: `[feat] Add PlateSolve UI activities and layouts`
 
 ### Phase 5: Integration
 - [ ] Add "Identify Stars" button to `SkyMapActivity.java`
 - [ ] Wire button to launch `PhotoCaptureActivity`
-- [ ] Test: Full feature works on device
+- [ ] Test: Full feature works end-to-end
 - [ ] Final commit
 
 ---
@@ -68,12 +68,13 @@
 - [x] **Phase 1: Chaquopy Setup** - commit 985cc3a
 - [x] **Phase 2: Camera Capture** - commit 2b37be0
 - [x] **Phase 3: PlateSolveService** - commit 1cd8648
+- [x] **Phase 4: UI** - commit 3634e93
 
 ---
 
 ## In Progress
 
-- [ ] Starting Phase 4: UI
+- [ ] Starting Phase 5: Integration
 
 ---
 
@@ -100,3 +101,4 @@
 | 985cc3a | Add Chaquopy plugin for Python support | 1 |
 | 2b37be0 | Add ImageCapture support to CameraManager | 2 |
 | 1cd8648 | Add PlateSolveService and Hipparcos ID support | 3 |
+| 3634e93 | Add PlateSolve UI activities and layouts | 4 |

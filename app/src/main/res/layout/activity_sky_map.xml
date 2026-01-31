@@ -406,6 +406,21 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Identify Stars FAB -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabIdentify"
+        style="@style/Widget.AstroApp.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/fab_margin"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:contentDescription="@string/plate_solve_identify_stars"
+        android:src="@android:drawable/ic_menu_camera"
+        app:fabSize="normal"
+        app:layout_constraintBottom_toTopOf="@id/fabSearch"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:rippleColor="@color/ripple_primary" />
+
     <!-- Search FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabSearch"

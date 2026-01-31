@@ -45,6 +45,7 @@ import com.astro.app.core.renderer.SkyRenderer;
 import com.astro.app.data.model.StarData;
 import com.astro.app.data.repository.ConstellationRepository;
 import com.astro.app.data.repository.StarRepository;
+import com.astro.app.ui.platesolve.PhotoCaptureActivity;
 import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
@@ -690,6 +691,12 @@ public class SkyMapActivity extends AppCompatActivity {
         View fabSearch = findViewById(R.id.fabSearch);
         if (fabSearch != null) {
             fabSearch.setOnClickListener(v -> openSearch());
+        }
+
+        // Identify Stars FAB - launches PhotoCaptureActivity for plate solving
+        View fabIdentify = findViewById(R.id.fabIdentify);
+        if (fabIdentify != null) {
+            fabIdentify.setOnClickListener(v -> openPhotoCaptureForIdentification());
         }
 
         // Select FAB (for reticle selection)
@@ -1414,6 +1421,17 @@ public class SkyMapActivity extends AppCompatActivity {
     private void openSearch() {
         Intent intent = new Intent(this, SearchActivity.class);
         searchActivityLauncher.launch(intent);
+    }
+
+    /**
+     * Opens the photo capture activity for star identification (plate solving).
+     *
+     * <p>This feature captures a photo of the night sky and uses the Tetra3
+     * algorithm to identify stars and determine the field of view.</p>
+     */
+    private void openPhotoCaptureForIdentification() {
+        Intent intent = new Intent(this, PhotoCaptureActivity.class);
+        startActivity(intent);
     }
 
     /**
