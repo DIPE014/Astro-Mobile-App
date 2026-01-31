@@ -61,6 +61,17 @@
                 android:textColor="@color/text_secondary"
                 tools:text="Star" />
 
+            <TextView
+                android:id="@+id/tvResultVisibility"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                android:textColor="@color/text_tertiary"
+                android:visibility="gone"
+                tools:text="Below horizon"
+                tools:visibility="visible" />
+
         </LinearLayout>
 
         <!-- Coordinates -->

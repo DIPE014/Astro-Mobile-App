@@ -1,0 +1,482 @@
+617, 0,698, 0,363) up(0,497, 0,704, -0,507) target(RA=117,8, Dec=24,6) dist=13,00° arrow=39,7° focus=0,00
+01-31 23:54:21.906 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35302 az=10.473739 viewRa=131.50148 viewDec=21.28567
+01-31 23:54:21.938 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,698, 0,363) up(0,497, 0,704, -0,508) target(RA=117,8, Dec=24,6) dist=13,01° arrow=39,6° focus=0,00
+01-31 23:54:21.938 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35302 az=10.473739 viewRa=131.50693 viewDec=21.26318
+01-31 23:54:21.948 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,698, 0,362) up(0,497, 0,704, -0,508) target(RA=117,8, Dec=24,6) dist=13,04° arrow=39,5° focus=0,00
+01-31 23:54:21.948 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35302 az=10.473739 viewRa=131.5388 viewDec=21.244698
+01-31 23:54:21.997 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,698, 0,362) up(0,497, 0,704, -0,508) target(RA=117,8, Dec=24,6) dist=13,07° arrow=39,5° focus=0,00
+01-31 23:54:21.997 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35302 az=10.473739 viewRa=131.56052 viewDec=21.221024
+01-31 23:54:22.007 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,698, 0,361) up(0,498, 0,703, -0,508) target(RA=117,8, Dec=24,6) dist=13,06° arrow=39,3° focus=0,00
+01-31 23:54:22.008 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.5362 viewDec=21.17464
+01-31 23:54:22.018 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,699, 0,360) up(0,499, 0,703, -0,507) target(RA=117,8, Dec=24,6) dist=13,05° arrow=39,0° focus=0,00
+01-31 23:54:22.018 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.49931 viewDec=21.103086
+01-31 23:54:22.028 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,699, 0,359) up(0,500, 0,702, -0,507) target(RA=117,8, Dec=24,6) dist=13,05° arrow=38,8° focus=0,00
+01-31 23:54:22.029 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.47414 viewDec=21.03689
+01-31 23:54:22.075 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,700, 0,358) up(0,501, 0,702, -0,507) target(RA=117,8, Dec=24,6) dist=13,06° arrow=38,5° focus=0,00
+01-31 23:54:22.075 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.4605 viewDec=20.965538
+01-31 23:54:22.086 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,700, 0,357) up(0,502, 0,701, -0,506) target(RA=117,8, Dec=24,6) dist=13,07° arrow=38,2° focus=0,00
+01-31 23:54:22.086 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.45117 viewDec=20.893581
+01-31 23:54:22.097 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,701, 0,356) up(0,503, 0,700, -0,506) target(RA=117,8, Dec=24,6) dist=13,06° arrow=38,0° focus=0,00
+01-31 23:54:22.097 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.41624 viewDec=20.82735
+01-31 23:54:22.107 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,701, 0,355) up(0,504, 0,700, -0,506) target(RA=117,8, Dec=24,6) dist=13,05° arrow=37,8° focus=0,00
+01-31 23:54:22.107 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.38374 viewDec=20.778967
+01-31 23:54:22.117 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,702, 0,354) up(0,504, 0,700, -0,506) target(RA=117,8, Dec=24,6) dist=13,06° arrow=37,6° focus=0,00
+01-31 23:54:22.117 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.37804 viewDec=20.731926
+01-31 23:54:22.162 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,702, 0,354) up(0,505, 0,699, -0,506) target(RA=117,8, Dec=24,6) dist=13,07° arrow=37,4° focus=0,00
+01-31 23:54:22.163 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.37411 viewDec=20.70172
+01-31 23:54:22.175 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,702, 0,353) up(0,505, 0,699, -0,506) target(RA=117,8, Dec=24,6) dist=13,05° arrow=37,3° focus=0,00
+01-31 23:54:22.175 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.33858 viewDec=20.677923
+01-31 23:54:22.185 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,703, 0,353) up(0,506, 0,699, -0,506) target(RA=117,8, Dec=24,6) dist=13,03° arrow=37,3° focus=0,00
+01-31 23:54:22.185 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.31326 viewDec=20.665415
+01-31 23:54:22.196 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,618, 0,703, 0,353) up(0,506, 0,698, -0,506) target(RA=117,8, Dec=24,6) dist=13,01° arrow=37,2° focus=0,00
+01-31 23:54:22.196 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.29565 viewDec=20.657673
+01-31 23:54:22.241 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,617, 0,703, 0,353) up(0,506, 0,698, -0,507) target(RA=117,8, Dec=24,6) dist=12,99° arrow=37,1° focus=0,00
+01-31 23:54:22.241 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.25981 viewDec=20.648846
+01-31 23:54:22.252 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,617, 0,704, 0,353) up(0,506, 0,697, -0,508) target(RA=117,8, Dec=24,6) dist=12,95° arrow=37,0° focus=0,00
+01-31 23:54:22.252 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.21577 viewDec=20.643074
+01-31 23:54:22.262 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,616, 0,705, 0,352) up(0,506, 0,697, -0,508) target(RA=117,8, Dec=24,6) dist=12,89° arrow=36,8° focus=0,00
+01-31 23:54:22.262 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.14558 viewDec=20.626335
+01-31 23:54:22.272 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,615, 0,705, 0,352) up(0,506, 0,696, -0,509) target(RA=117,8, Dec=24,6) dist=12,85° arrow=36,6° focus=0,00
+01-31 23:54:22.273 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.09349 viewDec=20.608084
+01-31 23:54:22.317 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,615, 0,706, 0,352) up(0,506, 0,695, -0,510) target(RA=117,8, Dec=24,6) dist=12,83° arrow=36,5° focus=0,00
+01-31 23:54:22.317 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.06607 viewDec=20.603361
+01-31 23:54:22.327 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,615, 0,706, 0,352) up(0,506, 0,695, -0,511) target(RA=117,8, Dec=24,6) dist=12,81° arrow=36,3° focus=0,00
+01-31 23:54:22.327 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.04195 viewDec=20.596872
+01-31 23:54:22.338 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,614, 0,706, 0,352) up(0,505, 0,695, -0,512) target(RA=117,8, Dec=24,6) dist=12,79° arrow=36,2° focus=0,00
+01-31 23:54:22.338 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=131.01416 viewDec=20.589418
+01-31 23:54:22.348 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,614, 0,707, 0,352) up(0,505, 0,694, -0,513) target(RA=117,8, Dec=24,6) dist=12,77° arrow=36,1° focus=0,00
+01-31 23:54:22.348 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.98674 viewDec=20.580898
+01-31 23:54:22.395 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,614, 0,707, 0,351) up(0,505, 0,694, -0,513) target(RA=117,8, Dec=24,6) dist=12,77° arrow=36,0° focus=0,00
+01-31 23:54:22.395 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.98006 viewDec=20.575375
+01-31 23:54:22.406 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,614, 0,707, 0,351) up(0,505, 0,694, -0,514) target(RA=117,8, Dec=24,6) dist=12,76° arrow=36,0° focus=0,00
+01-31 23:54:22.406 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.97157 viewDec=20.576279
+01-31 23:54:22.416 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,613, 0,707, 0,351) up(0,505, 0,693, -0,514) target(RA=117,8, Dec=24,6) dist=12,73° arrow=35,8° focus=0,00
+01-31 23:54:22.417 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.93456 viewDec=20.560678
+01-31 23:54:22.427 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,613, 0,708, 0,351) up(0,505, 0,693, -0,515) target(RA=117,8, Dec=24,6) dist=12,70° arrow=35,8° focus=0,00
+01-31 23:54:22.427 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.89084 viewDec=20.55656
+01-31 23:54:22.473 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,613, 0,708, 0,351) up(0,506, 0,692, -0,515) target(RA=117,8, Dec=24,6) dist=12,67° arrow=35,7° focus=0,00
+01-31 23:54:22.473 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.85593 viewDec=20.551344
+01-31 23:54:22.484 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,612, 0,708, 0,351) up(0,506, 0,692, -0,515) target(RA=117,8, Dec=24,6) dist=12,65° arrow=35,6° focus=0,00
+01-31 23:54:22.484 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.83502 viewDec=20.539986
+01-31 23:54:22.494 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,612, 0,709, 0,351) up(0,506, 0,692, -0,515) target(RA=117,8, Dec=24,6) dist=12,64° arrow=35,6° focus=0,00
+01-31 23:54:22.494 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.81628 viewDec=20.536806
+01-31 23:54:22.505 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,612, 0,709, 0,351) up(0,506, 0,692, -0,515) target(RA=117,8, Dec=24,6) dist=12,63° arrow=35,6° focus=0,00
+01-31 23:54:22.505 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.81464 viewDec=20.541225
+01-31 23:54:22.537 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,612, 0,709, 0,351) up(0,506, 0,692, -0,515) target(RA=117,8, Dec=24,6) dist=12,63° arrow=35,7° focus=0,00
+01-31 23:54:22.537 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.81439 viewDec=20.55431
+01-31 23:54:22.547 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,612, 0,709, 0,351) up(0,506, 0,692, -0,515) target(RA=117,8, Dec=24,6) dist=12,62° arrow=35,7° focus=0,00
+01-31 23:54:22.548 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.80453 viewDec=20.559795
+01-31 23:54:22.596 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,612, 0,709, 0,352) up(0,506, 0,692, -0,514) target(RA=117,8, Dec=24,6) dist=12,60° arrow=35,8° focus=0,00
+01-31 23:54:22.596 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.79626 viewDec=20.583
+01-31 23:54:22.606 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,611, 0,709, 0,352) up(0,506, 0,692, -0,515) target(RA=117,8, Dec=24,6) dist=12,58° arrow=35,8° focus=0,00
+01-31 23:54:22.607 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.7734 viewDec=20.599741
+01-31 23:54:22.617 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,611, 0,709, 0,352) up(0,506, 0,692, -0,515) target(RA=117,8, Dec=24,6) dist=12,55° arrow=35,9° focus=0,00
+01-31 23:54:22.617 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.75426 viewDec=20.628805
+01-31 23:54:22.628 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,611, 0,709, 0,353) up(0,506, 0,692, -0,515) target(RA=117,8, Dec=24,6) dist=12,52° arrow=36,0° focus=0,00
+01-31 23:54:22.628 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.73405 viewDec=20.667704
+01-31 23:54:22.638 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,610, 0,709, 0,353) up(0,505, 0,692, -0,516) target(RA=117,8, Dec=24,6) dist=12,48° arrow=36,0° focus=0,00
+01-31 23:54:22.638 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.70152 viewDec=20.68921
+01-31 23:54:22.684 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,610, 0,710, 0,353) up(0,505, 0,691, -0,517) target(RA=117,8, Dec=24,6) dist=12,45° arrow=35,9° focus=0,00
+01-31 23:54:22.685 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.65973 viewDec=20.690346
+01-31 23:54:22.695 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,609, 0,710, 0,354) up(0,505, 0,691, -0,517) target(RA=117,8, Dec=24,6) dist=12,41° arrow=35,8° focus=0,00
+01-31 23:54:22.695 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.62419 viewDec=20.702126
+01-31 23:54:22.706 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,609, 0,710, 0,354) up(0,505, 0,691, -0,518) target(RA=117,8, Dec=24,6) dist=12,37° arrow=35,9° focus=0,00
+01-31 23:54:22.706 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.59424 viewDec=20.731565
+01-31 23:54:22.720 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,608, 0,711, 0,354) up(0,504, 0,690, -0,519) target(RA=117,8, Dec=24,6) dist=12,32° arrow=35,9° focus=0,00
+01-31 23:54:22.720 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.5468 viewDec=20.761948
+01-31 23:54:22.765 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,607, 0,711, 0,355) up(0,504, 0,690, -0,520) target(RA=117,8, Dec=24,6) dist=12,27° arrow=35,9° focus=0,00
+01-31 23:54:22.765 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.49852 viewDec=20.802507
+01-31 23:54:22.776 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,606, 0,711, 0,356) up(0,504, 0,690, -0,520) target(RA=117,8, Dec=24,6) dist=12,19° arrow=36,0° focus=0,00
+01-31 23:54:22.776 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.43326 viewDec=20.863176
+01-31 23:54:22.786 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,605, 0,712, 0,357) up(0,503, 0,689, -0,521) target(RA=117,8, Dec=24,6) dist=12,08° arrow=36,2° focus=0,00
+01-31 23:54:22.786 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.34476 viewDec=20.941975
+01-31 23:54:22.797 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,603, 0,713, 0,359) up(0,503, 0,689, -0,522) target(RA=117,8, Dec=24,6) dist=11,97° arrow=36,4° focus=0,00
+01-31 23:54:22.797 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.2461 viewDec=21.016495
+01-31 23:54:22.843 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,602, 0,713, 0,360) up(0,503, 0,688, -0,523) target(RA=117,8, Dec=24,6) dist=11,87° arrow=36,4° focus=0,00
+01-31 23:54:22.843 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.15236 viewDec=21.081411
+01-31 23:54:22.854 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,600, 0,714, 0,361) up(0,503, 0,687, -0,524) target(RA=117,8, Dec=24,6) dist=11,75° arrow=36,5° focus=0,00
+01-31 23:54:22.854 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=130.04643 viewDec=21.140568
+01-31 23:54:22.864 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,598, 0,715, 0,362) up(0,502, 0,686, -0,526) target(RA=117,8, Dec=24,6) dist=11,61° arrow=36,4° focus=0,00
+01-31 23:54:22.865 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=129.90846 viewDec=21.203178
+01-31 23:54:22.875 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,596, 0,716, 0,363) up(0,502, 0,685, -0,528) target(RA=117,8, Dec=24,6) dist=11,44° arrow=36,5° focus=0,00
+01-31 23:54:22.875 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=129.73972 viewDec=21.287235
+01-31 23:54:22.921 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,593, 0,718, 0,364) up(0,502, 0,684, -0,530) target(RA=117,8, Dec=24,6) dist=11,27° arrow=36,5° focus=0,00
+01-31 23:54:22.922 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=129.58171 viewDec=21.368378
+01-31 23:54:22.932 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,591, 0,719, 0,366) up(0,501, 0,683, -0,532) target(RA=117,8, Dec=24,6) dist=11,12° arrow=36,6° focus=0,00
+01-31 23:54:22.932 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=129.44885 viewDec=21.458075
+01-31 23:54:22.943 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,590, 0,719, 0,368) up(0,499, 0,682, -0,534) target(RA=117,8, Dec=24,6) dist=11,00° arrow=36,8° focus=0,00
+01-31 23:54:22.943 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=129.34496 viewDec=21.564129
+01-31 23:54:22.953 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,588, 0,719, 0,370) up(0,498, 0,682, -0,536) target(RA=117,8, Dec=24,6) dist=10,89° arrow=37,2° focus=0,00
+01-31 23:54:22.953 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=129.26009 viewDec=21.687468
+01-31 23:54:22.964 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,587, 0,720, 0,372) up(0,496, 0,682, -0,538) target(RA=117,8, Dec=24,6) dist=10,78° arrow=37,6° focus=0,00
+01-31 23:54:22.964 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35378 az=10.464451 viewRa=129.18515 viewDec=21.82946
+01-31 23:54:23.009 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,585, 0,719, 0,374) up(0,494, 0,682, -0,539) target(RA=117,8, Dec=24,6) dist=10,68° arrow=38,1° focus=0,00
+01-31 23:54:23.009 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=129.12419 viewDec=21.96755
+01-31 23:54:23.019 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,584, 0,719, 0,376) up(0,491, 0,682, -0,541) target(RA=117,8, Dec=24,6) dist=10,61° arrow=38,6° focus=0,00
+01-31 23:54:23.020 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=129.08661 viewDec=22.11123
+01-31 23:54:23.030 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,583, 0,719, 0,379) up(0,490, 0,683, -0,542) target(RA=117,8, Dec=24,6) dist=10,53° arrow=39,2° focus=0,00
+01-31 23:54:23.030 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=129.04005 viewDec=22.250359
+01-31 23:54:23.040 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,582, 0,719, 0,381) up(0,488, 0,683, -0,544) target(RA=117,8, Dec=24,6) dist=10,45° arrow=39,7° focus=0,00
+01-31 23:54:23.041 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=128.98917 viewDec=22.38345
+01-31 23:54:23.086 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,581, 0,718, 0,383) up(0,486, 0,683, -0,545) target(RA=117,8, Dec=24,6) dist=10,38° arrow=40,2° focus=0,00
+01-31 23:54:23.087 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=128.94753 viewDec=22.522348
+01-31 23:54:23.098 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,579, 0,718, 0,385) up(0,484, 0,684, -0,546) target(RA=117,8, Dec=24,6) dist=10,30° arrow=40,9° focus=0,00
+01-31 23:54:23.098 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=128.894 viewDec=22.673996
+01-31 23:54:23.109 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,578, 0,718, 0,388) up(0,483, 0,684, -0,546) target(RA=117,8, Dec=24,6) dist=10,19° arrow=41,6° focus=0,00
+01-31 23:54:23.109 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=128.81041 viewDec=22.840902
+01-31 23:54:23.119 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,576, 0,718, 0,391) up(0,482, 0,684, -0,547) target(RA=117,8, Dec=24,6) dist=10,07° arrow=42,4° focus=0,00
+01-31 23:54:23.119 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=128.71169 viewDec=23.007418
+01-31 23:54:23.151 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,574, 0,718, 0,393) up(0,482, 0,684, -0,548) target(RA=117,8, Dec=24,6) dist=9,94° arrow=43,1° focus=0,01
+01-31 23:54:23.151 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=128.60313 viewDec=23.16481
+01-31 23:54:23.162 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,571, 0,719, 0,396) up(0,481, 0,684, -0,548) target(RA=117,8, Dec=24,6) dist=9,79° arrow=43,9° focus=0,02
+01-31 23:54:23.162 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=128.4748 viewDec=23.325218
+01-31 23:54:23.211 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,569, 0,719, 0,399) up(0,481, 0,685, -0,548) target(RA=117,8, Dec=24,6) dist=9,67° arrow=44,8° focus=0,03
+01-31 23:54:23.211 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=128.3663 viewDec=23.499046
+01-31 23:54:23.222 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,567, 0,719, 0,402) up(0,480, 0,685, -0,548) target(RA=117,8, Dec=24,6) dist=9,55° arrow=45,8° focus=0,04
+01-31 23:54:23.222 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=128.26804 viewDec=23.691032
+01-31 23:54:23.232 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,565, 0,719, 0,405) up(0,479, 0,685, -0,549) target(RA=117,8, Dec=24,6) dist=9,44° arrow=46,9° focus=0,06
+01-31 23:54:23.232 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=128.16563 viewDec=23.897833
+01-31 23:54:23.243 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,563, 0,719, 0,408) up(0,478, 0,686, -0,549) target(RA=117,8, Dec=24,6) dist=9,32° arrow=47,9° focus=0,07
+01-31 23:54:23.243 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=128.0644 viewDec=24.09285
+01-31 23:54:23.253 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,561, 0,718, 0,411) up(0,476, 0,686, -0,550) target(RA=117,8, Dec=24,6) dist=9,24° arrow=49,0° focus=0,08
+01-31 23:54:23.254 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=127.99073 viewDec=24.284487
+01-31 23:54:23.301 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,560, 0,718, 0,414) up(0,474, 0,687, -0,551) target(RA=117,8, Dec=24,6) dist=9,19° arrow=50,0° focus=0,08
+01-31 23:54:23.301 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=127.94602 viewDec=24.468168
+01-31 23:54:23.312 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,558, 0,717, 0,417) up(0,471, 0,688, -0,552) target(RA=117,8, Dec=24,6) dist=9,15° arrow=51,1° focus=0,08
+01-31 23:54:23.312 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=127.91037 viewDec=24.669256
+01-31 23:54:23.323 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,557, 0,716, 0,421) up(0,469, 0,689, -0,552) target(RA=117,8, Dec=24,6) dist=9,12° arrow=52,3° focus=0,09
+01-31 23:54:23.323 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=127.87582 viewDec=24.878685
+01-31 23:54:23.334 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,555, 0,716, 0,424) up(0,467, 0,690, -0,554) target(RA=117,8, Dec=24,6) dist=9,06° arrow=53,3° focus=0,09
+01-31 23:54:23.334 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=127.80823 viewDec=25.065304
+01-31 23:54:23.379 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,554, 0,715, 0,427) up(0,464, 0,690, -0,555) target(RA=117,8, Dec=24,6) dist=9,01° arrow=54,4° focus=0,10
+01-31 23:54:23.379 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=127.753845 viewDec=25.252476
+01-31 23:54:23.389 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,552, 0,715, 0,429) up(0,462, 0,691, -0,556) target(RA=117,8, Dec=24,6) dist=8,96° arrow=55,3° focus=0,10
+01-31 23:54:23.390 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=127.692986 viewDec=25.426065
+01-31 23:54:23.400 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,550, 0,715, 0,432) up(0,461, 0,691, -0,557) target(RA=117,8, Dec=24,6) dist=8,87° arrow=56,4° focus=0,11
+01-31 23:54:23.400 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=127.57827 viewDec=25.594305
+01-31 23:54:23.410 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,547, 0,715, 0,435) up(0,460, 0,691, -0,558) target(RA=117,8, Dec=24,6) dist=8,74° arrow=57,5° focus=0,13
+01-31 23:54:23.410 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=127.40892 viewDec=25.7675
+01-31 23:54:23.455 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,544, 0,716, 0,437) up(0,459, 0,690, -0,560) target(RA=117,8, Dec=24,6) dist=8,59° arrow=58,6° focus=0,14
+01-31 23:54:23.456 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=127.22386 viewDec=25.936365
+01-31 23:54:23.467 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,541, 0,717, 0,440) up(0,458, 0,689, -0,561) target(RA=117,8, Dec=24,6) dist=8,43° arrow=59,7° focus=0,16
+01-31 23:54:23.467 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=127.02226 viewDec=26.092714
+01-31 23:54:23.478 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,536, 0,719, 0,442) up(0,458, 0,687, -0,564) target(RA=117,8, Dec=24,6) dist=8,14° arrow=61,0° focus=0,19
+01-31 23:54:23.478 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=126.67025 viewDec=26.24964
+01-31 23:54:23.488 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,530, 0,722, 0,445) up(0,458, 0,685, -0,567) target(RA=117,8, Dec=24,6) dist=7,81° arrow=62,5° focus=0,22
+01-31 23:54:23.488 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=126.255135 viewDec=26.412037
+01-31 23:54:23.534 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,524, 0,724, 0,448) up(0,457, 0,683, -0,569) target(RA=117,8, Dec=24,6) dist=7,56° arrow=64,3° focus=0,24
+01-31 23:54:23.534 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=125.91468 viewDec=26.622862
+01-31 23:54:23.546 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,519, 0,726, 0,451) up(0,456, 0,682, -0,572) target(RA=117,8, Dec=24,6) dist=7,33° arrow=66,2° focus=0,27
+01-31 23:54:23.546 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=125.58813 viewDec=26.821377
+01-31 23:54:23.557 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,515, 0,727, 0,454) up(0,455, 0,680, -0,575) target(RA=117,8, Dec=24,6) dist=7,12° arrow=68,1° focus=0,29
+01-31 23:54:23.557 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=125.278694 viewDec=26.999556
+01-31 23:54:23.567 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,511, 0,729, 0,457) up(0,453, 0,679, -0,577) target(RA=117,8, Dec=24,6) dist=6,96° arrow=69,7° focus=0,30
+01-31 23:54:23.567 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=125.02627 viewDec=27.164688
+01-31 23:54:23.612 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,507, 0,730, 0,459) up(0,451, 0,678, -0,580) target(RA=117,8, Dec=24,6) dist=6,83° arrow=71,3° focus=0,32
+01-31 23:54:23.612 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=124.80743 viewDec=27.312159
+01-31 23:54:23.623 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,504, 0,730, 0,461) up(0,450, 0,678, -0,582) target(RA=117,8, Dec=24,6) dist=6,73° arrow=72,7° focus=0,33
+01-31 23:54:23.623 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=124.61749 viewDec=27.445688
+01-31 23:54:23.634 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,502, 0,731, 0,463) up(0,448, 0,677, -0,584) target(RA=117,8, Dec=24,6) dist=6,67° arrow=74,0° focus=0,33
+01-31 23:54:23.634 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=124.482704 viewDec=27.572504
+01-31 23:54:23.645 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,500, 0,731, 0,465) up(0,445, 0,677, -0,586) target(RA=117,8, Dec=24,6) dist=6,66° arrow=74,9° focus=0,33
+01-31 23:54:23.645 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=124.41088 viewDec=27.684689
+01-31 23:54:23.691 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,499, 0,731, 0,466) up(0,443, 0,677, -0,587) target(RA=117,8, Dec=24,6) dist=6,65° arrow=75,7° focus=0,33
+01-31 23:54:23.691 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=124.34387 viewDec=27.779564
+01-31 23:54:23.701 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,498, 0,731, 0,467) up(0,441, 0,677, -0,589) target(RA=117,8, Dec=24,6) dist=6,63° arrow=76,6° focus=0,34
+01-31 23:54:23.701 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=124.25567 viewDec=27.871456
+01-31 23:54:23.712 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,496, 0,731, 0,469) up(0,440, 0,677, -0,590) target(RA=117,8, Dec=24,6) dist=6,60° arrow=77,5° focus=0,34
+01-31 23:54:23.712 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=124.16629 viewDec=27.970432
+01-31 23:54:23.723 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,495, 0,730, 0,471) up(0,438, 0,678, -0,591) target(RA=117,8, Dec=24,6) dist=6,62° arrow=78,6° focus=0,34
+01-31 23:54:23.723 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=124.10657 viewDec=28.100218
+01-31 23:54:23.733 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,493, 0,730, 0,473) up(0,436, 0,678, -0,591) target(RA=117,8, Dec=24,6) dist=6,65° arrow=79,7° focus=0,33
+01-31 23:54:23.734 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=124.0515 viewDec=28.232733
+01-31 23:54:23.765 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,492, 0,729, 0,475) up(0,434, 0,679, -0,592) target(RA=117,8, Dec=24,6) dist=6,69° arrow=81,0° focus=0,33
+01-31 23:54:23.765 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=123.98656 viewDec=28.385555
+01-31 23:54:23.776 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,490, 0,729, 0,478) up(0,433, 0,680, -0,592) target(RA=117,8, Dec=24,6) dist=6,75° arrow=82,6° focus=0,32
+01-31 23:54:23.776 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=123.92241 viewDec=28.583986
+01-31 23:54:23.825 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,488, 0,728, 0,482) up(0,431, 0,681, -0,592) target(RA=117,8, Dec=24,6) dist=6,81° arrow=84,2° focus=0,32
+01-31 23:54:23.826 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=123.843155 viewDec=28.78839
+01-31 23:54:23.836 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,486, 0,727, 0,485) up(0,429, 0,682, -0,593) target(RA=117,8, Dec=24,6) dist=6,87° arrow=85,9° focus=0,31
+01-31 23:54:23.836 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=123.74336 viewDec=28.985283
+01-31 23:54:23.847 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,483, 0,727, 0,488) up(0,427, 0,682, -0,593) target(RA=117,8, Dec=24,6) dist=6,93° arrow=87,8° focus=0,31
+01-31 23:54:23.848 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=123.62623 viewDec=29.208435
+01-31 23:54:23.858 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,481, 0,726, 0,492) up(0,425, 0,683, -0,593) target(RA=117,8, Dec=24,6) dist=7,00° arrow=89,8° focus=0,30
+01-31 23:54:23.858 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=123.49223 viewDec=29.449787
+01-31 23:54:23.869 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,477, 0,726, 0,495) up(0,423, 0,684, -0,594) target(RA=117,8, Dec=24,6) dist=7,07° arrow=91,9° focus=0,29
+01-31 23:54:23.869 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=123.332436 viewDec=29.697815
+01-31 23:54:23.915 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,474, 0,725, 0,499) up(0,422, 0,684, -0,595) target(RA=117,8, Dec=24,6) dist=7,14° arrow=94,0° focus=0,29
+01-31 23:54:23.915 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=123.15493 viewDec=29.93642
+01-31 23:54:23.926 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,470, 0,725, 0,502) up(0,420, 0,685, -0,596) target(RA=117,8, Dec=24,6) dist=7,20° arrow=96,1° focus=0,28
+01-31 23:54:23.926 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=122.96196 viewDec=30.165258
+01-31 23:54:23.937 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,467, 0,725, 0,506) up(0,418, 0,685, -0,596) target(RA=117,8, Dec=24,6) dist=7,26° arrow=98,1° focus=0,27
+01-31 23:54:23.937 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=122.77505 viewDec=30.377764
+01-31 23:54:23.947 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,464, 0,725, 0,509) up(0,417, 0,685, -0,598) target(RA=117,8, Dec=24,6) dist=7,32° arrow=99,8° focus=0,27
+01-31 23:54:23.948 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=122.59496 viewDec=30.564915
+01-31 23:54:23.993 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,461, 0,726, 0,511) up(0,415, 0,685, -0,599) target(RA=117,8, Dec=24,6) dist=7,34° arrow=101,4° focus=0,27
+01-31 23:54:23.993 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35454 az=10.455179 viewRa=122.40526 viewDec=30.712883
+01-31 23:54:24.003 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,458, 0,726, 0,513) up(0,413, 0,685, -0,600) target(RA=117,8, Dec=24,6) dist=7,38° arrow=102,8° focus=0,26
+01-31 23:54:24.004 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=122.23129 viewDec=30.853643
+01-31 23:54:24.014 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,455, 0,726, 0,515) up(0,411, 0,684, -0,602) target(RA=117,8, Dec=24,6) dist=7,43° arrow=104,2° focus=0,26
+01-31 23:54:24.014 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=122.069466 viewDec=30.996376
+01-31 23:54:24.025 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,452, 0,727, 0,517) up(0,409, 0,684, -0,604) target(RA=117,8, Dec=24,6) dist=7,47° arrow=105,4° focus=0,25
+01-31 23:54:24.025 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=121.9066 viewDec=31.128456
+01-31 23:54:24.071 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,450, 0,727, 0,519) up(0,408, 0,684, -0,605) target(RA=117,8, Dec=24,6) dist=7,49° arrow=106,6° focus=0,25
+01-31 23:54:24.072 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=121.74336 viewDec=31.235523
+01-31 23:54:24.082 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,447, 0,728, 0,520) up(0,406, 0,683, -0,607) target(RA=117,8, Dec=24,6) dist=7,51° arrow=107,7° focus=0,25
+01-31 23:54:24.083 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=121.58099 viewDec=31.32245
+01-31 23:54:24.093 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,445, 0,729, 0,521) up(0,404, 0,682, -0,609) target(RA=117,8, Dec=24,6) dist=7,51° arrow=108,8° focus=0,25
+01-31 23:54:24.093 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=121.40841 viewDec=31.394604
+01-31 23:54:24.104 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,442, 0,729, 0,522) up(0,403, 0,682, -0,610) target(RA=117,8, Dec=24,6) dist=7,54° arrow=110,0° focus=0,25
+01-31 23:54:24.104 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=121.250465 viewDec=31.492098
+01-31 23:54:24.149 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,440, 0,729, 0,524) up(0,401, 0,682, -0,611) target(RA=117,8, Dec=24,6) dist=7,61° arrow=110,9° focus=0,24
+01-31 23:54:24.149 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=121.13211 viewDec=31.617422
+01-31 23:54:24.160 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,438, 0,729, 0,526) up(0,400, 0,682, -0,612) target(RA=117,8, Dec=24,6) dist=7,68° arrow=111,9° focus=0,23
+01-31 23:54:24.160 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=121.01527 viewDec=31.735844
+01-31 23:54:24.170 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,436, 0,729, 0,528) up(0,399, 0,682, -0,613) target(RA=117,8, Dec=24,6) dist=7,74° arrow=112,8° focus=0,23
+01-31 23:54:24.170 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.8834 viewDec=31.843801
+01-31 23:54:24.181 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,434, 0,730, 0,529) up(0,398, 0,682, -0,614) target(RA=117,8, Dec=24,6) dist=7,78° arrow=113,9° focus=0,22
+01-31 23:54:24.181 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.73382 viewDec=31.927889
+01-31 23:54:24.227 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,431, 0,730, 0,530) up(0,398, 0,681, -0,615) target(RA=117,8, Dec=24,6) dist=7,81° arrow=114,9° focus=0,22
+01-31 23:54:24.227 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.57981 viewDec=32.004932
+01-31 23:54:24.238 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,429, 0,731, 0,531) up(0,397, 0,681, -0,616) target(RA=117,8, Dec=24,6) dist=7,83° arrow=115,9° focus=0,22
+01-31 23:54:24.238 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.427185 viewDec=32.069798
+01-31 23:54:24.249 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,427, 0,731, 0,532) up(0,397, 0,680, -0,616) target(RA=117,8, Dec=24,6) dist=7,86° arrow=116,7° focus=0,21
+01-31 23:54:24.249 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.307014 viewDec=32.131405
+01-31 23:54:24.260 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,426, 0,731, 0,533) up(0,397, 0,680, -0,617) target(RA=117,8, Dec=24,6) dist=7,88° arrow=117,3° focus=0,21
+01-31 23:54:24.260 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.21732 viewDec=32.181442
+01-31 23:54:24.305 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,425, 0,732, 0,533) up(0,397, 0,680, -0,617) target(RA=117,8, Dec=24,6) dist=7,88° arrow=117,8° focus=0,21
+01-31 23:54:24.306 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.13763 viewDec=32.19373
+01-31 23:54:24.317 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,424, 0,733, 0,532) up(0,398, 0,679, -0,617) target(RA=117,8, Dec=24,6) dist=7,84° arrow=118,1° focus=0,22
+01-31 23:54:24.317 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.07279 viewDec=32.167625
+01-31 23:54:24.328 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,424, 0,733, 0,532) up(0,398, 0,678, -0,618) target(RA=117,8, Dec=24,6) dist=7,78° arrow=118,3° focus=0,22
+01-31 23:54:24.328 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.03377 viewDec=32.12011
+01-31 23:54:24.338 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,424, 0,734, 0,531) up(0,399, 0,678, -0,618) target(RA=117,8, Dec=24,6) dist=7,72° arrow=118,2° focus=0,23
+01-31 23:54:24.339 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.03486 viewDec=32.05794
+01-31 23:54:24.374 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,425, 0,734, 0,530) up(0,400, 0,677, -0,618) target(RA=117,8, Dec=24,6) dist=7,66° arrow=117,9° focus=0,23
+01-31 23:54:24.374 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.06834 viewDec=31.98966
+01-31 23:54:24.385 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,426, 0,734, 0,528) up(0,400, 0,677, -0,618) target(RA=117,8, Dec=24,6) dist=7,59° arrow=117,3° focus=0,24
+01-31 23:54:24.385 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.13056 viewDec=31.898815
+01-31 23:54:24.395 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,427, 0,735, 0,527) up(0,400, 0,676, -0,618) target(RA=117,8, Dec=24,6) dist=7,51° arrow=116,7° focus=0,25
+01-31 23:54:24.396 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.19616 viewDec=31.797674
+01-31 23:54:24.448 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,429, 0,735, 0,525) up(0,401, 0,676, -0,618) target(RA=117,8, Dec=24,6) dist=7,41° arrow=116,1° focus=0,26
+01-31 23:54:24.448 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.259026 viewDec=31.67763
+01-31 23:54:24.458 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,736, 0,523) up(0,402, 0,675, -0,619) target(RA=117,8, Dec=24,6) dist=7,31° arrow=115,6° focus=0,27
+01-31 23:54:24.459 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.29361 viewDec=31.558784
+01-31 23:54:24.469 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,431, 0,736, 0,522) up(0,403, 0,674, -0,619) target(RA=117,8, Dec=24,6) dist=7,22° arrow=115,3° focus=0,28
+01-31 23:54:24.469 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.31498 viewDec=31.460749
+01-31 23:54:24.480 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,431, 0,737, 0,521) up(0,403, 0,673, -0,620) target(RA=117,8, Dec=24,6) dist=7,14° arrow=115,0° focus=0,29
+01-31 23:54:24.480 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.32976 viewDec=31.369152
+01-31 23:54:24.491 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,432, 0,738, 0,519) up(0,404, 0,673, -0,620) target(RA=117,8, Dec=24,6) dist=7,04° arrow=114,7° focus=0,30
+01-31 23:54:24.491 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.329185 viewDec=31.266306
+01-31 23:54:24.536 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,432, 0,739, 0,517) up(0,405, 0,671, -0,621) target(RA=117,8, Dec=24,6) dist=6,92° arrow=114,6° focus=0,31
+01-31 23:54:24.536 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.3114 viewDec=31.145702
+01-31 23:54:24.549 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,432, 0,740, 0,516) up(0,407, 0,670, -0,621) target(RA=117,8, Dec=24,6) dist=6,81° arrow=114,5° focus=0,32
+01-31 23:54:24.549 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.28296 viewDec=31.040009
+01-31 23:54:24.560 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,432, 0,741, 0,514) up(0,409, 0,669, -0,621) target(RA=117,8, Dec=24,6) dist=6,70° arrow=114,5° focus=0,33
+01-31 23:54:24.560 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.257576 viewDec=30.933422
+01-31 23:54:24.570 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,432, 0,742, 0,513) up(0,410, 0,668, -0,621) target(RA=117,8, Dec=24,6) dist=6,62° arrow=114,4° focus=0,34
+01-31 23:54:24.571 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.2483 viewDec=30.844498
+01-31 23:54:24.616 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,433, 0,742, 0,511) up(0,412, 0,668, -0,620) target(RA=117,8, Dec=24,6) dist=6,54° arrow=114,1° focus=0,35
+01-31 23:54:24.617 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.264595 viewDec=30.759527
+01-31 23:54:24.627 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,434, 0,743, 0,510) up(0,413, 0,667, -0,620) target(RA=117,8, Dec=24,6) dist=6,46° arrow=113,7° focus=0,35
+01-31 23:54:24.628 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.29252 viewDec=30.668552
+01-31 23:54:24.638 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,435, 0,743, 0,509) up(0,415, 0,667, -0,619) target(RA=117,8, Dec=24,6) dist=6,39° arrow=113,4° focus=0,36
+01-31 23:54:24.638 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.31832 viewDec=30.584366
+01-31 23:54:24.648 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,435, 0,743, 0,508) up(0,417, 0,666, -0,618) target(RA=117,8, Dec=24,6) dist=6,34° arrow=113,0° focus=0,37
+01-31 23:54:24.649 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.34806 viewDec=30.517916
+01-31 23:54:24.694 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,436, 0,744, 0,507) up(0,419, 0,666, -0,617) target(RA=117,8, Dec=24,6) dist=6,29° arrow=112,8° focus=0,37
+01-31 23:54:24.694 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.370605 viewDec=30.454544
+01-31 23:54:24.704 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,436, 0,744, 0,506) up(0,421, 0,666, -0,616) target(RA=117,8, Dec=24,6) dist=6,22° arrow=112,7° focus=0,38
+01-31 23:54:24.704 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.37429 viewDec=30.38443
+01-31 23:54:24.715 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,436, 0,745, 0,505) up(0,423, 0,665, -0,615) target(RA=117,8, Dec=24,6) dist=6,16° arrow=112,7° focus=0,38
+01-31 23:54:24.715 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.36226 viewDec=30.322872
+01-31 23:54:24.726 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,436, 0,745, 0,504) up(0,425, 0,665, -0,615) target(RA=117,8, Dec=24,6) dist=6,11° arrow=112,7° focus=0,39
+01-31 23:54:24.726 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.346886 viewDec=30.274979
+01-31 23:54:24.736 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,436, 0,746, 0,504) up(0,427, 0,664, -0,614) target(RA=117,8, Dec=24,6) dist=6,07° arrow=112,8° focus=0,39
+01-31 23:54:24.737 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.33541 viewDec=30.234882
+01-31 23:54:24.783 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,437, 0,746, 0,503) up(0,428, 0,664, -0,613) target(RA=117,8, Dec=24,6) dist=6,06° arrow=112,7° focus=0,39
+01-31 23:54:24.783 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.3451 viewDec=30.215584
+01-31 23:54:24.793 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,437, 0,746, 0,503) up(0,429, 0,664, -0,612) target(RA=117,8, Dec=24,6) dist=6,05° arrow=112,5° focus=0,39
+01-31 23:54:24.794 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.37372 viewDec=30.200216
+01-31 23:54:24.804 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,438, 0,746, 0,503) up(0,429, 0,664, -0,612) target(RA=117,8, Dec=24,6) dist=6,04° arrow=112,2° focus=0,40
+01-31 23:54:24.804 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.409355 viewDec=30.173899
+01-31 23:54:24.815 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,438, 0,745, 0,502) up(0,430, 0,665, -0,611) target(RA=117,8, Dec=24,6) dist=6,04° arrow=111,9° focus=0,40
+01-31 23:54:24.815 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.45133 viewDec=30.156763
+01-31 23:54:24.861 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,439, 0,745, 0,502) up(0,430, 0,665, -0,610) target(RA=117,8, Dec=24,6) dist=6,04° arrow=111,4° focus=0,40
+01-31 23:54:24.861 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.51121 viewDec=30.137678
+01-31 23:54:24.872 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,440, 0,745, 0,502) up(0,431, 0,665, -0,610) target(RA=117,8, Dec=24,6) dist=6,03° arrow=110,8° focus=0,40
+01-31 23:54:24.872 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.57738 viewDec=30.100782
+01-31 23:54:24.882 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,441, 0,745, 0,501) up(0,431, 0,665, -0,610) target(RA=117,8, Dec=24,6) dist=5,99° arrow=110,2° focus=0,40
+01-31 23:54:24.882 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.63003 viewDec=30.039116
+01-31 23:54:24.893 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,442, 0,745, 0,500) up(0,432, 0,665, -0,610) target(RA=117,8, Dec=24,6) dist=5,95° arrow=109,6° focus=0,41
+01-31 23:54:24.893 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.66844 viewDec=29.969198
+01-31 23:54:24.938 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,442, 0,745, 0,499) up(0,432, 0,664, -0,610) target(RA=117,8, Dec=24,6) dist=5,90° arrow=109,2° focus=0,41
+01-31 23:54:24.939 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.68965 viewDec=29.906261
+01-31 23:54:24.950 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,443, 0,746, 0,498) up(0,433, 0,664, -0,610) target(RA=117,8, Dec=24,6) dist=5,85° arrow=108,8° focus=0,41
+01-31 23:54:24.950 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.711494 viewDec=29.846546
+01-31 23:54:24.960 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,444, 0,746, 0,497) up(0,433, 0,664, -0,610) target(RA=117,8, Dec=24,6) dist=5,83° arrow=108,4° focus=0,42
+01-31 23:54:24.961 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.74323 viewDec=29.807701
+01-31 23:54:24.971 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,444, 0,746, 0,496) up(0,433, 0,664, -0,610) target(RA=117,8, Dec=24,6) dist=5,80° arrow=108,0° focus=0,42
+01-31 23:54:24.971 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35529 az=10.445889 viewRa=120.77076 viewDec=29.758255
+01-31 23:54:25.004 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,445, 0,746, 0,496) up(0,434, 0,664, -0,609) target(RA=117,8, Dec=24,6) dist=5,78° arrow=107,7° focus=0,42
+01-31 23:54:25.004 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.800385 viewDec=29.72924
+01-31 23:54:25.014 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,445, 0,746, 0,495) up(0,434, 0,663, -0,609) target(RA=117,8, Dec=24,6) dist=5,75° arrow=107,4° focus=0,42
+01-31 23:54:25.014 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.811775 viewDec=29.68917
+01-31 23:54:25.063 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,445, 0,746, 0,495) up(0,435, 0,663, -0,609) target(RA=117,8, Dec=24,6) dist=5,71° arrow=107,3° focus=0,43
+01-31 23:54:25.063 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.80913 viewDec=29.646082
+01-31 23:54:25.074 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,445, 0,747, 0,494) up(0,435, 0,663, -0,610) target(RA=117,8, Dec=24,6) dist=5,67° arrow=107,0° focus=0,43
+01-31 23:54:25.074 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.81927 viewDec=29.595423
+01-31 23:54:25.086 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,446, 0,747, 0,493) up(0,436, 0,662, -0,610) target(RA=117,8, Dec=24,6) dist=5,60° arrow=106,6° focus=0,44
+01-31 23:54:25.086 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.82342 viewDec=29.515015
+01-31 23:54:25.096 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,446, 0,748, 0,491) up(0,437, 0,661, -0,610) target(RA=117,8, Dec=24,6) dist=5,51° arrow=106,3° focus=0,45
+01-31 23:54:25.097 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.805824 viewDec=29.421116
+01-31 23:54:25.107 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,446, 0,750, 0,489) up(0,439, 0,659, -0,610) target(RA=117,8, Dec=24,6) dist=5,36° arrow=106,2° focus=0,46
+01-31 23:54:25.107 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.736206 viewDec=29.282997
+01-31 23:54:25.155 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,446, 0,751, 0,487) up(0,442, 0,657, -0,610) target(RA=117,8, Dec=24,6) dist=5,20° arrow=106,1° focus=0,48
+01-31 23:54:25.155 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.663414 viewDec=29.126753
+01-31 23:54:25.165 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,446, 0,753, 0,485) up(0,444, 0,656, -0,610) target(RA=117,8, Dec=24,6) dist=5,07° arrow=105,6° focus=0,49
+01-31 23:54:25.165 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.6375 viewDec=28.992382
+01-31 23:54:25.176 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,446, 0,754, 0,483) up(0,446, 0,655, -0,610) target(RA=117,8, Dec=24,6) dist=4,96° arrow=105,0° focus=0,50
+01-31 23:54:25.176 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.63762 viewDec=28.862373
+01-31 23:54:25.186 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,447, 0,755, 0,481) up(0,449, 0,654, -0,609) target(RA=117,8, Dec=24,6) dist=4,85° arrow=104,5° focus=0,52
+01-31 23:54:25.186 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.62709 viewDec=28.738102
+01-31 23:54:25.231 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,447, 0,755, 0,479) up(0,451, 0,653, -0,608) target(RA=117,8, Dec=24,6) dist=4,74° arrow=104,0° focus=0,53
+01-31 23:54:25.231 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.61247 viewDec=28.619642
+01-31 23:54:25.242 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,448, 0,756, 0,478) up(0,453, 0,652, -0,608) target(RA=117,8, Dec=24,6) dist=4,67° arrow=103,5° focus=0,53
+01-31 23:54:25.242 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.62362 viewDec=28.536026
+01-31 23:54:25.253 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,448, 0,756, 0,477) up(0,455, 0,652, -0,607) target(RA=117,8, Dec=24,6) dist=4,62° arrow=103,1° focus=0,54
+01-31 23:54:25.253 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.62579 viewDec=28.468443
+01-31 23:54:25.263 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,448, 0,757, 0,476) up(0,457, 0,651, -0,606) target(RA=117,8, Dec=24,6) dist=4,56° arrow=103,0° focus=0,54
+01-31 23:54:25.263 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.60566 viewDec=28.41666
+01-31 23:54:25.308 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,448, 0,758, 0,475) up(0,459, 0,651, -0,605) target(RA=117,8, Dec=24,6) dist=4,51° arrow=103,1° focus=0,55
+01-31 23:54:25.309 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.572655 viewDec=28.369358
+01-31 23:54:25.319 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,447, 0,758, 0,475) up(0,460, 0,650, -0,605) target(RA=117,8, Dec=24,6) dist=4,47° arrow=103,2° focus=0,55
+01-31 23:54:25.319 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.54459 viewDec=28.33594
+01-31 23:54:25.329 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,447, 0,759, 0,474) up(0,462, 0,649, -0,604) target(RA=117,8, Dec=24,6) dist=4,41° arrow=103,5° focus=0,56
+01-31 23:54:25.330 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.49434 viewDec=28.301407
+01-31 23:54:25.340 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,446, 0,760, 0,473) up(0,463, 0,648, -0,604) target(RA=117,8, Dec=24,6) dist=4,34° arrow=104,1° focus=0,57
+01-31 23:54:25.340 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.413895 viewDec=28.260658
+01-31 23:54:25.386 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,445, 0,760, 0,473) up(0,465, 0,648, -0,604) target(RA=117,8, Dec=24,6) dist=4,28° arrow=104,7° focus=0,57
+01-31 23:54:25.386 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.332016 viewDec=28.22777
+01-31 23:54:25.397 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,444, 0,761, 0,473) up(0,466, 0,647, -0,604) target(RA=117,8, Dec=24,6) dist=4,21° arrow=105,5° focus=0,58
+01-31 23:54:25.397 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.244026 viewDec=28.198652
+01-31 23:54:25.408 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,443, 0,762, 0,472) up(0,468, 0,645, -0,604) target(RA=117,8, Dec=24,6) dist=4,13° arrow=106,2° focus=0,59
+01-31 23:54:25.408 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.15636 viewDec=28.15382
+01-31 23:54:25.418 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,442, 0,763, 0,471) up(0,469, 0,645, -0,604) target(RA=117,8, Dec=24,6) dist=4,06° arrow=106,7° focus=0,59
+01-31 23:54:25.418 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=120.08359 viewDec=28.113268
+01-31 23:54:25.464 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,441, 0,764, 0,470) up(0,471, 0,643, -0,604) target(RA=117,8, Dec=24,6) dist=3,97° arrow=107,4° focus=0,60
+01-31 23:54:25.465 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.98946 viewDec=28.052689
+01-31 23:54:25.475 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,440, 0,765, 0,469) up(0,473, 0,642, -0,603) target(RA=117,8, Dec=24,6) dist=3,88° arrow=108,1° focus=0,61
+01-31 23:54:25.475 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.89671 viewDec=28.000404
+01-31 23:54:25.486 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,439, 0,766, 0,469) up(0,474, 0,641, -0,603) target(RA=117,8, Dec=24,6) dist=3,83° arrow=108,6° focus=0,62
+01-31 23:54:25.486 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.83752 viewDec=27.964207
+01-31 23:54:25.496 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,439, 0,767, 0,469) up(0,475, 0,641, -0,603) target(RA=117,8, Dec=24,6) dist=3,79° arrow=109,0° focus=0,62
+01-31 23:54:25.496 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.79761 viewDec=27.942944
+01-31 23:54:25.506 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,438, 0,767, 0,468) up(0,477, 0,640, -0,603) target(RA=117,8, Dec=24,6) dist=3,74° arrow=109,7° focus=0,63
+01-31 23:54:25.506 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.72294 viewDec=27.915136
+01-31 23:54:25.551 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,437, 0,768, 0,468) up(0,477, 0,639, -0,603) target(RA=117,8, Dec=24,6) dist=3,71° arrow=110,7° focus=0,63
+01-31 23:54:25.552 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.64353 viewDec=27.916096
+01-31 23:54:25.562 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,436, 0,768, 0,469) up(0,478, 0,639, -0,603) target(RA=117,8, Dec=24,6) dist=3,72° arrow=111,4° focus=0,63
+01-31 23:54:25.562 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.61015 viewDec=27.95013
+01-31 23:54:25.573 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,436, 0,768, 0,469) up(0,478, 0,640, -0,602) target(RA=117,8, Dec=24,6) dist=3,76° arrow=111,7° focus=0,62
+01-31 23:54:25.573 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.60956 viewDec=27.98685
+01-31 23:54:25.583 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,436, 0,768, 0,470) up(0,477, 0,640, -0,602) target(RA=117,8, Dec=24,6) dist=3,78° arrow=112,1° focus=0,62
+01-31 23:54:25.584 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.590065 viewDec=28.023638
+01-31 23:54:25.615 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,435, 0,768, 0,470) up(0,478, 0,640, -0,602) target(RA=117,8, Dec=24,6) dist=3,80° arrow=112,9° focus=0,62
+01-31 23:54:25.616 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.54531 viewDec=28.06058
+01-31 23:54:25.626 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,434, 0,768, 0,471) up(0,477, 0,640, -0,602) target(RA=117,8, Dec=24,6) dist=3,82° arrow=113,9° focus=0,62
+01-31 23:54:25.626 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.48739 viewDec=28.103914
+01-31 23:54:25.675 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,433, 0,768, 0,472) up(0,477, 0,639, -0,603) target(RA=117,8, Dec=24,6) dist=3,83° arrow=114,9° focus=0,62
+01-31 23:54:25.675 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.42148 viewDec=28.14117
+01-31 23:54:25.687 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,432, 0,768, 0,472) up(0,477, 0,639, -0,603) target(RA=117,8, Dec=24,6) dist=3,86° arrow=115,8° focus=0,61
+01-31 23:54:25.687 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.36428 viewDec=28.18785
+01-31 23:54:25.698 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,431, 0,768, 0,473) up(0,477, 0,639, -0,604) target(RA=117,8, Dec=24,6) dist=3,87° arrow=116,7° focus=0,61
+01-31 23:54:25.698 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.30409 viewDec=28.222532
+01-31 23:54:25.708 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,431, 0,769, 0,473) up(0,477, 0,639, -0,604) target(RA=117,8, Dec=24,6) dist=3,88° arrow=117,4° focus=0,61
+01-31 23:54:25.709 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.25648 viewDec=28.247454
+01-31 23:54:25.753 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,768, 0,474) up(0,476, 0,639, -0,604) target(RA=117,8, Dec=24,6) dist=3,90° arrow=117,6° focus=0,61
+01-31 23:54:25.753 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.24366 viewDec=28.269707
+01-31 23:54:25.764 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,431, 0,768, 0,474) up(0,476, 0,639, -0,604) target(RA=117,8, Dec=24,6) dist=3,92° arrow=117,2° focus=0,61
+01-31 23:54:25.764 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.282295 viewDec=28.282269
+01-31 23:54:25.774 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,431, 0,768, 0,474) up(0,475, 0,640, -0,604) target(RA=117,8, Dec=24,6) dist=3,94° arrow=116,6° focus=0,61
+01-31 23:54:25.775 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.331116 viewDec=28.284239
+01-31 23:54:25.785 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,432, 0,768, 0,474) up(0,475, 0,640, -0,604) target(RA=117,8, Dec=24,6) dist=3,93° arrow=116,1° focus=0,61
+01-31 23:54:25.785 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.36446 viewDec=28.270891
+01-31 23:54:25.794 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,432, 0,767, 0,474) up(0,474, 0,640, -0,604) target(RA=117,8, Dec=24,6) dist=3,95° arrow=115,7° focus=0,61
+01-31 23:54:25.795 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.39476 viewDec=28.272379
+01-31 23:54:25.839 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,433, 0,767, 0,474) up(0,474, 0,640, -0,604) target(RA=117,8, Dec=24,6) dist=3,95° arrow=115,4° focus=0,61
+01-31 23:54:25.840 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.41731 viewDec=28.268026
+01-31 23:54:25.851 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,433, 0,767, 0,473) up(0,474, 0,640, -0,604) target(RA=117,8, Dec=24,6) dist=3,94° arrow=115,3° focus=0,61
+01-31 23:54:25.851 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.42388 viewDec=28.259562
+01-31 23:54:25.862 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,433, 0,767, 0,473) up(0,474, 0,640, -0,604) target(RA=117,8, Dec=24,6) dist=3,93° arrow=115,2° focus=0,61
+01-31 23:54:25.862 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.42623 viewDec=28.242199
+01-31 23:54:25.872 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,433, 0,768, 0,473) up(0,474, 0,640, -0,605) target(RA=117,8, Dec=24,6) dist=3,90° arrow=115,2° focus=0,61
+01-31 23:54:25.872 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.415825 viewDec=28.22093
+01-31 23:54:25.918 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,432, 0,768, 0,472) up(0,475, 0,639, -0,605) target(RA=117,8, Dec=24,6) dist=3,86° arrow=115,5° focus=0,61
+01-31 23:54:25.918 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.37606 viewDec=28.184277
+01-31 23:54:25.929 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,432, 0,769, 0,472) up(0,476, 0,638, -0,605) target(RA=117,8, Dec=24,6) dist=3,79° arrow=115,9° focus=0,62
+01-31 23:54:25.929 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.32455 viewDec=28.134253
+01-31 23:54:25.939 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,431, 0,770, 0,471) up(0,477, 0,637, -0,605) target(RA=117,8, Dec=24,6) dist=3,72° arrow=116,3° focus=0,63
+01-31 23:54:25.939 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.26317 viewDec=28.075563
+01-31 23:54:25.950 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,431, 0,771, 0,470) up(0,478, 0,636, -0,606) target(RA=117,8, Dec=24,6) dist=3,65° arrow=116,9° focus=0,64
+01-31 23:54:25.950 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.197655 viewDec=28.016182
+01-31 23:54:25.997 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,771, 0,469) up(0,479, 0,635, -0,606) target(RA=117,8, Dec=24,6) dist=3,59° arrow=117,6° focus=0,64
+01-31 23:54:25.998 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35605 az=10.436617 viewRa=119.13494 viewDec=27.973848
+01-31 23:54:26.008 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,772, 0,469) up(0,480, 0,635, -0,605) target(RA=117,8, Dec=24,6) dist=3,55° arrow=118,0° focus=0,64
+01-31 23:54:26.008 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.09613 viewDec=27.949512
+01-31 23:54:26.019 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,772, 0,468) up(0,481, 0,634, -0,605) target(RA=117,8, Dec=24,6) dist=3,52° arrow=117,9° focus=0,65
+01-31 23:54:26.019 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.09184 viewDec=27.915174
+01-31 23:54:26.030 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,773, 0,467) up(0,481, 0,634, -0,606) target(RA=117,8, Dec=24,6) dist=3,45° arrow=117,9° focus=0,66
+01-31 23:54:26.030 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.06803 viewDec=27.847027
+01-31 23:54:26.075 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,429, 0,774, 0,466) up(0,482, 0,633, -0,606) target(RA=117,8, Dec=24,6) dist=3,38° arrow=118,3° focus=0,66
+01-31 23:54:26.076 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.0194 viewDec=27.787012
+01-31 23:54:26.087 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,429, 0,774, 0,466) up(0,482, 0,632, -0,606) target(RA=117,8, Dec=24,6) dist=3,36° arrow=118,5° focus=0,66
+01-31 23:54:26.087 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.00178 viewDec=27.774878
+01-31 23:54:26.098 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,429, 0,774, 0,466) up(0,482, 0,632, -0,606) target(RA=117,8, Dec=24,6) dist=3,36° arrow=118,3° focus=0,66
+01-31 23:54:26.098 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.00917 viewDec=27.767336
+01-31 23:54:26.109 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,774, 0,466) up(0,482, 0,633, -0,607) target(RA=117,8, Dec=24,6) dist=3,36° arrow=117,8° focus=0,66
+01-31 23:54:26.109 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.03917 viewDec=27.761444
+01-31 23:54:26.154 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,774, 0,465) up(0,481, 0,632, -0,607) target(RA=117,8, Dec=24,6) dist=3,33° arrow=117,3° focus=0,67
+01-31 23:54:26.154 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.05742 viewDec=27.728271
+01-31 23:54:26.164 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,774, 0,465) up(0,482, 0,632, -0,607) target(RA=117,8, Dec=24,6) dist=3,28° arrow=117,4° focus=0,67
+01-31 23:54:26.165 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.03245 viewDec=27.67834
+01-31 23:54:26.175 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,775, 0,464) up(0,482, 0,631, -0,608) target(RA=117,8, Dec=24,6) dist=3,24° arrow=117,5° focus=0,68
+01-31 23:54:26.175 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.00977 viewDec=27.640116
+01-31 23:54:26.185 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,775, 0,464) up(0,482, 0,631, -0,607) target(RA=117,8, Dec=24,6) dist=3,24° arrow=117,3° focus=0,68
+01-31 23:54:26.185 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.02679 viewDec=27.64116
+01-31 23:54:26.217 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,775, 0,464) up(0,482, 0,631, -0,607) target(RA=117,8, Dec=24,6) dist=3,23° arrow=117,0° focus=0,68
+01-31 23:54:26.217 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.03832 viewDec=27.623066
+01-31 23:54:26.228 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,430, 0,775, 0,463) up(0,483, 0,631, -0,607) target(RA=117,8, Dec=24,6) dist=3,18° arrow=117,4° focus=0,68
+01-31 23:54:26.228 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=119.004265 viewDec=27.588453
+01-31 23:54:26.276 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,429, 0,776, 0,462) up(0,484, 0,630, -0,607) target(RA=117,8, Dec=24,6) dist=3,13° arrow=118,1° focus=0,69
+01-31 23:54:26.277 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.94048 viewDec=27.546072
+01-31 23:54:26.287 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,429, 0,776, 0,462) up(0,485, 0,629, -0,607) target(RA=117,8, Dec=24,6) dist=3,09° arrow=118,6° focus=0,69
+01-31 23:54:26.287 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.90319 viewDec=27.520489
+01-31 23:54:26.298 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,428, 0,777, 0,462) up(0,486, 0,629, -0,607) target(RA=117,8, Dec=24,6) dist=3,06° arrow=118,9° focus=0,69
+01-31 23:54:26.298 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.87713 viewDec=27.49554
+01-31 23:54:26.308 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,428, 0,777, 0,461) up(0,487, 0,628, -0,607) target(RA=117,8, Dec=24,6) dist=3,00° arrow=119,6° focus=0,70
+01-31 23:54:26.308 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.823074 viewDec=27.447536
+01-31 23:54:26.318 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,428, 0,778, 0,460) up(0,488, 0,627, -0,607) target(RA=117,8, Dec=24,6) dist=2,96° arrow=119,8° focus=0,70
+01-31 23:54:26.318 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.79462 viewDec=27.414288
+01-31 23:54:26.363 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,428, 0,778, 0,460) up(0,488, 0,627, -0,607) target(RA=117,8, Dec=24,6) dist=2,93° arrow=119,6° focus=0,71
+01-31 23:54:26.364 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.800545 viewDec=27.383816
+01-31 23:54:26.375 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,428, 0,779, 0,459) up(0,488, 0,626, -0,608) target(RA=117,8, Dec=24,6) dist=2,87° arrow=119,6° focus=0,71
+01-31 23:54:26.375 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.77951 viewDec=27.323795
+01-31 23:54:26.385 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,427, 0,780, 0,458) up(0,489, 0,625, -0,608) target(RA=117,8, Dec=24,6) dist=2,79° arrow=119,9° focus=0,72
+01-31 23:54:26.386 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.73589 viewDec=27.253548
+01-31 23:54:26.396 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,427, 0,780, 0,457) up(0,489, 0,625, -0,609) target(RA=117,8, Dec=24,6) dist=2,74° arrow=119,8° focus=0,73
+01-31 23:54:26.396 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.721565 viewDec=27.201574
+01-31 23:54:26.442 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,428, 0,780, 0,457) up(0,489, 0,625, -0,609) target(RA=117,8, Dec=24,6) dist=2,72° arrow=119,3° focus=0,73
+01-31 23:54:26.442 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.7408 viewDec=27.173815
+01-31 23:54:26.453 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,428, 0,780, 0,456) up(0,489, 0,624, -0,609) target(RA=117,8, Dec=24,6) dist=2,68° arrow=118,6° focus=0,73
+01-31 23:54:26.453 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.762314 viewDec=27.131466
+01-31 23:54:26.464 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,428, 0,781, 0,455) up(0,489, 0,624, -0,610) target(RA=117,8, Dec=24,6) dist=2,62° arrow=118,4° focus=0,74
+01-31 23:54:26.464 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.75229 viewDec=27.070068
+01-31 23:54:26.476 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,428, 0,782, 0,454) up(0,490, 0,623, -0,610) target(RA=117,8, Dec=24,6) dist=2,54° arrow=118,8° focus=0,75
+01-31 23:54:26.476 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.7048 viewDec=26.993626
+01-31 23:54:26.522 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,428, 0,782, 0,453) up(0,491, 0,622, -0,611) target(RA=117,8, Dec=24,6) dist=2,47° arrow=119,3° focus=0,75
+01-31 23:54:26.522 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.66024 viewDec=26.937155
+01-31 23:54:26.533 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,427, 0,783, 0,452) up(0,491, 0,621, -0,611) target(RA=117,8, Dec=24,6) dist=2,42° arrow=119,4° focus=0,76
+01-31 23:54:26.533 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.63691 viewDec=26.888746
+01-31 23:54:26.544 11489 11489 D SearchArrowView: SEARCH_VECTORS: view(-0,427, 0,783, 0,451) up(0,492, 0,620, -0,611) target(RA=117,8, Dec=24,6) dist=2,35° arrow=119,7° focus=0,76
+01-31 23:54:26.544 11489 11489 D SkyMapActivity: SEARCH_VISIBILITY: target=Moon alt=66.35681 az=10.427326 viewRa=118.60347 viewDec=26.830158

@@ -64,6 +64,15 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     /** Extra key for the selected result object ID */
     public static final String EXTRA_RESULT_ID = "result_id";
 
+    /** Extra key for observer latitude */
+    public static final String EXTRA_OBSERVER_LAT = "observer_lat";
+
+    /** Extra key for observer longitude */
+    public static final String EXTRA_OBSERVER_LON = "observer_lon";
+
+    /** Extra key for observation time (ms) */
+    public static final String EXTRA_OBSERVATION_TIME = "observation_time";
+
     // Injected dependencies
     @Inject
     StarRepository starRepository;
@@ -83,6 +92,10 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     // Search
     private SearchIndex searchIndex;
     private SearchResultAdapter adapter;
+    private boolean hasObserver = false;
+    private double observerLat = 0.0;
+    private double observerLon = 0.0;
+    private long observationTimeMillis = System.currentTimeMillis();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +105,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         // Inject dependencies
         ((AstroApplication) getApplication()).getAppComponent().inject(this);
 
+        readObserverExtras();
         initializeViews();
         initializeSearchIndex();
         setupListeners();
@@ -123,11 +137,28 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 
         // Setup RecyclerView
         adapter = new SearchResultAdapter(this);
+        if (hasObserver) {
+            adapter.setObserver(observerLat, observerLon, observationTimeMillis);
+        }
         rvResults.setLayoutManager(new LinearLayoutManager(this));
         rvResults.setAdapter(adapter);
 
         // Show empty state initially
         showEmptyState();
+    }
+
+    private void readObserverExtras() {
+        Intent intent = getIntent();
+        if (intent == null) {
+            return;
+        }
+
+        if (intent.hasExtra(EXTRA_OBSERVER_LAT) && intent.hasExtra(EXTRA_OBSERVER_LON)) {
+            observerLat = intent.getDoubleExtra(EXTRA_OBSERVER_LAT, 0.0);
+            observerLon = intent.getDoubleExtra(EXTRA_OBSERVER_LON, 0.0);
+            observationTimeMillis = intent.getLongExtra(EXTRA_OBSERVATION_TIME, System.currentTimeMillis());
+            hasObserver = true;
+        }
     }
 
     /**

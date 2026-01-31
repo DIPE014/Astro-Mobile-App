@@ -90,6 +90,31 @@ This 3×3 matrix converts any direction in phone coordinates to celestial coordi
 
 ---
 
+## 5. Search Arrow Guidance (Navigation)
+
+When you select a planet or star from search, the app shows a guidance arrow. The arrow is **roll-aware** so it matches the screen orientation even if the phone is tilted.
+
+### How the Arrow Direction is Computed
+1. **Line of sight vector**: where the phone is pointing (from sensor matrix math).
+2. **Perpendicular vector**: the "up" direction on screen (also from the sensor matrix).
+3. **Target vector**: RA/Dec converted into a 3D unit vector.
+
+We project the target vector onto the view plane using the **right** and **up** axes, then convert that into a screen angle:
+
+```
+right = up × view
+screenRight = -dot(targetRel, right)
+screenUp = dot(targetRel, up)
+arrowAngle = atan2(screenUp, screenRight)
+```
+
+This avoids left/right mirroring and keeps the arrow stable regardless of roll.
+
+### When the Arrow Hides
+If the target is inside the camera field of view, we **hide only the arrow** (to reduce jitter) but keep search mode active. The highlight ring on the target remains visible so the user can finish visually.
+
+---
+
 ## 5. The Star Database
 
 ### Storage Format: Protocol Buffers (Protobuf)

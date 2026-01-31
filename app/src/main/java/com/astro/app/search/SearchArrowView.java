@@ -14,6 +14,8 @@ import android.view.animation.AccelerateDecelerateInterpolator;
 
 import androidx.annotation.Nullable;
 
+import com.astro.app.core.math.Vector3;
+
 /**
  * Custom view that displays an arrow pointing toward a celestial target.
  *
@@ -77,6 +79,7 @@ public class SearchArrowView extends View {
     private float focusProgress = 0f;  // 0 = off-screen, 1 = centered
     private float arrowAngle = 0f;     // Angle in radians
     private float distance = 1f;        // 0 = very close, 1 = far away
+    private boolean arrowVisible = true;
 
     // Dimensions
     private static final float ARROW_SIZE = 80f;
@@ -199,6 +202,7 @@ public class SearchArrowView extends View {
     public void clearTarget() {
         this.isActive = false;
         this.targetName = "";
+        this.arrowVisible = true;
         pulseAnimator.cancel();
         invalidate();
     }
@@ -244,6 +248,62 @@ public class SearchArrowView extends View {
         if (focusProgress >= 0.95f && oldProgress < 0.95f && targetCenteredListener != null) {
             targetCenteredListener.onTargetCentered();
         }
+
+        invalidate();
+    }
+
+    /**
+     * Updates pointing using view direction and screen "up" vector.
+     * This accounts for device roll by using the provided perpendicular vector.
+     *
+     * @param viewDir Unit vector for view direction in celestial coords
+     * @param upDir   Unit vector for screen-up direction in celestial coords
+     */
+    public void updatePointing(@Nullable Vector3 viewDir, @Nullable Vector3 upDir) {
+        if (!isActive || viewDir == null || upDir == null) {
+            return;
+        }
+
+        // Target vector from RA/Dec
+        double targetRaRad = Math.toRadians(targetRa);
+        double targetDecRad = Math.toRadians(targetDec);
+        Vector3 targetVec = new Vector3(
+                (float) (Math.cos(targetDecRad) * Math.cos(targetRaRad)),
+                (float) (Math.cos(targetDecRad) * Math.sin(targetRaRad)),
+                (float) Math.sin(targetDecRad)
+        );
+
+        Vector3 view = viewDir.normalizedCopy();
+        Vector3 up = upDir.normalizedCopy();
+        Vector3 right = up.times(view);
+        right.normalize();
+
+        // Angular distance from view to target
+        float dot = view.dot(targetVec);
+        dot = Math.max(-1f, Math.min(1f, dot));
+        double angularDistance = Math.toDegrees(Math.acos(dot));
+        this.distance = (float) Math.min(1.0, angularDistance / 90.0);
+
+        // Project target into view plane
+        Vector3 rel = targetVec.minus(view);
+        float screenRight = -rel.dot(right);
+        float screenUp = rel.dot(up);
+        this.arrowAngle = (float) Math.atan2(screenUp, screenRight);
+
+        float oldProgress = this.focusProgress;
+        this.focusProgress = 1f - Math.min(1f, (float) angularDistance / 10f);
+
+        if (focusProgress >= 0.95f && oldProgress < 0.95f && targetCenteredListener != null) {
+            targetCenteredListener.onTargetCentered();
+        }
+
+        android.util.Log.d(TAG, String.format(
+                "SEARCH_VECTORS: view(%.3f, %.3f, %.3f) up(%.3f, %.3f, %.3f) " +
+                        "target(RA=%.1f, Dec=%.1f) dist=%.2f° arrow=%.1f° focus=%.2f",
+                view.x, view.y, view.z,
+                up.x, up.y, up.z,
+                targetRa, targetDec, angularDistance,
+                Math.toDegrees(arrowAngle), focusProgress));
 
         invalidate();
     }
@@ -402,13 +462,10 @@ public class SearchArrowView extends View {
         arrowPaint.setColor(arrowColor);
 
         // Draw based on focus state
-        if (focusProgress < 0.9f) {
+        if (arrowVisible && focusProgress < 0.9f) {
             // Target is off-center: draw arrow
             drawArrow(canvas, centerX, centerY);
         }
-
-        // Draw circle indicator
-        drawCircleIndicator(canvas, centerX, centerY);
 
         // Draw target name
         if (!targetName.isEmpty()) {
@@ -423,6 +480,14 @@ public class SearchArrowView extends View {
         labelPaint.setTextSize(24f);
         canvas.drawText("Tap X to dismiss", centerX, height - 40, labelPaint);
         labelPaint.setTextSize(32f);  // Reset
+    }
+
+    /**
+     * Controls whether the directional arrow is drawn.
+     */
+    public void setArrowVisible(boolean visible) {
+        this.arrowVisible = visible;
+        invalidate();
     }
 
     /**
