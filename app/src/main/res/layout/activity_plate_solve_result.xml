@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_dark"
+    tools:context=".ui.platesolve.PlateSolveResultActivity">
+
+    <!-- Top Control Bar -->
+    <LinearLayout
+        android:id="@+id/topControls"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/overlay_dark"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/padding_small"
+        android:paddingVertical="@dimen/padding_extra_small"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Back Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBack"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:contentDescription="@string/cd_back_button"
+            app:icon="@android:drawable/ic_menu_revert"
+            app:iconTint="@color/icon_primary"
+            app:rippleColor="@color/ripple" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/plate_solve_result_title"
+            android:textAppearance="@style/TextAppearance.AstroApp.TitleLarge"
+            android:textColor="@color/text_primary" />
+
+        <!-- Spacer to balance the back button -->
+        <View
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min" />
+
+    </LinearLayout>
+
+    <!-- Image Container with Overlay -->
+    <FrameLayout
+        android:id="@+id/imageContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/margin_small"
+        app:layout_constraintBottom_toTopOf="@id/resultPanel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topControls">
+
+        <!-- Captured Photo -->
+        <ImageView
+            android:id="@+id/ivCapturedPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/plate_solve_captured_image"
+            android:scaleType="fitCenter"
+            tools:src="@android:drawable/ic_menu_gallery" />
+
+        <!-- Star Overlay View (Custom View) -->
+        <com.astro.app.ui.platesolve.StarOverlayView
+            android:id="@+id/starOverlayView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
+
+    <!-- Result Panel -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/resultPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="@color/sky_map_info_panel"
+        app:cardCornerRadius="@dimen/card_corner_radius"
+        app:cardElevation="@dimen/elevation_medium"
+        app:layout_constraintBottom_toTopOf="@id/rvDetectedStars"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/padding_medium">
+
+            <!-- Status Indicator -->
+            <LinearLayout
+                android:id="@+id/statusContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:id="@+id/ivStatusIcon"
+                    android:layout_width="@dimen/icon_size_medium"
+                    android:layout_height="@dimen/icon_size_medium"
+                    android:contentDescription="@string/plate_solve_status"
+                    android:src="@android:drawable/ic_dialog_info"
+                    app:tint="@color/success"
+                    tools:tint="@color/success" />
+
+                <TextView
+                    android:id="@+id/tvStatusText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:textAppearance="@style/TextAppearance.AstroApp.TitleMedium"
+                    android:textColor="@color/text_primary"
+                    tools:text="Success" />
+
+            </LinearLayout>
+
+            <!-- Matched Stars Count -->
+            <TextView
+                android:id="@+id/tvMatchedStars"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                android:textColor="@color/tertiary"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="Matched 12 stars" />
+
+            <!-- Divider -->
+            <View
+                android:id="@+id/divider1"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/divider_height"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:background="@color/divider"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/statusContainer" />
+
+            <!-- Coordinates Row -->
+            <LinearLayout
+                android:id="@+id/coordinatesRow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/divider1">
+
+                <!-- Center RA -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/plate_solve_center_ra"
+                        android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                        android:textColor="@color/text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvCenterRa"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                        android:textColor="@color/text_primary"
+                        tools:text="5h 35m" />
+
+                </LinearLayout>
+
+                <!-- Center Dec -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/plate_solve_center_dec"
+                        android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                        android:textColor="@color/text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvCenterDec"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                        android:textColor="@color/text_primary"
+                        tools:text="-5° 23'" />
+
+                </LinearLayout>
+
+                <!-- FOV -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/plate_solve_fov"
+                        android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                        android:textColor="@color/text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvFov"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                        android:textColor="@color/text_primary"
+                        tools:text="68.5°" />
+
+                </LinearLayout>
+
+                <!-- Roll -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/plate_solve_roll"
+                        android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                        android:textColor="@color/text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvRoll"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                        android:textColor="@color/text_primary"
+                        tools:text="12.3°" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Detected Stars List Header -->
+    <TextView
+        android:id="@+id/tvDetectedStarsHeader"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/padding_medium"
+        android:paddingVertical="@dimen/padding_small"
+        android:text="@string/plate_solve_detected_stars"
+        android:textAppearance="@style/TextAppearance.AstroApp.TitleSmall"
+        android:textColor="@color/text_secondary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/resultPanel" />
+
+    <!-- Detected Stars RecyclerView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvDetectedStars"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/padding_medium"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDetectedStarsHeader"
+        tools:itemCount="5"
+        tools:listitem="@layout/item_detected_star" />
+
+    <!-- Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/scrim"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                app:indicatorColor="@color/primary"
+                app:indicatorSize="@dimen/progress_indicator_size"
+                app:trackColor="@color/surface_variant"
+                app:trackThickness="@dimen/progress_indicator_stroke_width" />
+
+            <TextView
+                android:id="@+id/tvLoadingMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:text="@string/plate_solve_solving"
+                android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                android:textColor="@color/text_primary" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!-- Error State (shown when solve fails) -->
+    <LinearLayout
+        android:id="@+id/errorState"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_large"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topControls"
+        tools:visibility="gone">
+
+        <ImageView
+            android:layout_width="@dimen/icon_size_giant"
+            android:layout_height="@dimen/icon_size_giant"
+            android:contentDescription="@string/error_generic"
+            android:src="@android:drawable/ic_dialog_alert"
+            app:tint="@color/error" />
+
+        <TextView
+            android:id="@+id/tvErrorTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_medium"
+            android:text="@string/plate_solve_failed"
+            android:textAppearance="@style/TextAppearance.AstroApp.TitleLarge"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:id="@+id/tvErrorMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:gravity="center"
+            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+            android:textColor="@color/text_secondary"
+            tools:text="No matching star pattern found" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRetry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_large"
+            android:text="@string/plate_solve_try_again"
+            app:rippleColor="@color/ripple_primary" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

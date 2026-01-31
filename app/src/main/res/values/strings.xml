@@ -264,4 +264,33 @@
     <string name="empty_favorites_description">Tap the star icon on any celestial object to add it to your favorites.</string>
     <string name="empty_search">Start searching</string>
     <string name="empty_search_description">Search for stars, planets, constellations, and more.</string>
+
+    <!-- Plate Solve / Star Detection -->
+    <string name="plate_solve_capture_title">Identify Stars</string>
+    <string name="plate_solve_result_title">Solve Result</string>
+    <string name="plate_solve_capture_button">Capture photo of night sky</string>
+    <string name="plate_solve_status_ready">Point at the sky and tap to capture</string>
+    <string name="plate_solve_hint">For best results, hold steady and capture a clear view of the stars</string>
+    <string name="plate_solve_capturing">Capturing image...</string>
+    <string name="plate_solve_solving">Analyzing star patterns...</string>
+    <string name="plate_solve_captured_image">Captured night sky photo</string>
+    <string name="plate_solve_status">Solve status</string>
+    <string name="plate_solve_success">Success</string>
+    <string name="plate_solve_failed">Solve Failed</string>
+    <string name="plate_solve_no_match">No Match Found</string>
+    <string name="plate_solve_not_enough_stars">Not Enough Stars</string>
+    <string name="plate_solve_error">Error</string>
+    <string name="plate_solve_matched_stars">Matched %1$d stars</string>
+    <string name="plate_solve_detected_stars">Detected Stars</string>
+    <string name="plate_solve_center_ra">Center RA</string>
+    <string name="plate_solve_center_dec">Center Dec</string>
+    <string name="plate_solve_fov">FOV</string>
+    <string name="plate_solve_roll">Roll</string>
+    <string name="plate_solve_try_again">Try Again</string>
+    <string name="plate_solve_no_match_message">Could not match the star pattern. Try capturing a clearer image with more visible stars.</string>
+    <string name="plate_solve_not_enough_stars_message">Only %1$d stars detected. Need at least 4 stars for identification.</string>
+    <string name="plate_solve_error_message">An error occurred: %1$s</string>
+    <string name="plate_solve_hip_id">HIP %1$d</string>
+    <string name="plate_solve_pixel_coords">(%1$.0f, %2$.0f)</string>
+    <string name="identify_stars">Identify Stars</string>
 </resources>

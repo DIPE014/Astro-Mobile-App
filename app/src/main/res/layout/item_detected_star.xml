@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="@dimen/padding_medium"
+    android:paddingVertical="@dimen/padding_small">
+
+    <!-- Star Icon -->
+    <ImageView
+        android:id="@+id/ivStarIcon"
+        android:layout_width="@dimen/icon_size_medium"
+        android:layout_height="@dimen/icon_size_medium"
+        android:contentDescription="@string/cd_star_icon"
+        android:src="@android:drawable/btn_star_big_on"
+        app:tint="@color/star_highlight" />
+
+    <!-- Star Info -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_medium"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Star Name -->
+        <TextView
+            android:id="@+id/tvStarName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+            android:textColor="@color/text_primary"
+            tools:text="Betelgeuse" />
+
+        <!-- HIP ID -->
+        <TextView
+            android:id="@+id/tvHipId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+            android:textColor="@color/text_tertiary"
+            tools:text="HIP 27989" />
+
+    </LinearLayout>
+
+    <!-- Pixel Coordinates -->
+    <TextView
+        android:id="@+id/tvPixelCoords"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+        android:textColor="@color/text_secondary"
+        tools:text="(512, 384)" />
+
+</LinearLayout>

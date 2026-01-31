@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_dark"
+    tools:context=".ui.platesolve.PhotoCaptureActivity">
+
+    <!-- Camera Preview (Fullscreen) -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/previewView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Top Control Bar -->
+    <LinearLayout
+        android:id="@+id/topControls"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/overlay_dark"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/padding_small"
+        android:paddingVertical="@dimen/padding_extra_small"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Back Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBack"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:contentDescription="@string/cd_back_button"
+            app:icon="@android:drawable/ic_menu_revert"
+            app:iconTint="@color/icon_primary"
+            app:rippleColor="@color/ripple" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/plate_solve_capture_title"
+            android:textAppearance="@style/TextAppearance.AstroApp.TitleLarge"
+            android:textColor="@color/text_primary" />
+
+        <!-- Spacer to balance the back button -->
+        <View
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min" />
+
+    </LinearLayout>
+
+    <!-- Status Text -->
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/margin_large"
+        android:layout_marginTop="@dimen/margin_medium"
+        android:gravity="center"
+        android:text="@string/plate_solve_status_ready"
+        android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+        android:textColor="@color/text_secondary"
+        android:background="@drawable/bg_gps_indicator"
+        android:paddingHorizontal="@dimen/padding_medium"
+        android:paddingVertical="@dimen/padding_small"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topControls" />
+
+    <!-- Capture Button Container -->
+    <FrameLayout
+        android:id="@+id/captureButtonContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_extra_large"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- Capture Button (FAB Style) -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabCapture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/plate_solve_capture_button"
+            android:src="@android:drawable/ic_menu_camera"
+            app:fabSize="auto"
+            app:fabCustomSize="72dp"
+            app:tint="@color/on_primary"
+            app:backgroundTint="@color/primary"
+            app:rippleColor="@color/ripple_primary" />
+
+    </FrameLayout>
+
+    <!-- Hint Text at Bottom -->
+    <TextView
+        android:id="@+id/tvHint"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/margin_medium"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:gravity="center"
+        android:text="@string/plate_solve_hint"
+        android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+        android:textColor="@color/text_tertiary"
+        app:layout_constraintBottom_toTopOf="@id/captureButtonContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/scrim"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/progressIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                app:indicatorColor="@color/primary"
+                app:indicatorSize="@dimen/progress_indicator_size"
+                app:trackColor="@color/surface_variant"
+                app:trackThickness="@dimen/progress_indicator_stroke_width" />
+
+            <TextView
+                android:id="@+id/tvLoadingMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:text="@string/plate_solve_capturing"
+                android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                android:textColor="@color/text_primary" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

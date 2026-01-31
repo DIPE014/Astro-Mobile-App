@@ -53,6 +53,17 @@
             android:theme="@style/Theme.AstroApp"
             android:windowSoftInputMode="adjustResize" />
 
+        <activity
+            android:name=".ui.platesolve.PhotoCaptureActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AstroApp.Fullscreen" />
+
+        <activity
+            android:name=".ui.platesolve.PlateSolveResultActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AstroApp" />
+
     </application>
 
 </manifest>

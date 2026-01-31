@@ -1,6 +1,8 @@
 package com.astro.app.di;
 
 import com.astro.app.AstroApplication;
+import com.astro.app.ui.platesolve.PhotoCaptureActivity;
+import com.astro.app.ui.platesolve.PlateSolveResultActivity;
 import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.skymap.SkyMapActivity;
@@ -52,6 +54,20 @@ public interface AppComponent {
      * @param activity the activity instance to inject into
      */
     void inject(SearchActivity activity);
+
+    /**
+     * Injects dependencies into the PhotoCaptureActivity.
+     *
+     * @param activity the activity instance to inject into
+     */
+    void inject(PhotoCaptureActivity activity);
+
+    /**
+     * Injects dependencies into the PlateSolveResultActivity.
+     *
+     * @param activity the activity instance to inject into
+     */
+    void inject(PlateSolveResultActivity activity);
 
     /**
      * Builder interface for creating AppComponent instances.

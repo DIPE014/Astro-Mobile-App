@@ -2,10 +2,10 @@
 
 ## Current Status
 
-**Phase**: 3 (PlateSolveService)
+**Phase**: 4 (UI)
 **Last Updated**: 2026-02-01
-**Last Task Completed**: Phase 2 complete - Camera Capture with ImageCapture use case
-**Next Task**: Create ml/model/SolveStatus.java enum
+**Last Task Completed**: Phase 3 complete - PlateSolveService with Hipparcos ID support
+**Next Task**: Create activity_photo_capture.xml layout
 
 ---
 
@@ -28,16 +28,16 @@
 - [x] Test: Build compiles with ImageCapture
 - [x] Commit: `[feat] Add ImageCapture support to CameraManager`
 
-### Phase 3: PlateSolveService
-- [ ] Create `ml/model/SolveStatus.java` enum
-- [ ] Create `ml/model/DetectedStar.java`
-- [ ] Create `ml/PlateSolveResult.java`
-- [ ] Create `ml/PlateSolveCallback.java`
-- [ ] Create `ml/PlateSolveService.java`
-- [ ] Add `hipparcosId` field to `StarData.java`
-- [ ] Add `getStarByHipparcosId()` to `StarRepository.java`
-- [ ] Test: Service can call Python and parse response
-- [ ] Commit changes
+### Phase 3: PlateSolveService - COMPLETE
+- [x] Create `ml/model/SolveStatus.java` enum
+- [x] Create `ml/model/DetectedStar.java`
+- [x] Create `ml/PlateSolveResult.java`
+- [x] Create `ml/PlateSolveCallback.java`
+- [x] Create `ml/PlateSolveService.java`
+- [x] Add `hipparcosId` field to `StarData.java`
+- [x] Add `getStarByHipparcosId()` to `StarRepository.java`
+- [x] Test: Build compiles, all tests pass
+- [x] Commit: `[feat] Add PlateSolveService and Hipparcos ID support`
 
 ### Phase 4: UI
 - [ ] Create `activity_photo_capture.xml` layout
@@ -67,12 +67,13 @@
 - [x] Set up progress tracking (this file)
 - [x] **Phase 1: Chaquopy Setup** - commit 985cc3a
 - [x] **Phase 2: Camera Capture** - commit 2b37be0
+- [x] **Phase 3: PlateSolveService** - commit 1cd8648
 
 ---
 
 ## In Progress
 
-- [ ] Starting Phase 3: PlateSolveService
+- [ ] Starting Phase 4: UI
 
 ---
 
@@ -98,3 +99,4 @@
 |--------|-------------|-------|
 | 985cc3a | Add Chaquopy plugin for Python support | 1 |
 | 2b37be0 | Add ImageCapture support to CameraManager | 2 |
+| 1cd8648 | Add PlateSolveService and Hipparcos ID support | 3 |
