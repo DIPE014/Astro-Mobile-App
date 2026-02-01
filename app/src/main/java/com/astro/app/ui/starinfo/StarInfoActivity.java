@@ -63,6 +63,11 @@ public class StarInfoActivity extends AppCompatActivity {
     private TextView tvSpectralType;
     private TextView tvDistance;
     private TextView tvConstellation;
+    private View cardEducation;
+    private TextView tvEducationDisplayName;
+    private TextView tvEducationConstellation;
+    private TextView tvEducationFunFact;
+    private TextView tvEducationHistory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +102,11 @@ public class StarInfoActivity extends AppCompatActivity {
         tvSpectralType = findViewById(R.id.tvSpectralType);
         tvDistance = findViewById(R.id.tvDistance);
         tvConstellation = findViewById(R.id.tvConstellation);
+        cardEducation = findViewById(R.id.cardEducation);
+        tvEducationDisplayName = findViewById(R.id.tvEducationDisplayName);
+        tvEducationConstellation = findViewById(R.id.tvEducationConstellation);
+        tvEducationFunFact = findViewById(R.id.tvEducationFunFact);
+        tvEducationHistory = findViewById(R.id.tvEducationHistory);
     }
 
     /**
@@ -119,6 +129,9 @@ public class StarInfoActivity extends AppCompatActivity {
 
         // Observe constellation
         viewModel.getConstellation().observe(this, this::displayConstellation);
+
+        // Observe education content
+        viewModel.getEducationStar().observe(this, this::displayEducationContent);
 
         // Observe errors
         viewModel.getErrorMessage().observe(this, error -> {
@@ -210,6 +223,34 @@ public class StarInfoActivity extends AppCompatActivity {
 
         if (tvConstellation != null) {
             tvConstellation.setText(constellation.getName());
+        }
+    }
+
+    /**
+     * Displays education content if available.
+     */
+    private void displayEducationContent(@Nullable StarInfoViewModel.EducationStar educationStar) {
+        if (cardEducation != null) {
+            cardEducation.setVisibility(educationStar != null ? View.VISIBLE : View.GONE);
+        }
+        if (educationStar == null) {
+            return;
+        }
+
+        if (tvEducationDisplayName != null) {
+            tvEducationDisplayName.setText(educationStar.getDisplayName());
+        }
+        if (tvEducationConstellation != null) {
+            tvEducationConstellation.setText(educationStar.getConstellation());
+        }
+        if (tvConstellation != null) {
+            tvConstellation.setText(educationStar.getConstellation());
+        }
+        if (tvEducationFunFact != null) {
+            tvEducationFunFact.setText(educationStar.getFunFact());
+        }
+        if (tvEducationHistory != null) {
+            tvEducationHistory.setText(educationStar.getHistory());
         }
     }
 }

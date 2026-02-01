@@ -155,6 +155,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private String searchTargetName;
     private float searchTargetRa;
     private float searchTargetDec;
+    private String searchTargetConstellation;
     private boolean searchTargetBelowHorizonNotified = false;
     private boolean searchTargetInViewNotified = false;
     private float lastViewAzimuth = 0f;
@@ -1387,7 +1388,7 @@ public class SkyMapActivity extends AppCompatActivity {
             case Venus:
                 return 0xFFE6E6CC;    // Pale yellow
             case Mars:
-                return 0xFFFF6347;     // Red-orange
+                return 0xFF8B3A2E;     // Brown-red
             case Jupiter:
                 return 0xFFD4A574;  // Tan/brown
             case Saturn:
@@ -1445,6 +1446,8 @@ public class SkyMapActivity extends AppCompatActivity {
         searchTargetName = data.getStringExtra(SearchActivity.EXTRA_RESULT_NAME);
         searchTargetRa = data.getFloatExtra(SearchActivity.EXTRA_RESULT_RA, 0f);
         searchTargetDec = data.getFloatExtra(SearchActivity.EXTRA_RESULT_DEC, 0f);
+        searchTargetConstellation = data.getStringExtra(SearchActivity.EXTRA_RESULT_CONSTELLATION);
+        String searchTargetId = data.getStringExtra(SearchActivity.EXTRA_RESULT_ID);
         String resultType = data.getStringExtra(SearchActivity.EXTRA_RESULT_TYPE);
         searchTargetBelowHorizonNotified = false;
         searchTargetInViewNotified = false;
@@ -1457,7 +1460,7 @@ public class SkyMapActivity extends AppCompatActivity {
 
         Log.d(TAG, "Search target: " + searchTargetName + " at RA=" + searchTargetRa + ", Dec=" + searchTargetDec);
 
-        // Highlight selected planet in the sky view (if applicable)
+        // Highlight selected object in the sky view (if applicable)
         if (skyCanvasView != null) {
             if (resultType != null && (resultType.equals("PLANET") || resultType.equals("SUN") || resultType.equals("MOON"))) {
                 SolarSystemBody body = findSolarSystemBody(searchTargetName);
@@ -1470,15 +1473,24 @@ public class SkyMapActivity extends AppCompatActivity {
                     skyCanvasView.setPlanet(searchTargetName, searchTargetRa, searchTargetDec, 0xFFFF4444, 10f);
                     skyCanvasView.setHighlightedPlanet(searchTargetName);
                 }
+            } else if (resultType != null && resultType.equals("STAR")) {
+                StarData star = null;
+                if (searchTargetId != null && starRepository != null) {
+                    star = starRepository.getStarById(searchTargetId);
+                }
+                if (star == null && starRepository != null && searchTargetName != null) {
+                    star = starRepository.getStarByName(searchTargetName);
+                }
+                skyCanvasView.setHighlightedStar(star);
             } else {
-                skyCanvasView.setHighlightedPlanet(null);
+                skyCanvasView.clearHighlight();
             }
         }
 
         // Show search arrow to guide user to target
         // NOTE: Don't immediately set orientation - let the arrow guide the user
         if (searchArrowView != null) {
-            searchArrowView.setTarget(searchTargetRa, searchTargetDec, searchTargetName);
+            searchArrowView.setTarget(searchTargetRa, searchTargetDec, searchTargetName, searchTargetConstellation);
             searchArrowView.setVisibility(View.VISIBLE);
             searchArrowView.setOnClickListener(v -> clearSearchTarget());
 
@@ -1581,10 +1593,11 @@ public class SkyMapActivity extends AppCompatActivity {
             searchArrowView.setVisibility(View.GONE);
         }
         searchTargetName = null;
+        searchTargetConstellation = null;
         searchTargetBelowHorizonNotified = false;
         searchTargetInViewNotified = false;
         if (skyCanvasView != null) {
-            skyCanvasView.setHighlightedPlanet(null);
+            skyCanvasView.clearHighlight();
         }
     }
 
@@ -1767,6 +1780,9 @@ public class SkyMapActivity extends AppCompatActivity {
 
         // Create scrollable list
         ScrollView scrollView = new ScrollView(this);
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        scrollView.setLayoutParams(scrollParams);
         LinearLayout listLayout = new LinearLayout(this);
         listLayout.setOrientation(LinearLayout.VERTICAL);
 

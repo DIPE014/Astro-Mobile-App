@@ -33,7 +33,7 @@ import com.astro.app.core.math.Vector3;
  * <h3>Usage:</h3>
  * <pre>{@code
  * SearchArrowView arrowView = findViewById(R.id.searchArrow);
- * arrowView.setTarget(targetRa, targetDec, "Sirius");
+ * arrowView.setTarget(targetRa, targetDec, "Sirius", "Canis Major");
  * arrowView.updatePointing(currentRa, currentDec);
  * }</pre>
  */
@@ -45,6 +45,7 @@ public class SearchArrowView extends View {
     private Paint arrowPaint;
     private Paint circlePaint;
     private Paint labelPaint;
+    private Paint subtitlePaint;
     private Paint backgroundPaint;
     private Paint closeButtonPaint;
     private Paint closeButtonIconPaint;
@@ -69,6 +70,7 @@ public class SearchArrowView extends View {
     private float targetRa = 0f;
     private float targetDec = 0f;
     private String targetName = "";
+    private String targetSubtitle = "";
 
     // Current view direction (RA/Dec in degrees)
     private float viewRa = 0f;
@@ -127,6 +129,11 @@ public class SearchArrowView extends View {
         labelPaint.setTextSize(32f);
         labelPaint.setTextAlign(Paint.Align.CENTER);
 
+        subtitlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        subtitlePaint.setColor(COLOR_LABEL);
+        subtitlePaint.setTextSize(24f);
+        subtitlePaint.setTextAlign(Paint.Align.CENTER);
+
         // Background paint
         backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         backgroundPaint.setColor(COLOR_BACKGROUND);
@@ -183,9 +190,22 @@ public class SearchArrowView extends View {
      * @param name Target name for display
      */
     public void setTarget(float ra, float dec, String name) {
+        setTarget(ra, dec, name, null);
+    }
+
+    /**
+     * Sets the search target with an optional subtitle.
+     *
+     * @param ra        Target Right Ascension in degrees
+     * @param dec       Target Declination in degrees
+     * @param name      Target name for display
+     * @param subtitle  Secondary label (e.g., constellation name)
+     */
+    public void setTarget(float ra, float dec, String name, @Nullable String subtitle) {
         this.targetRa = ra;
         this.targetDec = dec;
         this.targetName = name != null ? name : "";
+        this.targetSubtitle = subtitle != null ? subtitle : "";
         this.isActive = true;
 
         // Start pulse animation
@@ -202,6 +222,7 @@ public class SearchArrowView extends View {
     public void clearTarget() {
         this.isActive = false;
         this.targetName = "";
+        this.targetSubtitle = "";
         this.arrowVisible = true;
         pulseAnimator.cancel();
         invalidate();
@@ -471,6 +492,9 @@ public class SearchArrowView extends View {
         if (!targetName.isEmpty()) {
             float labelY = centerY + (focusProgress > 0.5f ? 0 : ARROW_OFFSET + ARROW_SIZE);
             canvas.drawText(targetName, centerX, labelY + 50, labelPaint);
+            if (!targetSubtitle.isEmpty()) {
+                canvas.drawText(targetSubtitle, centerX, labelY + 90, subtitlePaint);
+            }
         }
 
         // Draw close button (X) in top-right corner

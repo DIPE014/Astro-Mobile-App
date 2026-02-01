@@ -49,6 +49,11 @@
     <string name="star_mass">Mass</string>
     <string name="star_info">Star Information</string>
     <string name="star_details">Star Details</string>
+    <string name="education_section_title">Education</string>
+    <string name="education_display_name">Display Name</string>
+    <string name="education_constellation">Constellation</string>
+    <string name="education_fun_fact">Fun Fact</string>
+    <string name="education_history">History</string>
 
     <!-- Celestial Objects -->
     <string name="object_star">Star</string>

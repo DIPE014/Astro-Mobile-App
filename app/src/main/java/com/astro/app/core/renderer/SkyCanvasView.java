@@ -58,6 +58,7 @@ public class SkyCanvasView extends View {
 
     // Star data from repository
     private List<StarData> realStarData = new CopyOnWriteArrayList<>();
+    private final java.util.Set<String> topStarIds = new java.util.HashSet<>();
 
     // Planet data: name -> {ra, dec, color, size}
     private final java.util.Map<String, float[]> planetData = new HashMap<>();
@@ -89,7 +90,8 @@ public class SkyCanvasView extends View {
     // Reticle settings for center selection
     private static final int RETICLE_COLOR = Color.argb(80, 255, 255, 255);
     private static final int RETICLE_COLOR_NIGHT = Color.argb(80, 200, 100, 100);
-    private static final int HIGHLIGHT_COLOR = Color.argb(255, 255, 80, 80);  // Red for highlighted objects
+    private static final int HIGHLIGHT_COLOR = Color.argb(255, 80, 150, 255);  // Blue for highlighted objects
+    private static final int NIGHT_TOP_STAR_COLOR = Color.argb(255, 255, 215, 0); // Yellow for top stars
     private float reticleRadiusPx = 120f;  // Default 120 pixels radius
     private Paint reticlePaint;
 
@@ -98,7 +100,7 @@ public class SkyCanvasView extends View {
     private String highlightedPlanetName = null;
 
     // Rendered elements (computed from star data)
-    private List<float[]> stars = new CopyOnWriteArrayList<>();  // x, y, size, color
+    private List<float[]> stars = new CopyOnWriteArrayList<>();  // x, y, size, color, isTopStar
     private List<float[]> lines = new CopyOnWriteArrayList<>();  // x1, y1, x2, y2, color
     private List<Object[]> labels = new CopyOnWriteArrayList<>(); // x, y, text
 
@@ -184,10 +186,12 @@ public class SkyCanvasView extends View {
      */
     public void setStarData(List<StarData> starList) {
         this.realStarData.clear();
+        this.topStarIds.clear();
         if (starList != null) {
             this.realStarData.addAll(starList);
             // Build star lookup map for constellation line rendering
             buildStarLookupMap(starList);
+            cacheTopStars(starList);
         }
         Log.d(TAG, "STARS: Received " + realStarData.size() + " stars from repository");
         if (useSimpleStarMap) {
@@ -195,6 +199,16 @@ public class SkyCanvasView extends View {
             invalidate();
         } else {
             updateStarPositions();
+        }
+    }
+
+    private void cacheTopStars(List<StarData> starList) {
+        int limit = Math.min(100, starList.size());
+        for (int i = 0; i < limit; i++) {
+            StarData star = starList.get(i);
+            if (star != null && star.getId() != null) {
+                topStarIds.add(star.getId());
+            }
         }
     }
 
@@ -465,8 +479,9 @@ public class SkyCanvasView extends View {
 
             // Get star color
             int color = star.getColor() != 0 ? star.getColor() : Color.WHITE;
+            float isTopStar = topStarIds.contains(star.getId()) ? 1f : 0f;
 
-            stars.add(new float[]{screenPos[0], screenPos[1], size, color});
+            stars.add(new float[]{screenPos[0], screenPos[1], size, color, isTopStar});
 
             // Add label for bright stars (magnitude < 2)
             if (star.getMagnitude() < 2.0f && star.getName() != null) {
@@ -690,9 +705,12 @@ public class SkyCanvasView extends View {
                 float x = star[0] * width;
                 float y = star[1] * height;
                 float size = star[2];
-                starPaint.setColor((int) star[3]);
-                if (nightMode) {
-                    starPaint.setColor(Color.rgb(255, 100, 100)); // Red tint
+                int color = (int) star[3];
+                boolean isTopStar = star.length > 4 && star[4] == 1f;
+                if (nightMode && isTopStar) {
+                    starPaint.setColor(NIGHT_TOP_STAR_COLOR);
+                } else {
+                    starPaint.setColor(color);
                 }
                 canvas.drawCircle(x, y, size, starPaint);
             }
@@ -777,10 +795,10 @@ public class SkyCanvasView extends View {
             boolean isHighlighted = highlightedStar != null && star.getId().equals(highlightedStar.getId());
 
             if (isHighlighted) {
-                starPaint.setColor(HIGHLIGHT_COLOR);  // Red highlight
+                starPaint.setColor(HIGHLIGHT_COLOR);  // Blue highlight
                 size = size * 1.5f;  // Make highlighted star larger
-            } else if (nightMode) {
-                starPaint.setColor(Color.rgb(255, 100, 100)); // Red tint for night mode
+            } else if (nightMode && topStarIds.contains(star.getId())) {
+                starPaint.setColor(NIGHT_TOP_STAR_COLOR);
             } else {
                 starPaint.setColor(color);
             }
