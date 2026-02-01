@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.annotation.Nullable;
+
 import com.astro.app.data.model.ConstellationData;
 import com.astro.app.data.model.GeocentricCoords;
 import com.astro.app.data.model.StarData;
@@ -39,7 +41,12 @@ public class SkyCanvasView extends View {
         void onStarSelected(StarData star);
     }
 
+    public interface OnObjectSelectedListener {
+        void onObjectSelected(SelectableObject obj);
+    }
+
     private OnStarSelectedListener starSelectedListener;
+    private OnObjectSelectedListener objectSelectedListener;
 
     private Paint starPaint;
     private Paint linePaint;
@@ -1606,6 +1613,13 @@ public class SkyCanvasView extends View {
     }
 
     /**
+     * Sets the listener for non-star object taps (planets, constellations).
+     */
+    public void setOnObjectSelectedListener(OnObjectSelectedListener listener) {
+        this.objectSelectedListener = listener;
+    }
+
+    /**
      * Sets the reticle radius in pixels.
      *
      * @param radiusPx Reticle radius in pixels
@@ -1754,6 +1768,43 @@ public class SkyCanvasView extends View {
             }
         }
 
+        // Check constellations if visible
+        if (showConstellations && constellations != null && !constellations.isEmpty()) {
+            for (ConstellationData constellation : constellations) {
+                if (!constellation.hasCenterPoint()) {
+                    continue;
+                }
+                float ra = constellation.getCenterRa();
+                float dec = constellation.getCenterDec();
+
+                double[] altAz = raDecToAltAz(ra, dec, lst);
+                double constellationAlt = altAz[0];
+                double constellationAz = altAz[1];
+
+                float[] screenPos = projectToScreen(constellationAlt, constellationAz,
+                        altitudeOffset, azimuthOffset,
+                        centerX, centerY, pixelsPerDegree);
+
+                if (screenPos[2] < 0.5f) {
+                    continue;
+                }
+
+                float x = screenPos[0];
+                float y = screenPos[1];
+                float distFromCenter = (float) Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                if (distFromCenter <= reticleRadiusPx) {
+                    objects.add(new SelectableObject(
+                            constellation.getId(),
+                            constellation.getName(),
+                            "constellation",
+                            0.0f,
+                            ra,
+                            dec
+                    ));
+                }
+            }
+        }
+
         // Sort by magnitude (brightest first for stars, planets first overall)
         objects.sort((a, b) -> {
             // Planets come first
@@ -1854,9 +1905,124 @@ public class SkyCanvasView extends View {
                 starSelectedListener.onStarSelected(nearestStar);
                 return true;
             }
+
+            SelectableObject nearestPlanet = findNearestPlanet(touchX, touchY, 60f);
+            if (nearestPlanet != null && objectSelectedListener != null) {
+                objectSelectedListener.onObjectSelected(nearestPlanet);
+                return true;
+            }
+
+            SelectableObject nearestConstellation = findNearestConstellation(touchX, touchY, 80f);
+            if (nearestConstellation != null && objectSelectedListener != null) {
+                objectSelectedListener.onObjectSelected(nearestConstellation);
+                return true;
+            }
         }
         // Return true to indicate we handled the touch event
         return true;
+    }
+
+    @Nullable
+    private SelectableObject findNearestPlanet(float touchX, float touchY, float maxDistance) {
+        if (!showPlanets || planetData == null || planetData.isEmpty()) return null;
+
+        int width = getWidth();
+        int height = getHeight();
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+        float pixelsPerDegree = Math.min(width, height) / fieldOfView;
+        double lst = calculateLocalSiderealTime();
+
+        SelectableObject nearest = null;
+        float minDist = maxDistance;
+
+        for (java.util.Map.Entry<String, float[]> entry : planetData.entrySet()) {
+            String name = entry.getKey();
+            float[] data = entry.getValue();
+            float ra = data[0];
+            float dec = data[1];
+
+            double[] altAz = raDecToAltAz(ra, dec, lst);
+            double alt = altAz[0];
+            double az = altAz[1];
+
+            float[] screenPos = projectToScreen(alt, az,
+                    altitudeOffset, azimuthOffset,
+                    centerX, centerY, pixelsPerDegree);
+
+            if (screenPos[2] < 0.5f) {
+                continue;
+            }
+
+            float x = screenPos[0];
+            float y = screenPos[1];
+            float dist = (float) Math.sqrt(Math.pow(x - touchX, 2) + Math.pow(y - touchY, 2));
+            if (dist <= minDist) {
+                minDist = dist;
+                nearest = new SelectableObject(
+                        "planet_" + name.toLowerCase(),
+                        name,
+                        "planet",
+                        -2.0f,
+                        ra,
+                        dec
+                );
+            }
+        }
+
+        return nearest;
+    }
+
+    @Nullable
+    private SelectableObject findNearestConstellation(float touchX, float touchY, float maxDistance) {
+        if (!showConstellations || constellations == null || constellations.isEmpty()) return null;
+
+        int width = getWidth();
+        int height = getHeight();
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+        float pixelsPerDegree = Math.min(width, height) / fieldOfView;
+        double lst = calculateLocalSiderealTime();
+
+        SelectableObject nearest = null;
+        float minDist = maxDistance;
+
+        for (ConstellationData constellation : constellations) {
+            if (!constellation.hasCenterPoint()) {
+                continue;
+            }
+            float ra = constellation.getCenterRa();
+            float dec = constellation.getCenterDec();
+
+            double[] altAz = raDecToAltAz(ra, dec, lst);
+            double alt = altAz[0];
+            double az = altAz[1];
+
+            float[] screenPos = projectToScreen(alt, az,
+                    altitudeOffset, azimuthOffset,
+                    centerX, centerY, pixelsPerDegree);
+
+            if (screenPos[2] < 0.5f) {
+                continue;
+            }
+
+            float x = screenPos[0];
+            float y = screenPos[1];
+            float dist = (float) Math.sqrt(Math.pow(x - touchX, 2) + Math.pow(y - touchY, 2));
+            if (dist <= minDist) {
+                minDist = dist;
+                nearest = new SelectableObject(
+                        constellation.getId(),
+                        constellation.getName(),
+                        "constellation",
+                        0.0f,
+                        ra,
+                        dec
+                );
+            }
+        }
+
+        return nearest;
     }
 
     /**
