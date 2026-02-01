@@ -165,6 +165,9 @@ public class SearchArrowView extends View {
             pulseScale = (float) animation.getAnimatedValue();
             invalidate();
         });
+
+        // Allow click handling to dismiss search mode.
+        setClickable(true);
     }
 
     /**
@@ -207,6 +210,8 @@ public class SearchArrowView extends View {
         this.targetName = name != null ? name : "";
         this.targetSubtitle = subtitle != null ? subtitle : "";
         this.isActive = true;
+        setClickable(true);
+        setVisibility(VISIBLE);
 
         // Start pulse animation
         if (!pulseAnimator.isRunning()) {
@@ -224,6 +229,8 @@ public class SearchArrowView extends View {
         this.targetName = "";
         this.targetSubtitle = "";
         this.arrowVisible = true;
+        setClickable(false);
+        setVisibility(GONE);
         pulseAnimator.cancel();
         invalidate();
     }
@@ -502,7 +509,7 @@ public class SearchArrowView extends View {
 
         // Draw "Tap anywhere to dismiss" hint at bottom
         labelPaint.setTextSize(24f);
-        canvas.drawText("Tap X to dismiss", centerX, height - 40, labelPaint);
+        canvas.drawText("Tap anywhere to dismiss", centerX, height - 40, labelPaint);
         labelPaint.setTextSize(32f);  // Reset
     }
 
@@ -641,24 +648,27 @@ public class SearchArrowView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_UP && isActive) {
-            float x = event.getX();
-            float y = event.getY();
-
-            // Check if close button was tapped
-            if (closeButtonRect.contains(x, y)) {
-                performClick();
-                return true;
-            }
+        if (!isActive) {
+            return false;
         }
-        // Let touches pass through to underlying views.
+
+        float x = event.getX();
+        float y = event.getY();
+        if (closeButtonRect.contains(x, y)) {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                performClick();
+            }
+            return true;
+        }
+
+        // Allow touches to pass through to underlying views while active.
         return false;
     }
 
     @Override
     public boolean performClick() {
         super.performClick();
-        // Dismiss the target when close button is clicked
+        // Fallback: ensure overlay is dismissed even if no listener is attached.
         clearTarget();
         return true;
     }

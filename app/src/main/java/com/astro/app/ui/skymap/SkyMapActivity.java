@@ -154,6 +154,7 @@ public class SkyMapActivity extends AppCompatActivity {
 
     // Search
     private SearchArrowView searchArrowView;
+    private TextView tvSearchTapHint;
     private String searchTargetName;
     private float searchTargetRa;
     private float searchTargetDec;
@@ -165,6 +166,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private String searchTargetId;
     private boolean searchTargetBelowHorizonNotified = false;
     private boolean searchTargetInViewNotified = false;
+    private boolean isSearchModeActive = false;
     private float lastViewAzimuth = 0f;
     private float lastViewAltitude = 45f;
     @Nullable
@@ -570,6 +572,7 @@ public class SkyMapActivity extends AppCompatActivity {
 
         // Search arrow view
         searchArrowView = findViewById(R.id.searchArrow);
+        tvSearchTapHint = findViewById(R.id.tvSearchTapHint);
 
         // Select FAB for reticle selection
         fabSelect = findViewById(R.id.fabSelect);
@@ -590,23 +593,15 @@ public class SkyMapActivity extends AppCompatActivity {
         container.addView(skyCanvasView, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));
+        skyCanvasView.setEnabled(true);
+        skyCanvasView.setOnSkyTapListener((x, y) -> {
+            if (searchTargetName != null) {
+                clearSearchTarget();
+            }
+        });
+        setSearchModeActive(false);
 
         Log.d(TAG, "SkyCanvasView created - Canvas2D rendering enabled");
-
-        // Set up star selection listener to open StarInfoActivity when a star is tapped
-        skyCanvasView.setOnStarSelectedListener(star -> {
-            // Debug toast to confirm star was tapped
-            Toast.makeText(this, "Selected: " + star.getName(), Toast.LENGTH_SHORT).show();
-            Log.d(TAG, "Star selected: " + star.getName() + " (id=" + star.getId() + ")");
-
-            Intent intent = new Intent(this, StarInfoActivity.class);
-            intent.putExtra(StarInfoActivity.EXTRA_STAR_ID, star.getId());
-            intent.putExtra(StarInfoActivity.EXTRA_STAR_NAME, star.getName());
-            intent.putExtra(StarInfoActivity.EXTRA_STAR_RA, star.getRa());
-            intent.putExtra(StarInfoActivity.EXTRA_STAR_DEC, star.getDec());
-            intent.putExtra(StarInfoActivity.EXTRA_STAR_MAGNITUDE, star.getMagnitude());
-            startActivity(intent);
-        });
 
         skyCanvasView.setOnObjectSelectedListener(obj -> {
             if ("planet".equals(obj.type)) {
@@ -752,6 +747,10 @@ public class SkyMapActivity extends AppCompatActivity {
         skyGLSurfaceView.setGestureListener(new SkyGLSurfaceView.SimpleGestureListener() {
             @Override
             public void onTap(float x, float y) {
+                if (isSearchModeActive) {
+                    clearSearchTarget();
+                    return;
+                }
                 arOverlayManager.handleTap(x, y);
             }
 
@@ -1473,6 +1472,7 @@ public class SkyMapActivity extends AppCompatActivity {
         searchTargetId = data.getStringExtra(SearchActivity.EXTRA_RESULT_ID);
         searchTargetBelowHorizonNotified = false;
         searchTargetInViewNotified = false;
+        setSearchModeActive(true);
 
         updateSearchDetailsButtonVisibility();
 
@@ -1625,6 +1625,18 @@ public class SkyMapActivity extends AppCompatActivity {
         updateSearchDetailsButtonVisibility();
         if (skyCanvasView != null) {
             skyCanvasView.clearHighlight();
+        }
+        setSearchModeActive(false);
+    }
+
+    private void setSearchModeActive(boolean active) {
+        isSearchModeActive = active;
+        if (skyCanvasView != null) {
+            skyCanvasView.setEnabled(true);
+            skyCanvasView.setSearchModeActive(active);
+        }
+        if (tvSearchTapHint != null) {
+            tvSearchTapHint.setVisibility(active ? View.VISIBLE : View.GONE);
         }
     }
 
@@ -1856,9 +1868,14 @@ public class SkyMapActivity extends AppCompatActivity {
             infoLayout.addView(nameText);
 
             TextView typeText = new TextView(this);
-            String typeString = obj.type.equals("planet") ?
-                    getString(R.string.object_planet) :
-                    getString(R.string.object_star);
+            String typeString;
+            if (obj.type.equals("planet")) {
+                typeString = getString(R.string.object_planet);
+            } else if (obj.type.equals("constellation")) {
+                typeString = getString(R.string.object_constellation);
+            } else {
+                typeString = getString(R.string.object_star);
+            }
             if (obj.type.equals("star")) {
                 typeString += " (mag " + String.format("%.1f", obj.magnitude) + ")";
             }
@@ -2132,6 +2149,7 @@ public class SkyMapActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         skyGLSurfaceView.onResume();
+        setSearchModeActive(searchTargetName != null);
 
         // Start sensors
         if (sensorController != null) {
