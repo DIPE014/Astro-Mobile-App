@@ -46,6 +46,7 @@ import com.astro.app.core.math.Vector3;
 import com.astro.app.data.model.StarData;
 import com.astro.app.data.repository.ConstellationRepository;
 import com.astro.app.data.repository.StarRepository;
+import com.astro.app.ui.education.EducationDetailActivity;
 import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
@@ -139,6 +140,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private TextView tvInfoPanelMagnitude;
     private TextView tvInfoPanelRA;
     private TextView tvInfoPanelDec;
+    private MaterialButton btnSearchDetails;
     private FrameLayout loadingOverlay;
     private View gpsIndicator;
     private ImageView ivGpsIcon;
@@ -155,7 +157,12 @@ public class SkyMapActivity extends AppCompatActivity {
     private String searchTargetName;
     private float searchTargetRa;
     private float searchTargetDec;
+    @Nullable
     private String searchTargetConstellation;
+    @Nullable
+    private String searchTargetType;
+    @Nullable
+    private String searchTargetId;
     private boolean searchTargetBelowHorizonNotified = false;
     private boolean searchTargetInViewNotified = false;
     private float lastViewAzimuth = 0f;
@@ -338,7 +345,7 @@ public class SkyMapActivity extends AppCompatActivity {
         // Calculate altitude
         // sin(alt) = sin(dec) * sin(lat) + cos(dec) * cos(lat) * cos(HA)
         double sinAlt = Math.sin(decRad) * Math.sin(latRad) +
-                        Math.cos(decRad) * Math.cos(latRad) * Math.cos(haRad);
+                Math.cos(decRad) * Math.cos(latRad) * Math.cos(haRad);
         double altitude = Math.toDegrees(Math.asin(Math.max(-1, Math.min(1, sinAlt))));
 
         // Calculate azimuth
@@ -350,7 +357,7 @@ public class SkyMapActivity extends AppCompatActivity {
             azimuth = 0;
         } else {
             double cosA = (Math.sin(decRad) - Math.sin(Math.toRadians(altitude)) * Math.sin(latRad)) /
-                          (cosAlt * Math.cos(latRad));
+                    (cosAlt * Math.cos(latRad));
             cosA = Math.max(-1, Math.min(1, cosA)); // Clamp to [-1, 1]
             azimuth = Math.toDegrees(Math.acos(cosA));
 
@@ -554,6 +561,7 @@ public class SkyMapActivity extends AppCompatActivity {
         tvInfoPanelDec = findViewById(R.id.tvInfoPanelDec);
         loadingOverlay = findViewById(R.id.loadingOverlay);
         btnArToggle = findViewById(R.id.btnArToggle);
+        btnSearchDetails = findViewById(R.id.btnSearchDetails);
 
         // GPS indicator views
         gpsIndicator = findViewById(R.id.gpsIndicator);
@@ -580,8 +588,8 @@ public class SkyMapActivity extends AppCompatActivity {
         skyCanvasView = new SkyCanvasView(this);
         FrameLayout container = findViewById(R.id.skyOverlayContainer);
         container.addView(skyCanvasView, new FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT));
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT));
 
         Log.d(TAG, "SkyCanvasView created - Canvas2D rendering enabled");
 
@@ -598,6 +606,14 @@ public class SkyMapActivity extends AppCompatActivity {
             intent.putExtra(StarInfoActivity.EXTRA_STAR_DEC, star.getDec());
             intent.putExtra(StarInfoActivity.EXTRA_STAR_MAGNITUDE, star.getMagnitude());
             startActivity(intent);
+        });
+
+        skyCanvasView.setOnObjectSelectedListener(obj -> {
+            if ("planet".equals(obj.type)) {
+                openEducationDetail(EducationDetailActivity.TYPE_PLANET, obj.name, obj.id);
+            } else if ("constellation".equals(obj.type)) {
+                openEducationDetail(EducationDetailActivity.TYPE_CONSTELLATION, obj.name, obj.id);
+            }
         });
 
         // Create a dummy SkyGLSurfaceView for compatibility (won't be displayed)
@@ -705,6 +721,10 @@ public class SkyMapActivity extends AppCompatActivity {
         View fabSearch = findViewById(R.id.fabSearch);
         if (fabSearch != null) {
             fabSearch.setOnClickListener(v -> openSearch());
+        }
+
+        if (btnSearchDetails != null) {
+            btnSearchDetails.setOnClickListener(v -> openSearchTargetEducation());
         }
 
         // Select FAB (for reticle selection)
@@ -923,40 +943,40 @@ public class SkyMapActivity extends AppCompatActivity {
         // Create adapter for ConstellationsLayer.ConstellationRepository interface
         ConstellationsLayer.ConstellationRepository constellationsLayerRepository =
                 new ConstellationsLayer.ConstellationRepository() {
-            @NonNull
-            @Override
-            public List<com.astro.app.data.model.ConstellationData> getConstellations() {
-                return constellationRepository.getAllConstellations();
-            }
-
-            @Nullable
-            @Override
-            public com.astro.app.data.model.ConstellationData findById(@NonNull String constellationId) {
-                return constellationRepository.getConstellationById(constellationId);
-            }
-
-            @NonNull
-            @Override
-            public List<com.astro.app.data.model.ConstellationData> findByName(@NonNull String name) {
-                return constellationRepository.searchConstellations(name);
-            }
-
-            @NonNull
-            @Override
-            public java.util.Map<String, com.astro.app.data.model.GeocentricCoords> getStarCoordinates(
-                    @NonNull com.astro.app.data.model.ConstellationData constellation) {
-                java.util.Map<String, com.astro.app.data.model.GeocentricCoords> coords =
-                        new java.util.HashMap<>();
-                for (String starId : constellation.getStarIds()) {
-                    StarData star = starRepository.getStarById(starId);
-                    if (star != null) {
-                        coords.put(starId, com.astro.app.data.model.GeocentricCoords.fromDegrees(
-                                star.getRa(), star.getDec()));
+                    @NonNull
+                    @Override
+                    public List<com.astro.app.data.model.ConstellationData> getConstellations() {
+                        return constellationRepository.getAllConstellations();
                     }
-                }
-                return coords;
-            }
-        };
+
+                    @Nullable
+                    @Override
+                    public com.astro.app.data.model.ConstellationData findById(@NonNull String constellationId) {
+                        return constellationRepository.getConstellationById(constellationId);
+                    }
+
+                    @NonNull
+                    @Override
+                    public List<com.astro.app.data.model.ConstellationData> findByName(@NonNull String name) {
+                        return constellationRepository.searchConstellations(name);
+                    }
+
+                    @NonNull
+                    @Override
+                    public java.util.Map<String, com.astro.app.data.model.GeocentricCoords> getStarCoordinates(
+                            @NonNull com.astro.app.data.model.ConstellationData constellation) {
+                        java.util.Map<String, com.astro.app.data.model.GeocentricCoords> coords =
+                                new java.util.HashMap<>();
+                        for (String starId : constellation.getStarIds()) {
+                            StarData star = starRepository.getStarById(starId);
+                            if (star != null) {
+                                coords.put(starId, com.astro.app.data.model.GeocentricCoords.fromDegrees(
+                                        star.getRa(), star.getDec()));
+                            }
+                        }
+                        return coords;
+                    }
+                };
 
         // Create layers
         starsLayer = new StarsLayer(starRepository);
@@ -1209,8 +1229,8 @@ public class SkyMapActivity extends AppCompatActivity {
                     long newTime = timeTravelClock.getCurrentTimeMillis();
                     Log.d(TAG, "TIME_TRAVEL: Clock set to: " + new Date(newTime));
                     Toast.makeText(SkyMapActivity.this,
-                        "Time travel to: " + year + "-" + month + "-" + day + " " + hour + ":" + minute,
-                        Toast.LENGTH_SHORT).show();
+                            "Time travel to: " + year + "-" + month + "-" + day + " " + hour + ":" + minute,
+                            Toast.LENGTH_SHORT).show();
                     updateTimeTravelIndicator(true);
                     // Update sky view with new time
                     updateSkyForTime(newTime);
@@ -1449,8 +1469,12 @@ public class SkyMapActivity extends AppCompatActivity {
         searchTargetConstellation = data.getStringExtra(SearchActivity.EXTRA_RESULT_CONSTELLATION);
         String searchTargetId = data.getStringExtra(SearchActivity.EXTRA_RESULT_ID);
         String resultType = data.getStringExtra(SearchActivity.EXTRA_RESULT_TYPE);
+        searchTargetType = resultType;
+        searchTargetId = data.getStringExtra(SearchActivity.EXTRA_RESULT_ID);
         searchTargetBelowHorizonNotified = false;
         searchTargetInViewNotified = false;
+
+        updateSearchDetailsButtonVisibility();
 
         // For planets, recalculate position for current time (or time travel time)
         // The search index stores positions at index build time which may be stale
@@ -1594,8 +1618,11 @@ public class SkyMapActivity extends AppCompatActivity {
         }
         searchTargetName = null;
         searchTargetConstellation = null;
+        searchTargetType = null;
+        searchTargetId = null;
         searchTargetBelowHorizonNotified = false;
         searchTargetInViewNotified = false;
+        updateSearchDetailsButtonVisibility();
         if (skyCanvasView != null) {
             skyCanvasView.clearHighlight();
         }
@@ -1848,6 +1875,8 @@ public class SkyMapActivity extends AppCompatActivity {
                 // Highlight the object on the sky view
                 if (obj.type.equals("planet")) {
                     skyCanvasView.setHighlightedPlanet(obj.name);
+                } else if (obj.type.equals("constellation")) {
+                    skyCanvasView.clearHighlight();
                 } else {
                     StarData star = skyCanvasView.getStarById(obj.id);
                     if (star != null) {
@@ -1917,9 +1946,9 @@ public class SkyMapActivity extends AppCompatActivity {
      */
     private void openObjectDetails(SkyCanvasView.SelectableObject obj) {
         if (obj.type.equals("planet")) {
-            // For planets, show a toast for now (could open planet detail activity)
-            Toast.makeText(this, getString(R.string.star_details_coming_soon, obj.name),
-                    Toast.LENGTH_SHORT).show();
+            openEducationDetail(EducationDetailActivity.TYPE_PLANET, obj.name, obj.id);
+        } else if (obj.type.equals("constellation")) {
+            openEducationDetail(EducationDetailActivity.TYPE_CONSTELLATION, obj.name, obj.id);
         } else {
             // For stars, open StarInfoActivity
             StarData star = skyCanvasView.getStarById(obj.id);
@@ -2026,6 +2055,42 @@ public class SkyMapActivity extends AppCompatActivity {
         intent.putExtra(StarInfoActivity.EXTRA_STAR_DEC, star.getDec());
         intent.putExtra(StarInfoActivity.EXTRA_STAR_MAGNITUDE, star.getMagnitude());
         startActivity(intent);
+    }
+
+    private void openEducationDetail(@NonNull String type, @NonNull String name, @Nullable String id) {
+        Intent intent = new Intent(this, EducationDetailActivity.class);
+        intent.putExtra(EducationDetailActivity.EXTRA_OBJECT_TYPE, type);
+        intent.putExtra(EducationDetailActivity.EXTRA_OBJECT_NAME, name);
+        if (id != null) {
+            intent.putExtra(EducationDetailActivity.EXTRA_OBJECT_ID, id);
+        }
+        startActivity(intent);
+    }
+
+    private void openSearchTargetEducation() {
+        if (searchTargetName == null || searchTargetType == null) {
+            return;
+        }
+        if (isConstellationType(searchTargetType)) {
+            openEducationDetail(EducationDetailActivity.TYPE_CONSTELLATION, searchTargetName, searchTargetId);
+        } else if (isPlanetType(searchTargetType)) {
+            openEducationDetail(EducationDetailActivity.TYPE_PLANET, searchTargetName, searchTargetId);
+        }
+    }
+
+    private void updateSearchDetailsButtonVisibility() {
+        if (btnSearchDetails == null) return;
+        boolean visible = searchTargetName != null && searchTargetType != null
+                && (isConstellationType(searchTargetType) || isPlanetType(searchTargetType));
+        btnSearchDetails.setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+
+    private boolean isConstellationType(@NonNull String type) {
+        return "CONSTELLATION".equals(type);
+    }
+
+    private boolean isPlanetType(@NonNull String type) {
+        return "PLANET".equals(type) || "SUN".equals(type) || "MOON".equals(type);
     }
 
     /**
