@@ -1,10 +1,13 @@
 package com.astro.app;
 
 import android.app.Application;
+import android.util.Log;
 
 import com.astro.app.di.AppComponent;
 import com.astro.app.di.AppModule;
 import com.astro.app.di.DaggerAppComponent;
+import com.chaquo.python.Python;
+import com.chaquo.python.android.AndroidPlatform;
 
 /**
  * Application class for Astro Mobile App.
@@ -12,12 +15,27 @@ import com.astro.app.di.DaggerAppComponent;
  */
 public class AstroApplication extends Application {
 
+    private static final String TAG = "AstroApplication";
+
     private AppComponent appComponent;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        initializePython();
         initializeDagger();
+    }
+
+    /**
+     * Initializes the Python runtime (Chaquopy).
+     * This must be called before any Python code is used.
+     */
+    private void initializePython() {
+        if (!Python.isStarted()) {
+            Log.d(TAG, "Starting Python runtime...");
+            Python.start(new AndroidPlatform(this));
+            Log.d(TAG, "Python runtime started");
+        }
     }
 
     /**
