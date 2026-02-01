@@ -45,8 +45,13 @@ public class SkyCanvasView extends View {
         void onObjectSelected(SelectableObject obj);
     }
 
+    public interface OnSkyTapListener {
+        void onSkyTap(float x, float y);
+    }
+
     private OnStarSelectedListener starSelectedListener;
     private OnObjectSelectedListener objectSelectedListener;
+    private OnSkyTapListener skyTapListener;
 
     private Paint starPaint;
     private Paint linePaint;
@@ -113,6 +118,7 @@ public class SkyCanvasView extends View {
 
     // Use simple star map mode (guaranteed to show stars)
     private boolean useSimpleStarMap = true;
+    private boolean searchModeActive = false;
 
     public SkyCanvasView(Context context) {
         super(context);
@@ -1626,9 +1632,6 @@ public class SkyCanvasView extends View {
      *
      * @param listener The listener to notify when a star is tapped
      */
-    public void setOnStarSelectedListener(OnStarSelectedListener listener) {
-        this.starSelectedListener = listener;
-    }
 
     /**
      * Sets the listener for non-star object taps (planets, constellations).
@@ -1878,6 +1881,14 @@ public class SkyCanvasView extends View {
         invalidate();
     }
 
+    public void setSearchModeActive(boolean active) {
+        this.searchModeActive = active;
+    }
+
+    public void setOnSkyTapListener(@Nullable OnSkyTapListener listener) {
+        this.skyTapListener = listener;
+    }
+
     /**
      * Gets the currently highlighted star, if any.
      *
@@ -1915,8 +1926,15 @@ public class SkyCanvasView extends View {
             float touchX = event.getX();
             float touchY = event.getY();
 
-            // Find nearest star within tap radius (50 pixels for easier selection)
-            StarData nearestStar = findNearestStar(touchX, touchY, 50f);
+            if (searchModeActive) {
+                if (skyTapListener != null) {
+                    skyTapListener.onSkyTap(touchX, touchY);
+                }
+                return true;
+            }
+
+            // Find nearest star within tap radius (larger for easier selection)
+            StarData nearestStar = findNearestStar(touchX, touchY, 120f);
             Log.d("TOUCH", "Nearest star: " + (nearestStar != null ? nearestStar.getName() : "null"));
             if (nearestStar != null && starSelectedListener != null) {
                 Log.d("TOUCH", "Calling star selected listener for: " + nearestStar.getName());
@@ -2069,6 +2087,28 @@ public class SkyCanvasView extends View {
 
         // Pixels per degree
         float pixelsPerDegree = Math.min(width, height) / fieldOfView;
+
+        // Prefer highlighted star if it is within tap radius
+        if (highlightedStar != null) {
+            float ra = highlightedStar.getRa();
+            float dec = highlightedStar.getDec();
+            double[] altAz = raDecToAltAz(ra, dec, lst);
+            double starAlt = altAz[0];
+            double starAz = altAz[1];
+            if (starAlt >= -5) {
+                float[] screenPos = projectToScreen(starAlt, starAz,
+                        altitudeOffset, azimuthOffset,
+                        centerX, centerY, pixelsPerDegree);
+                if (screenPos[2] >= 0.5f) {
+                    float x = screenPos[0];
+                    float y = screenPos[1];
+                    float dist = (float) Math.sqrt(Math.pow(touchX - x, 2) + Math.pow(touchY - y, 2));
+                    if (dist <= maxDistance) {
+                        return highlightedStar;
+                    }
+                }
+            }
+        }
 
         for (StarData star : realStarData) {
             float ra = star.getRa();
