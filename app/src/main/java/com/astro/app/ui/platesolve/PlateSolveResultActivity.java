@@ -221,10 +221,15 @@ public class PlateSolveResultActivity extends AppCompatActivity {
         // Check if service is initialized
         if (!plateSolveService.isInitialized()) {
             Log.d(TAG, "PlateSolveService not initialized, initializing now...");
-            plateSolveService.initialize();
-            // Wait a bit and try again
-            // In production, you'd want a proper callback system
-            loadingOverlay.postDelayed(this::performPlateSolve, 2000);
+            plateSolveService.initialize((success, errorMessage) -> {
+                if (success) {
+                    Log.d(TAG, "PlateSolveService initialized, starting solve...");
+                    performPlateSolve();
+                } else {
+                    Log.e(TAG, "PlateSolveService initialization failed: " + errorMessage);
+                    showError("Failed to initialize star detection: " + errorMessage);
+                }
+            });
         } else {
             performPlateSolve();
         }

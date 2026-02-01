@@ -100,6 +100,14 @@ public class PlateSolveService {
     /** Whether the service has been initialized */
     private volatile boolean initialized = false;
 
+    /** Whether initialization is in progress */
+    private volatile boolean initializing = false;
+
+    /** Callback interface for initialization completion */
+    public interface InitCallback {
+        void onInitialized(boolean success, String errorMessage);
+    }
+
     /** Path to the extracted database file */
     private String databasePath;
 
@@ -118,7 +126,14 @@ public class PlateSolveService {
     }
 
     /**
-     * Initializes the plate solve service.
+     * Initializes the plate solve service without a callback.
+     */
+    public void initialize() {
+        initialize(null);
+    }
+
+    /**
+     * Initializes the plate solve service with a completion callback.
      *
      * <p>This method:
      * <ol>
@@ -132,15 +147,41 @@ public class PlateSolveService {
      * <p>This operation may take several seconds and should be called during
      * app startup (e.g., in Application.onCreate() or a splash screen).</p>
      *
-     * <p>If already initialized, this method returns immediately.</p>
+     * <p>If already initialized, the callback is invoked immediately with success.</p>
+     *
+     * @param callback Optional callback to receive initialization result
      */
-    public void initialize() {
+    public void initialize(InitCallback callback) {
         if (initialized) {
             Log.d(TAG, "Already initialized");
+            if (callback != null) {
+                mainHandler.post(() -> callback.onInitialized(true, null));
+            }
             return;
         }
 
+        if (initializing) {
+            Log.d(TAG, "Initialization already in progress, waiting...");
+            executor.execute(() -> {
+                while (initializing && !initialized) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                }
+                if (callback != null) {
+                    mainHandler.post(() -> callback.onInitialized(initialized,
+                            initialized ? null : "Initialization failed"));
+                }
+            });
+            return;
+        }
+
+        initializing = true;
+
         executor.execute(() -> {
+            String errorMessage = null;
             try {
                 Log.d(TAG, "Starting initialization...");
 
@@ -161,11 +202,20 @@ public class PlateSolveService {
                     initialized = true;
                     Log.i(TAG, "PlateSolveService initialized successfully");
                 } else {
-                    Log.e(TAG, "Tetra3 initialization returned false");
+                    errorMessage = "Tetra3 initialization returned false";
+                    Log.e(TAG, errorMessage);
                 }
 
             } catch (Exception e) {
+                errorMessage = "Initialization failed: " + e.getMessage();
                 Log.e(TAG, "Initialization failed", e);
+            } finally {
+                initializing = false;
+            }
+
+            if (callback != null) {
+                final String finalError = errorMessage;
+                mainHandler.post(() -> callback.onInitialized(initialized, finalError));
             }
         });
     }
