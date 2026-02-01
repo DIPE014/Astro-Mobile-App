@@ -245,6 +245,120 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Education Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardEducation"
+                style="@style/Widget.AstroApp.CardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/margin_medium"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/padding_medium">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/education_section_title"
+                        android:textAppearance="@style/TextAppearance.AstroApp.TitleMedium"
+                        android:textColor="@color/text_primary" />
+
+                    <!-- Display Name -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_medium"
+                        android:text="@string/education_display_name"
+                        android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                        android:textColor="@color/text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvEducationDisplayName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_extra_small"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                        android:textColor="@color/text_primary"
+                        tools:text="Polaris" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginVertical="@dimen/margin_small"
+                        android:background="@color/divider" />
+
+                    <!-- Constellation -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/education_constellation"
+                        android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                        android:textColor="@color/text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvEducationConstellation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_extra_small"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                        android:textColor="@color/text_primary"
+                        tools:text="Ursa Minor" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginVertical="@dimen/margin_small"
+                        android:background="@color/divider" />
+
+                    <!-- Fun Fact -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/education_fun_fact"
+                        android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                        android:textColor="@color/text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvEducationFunFact"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_extra_small"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                        android:textColor="@color/text_primary"
+                        tools:text="The North Star used for centuries for navigation." />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginVertical="@dimen/margin_small"
+                        android:background="@color/divider" />
+
+                    <!-- History -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/education_history"
+                        android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                        android:textColor="@color/text_tertiary" />
+
+                    <TextView
+                        android:id="@+id/tvEducationHistory"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_extra_small"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                        android:textColor="@color/text_primary"
+                        tools:text="Stays fixed while the rest of the sky rotates." />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- Position Details Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardPosition"
@@ -272,21 +386,21 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_medium"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:text="@string/star_right_ascension"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                            android:textColor="@color/text_secondary" />
+                            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                            android:textColor="@color/text_tertiary" />
 
                         <TextView
                             android:id="@+id/tvRightAscension"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
                             android:textColor="@color/text_primary"
                             tools:text="2h 31m 49s" />
 
@@ -302,21 +416,21 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:text="@string/star_declination"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                            android:textColor="@color/text_secondary" />
+                            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                            android:textColor="@color/text_tertiary" />
 
                         <TextView
                             android:id="@+id/tvDeclination"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
                             android:textColor="@color/text_primary"
                             tools:text="+89° 15' 51&quot;" />
 
@@ -332,21 +446,21 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:text="@string/star_spectral_type"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                            android:textColor="@color/text_secondary" />
+                            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                            android:textColor="@color/text_tertiary" />
 
                         <TextView
                             android:id="@+id/tvSpectralType"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
                             android:textColor="@color/text_primary"
                             tools:text="F7 Ib" />
 
@@ -362,21 +476,21 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:text="@string/star_apparent_magnitude"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                            android:textColor="@color/text_secondary" />
+                            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                            android:textColor="@color/text_tertiary" />
 
                         <TextView
                             android:id="@+id/tvApparentMagnitude"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
                             android:textColor="@color/text_primary"
                             tools:text="1.97" />
 
@@ -392,21 +506,21 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:text="@string/star_absolute_magnitude"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                            android:textColor="@color/text_secondary" />
+                            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                            android:textColor="@color/text_tertiary" />
 
                         <TextView
                             android:id="@+id/tvAbsoluteMagnitude"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
                             android:textColor="@color/text_primary"
                             tools:text="-3.64" />
 
@@ -443,21 +557,21 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_medium"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:text="@string/star_temperature"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                            android:textColor="@color/text_secondary" />
+                            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                            android:textColor="@color/text_tertiary" />
 
                         <TextView
                             android:id="@+id/tvTemperature"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
                             android:textColor="@color/text_primary"
                             tools:text="6,015 K" />
 
@@ -473,21 +587,21 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:text="@string/star_radius"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                            android:textColor="@color/text_secondary" />
+                            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                            android:textColor="@color/text_tertiary" />
 
                         <TextView
                             android:id="@+id/tvRadius"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
                             android:textColor="@color/text_primary"
                             tools:text="37.5 R" />
 
@@ -503,21 +617,21 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:text="@string/star_mass"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                            android:textColor="@color/text_secondary" />
+                            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                            android:textColor="@color/text_tertiary" />
 
                         <TextView
                             android:id="@+id/tvMass"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
                             android:textColor="@color/text_primary"
                             tools:text="5.4 M" />
 
@@ -533,21 +647,21 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:text="@string/star_luminosity"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                            android:textColor="@color/text_secondary" />
+                            android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                            android:textColor="@color/text_tertiary" />
 
                         <TextView
                             android:id="@+id/tvLuminosity"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
                             android:textColor="@color/text_primary"
                             tools:text="2,500 L" />
 

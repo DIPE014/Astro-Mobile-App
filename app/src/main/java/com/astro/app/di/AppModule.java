@@ -11,6 +11,7 @@ import com.astro.app.core.control.RealMagneticDeclinationCalculator;
 import com.astro.app.core.control.SensorController;
 import com.astro.app.core.control.TimeTravelClock;
 import com.astro.app.core.control.space.Universe;
+import com.astro.app.data.parser.AssetDataSource;
 import com.astro.app.data.parser.ProtobufParser;
 import com.astro.app.data.repository.ConstellationRepository;
 import com.astro.app.data.repository.ConstellationRepositoryImpl;
@@ -138,8 +139,9 @@ public class AppModule {
      */
     @Provides
     @Singleton
-    StarRepository provideStarRepository(ProtobufParser protobufParser) {
-        return new StarRepositoryImpl(protobufParser);
+    StarRepository provideStarRepository(ProtobufParser protobufParser,
+                                         AssetDataSource assetDataSource) {
+        return new StarRepositoryImpl(protobufParser, assetDataSource);
     }
 
     /**

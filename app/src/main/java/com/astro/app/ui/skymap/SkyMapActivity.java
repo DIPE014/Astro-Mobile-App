@@ -158,6 +158,8 @@ public class SkyMapActivity extends AppCompatActivity {
     private float searchTargetRa;
     private float searchTargetDec;
     @Nullable
+    private String searchTargetConstellation;
+    @Nullable
     private String searchTargetType;
     @Nullable
     private String searchTargetId;
@@ -343,7 +345,7 @@ public class SkyMapActivity extends AppCompatActivity {
         // Calculate altitude
         // sin(alt) = sin(dec) * sin(lat) + cos(dec) * cos(lat) * cos(HA)
         double sinAlt = Math.sin(decRad) * Math.sin(latRad) +
-                        Math.cos(decRad) * Math.cos(latRad) * Math.cos(haRad);
+                Math.cos(decRad) * Math.cos(latRad) * Math.cos(haRad);
         double altitude = Math.toDegrees(Math.asin(Math.max(-1, Math.min(1, sinAlt))));
 
         // Calculate azimuth
@@ -355,7 +357,7 @@ public class SkyMapActivity extends AppCompatActivity {
             azimuth = 0;
         } else {
             double cosA = (Math.sin(decRad) - Math.sin(Math.toRadians(altitude)) * Math.sin(latRad)) /
-                          (cosAlt * Math.cos(latRad));
+                    (cosAlt * Math.cos(latRad));
             cosA = Math.max(-1, Math.min(1, cosA)); // Clamp to [-1, 1]
             azimuth = Math.toDegrees(Math.acos(cosA));
 
@@ -586,8 +588,8 @@ public class SkyMapActivity extends AppCompatActivity {
         skyCanvasView = new SkyCanvasView(this);
         FrameLayout container = findViewById(R.id.skyOverlayContainer);
         container.addView(skyCanvasView, new FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT));
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT));
 
         Log.d(TAG, "SkyCanvasView created - Canvas2D rendering enabled");
 
@@ -941,40 +943,40 @@ public class SkyMapActivity extends AppCompatActivity {
         // Create adapter for ConstellationsLayer.ConstellationRepository interface
         ConstellationsLayer.ConstellationRepository constellationsLayerRepository =
                 new ConstellationsLayer.ConstellationRepository() {
-            @NonNull
-            @Override
-            public List<com.astro.app.data.model.ConstellationData> getConstellations() {
-                return constellationRepository.getAllConstellations();
-            }
-
-            @Nullable
-            @Override
-            public com.astro.app.data.model.ConstellationData findById(@NonNull String constellationId) {
-                return constellationRepository.getConstellationById(constellationId);
-            }
-
-            @NonNull
-            @Override
-            public List<com.astro.app.data.model.ConstellationData> findByName(@NonNull String name) {
-                return constellationRepository.searchConstellations(name);
-            }
-
-            @NonNull
-            @Override
-            public java.util.Map<String, com.astro.app.data.model.GeocentricCoords> getStarCoordinates(
-                    @NonNull com.astro.app.data.model.ConstellationData constellation) {
-                java.util.Map<String, com.astro.app.data.model.GeocentricCoords> coords =
-                        new java.util.HashMap<>();
-                for (String starId : constellation.getStarIds()) {
-                    StarData star = starRepository.getStarById(starId);
-                    if (star != null) {
-                        coords.put(starId, com.astro.app.data.model.GeocentricCoords.fromDegrees(
-                                star.getRa(), star.getDec()));
+                    @NonNull
+                    @Override
+                    public List<com.astro.app.data.model.ConstellationData> getConstellations() {
+                        return constellationRepository.getAllConstellations();
                     }
-                }
-                return coords;
-            }
-        };
+
+                    @Nullable
+                    @Override
+                    public com.astro.app.data.model.ConstellationData findById(@NonNull String constellationId) {
+                        return constellationRepository.getConstellationById(constellationId);
+                    }
+
+                    @NonNull
+                    @Override
+                    public List<com.astro.app.data.model.ConstellationData> findByName(@NonNull String name) {
+                        return constellationRepository.searchConstellations(name);
+                    }
+
+                    @NonNull
+                    @Override
+                    public java.util.Map<String, com.astro.app.data.model.GeocentricCoords> getStarCoordinates(
+                            @NonNull com.astro.app.data.model.ConstellationData constellation) {
+                        java.util.Map<String, com.astro.app.data.model.GeocentricCoords> coords =
+                                new java.util.HashMap<>();
+                        for (String starId : constellation.getStarIds()) {
+                            StarData star = starRepository.getStarById(starId);
+                            if (star != null) {
+                                coords.put(starId, com.astro.app.data.model.GeocentricCoords.fromDegrees(
+                                        star.getRa(), star.getDec()));
+                            }
+                        }
+                        return coords;
+                    }
+                };
 
         // Create layers
         starsLayer = new StarsLayer(starRepository);
@@ -1227,8 +1229,8 @@ public class SkyMapActivity extends AppCompatActivity {
                     long newTime = timeTravelClock.getCurrentTimeMillis();
                     Log.d(TAG, "TIME_TRAVEL: Clock set to: " + new Date(newTime));
                     Toast.makeText(SkyMapActivity.this,
-                        "Time travel to: " + year + "-" + month + "-" + day + " " + hour + ":" + minute,
-                        Toast.LENGTH_SHORT).show();
+                            "Time travel to: " + year + "-" + month + "-" + day + " " + hour + ":" + minute,
+                            Toast.LENGTH_SHORT).show();
                     updateTimeTravelIndicator(true);
                     // Update sky view with new time
                     updateSkyForTime(newTime);
@@ -1406,7 +1408,7 @@ public class SkyMapActivity extends AppCompatActivity {
             case Venus:
                 return 0xFFE6E6CC;    // Pale yellow
             case Mars:
-                return 0xFFFF6347;     // Red-orange
+                return 0xFF8B3A2E;     // Brown-red
             case Jupiter:
                 return 0xFFD4A574;  // Tan/brown
             case Saturn:
@@ -1464,6 +1466,8 @@ public class SkyMapActivity extends AppCompatActivity {
         searchTargetName = data.getStringExtra(SearchActivity.EXTRA_RESULT_NAME);
         searchTargetRa = data.getFloatExtra(SearchActivity.EXTRA_RESULT_RA, 0f);
         searchTargetDec = data.getFloatExtra(SearchActivity.EXTRA_RESULT_DEC, 0f);
+        searchTargetConstellation = data.getStringExtra(SearchActivity.EXTRA_RESULT_CONSTELLATION);
+        String searchTargetId = data.getStringExtra(SearchActivity.EXTRA_RESULT_ID);
         String resultType = data.getStringExtra(SearchActivity.EXTRA_RESULT_TYPE);
         searchTargetType = resultType;
         searchTargetId = data.getStringExtra(SearchActivity.EXTRA_RESULT_ID);
@@ -1480,7 +1484,7 @@ public class SkyMapActivity extends AppCompatActivity {
 
         Log.d(TAG, "Search target: " + searchTargetName + " at RA=" + searchTargetRa + ", Dec=" + searchTargetDec);
 
-        // Highlight selected planet in the sky view (if applicable)
+        // Highlight selected object in the sky view (if applicable)
         if (skyCanvasView != null) {
             if (resultType != null && (resultType.equals("PLANET") || resultType.equals("SUN") || resultType.equals("MOON"))) {
                 SolarSystemBody body = findSolarSystemBody(searchTargetName);
@@ -1493,15 +1497,24 @@ public class SkyMapActivity extends AppCompatActivity {
                     skyCanvasView.setPlanet(searchTargetName, searchTargetRa, searchTargetDec, 0xFFFF4444, 10f);
                     skyCanvasView.setHighlightedPlanet(searchTargetName);
                 }
+            } else if (resultType != null && resultType.equals("STAR")) {
+                StarData star = null;
+                if (searchTargetId != null && starRepository != null) {
+                    star = starRepository.getStarById(searchTargetId);
+                }
+                if (star == null && starRepository != null && searchTargetName != null) {
+                    star = starRepository.getStarByName(searchTargetName);
+                }
+                skyCanvasView.setHighlightedStar(star);
             } else {
-                skyCanvasView.setHighlightedPlanet(null);
+                skyCanvasView.clearHighlight();
             }
         }
 
         // Show search arrow to guide user to target
         // NOTE: Don't immediately set orientation - let the arrow guide the user
         if (searchArrowView != null) {
-            searchArrowView.setTarget(searchTargetRa, searchTargetDec, searchTargetName);
+            searchArrowView.setTarget(searchTargetRa, searchTargetDec, searchTargetName, searchTargetConstellation);
             searchArrowView.setVisibility(View.VISIBLE);
             searchArrowView.setOnClickListener(v -> clearSearchTarget());
 
@@ -1604,13 +1617,14 @@ public class SkyMapActivity extends AppCompatActivity {
             searchArrowView.setVisibility(View.GONE);
         }
         searchTargetName = null;
+        searchTargetConstellation = null;
         searchTargetType = null;
         searchTargetId = null;
         searchTargetBelowHorizonNotified = false;
         searchTargetInViewNotified = false;
         updateSearchDetailsButtonVisibility();
         if (skyCanvasView != null) {
-            skyCanvasView.setHighlightedPlanet(null);
+            skyCanvasView.clearHighlight();
         }
     }
 
@@ -1793,6 +1807,9 @@ public class SkyMapActivity extends AppCompatActivity {
 
         // Create scrollable list
         ScrollView scrollView = new ScrollView(this);
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
+        scrollView.setLayoutParams(scrollParams);
         LinearLayout listLayout = new LinearLayout(this);
         listLayout.setOrientation(LinearLayout.VERTICAL);
 

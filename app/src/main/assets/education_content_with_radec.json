@@ -1,0 +1,1067 @@
+{
+  "solar_system": [
+    {
+      "id": "sun",
+      "displayName": "The Sun",
+      "constellation": "N/A (Our Star)",
+      "funFact": "The Sun's core is 15 million degrees Celsius! Light takes 8 minutes to reach Earth.",
+      "history": "Worshipped as Ra in Egypt and Helios in Greece. It is the center of our solar system.",
+      "raDeg": null,
+      "decDeg": null,
+      "raDecEpoch": null,
+      "raDecNote": "Solar-system RA/Dec is time- and observer-dependent; compute from an ephemeris (e.g., JPL Horizons) for your app's chosen datetime/location."
+    },
+    {
+      "id": "mercury",
+      "displayName": "Mercury",
+      "constellation": "N/A (Solar System)",
+      "funFact": "It is the smallest planet and closest to the Sun. It has almost no atmosphere.",
+      "history": "Named after the swift Roman messenger god because it moves so fast.",
+      "raDeg": null,
+      "decDeg": null,
+      "raDecEpoch": null,
+      "raDecNote": "Solar-system RA/Dec is time- and observer-dependent; compute from an ephemeris (e.g., JPL Horizons) for your app's chosen datetime/location."
+    },
+    {
+      "id": "venus",
+      "displayName": "Venus",
+      "constellation": "N/A (Solar System)",
+      "funFact": "The hottest planet in our solar system because of its thick greenhouse atmosphere.",
+      "history": "Known as the 'Morning Star' and named after the goddess of love.",
+      "raDeg": null,
+      "decDeg": null,
+      "raDecEpoch": null,
+      "raDecNote": "Solar-system RA/Dec is time- and observer-dependent; compute from an ephemeris (e.g., JPL Horizons) for your app's chosen datetime/location."
+    },
+    {
+      "id": "mars",
+      "displayName": "Mars",
+      "constellation": "N/A (Solar System)",
+      "funFact": "Home to Olympus Mons, a volcano three times taller than Mount Everest.",
+      "history": "The 'Red Planet' was named after the Roman god of war.",
+      "raDeg": null,
+      "decDeg": null,
+      "raDecEpoch": null,
+      "raDecNote": "Solar-system RA/Dec is time- and observer-dependent; compute from an ephemeris (e.g., JPL Horizons) for your app's chosen datetime/location."
+    },
+    {
+      "id": "jupiter",
+      "displayName": "Jupiter",
+      "constellation": "N/A (Solar System)",
+      "funFact": "A gas giant so massive that 1,300 Earths could fit inside it.",
+      "history": "The king of the planets, named after the king of the Roman gods.",
+      "raDeg": null,
+      "decDeg": null,
+      "raDecEpoch": null,
+      "raDecNote": "Solar-system RA/Dec is time- and observer-dependent; compute from an ephemeris (e.g., JPL Horizons) for your app's chosen datetime/location."
+    },
+    {
+      "id": "saturn",
+      "displayName": "Saturn",
+      "constellation": "N/A (Solar System)",
+      "funFact": "Its spectacular rings are made of billions of chunks of ice and rock.",
+      "history": "Named after the Roman god of agriculture and time.",
+      "raDeg": null,
+      "decDeg": null,
+      "raDecEpoch": null,
+      "raDecNote": "Solar-system RA/Dec is time- and observer-dependent; compute from an ephemeris (e.g., JPL Horizons) for your app's chosen datetime/location."
+    },
+    {
+      "id": "uranus",
+      "displayName": "Uranus",
+      "constellation": "N/A (Solar System)",
+      "funFact": "An ice giant that tilts so far it actually orbits on its side.",
+      "history": "The first planet discovered using a telescope (by William Herschel).",
+      "raDeg": null,
+      "decDeg": null,
+      "raDecEpoch": null,
+      "raDecNote": "Solar-system RA/Dec is time- and observer-dependent; compute from an ephemeris (e.g., JPL Horizons) for your app's chosen datetime/location."
+    },
+    {
+      "id": "neptune",
+      "displayName": "Neptune",
+      "constellation": "N/A (Solar System)",
+      "funFact": "Has the strongest winds in the solar system, reaching 2,100 km/h.",
+      "history": "The last planet in our system, named after the Roman god of the sea.",
+      "raDeg": null,
+      "decDeg": null,
+      "raDecEpoch": null,
+      "raDecNote": "Solar-system RA/Dec is time- and observer-dependent; compute from an ephemeris (e.g., JPL Horizons) for your app's chosen datetime/location."
+    }
+  ],
+  "brightest_stars": [
+    {
+      "id": "sirius",
+      "displayName": "Sirius",
+      "constellation": "Canis Major",
+      "funFact": "The brightest star in the night sky.",
+      "history": "Known as the 'Dog Star'.",
+      "raDeg": 101.28722,
+      "decDeg": -16.71612,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "canopus",
+      "displayName": "Canopus",
+      "constellation": "Carina",
+      "funFact": "The second brightest star in the sky.",
+      "history": "Used by ancient sailors for navigation.",
+      "raDeg": 95.98792,
+      "decDeg": -52.69566,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "rigil_kentaurus",
+      "displayName": "Alpha Centauri",
+      "constellation": "Centaurus",
+      "funFact": "Our closest neighbor, just 4.3 light-years away.",
+      "history": "Actually a triple star system.",
+      "raDeg": 219.91147,
+      "decDeg": -60.83398,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "arcturus",
+      "displayName": "Arcturus",
+      "constellation": "Boötes",
+      "funFact": "An orange giant and the third brightest star.",
+      "history": "Name means 'Guardian of the Bear' in Greek.",
+      "raDeg": 213.91545,
+      "decDeg": 19.18241,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "vega",
+      "displayName": "Vega",
+      "constellation": "Lyra",
+      "funFact": "The first star ever to be photographed (in 1850).",
+      "history": "Once served as the North Pole star.",
+      "raDeg": 279.2346,
+      "decDeg": 38.78369,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "capella",
+      "displayName": "Capella",
+      "constellation": "Auriga",
+      "funFact": "A complex system of four stars in two pairs.",
+      "history": "Known as the 'Little She-Goat'.",
+      "raDeg": 79.17225,
+      "decDeg": 45.99799,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "rigel",
+      "displayName": "Rigel",
+      "constellation": "Orion",
+      "funFact": "A blue supergiant shining with 40,000 times the Sun's light.",
+      "history": "Marks the left foot of Orion the Hunter.",
+      "raDeg": 78.63447,
+      "decDeg": -8.20164,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "procyon",
+      "displayName": "Procyon",
+      "constellation": "Canis Minor",
+      "funFact": "One of our closest neighbors at 11 light-years away.",
+      "history": "Name means 'before the dog'.",
+      "raDeg": 114.8255,
+      "decDeg": 5.22499,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "betelgeuse",
+      "displayName": "Betelgeuse",
+      "constellation": "Orion",
+      "funFact": "A red supergiant that may explode as a supernova soon.",
+      "history": "Marks the right shoulder of Orion.",
+      "raDeg": 88.79293,
+      "decDeg": 7.40706,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "achernar",
+      "displayName": "Achernar",
+      "constellation": "Eridanus",
+      "funFact": "The flattest star known due to its rapid rotation.",
+      "history": "Name means 'the end of the river'.",
+      "raDeg": 24.42834,
+      "decDeg": -57.23676,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "hadar",
+      "displayName": "Hadar",
+      "constellation": "Centaurus",
+      "funFact": "A blue-white giant in the southern sky.",
+      "history": "Also known as Agena, 'the knee'.",
+      "raDeg": 210.95594,
+      "decDeg": -60.37304,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "altair",
+      "displayName": "Altair",
+      "constellation": "Aquila",
+      "funFact": "Spins so fast it is flattened at its poles.",
+      "history": "One point of the Summer Triangle.",
+      "raDeg": 297.69582,
+      "decDeg": 8.86832,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "acrux",
+      "displayName": "Acrux",
+      "constellation": "Crux",
+      "funFact": "The brightest star in the Southern Cross.",
+      "history": "Used to find the South Pole.",
+      "raDeg": 186.64966,
+      "decDeg": -63.09909,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "aldebaran",
+      "displayName": "Aldebaran",
+      "constellation": "Taurus",
+      "funFact": "The giant red 'Eye of the Bull'.",
+      "history": "Known as 'The Follower' of the Pleiades.",
+      "raDeg": 68.98016,
+      "decDeg": 16.5093,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "antares",
+      "displayName": "Antares",
+      "constellation": "Scorpius",
+      "funFact": "A red supergiant often confused with Mars.",
+      "history": "Name means 'Rival of Mars' in Greek.",
+      "raDeg": 247.35192,
+      "decDeg": -26.432,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "spica",
+      "displayName": "Spica",
+      "constellation": "Virgo",
+      "funFact": "A binary system of two stars so close they are egg-shaped.",
+      "history": "Depicted as an ear of wheat held by the Virgin.",
+      "raDeg": 201.29825,
+      "decDeg": -11.16132,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "pollux",
+      "displayName": "Pollux",
+      "constellation": "Gemini",
+      "funFact": "The brighter of the Gemini twins.",
+      "history": "The 'immortal' twin in Greek myth.",
+      "raDeg": 116.32916,
+      "decDeg": 28.0262,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "fomalhaut",
+      "displayName": "Fomalhaut",
+      "constellation": "Piscis Austrinus",
+      "funFact": "Surrounded by a massive disk of dust and debris.",
+      "history": "Known as 'The Lonely Star of the South'.",
+      "raDeg": 344.41257,
+      "decDeg": -29.62224,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "deneb",
+      "displayName": "Deneb",
+      "constellation": "Cygnus",
+      "funFact": "One of the most distant stars visible to the naked eye.",
+      "history": "Marks the tail of Cygnus the Swan.",
+      "raDeg": 310.35798,
+      "decDeg": 45.28034,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "mimosa",
+      "displayName": "Mimosa",
+      "constellation": "Crux",
+      "funFact": "A bright blue-white giant in the Southern Cross.",
+      "history": "Used for navigation for centuries.",
+      "raDeg": 191.93039,
+      "decDeg": -59.68876,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "regulus",
+      "displayName": "Regulus",
+      "constellation": "Leo",
+      "funFact": "Located directly on the path the Sun takes.",
+      "history": "The 'Little King' of the Lion.",
+      "raDeg": 152.09298,
+      "decDeg": 11.96721,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "adhara",
+      "displayName": "Adhara",
+      "constellation": "Canis Major",
+      "funFact": "The brightest known source of extreme ultraviolet light.",
+      "history": "Marks the dog's rear leg.",
+      "raDeg": 104.65645,
+      "decDeg": -28.97208,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "castor",
+      "displayName": "Castor",
+      "constellation": "Gemini",
+      "funFact": "Actually a complex system of six individual stars.",
+      "history": "The 'mortal' twin brother of Pollux.",
+      "raDeg": 113.64951,
+      "decDeg": 31.88828,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "gacrux",
+      "displayName": "Gacrux",
+      "constellation": "Crux",
+      "funFact": "A red giant and the top star of the Southern Cross.",
+      "history": "The closest red giant star to Earth.",
+      "raDeg": 187.79144,
+      "decDeg": -57.11321,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "shaula",
+      "displayName": "Shaula",
+      "constellation": "Scorpius",
+      "funFact": "A triple star system at the tip of the scorpion's tail.",
+      "history": "Its name means 'the stinger'.",
+      "raDeg": 263.40217,
+      "decDeg": -37.10382,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "bellatrix",
+      "displayName": "Bellatrix",
+      "constellation": "Orion",
+      "funFact": "A hot blue-white giant marking Orion's left shoulder.",
+      "history": "The 'Amazon Star'.",
+      "raDeg": 81.28276,
+      "decDeg": 6.3497,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "elnath",
+      "displayName": "Elnath",
+      "constellation": "Taurus",
+      "funFact": "Marks the tip of the bull's northern horn.",
+      "history": "Name means 'the butting one'.",
+      "raDeg": 81.57297,
+      "decDeg": 28.60745,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "miaplacidus",
+      "displayName": "Miaplacidus",
+      "constellation": "Carina",
+      "funFact": "A bright star in the southern constellation of Carina.",
+      "history": "Name means 'peaceful waters'.",
+      "raDeg": 138.30061,
+      "decDeg": -69.71721,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "alnilam",
+      "displayName": "Alnilam",
+      "constellation": "Orion",
+      "funFact": "The center star of Orion's famous belt.",
+      "history": "Name means 'string of pearls'.",
+      "raDeg": 84.05338,
+      "decDeg": -1.20192,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "alnitak",
+      "displayName": "Alnitak",
+      "constellation": "Orion",
+      "funFact": "The easternmost star of Orion's belt.",
+      "history": "Name means 'the girdle'.",
+      "raDeg": 85.1897,
+      "decDeg": -1.94257,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "al_nair",
+      "displayName": "Al Nair",
+      "constellation": "Grus",
+      "funFact": "A bright blue-white subgiant star.",
+      "history": "The name means 'the bright one'.",
+      "raDeg": 332.05813,
+      "decDeg": -46.96097,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "alioth",
+      "displayName": "Alioth",
+      "constellation": "Ursa Major",
+      "funFact": "The brightest star in the Big Dipper.",
+      "history": "Helps locate other stars in the Great Bear.",
+      "raDeg": 193.50708,
+      "decDeg": 55.95982,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "regor",
+      "displayName": "Regor",
+      "constellation": "Vela",
+      "funFact": "A massive star system containing a Wolf-Rayet star.",
+      "history": "The 'Star of the Sails'.",
+      "raDeg": 122.38314,
+      "decDeg": -47.33659,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "dubhe",
+      "displayName": "Dubhe",
+      "constellation": "Ursa Major",
+      "funFact": "One of the stars used to find the North Star.",
+      "history": "Name simply means 'bear'.",
+      "raDeg": 165.93233,
+      "decDeg": 61.75103,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "mirfak",
+      "displayName": "Mirfak",
+      "constellation": "Perseus",
+      "funFact": "The brightest star in the constellation Perseus.",
+      "history": "Name means 'elbow of the Pleiades'.",
+      "raDeg": 51.08067,
+      "decDeg": 49.86118,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "wezen",
+      "displayName": "Wezen",
+      "constellation": "Canis Major",
+      "funFact": "A massive yellow-white supergiant.",
+      "history": "Name means 'weight' in Arabic.",
+      "raDeg": 107.09785,
+      "decDeg": -26.3932,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "kaus_australis",
+      "displayName": "Kaus Australis",
+      "constellation": "Sagittarius",
+      "funFact": "The brightest star in the Archer's bow.",
+      "history": "Name means 'southern bow'.",
+      "raDeg": 276.04302,
+      "decDeg": -34.38462,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "alkaid",
+      "displayName": "Alkaid",
+      "constellation": "Ursa Major",
+      "funFact": "The star at the very tip of the Big Dipper's handle.",
+      "history": "Name means 'leader of the daughters'.",
+      "raDeg": 206.88531,
+      "decDeg": 49.31327,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "avior",
+      "displayName": "Avior",
+      "constellation": "Carina",
+      "funFact": "A binary system of a red giant and blue star.",
+      "history": "Part of the 'False Cross'.",
+      "raDeg": 125.62854,
+      "decDeg": -59.50948,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "menkalinan",
+      "displayName": "Menkalinan",
+      "constellation": "Auriga",
+      "funFact": "An eclipsing binary star system.",
+      "history": "Name means 'shoulder of the rein-holder'.",
+      "raDeg": 89.88224,
+      "decDeg": 44.94743,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "atria",
+      "displayName": "Atria",
+      "constellation": "Triangulum Australe",
+      "funFact": "A bright orange giant in the southern sky.",
+      "history": "Name is a contraction of Alpha Trianguli Australis.",
+      "raDeg": 252.16616,
+      "decDeg": -69.02772,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "alhena",
+      "displayName": "Alhena",
+      "constellation": "Gemini",
+      "funFact": "A white subgiant marking the foot of Pollux.",
+      "history": "Name means 'the mark'.",
+      "raDeg": 99.42792,
+      "decDeg": 16.39925,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "peacock",
+      "displayName": "Peacock",
+      "constellation": "Pavo",
+      "funFact": "A blue-white subgiant and binary star.",
+      "history": "Named after the bird it represents.",
+      "raDeg": 306.41188,
+      "decDeg": -56.73509,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "polaris",
+      "displayName": "Polaris",
+      "constellation": "Ursa Minor",
+      "funFact": "The North Star used for centuries for navigation.",
+      "history": "Stays fixed while the rest of the sky rotates.",
+      "raDeg": 37.94625,
+      "decDeg": 89.26411,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "mirzam",
+      "displayName": "Mirzam",
+      "constellation": "Canis Major",
+      "funFact": "A blue-white giant that pulses in brightness.",
+      "history": "Name means 'the herald'.",
+      "raDeg": 95.67494,
+      "decDeg": -17.95592,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "alphard",
+      "displayName": "Alphard",
+      "constellation": "Hydra",
+      "funFact": "The only bright star in the long Hydra constellation.",
+      "history": "Name means 'the solitary one'.",
+      "raDeg": 141.89685,
+      "decDeg": -8.6586,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "algieba",
+      "displayName": "Algieba",
+      "constellation": "Leo",
+      "funFact": "A beautiful binary system of two giant stars.",
+      "history": "Name means 'the forehead' of the lion.",
+      "raDeg": 154.99309,
+      "decDeg": 19.84149,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "hamal",
+      "displayName": "Hamal",
+      "constellation": "Aries",
+      "funFact": "The brightest star in the constellation of the Ram.",
+      "history": "Name means 'lamb'.",
+      "raDeg": 31.79333,
+      "decDeg": 23.46242,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "deneb_kaitos",
+      "displayName": "Deneb Kaitos",
+      "constellation": "Cetus",
+      "funFact": "An orange giant marking the whale's tail.",
+      "history": "Name means 'tail of the sea monster'.",
+      "raDeg": 10.89735,
+      "decDeg": -17.98661,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "nunki",
+      "displayName": "Nunki",
+      "constellation": "Sagittarius",
+      "funFact": "A hot blue-white star in the Teapot handle.",
+      "history": "A very ancient Babylonian name.",
+      "raDeg": 283.81635,
+      "decDeg": -26.29672,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "menkent",
+      "displayName": "Menkent",
+      "constellation": "Centaurus",
+      "funFact": "An orange giant in the northern Centaurus.",
+      "history": "Name means 'shoulder of the centaur'.",
+      "raDeg": 211.67093,
+      "decDeg": -36.36995,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "alpheratz",
+      "displayName": "Alpheratz",
+      "constellation": "Andromeda",
+      "funFact": "Connects Andromeda and Pegasus.",
+      "history": "Name means 'navel of the horse'.",
+      "raDeg": 2.09687,
+      "decDeg": 29.09043,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "mirach",
+      "displayName": "Mirach",
+      "constellation": "Andromeda",
+      "funFact": "A red giant used to find the Andromeda Galaxy.",
+      "history": "Name means 'loin cloth'.",
+      "raDeg": 17.43291,
+      "decDeg": 35.62056,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "kochab",
+      "displayName": "Kochab",
+      "constellation": "Ursa Minor",
+      "funFact": "One of the two 'Guardians of the Pole'.",
+      "history": "Served as the North Star long ago.",
+      "raDeg": 222.67658,
+      "decDeg": 74.15551,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "saiph",
+      "displayName": "Saiph",
+      "constellation": "Orion",
+      "funFact": "Marks the right foot of Orion the Hunter.",
+      "history": "Name means 'sword of the giant'.",
+      "raDeg": 86.93912,
+      "decDeg": -9.66961,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "rasalhague",
+      "displayName": "Rasalhague",
+      "constellation": "Ophiuchus",
+      "funFact": "The brightest star in the Serpent Bearer.",
+      "history": "Name means 'head of the serpent collector'.",
+      "raDeg": 263.73361,
+      "decDeg": 12.56003,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "algol",
+      "displayName": "Algol",
+      "constellation": "Perseus",
+      "funFact": "The 'Demon Star' that blinks every few days.",
+      "history": "Marks the head of Medusa.",
+      "raDeg": 47.04222,
+      "decDeg": 40.95565,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "tiaki",
+      "displayName": "Tiaki",
+      "constellation": "Grus",
+      "funFact": "A red giant star in the Crane constellation.",
+      "history": "Also known as Beta Gruis.",
+      "raDeg": 340.66672,
+      "decDeg": -46.88458,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "al_dhanab",
+      "displayName": "Al Dhanab",
+      "constellation": "Grus",
+      "funFact": "A blue-white subgiant marking the crane's tail.",
+      "history": "Name means 'the tail'.",
+      "raDeg": 328.48212,
+      "decDeg": -37.36485,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "denebola",
+      "displayName": "Denebola",
+      "constellation": "Leo",
+      "funFact": "A bright white star marking the lion's tail.",
+      "history": "Helps form the Spring Triangle.",
+      "raDeg": 177.26494,
+      "decDeg": 14.57206,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "muphrid",
+      "displayName": "Muphrid",
+      "constellation": "Boötes",
+      "funFact": "A yellow-white subgiant near Arcturus.",
+      "history": "Name means 'solitary star of the lancer'.",
+      "raDeg": 208.67117,
+      "decDeg": 18.39772,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "aspidiske",
+      "displayName": "Aspidiske",
+      "constellation": "Carina",
+      "funFact": "A white supergiant in the southern sky.",
+      "history": "Name means 'the little shield'.",
+      "raDeg": 139.27257,
+      "decDeg": -59.27523,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "suhail",
+      "displayName": "Suhail",
+      "constellation": "Vela",
+      "funFact": "An orange supergiant star in the sails.",
+      "history": "Name means 'the plain'.",
+      "raDeg": 136.99902,
+      "decDeg": -43.43259,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "alphecca",
+      "displayName": "Alphecca",
+      "constellation": "Corona Borealis",
+      "funFact": "The brightest star in the Northern Crown.",
+      "history": "Represents a jewel in Ariadne's crown.",
+      "raDeg": 233.67192,
+      "decDeg": 26.71469,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "mintaka",
+      "displayName": "Mintaka",
+      "constellation": "Orion",
+      "funFact": "The westernmost star in Orion's belt.",
+      "history": "Name means 'the belt'.",
+      "raDeg": 83.00168,
+      "decDeg": -0.29909,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "sadr",
+      "displayName": "Sadr",
+      "constellation": "Cygnus",
+      "funFact": "A supergiant at the center of the Swan.",
+      "history": "Name means 'the chest'.",
+      "raDeg": 305.5571,
+      "decDeg": 40.25668,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "tarn",
+      "displayName": "Tarn",
+      "constellation": "Eridanus",
+      "funFact": "A bright star in the long river constellation.",
+      "history": "Also known as Beta Eridani.",
+      "raDeg": 76.96243,
+      "decDeg": -5.08645,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "naos",
+      "displayName": "Naos",
+      "constellation": "Puppis",
+      "funFact": "One of the most luminous stars in the galaxy.",
+      "history": "Name means 'the ship' in Greek.",
+      "raDeg": 120.89606,
+      "decDeg": -40.00315,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "almach",
+      "displayName": "Almach",
+      "constellation": "Andromeda",
+      "funFact": "A stunning quadruple star system.",
+      "history": "Name means 'desert lynx'.",
+      "raDeg": 30.97476,
+      "decDeg": 42.32973,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "enif",
+      "displayName": "Enif",
+      "constellation": "Pegasus",
+      "funFact": "An orange supergiant marking the horse's nose.",
+      "history": "Name means 'the nose'.",
+      "raDeg": 326.0465,
+      "decDeg": 9.87501,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "kappa_velorum",
+      "displayName": "Kappa Velorum",
+      "constellation": "Vela",
+      "funFact": "A blue-white subgiant in the sails.",
+      "history": "Part of the 'False Cross'.",
+      "raDeg": 140.52843,
+      "decDeg": -55.01067,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "phecda",
+      "displayName": "Phecda",
+      "constellation": "Ursa Major",
+      "funFact": "One of the stars in the Big Dipper's bowl.",
+      "history": "Name means 'thigh' of the bear.",
+      "raDeg": 178.45752,
+      "decDeg": 53.69476,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "merak",
+      "displayName": "Merak",
+      "constellation": "Ursa Major",
+      "funFact": "A pointer star used to find Polaris.",
+      "history": "Name means 'the loins' of the bear.",
+      "raDeg": 165.46016,
+      "decDeg": 56.38243,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "izhar",
+      "displayName": "Izhar",
+      "constellation": "Boötes",
+      "funFact": "A beautiful double star system.",
+      "history": "Name means 'the veil'.",
+      "raDeg": 221.24676,
+      "decDeg": 27.07422,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "mizar",
+      "displayName": "Mizar",
+      "constellation": "Ursa Major",
+      "funFact": "Famous for its nearby companion star, Alcor.",
+      "history": "Ancient 'eye test' for warriors.",
+      "raDeg": 200.9812,
+      "decDeg": 54.92536,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "deneb_algedi",
+      "displayName": "Deneb Algedi",
+      "constellation": "Capricornus",
+      "funFact": "The brightest star in the Sea Goat.",
+      "history": "Name means 'tail of the goat'.",
+      "raDeg": 326.76016,
+      "decDeg": -16.12729,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "gienah",
+      "displayName": "Gienah",
+      "constellation": "Corvus",
+      "funFact": "A blue-white giant in the Raven constellation.",
+      "history": "Name means 'the wing'.",
+      "raDeg": 183.95155,
+      "decDeg": -17.54193,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "menkar",
+      "displayName": "Menkar",
+      "constellation": "Cetus",
+      "funFact": "An old red giant star in the whale.",
+      "history": "Name means 'the nostril'.",
+      "raDeg": 45.56988,
+      "decDeg": 4.08973,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "aludra",
+      "displayName": "Aludra",
+      "constellation": "Canis Major",
+      "funFact": "A blue supergiant marking the dog's tail.",
+      "history": "Name means 'the virginity'.",
+      "raDeg": 111.02376,
+      "decDeg": -29.3031,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "markab",
+      "displayName": "Markab",
+      "constellation": "Pegasus",
+      "funFact": "A star in the Great Square of Pegasus.",
+      "history": "Name means 'the saddle'.",
+      "raDeg": 346.19022,
+      "decDeg": 15.20526,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "scheat",
+      "displayName": "Scheat",
+      "constellation": "Pegasus",
+      "funFact": "A red giant that varies in brightness.",
+      "history": "Name means 'the shin'.",
+      "raDeg": 345.94351,
+      "decDeg": 28.08279,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "zubeneschamali",
+      "displayName": "Zubeneschamali",
+      "constellation": "Libra",
+      "funFact": "Sometimes appears green to observers.",
+      "history": "The 'Northern Claw' of the scorpion.",
+      "raDeg": 229.25173,
+      "decDeg": -9.38292,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "unukalhai",
+      "displayName": "Unukalhai",
+      "constellation": "Serpens",
+      "funFact": "The brightest star in the Serpent.",
+      "history": "Name means 'neck of the snake'.",
+      "raDeg": 236.06697,
+      "decDeg": 6.42563,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "alderamin",
+      "displayName": "Alderamin",
+      "constellation": "Cepheus",
+      "funFact": "Will be the North Star in 5,000 years.",
+      "history": "Name means 'the right arm'.",
+      "raDeg": 319.64445,
+      "decDeg": 62.58557,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "sabik",
+      "displayName": "Sabik",
+      "constellation": "Ophiuchus",
+      "funFact": "A binary system of two white stars.",
+      "history": "Name means 'one who precedes'.",
+      "raDeg": 257.59452,
+      "decDeg": -15.72491,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "al_terf",
+      "displayName": "Al Terf",
+      "constellation": "Leo",
+      "funFact": "A star marking the lion's paw.",
+      "history": "Name means 'the glance'.",
+      "raDeg": 142.93013,
+      "decDeg": 22.96797,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "phact",
+      "displayName": "Phact",
+      "constellation": "Columba",
+      "funFact": "A blue-white subgiant in the Dove.",
+      "history": "Name means 'the ring dove'.",
+      "raDeg": 84.91226,
+      "decDeg": -34.07411,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "zubenelgenubi",
+      "displayName": "Zubenelgenubi",
+      "constellation": "Libra",
+      "funFact": "A wide double star system.",
+      "history": "The 'Southern Claw'.",
+      "raDeg": 222.71965,
+      "decDeg": -16.04178,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "al_janah",
+      "displayName": "Al Janah",
+      "constellation": "Cygnus",
+      "funFact": "An orange giant in the swan's wing.",
+      "history": "Name means 'the wing'.",
+      "raDeg": 311.55267,
+      "decDeg": 33.97026,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "shir",
+      "displayName": "Shir",
+      "constellation": "Canis Major",
+      "funFact": "A bright star that heralds Sirius.",
+      "history": "Name means 'the herald'.",
+      "raDeg": null,
+      "decDeg": null,
+      "raDecEpoch": "J2000.0",
+      "raDecNote": "Not found in HYG Database v4.1 by proper name or Bayer designation; check spelling/alias."
+    },
+    {
+      "id": "mekbuda",
+      "displayName": "Mekbuda",
+      "constellation": "Gemini",
+      "funFact": "A bright variable star in the twins.",
+      "history": "Name means 'folded paw'.",
+      "raDeg": 106.02721,
+      "decDeg": 20.5703,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "mu_velorum",
+      "displayName": "Mu Velorum",
+      "constellation": "Vela",
+      "funFact": "A bright yellow-white giant in the sails.",
+      "history": "A key star of the southern sky.",
+      "raDeg": 161.69232,
+      "decDeg": -49.42025,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "acamar",
+      "displayName": "Acamar",
+      "constellation": "Eridanus",
+      "funFact": "A bright binary star in the river.",
+      "history": "Name means 'end of the river'.",
+      "raDeg": 44.56535,
+      "decDeg": -40.30467,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "al_minliar",
+      "displayName": "Al Minliar",
+      "constellation": "Hydra",
+      "funFact": "Marks the head of the water snake.",
+      "history": "Name means 'the snout'.",
+      "raDeg": null,
+      "decDeg": null,
+      "raDecEpoch": "J2000.0",
+      "raDecNote": "Not found in HYG Database v4.1 by proper name or Bayer designation; check spelling/alias."
+    },
+    {
+      "id": "al_balii",
+      "displayName": "Al Balii",
+      "constellation": "Aquarius",
+      "funFact": "A star marking the water bearer's hand.",
+      "history": "Name means 'the swallower'.",
+      "raDeg": null,
+      "decDeg": null,
+      "raDecEpoch": "J2000.0",
+      "raDecNote": "Not found in HYG Database v4.1 by proper name or Bayer designation; check spelling/alias."
+    },
+    {
+      "id": "zavijava",
+      "displayName": "Zavijava",
+      "constellation": "Virgo",
+      "funFact": "A yellow-white dwarf near the ecliptic.",
+      "history": "Name means 'the kennel'.",
+      "raDeg": 177.67383,
+      "decDeg": 1.76472,
+      "raDecEpoch": "J2000.0"
+    },
+    {
+      "id": "al_nayat",
+      "displayName": "Al Nayat",
+      "constellation": "Scorpius",
+      "funFact": "A star system located near Antares.",
+      "history": "Name means 'the arteries'.",
+      "raDeg": 245.29715,
+      "decDeg": -25.5928,
+      "raDecEpoch": "J2000.0"
+    }
+  ]
+}

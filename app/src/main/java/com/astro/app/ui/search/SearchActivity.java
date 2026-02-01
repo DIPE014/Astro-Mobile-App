@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -25,9 +26,14 @@ import com.astro.app.search.SearchIndex;
 import com.astro.app.search.SearchResult;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -64,6 +70,9 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     /** Extra key for the selected result object ID */
     public static final String EXTRA_RESULT_ID = "result_id";
 
+    /** Extra key for the selected result constellation name (for stars) */
+    public static final String EXTRA_RESULT_CONSTELLATION = "result_constellation";
+
     /** Extra key for observer latitude */
     public static final String EXTRA_OBSERVER_LAT = "observer_lat";
 
@@ -96,6 +105,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
     private double observerLat = 0.0;
     private double observerLon = 0.0;
     private long observationTimeMillis = System.currentTimeMillis();
+    private Map<String, String> starConstellationMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -346,8 +356,65 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         if (result.getObjectId() != null) {
             resultIntent.putExtra(EXTRA_RESULT_ID, result.getObjectId());
         }
+        if (result.getObjectType() == SearchResult.ObjectType.STAR) {
+            String constellationName = getConstellationForStarName(result.getName());
+            if (constellationName != null && !constellationName.isEmpty()) {
+                resultIntent.putExtra(EXTRA_RESULT_CONSTELLATION, constellationName);
+            }
+        }
 
         setResult(RESULT_OK, resultIntent);
         finish();
+    }
+
+    @Nullable
+    private String getConstellationForStarName(@NonNull String starName) {
+        if (starConstellationMap == null) {
+            starConstellationMap = loadStarConstellationMap();
+        }
+        if (starConstellationMap == null) {
+            return null;
+        }
+        return starConstellationMap.get(starName.toLowerCase(Locale.ROOT));
+    }
+
+    @Nullable
+    private Map<String, String> loadStarConstellationMap() {
+        try (java.io.InputStream inputStream = getAssets().open("education_content.json")) {
+            String json = readStreamToString(inputStream);
+            JSONObject root = new JSONObject(json);
+            JSONArray stars = root.optJSONArray("brightest_stars");
+            if (stars == null) {
+                return null;
+            }
+
+            Map<String, String> map = new HashMap<>();
+            for (int i = 0; i < stars.length(); i++) {
+                JSONObject star = stars.optJSONObject(i);
+                if (star == null) {
+                    continue;
+                }
+                String displayName = star.optString("displayName", "").trim();
+                String constellation = star.optString("constellation", "").trim();
+                if (!displayName.isEmpty() && !constellation.isEmpty()) {
+                    map.put(displayName.toLowerCase(Locale.ROOT), constellation);
+                }
+            }
+            return map;
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to load constellation map from education_content.json", e);
+            return null;
+        }
+    }
+
+    @NonNull
+    private String readStreamToString(@NonNull java.io.InputStream inputStream) throws java.io.IOException {
+        java.io.ByteArrayOutputStream outputStream = new java.io.ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int read;
+        while ((read = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, read);
+        }
+        return outputStream.toString(java.nio.charset.StandardCharsets.UTF_8.name());
     }
 }

@@ -54,6 +54,9 @@ public class StarInfoViewModel extends AndroidViewModel {
     /** Formatted star details for display */
     private final MutableLiveData<StarDetails> starDetailsLiveData = new MutableLiveData<>();
 
+    /** Education content for named stars (from education_content.json) */
+    private final MutableLiveData<EducationStar> educationStarLiveData = new MutableLiveData<>();
+
     // ==================== Dependencies ====================
 
     @Nullable
@@ -61,6 +64,9 @@ public class StarInfoViewModel extends AndroidViewModel {
 
     @Nullable
     private ConstellationRepository constellationRepository;
+
+    @Nullable
+    private java.util.Map<String, EducationStar> educationStarMap;
 
     /**
      * Creates a new StarInfoViewModel.
@@ -134,6 +140,16 @@ public class StarInfoViewModel extends AndroidViewModel {
     }
 
     /**
+     * Returns the LiveData for education content (if available).
+     *
+     * @return LiveData containing education content for named stars
+     */
+    @NonNull
+    public LiveData<EducationStar> getEducationStar() {
+        return educationStarLiveData;
+    }
+
+    /**
      * Returns the LiveData for loading state.
      *
      * @return LiveData containing true if loading
@@ -177,6 +193,7 @@ public class StarInfoViewModel extends AndroidViewModel {
             if (star != null) {
                 starLiveData.setValue(star);
                 starDetailsLiveData.setValue(createStarDetails(star));
+                loadEducationForStar(star);
                 loadConstellationForStar(star);
                 Log.d(TAG, "Loaded star: " + star.getName());
             } else {
@@ -210,6 +227,7 @@ public class StarInfoViewModel extends AndroidViewModel {
             if (star != null) {
                 starLiveData.setValue(star);
                 starDetailsLiveData.setValue(createStarDetails(star));
+                loadEducationForStar(star);
                 loadConstellationForStar(star);
                 Log.d(TAG, "Loaded star by name: " + star.getName());
             } else {
@@ -233,6 +251,7 @@ public class StarInfoViewModel extends AndroidViewModel {
     public void setStar(@NonNull StarData star) {
         starLiveData.setValue(star);
         starDetailsLiveData.setValue(createStarDetails(star));
+        loadEducationForStar(star);
         loadConstellationForStar(star);
     }
 
@@ -259,6 +278,7 @@ public class StarInfoViewModel extends AndroidViewModel {
             if (fullStar != null) {
                 starLiveData.setValue(fullStar);
                 starDetailsLiveData.setValue(createStarDetails(fullStar));
+                loadEducationForStar(fullStar);
                 loadConstellationForStar(fullStar);
                 return;
             }
@@ -275,6 +295,7 @@ public class StarInfoViewModel extends AndroidViewModel {
 
         starLiveData.setValue(minimalStar);
         starDetailsLiveData.setValue(createStarDetails(minimalStar));
+        loadEducationForStar(minimalStar);
     }
 
     /**
@@ -311,6 +332,88 @@ public class StarInfoViewModel extends AndroidViewModel {
             Log.e(TAG, "Error loading constellation: " + constellationId, e);
             constellationLiveData.setValue(null);
         }
+    }
+
+    /**
+     * Loads education content for a named star from education_content.json.
+     */
+    private void loadEducationForStar(@NonNull StarData star) {
+        EducationStar educationStar = findEducationStar(star);
+        educationStarLiveData.setValue(educationStar);
+    }
+
+    @Nullable
+    private EducationStar findEducationStar(@NonNull StarData star) {
+        if (educationStarMap == null) {
+            educationStarMap = loadEducationStarMap();
+        }
+        if (educationStarMap == null || educationStarMap.isEmpty()) {
+            return null;
+        }
+
+        String nameKey = star.getName().toLowerCase(java.util.Locale.ROOT);
+        EducationStar match = educationStarMap.get(nameKey);
+        if (match != null) {
+            return match;
+        }
+
+        for (String alternate : star.getAlternateNames()) {
+            if (alternate == null || alternate.isEmpty()) {
+                continue;
+            }
+            match = educationStarMap.get(alternate.toLowerCase(java.util.Locale.ROOT));
+            if (match != null) {
+                return match;
+            }
+        }
+
+        return null;
+    }
+
+    @Nullable
+    private java.util.Map<String, EducationStar> loadEducationStarMap() {
+        try (java.io.InputStream inputStream = getApplication().getAssets().open("education_content.json")) {
+            String json = readStreamToString(inputStream);
+            org.json.JSONObject root = new org.json.JSONObject(json);
+            org.json.JSONArray stars = root.optJSONArray("brightest_stars");
+            if (stars == null) {
+                return null;
+            }
+
+            java.util.Map<String, EducationStar> map = new java.util.HashMap<>();
+            for (int i = 0; i < stars.length(); i++) {
+                org.json.JSONObject star = stars.optJSONObject(i);
+                if (star == null) {
+                    continue;
+                }
+                String displayName = star.optString("displayName", "").trim();
+                if (displayName.isEmpty()) {
+                    continue;
+                }
+                EducationStar entry = new EducationStar(
+                        displayName,
+                        star.optString("constellation", "").trim(),
+                        star.optString("funFact", "").trim(),
+                        star.optString("history", "").trim());
+                map.put(displayName.toLowerCase(java.util.Locale.ROOT), entry);
+            }
+
+            return map;
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to load education_content.json", e);
+            return null;
+        }
+    }
+
+    @NonNull
+    private String readStreamToString(@NonNull java.io.InputStream inputStream) throws java.io.IOException {
+        java.io.ByteArrayOutputStream outputStream = new java.io.ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int read;
+        while ((read = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, read);
+        }
+        return outputStream.toString(java.nio.charset.StandardCharsets.UTF_8.name());
     }
 
     /**
@@ -572,6 +675,46 @@ public class StarInfoViewModel extends AndroidViewModel {
         @NonNull
         public StarData getStarData() {
             return star;
+        }
+    }
+
+    /**
+     * Education content entry for a named star.
+     */
+    public static class EducationStar {
+        private final String displayName;
+        private final String constellation;
+        private final String funFact;
+        private final String history;
+
+        public EducationStar(@NonNull String displayName,
+                             @NonNull String constellation,
+                             @NonNull String funFact,
+                             @NonNull String history) {
+            this.displayName = displayName;
+            this.constellation = constellation;
+            this.funFact = funFact;
+            this.history = history;
+        }
+
+        @NonNull
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @NonNull
+        public String getConstellation() {
+            return constellation;
+        }
+
+        @NonNull
+        public String getFunFact() {
+            return funFact;
+        }
+
+        @NonNull
+        public String getHistory() {
+            return history;
         }
     }
 }
