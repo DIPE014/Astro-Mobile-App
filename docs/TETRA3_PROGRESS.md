@@ -89,8 +89,8 @@ The Tetra3 star detection feature has been fully implemented. The feature allows
 
 Before deploying to production, the following tasks should be completed:
 
-1. **Generate Tetra3 Database**: Run `tetra3.Tetra3.generate_database()` on a PC with Python to create `hip_database_fov85.npz` (about 50-80MB)
-2. **Copy Database**: Place the generated database in `app/src/main/assets/tetra3/`
+1. ~~**Generate Tetra3 Database**: Run `tetra3.Tetra3.generate_database()` on a PC with Python to create `hip_database_fov85.npz` (about 50-80MB)~~ **DONE** - 55.2 MB generated
+2. ~~**Copy Database**: Place the generated database in `app/src/main/assets/tetra3/`~~ **DONE** - included in repo
 3. **Device Testing**: Test the full flow on a physical Android device
 4. **Performance Tuning**: Optimize Python/Chaquopy integration if needed
 5. **Error Handling**: Add user-friendly error messages for edge cases
