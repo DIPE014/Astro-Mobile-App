@@ -102,7 +102,8 @@ public class SkyCanvasView extends View {
     // Reticle settings for center selection
     private static final int RETICLE_COLOR = Color.argb(80, 255, 255, 255);
     private static final int RETICLE_COLOR_NIGHT = Color.argb(80, 200, 100, 100);
-    private static final int HIGHLIGHT_COLOR = Color.argb(255, 80, 150, 255);  // Blue for highlighted objects
+    private static final int HIGHLIGHT_COLOR = Color.argb(255, 255, 80, 80);  // Red for highlighted planets
+    private static final int STAR_HIGHLIGHT_COLOR = Color.argb(255, 255, 80, 80);  // Red for highlighted stars
     private static final int NIGHT_TOP_STAR_COLOR = Color.argb(255, 255, 215, 0); // Yellow for top stars
     private float reticleRadiusPx = 120f;  // Default 120 pixels radius
     private Paint reticlePaint;
@@ -808,7 +809,7 @@ public class SkyCanvasView extends View {
             boolean isHighlighted = highlightedStar != null && star.getId().equals(highlightedStar.getId());
 
             if (isHighlighted) {
-                starPaint.setColor(HIGHLIGHT_COLOR);  // Blue highlight
+                starPaint.setColor(STAR_HIGHLIGHT_COLOR);
                 size = size * 1.5f;  // Make highlighted star larger
             } else if (nightMode && topStarIds.contains(star.getId())) {
                 starPaint.setColor(NIGHT_TOP_STAR_COLOR);
@@ -818,6 +819,22 @@ public class SkyCanvasView extends View {
 
             canvas.drawCircle(x, y, size, starPaint);
             starsDrawn++;
+            if (isHighlighted) {
+                float pulse = (float) (0.75f + 0.25f *
+                        Math.sin((System.currentTimeMillis() % 1200L) / 1200.0 * Math.PI * 2.0));
+                float ringRadius = size * (3.0f * pulse);
+                int glowAlpha = (int) (80 + 60 * pulse);
+
+                highlightGlowPaint.setColor(STAR_HIGHLIGHT_COLOR);
+                highlightGlowPaint.setAlpha(glowAlpha);
+                canvas.drawCircle(x, y, ringRadius, highlightGlowPaint);
+
+                highlightRingPaint.setColor(STAR_HIGHLIGHT_COLOR);
+                highlightRingPaint.setAlpha(200);
+                canvas.drawCircle(x, y, ringRadius, highlightRingPaint);
+
+                postInvalidateOnAnimation();
+            }
 
             // Draw label for bright stars (magnitude < 2)
             if (magnitude < 2.0f) {
@@ -1018,9 +1035,11 @@ public class SkyCanvasView extends View {
                 float ringRadius = size * (2.2f * pulse);
                 int glowAlpha = (int) (80 + 60 * pulse);
 
+                highlightGlowPaint.setColor(HIGHLIGHT_COLOR);
                 highlightGlowPaint.setAlpha(glowAlpha);
                 canvas.drawCircle(x, y, ringRadius, highlightGlowPaint);
 
+                highlightRingPaint.setColor(HIGHLIGHT_COLOR);
                 highlightRingPaint.setAlpha(200);
                 canvas.drawCircle(x, y, ringRadius, highlightRingPaint);
 
@@ -1094,9 +1113,11 @@ public class SkyCanvasView extends View {
         float ringRadius = drawSize * (2.2f * pulse);
         int glowAlpha = (int) (80 + 60 * pulse);
 
+        highlightGlowPaint.setColor(HIGHLIGHT_COLOR);
         highlightGlowPaint.setAlpha(glowAlpha);
         canvas.drawCircle(x, y, ringRadius, highlightGlowPaint);
 
+        highlightRingPaint.setColor(HIGHLIGHT_COLOR);
         highlightRingPaint.setAlpha(200);
         canvas.drawCircle(x, y, ringRadius, highlightRingPaint);
 
