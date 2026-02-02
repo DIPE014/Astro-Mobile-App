@@ -24,12 +24,15 @@ public class EducationRepository {
     private static final String TAG = "EducationRepository";
     private static final String CONSTELLATION_FILE = "constellation_education_no_is_zodiac.json";
     private static final String PLANET_FILE = "planets_education.json";
+    private static final String DISTANCE_FILE = "education_content_distance.json";
+    private static final String DISTANCE_KEY_SOLAR_SYSTEM = "solar_system";
 
     private final AssetManager assetManager;
     private final Map<String, ConstellationEducation> constellationByName = new HashMap<>();
     private final Map<String, ConstellationEducation> constellationById = new HashMap<>();
     private final Map<String, PlanetEducation> planetByName = new HashMap<>();
     private final Map<String, PlanetEducation> planetById = new HashMap<>();
+    private final Map<String, String> planetDistanceByKey = new HashMap<>();
     private boolean loaded = false;
 
     public EducationRepository(@NonNull AssetManager assetManager) {
@@ -68,6 +71,7 @@ public class EducationRepository {
         if (loaded) {
             return;
         }
+        loadPlanetDistances();
         loadConstellations();
         loadPlanets();
         loaded = true;
@@ -117,6 +121,13 @@ public class EducationRepository {
                 if (name == null || name.isEmpty()) {
                     continue;
                 }
+                String distance = null;
+                if (id != null && !id.isEmpty()) {
+                    distance = planetDistanceByKey.get(normalizeKey(id));
+                }
+                if (distance == null) {
+                    distance = planetDistanceByKey.get(normalizeKey(name));
+                }
                 List<String> facts = new ArrayList<>();
                 JSONArray factsJson = obj.optJSONArray("facts");
                 if (factsJson != null) {
@@ -132,6 +143,7 @@ public class EducationRepository {
                         name,
                         optString(obj, "summary"),
                         facts,
+                        distance,
                         optString(obj, "howToSpot"),
                         optString(obj, "funFact")
                 );
@@ -142,6 +154,34 @@ public class EducationRepository {
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to load planet education: " + e.getMessage());
+        }
+    }
+
+    private void loadPlanetDistances() {
+        try {
+            String json = readAsset(DISTANCE_FILE);
+            JSONObject root = new JSONObject(json);
+            JSONArray array = root.optJSONArray(DISTANCE_KEY_SOLAR_SYSTEM);
+            if (array == null) {
+                return;
+            }
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject obj = array.getJSONObject(i);
+                String id = optString(obj, "id");
+                String name = optString(obj, "displayName");
+                String distance = optString(obj, "distance");
+                if (distance == null || distance.isEmpty()) {
+                    continue;
+                }
+                if (id != null && !id.isEmpty()) {
+                    planetDistanceByKey.put(normalizeKey(id), distance);
+                }
+                if (name != null && !name.isEmpty()) {
+                    planetDistanceByKey.put(normalizeKey(name), distance);
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to load distance education: " + e.getMessage());
         }
     }
 

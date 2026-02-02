@@ -33,6 +33,8 @@ import java.util.List;
 public class StarInfoViewModel extends AndroidViewModel {
 
     private static final String TAG = "StarInfoViewModel";
+    private static final String DISTANCE_ASSET = "education_content_distance.json";
+    private static final String JSON_KEY_BRIGHTEST_STARS = "brightest_stars";
 
     // ==================== LiveData Fields ====================
 
@@ -67,6 +69,9 @@ public class StarInfoViewModel extends AndroidViewModel {
 
     @Nullable
     private java.util.Map<String, EducationStar> educationStarMap;
+
+    @Nullable
+    private java.util.Map<String, String> distanceStarMap;
 
     /**
      * Creates a new StarInfoViewModel.
@@ -405,6 +410,65 @@ public class StarInfoViewModel extends AndroidViewModel {
         }
     }
 
+    @Nullable
+    private java.util.Map<String, String> loadDistanceStarMap() {
+        try (java.io.InputStream inputStream = getApplication().getAssets().open(DISTANCE_ASSET)) {
+            String json = readStreamToString(inputStream);
+            org.json.JSONObject root = new org.json.JSONObject(json);
+            org.json.JSONArray stars = root.optJSONArray(JSON_KEY_BRIGHTEST_STARS);
+            if (stars == null) {
+                return null;
+            }
+
+            java.util.Map<String, String> map = new java.util.HashMap<>();
+            for (int i = 0; i < stars.length(); i++) {
+                org.json.JSONObject star = stars.optJSONObject(i);
+                if (star == null) {
+                    continue;
+                }
+                String displayName = star.optString("displayName", "").trim();
+                String distance = star.optString("distance", "").trim();
+                if (displayName.isEmpty() || distance.isEmpty()) {
+                    continue;
+                }
+                map.put(displayName.toLowerCase(java.util.Locale.ROOT), distance);
+            }
+
+            return map;
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to load " + DISTANCE_ASSET, e);
+            return null;
+        }
+    }
+
+    @Nullable
+    private String findDistanceForStar(@NonNull StarData star) {
+        if (distanceStarMap == null) {
+            distanceStarMap = loadDistanceStarMap();
+        }
+        if (distanceStarMap == null || distanceStarMap.isEmpty()) {
+            return null;
+        }
+
+        String nameKey = star.getName().toLowerCase(java.util.Locale.ROOT);
+        String match = distanceStarMap.get(nameKey);
+        if (match != null) {
+            return match;
+        }
+
+        for (String alternate : star.getAlternateNames()) {
+            if (alternate == null || alternate.isEmpty()) {
+                continue;
+            }
+            match = distanceStarMap.get(alternate.toLowerCase(java.util.Locale.ROOT));
+            if (match != null) {
+                return match;
+            }
+        }
+
+        return null;
+    }
+
     @NonNull
     private String readStreamToString(@NonNull java.io.InputStream inputStream) throws java.io.IOException {
         java.io.ByteArrayOutputStream outputStream = new java.io.ByteArrayOutputStream();
@@ -440,7 +504,7 @@ public class StarInfoViewModel extends AndroidViewModel {
      */
     @NonNull
     private StarDetails createStarDetails(@NonNull StarData star) {
-        return new StarDetails(star);
+        return new StarDetails(star, findDistanceForStar(star));
     }
 
     /**
@@ -461,14 +525,17 @@ public class StarInfoViewModel extends AndroidViewModel {
     public static class StarDetails {
 
         private final StarData star;
+        @Nullable
+        private final String distanceOverride;
 
         /**
          * Creates new star details from star data.
          *
          * @param star The star data
          */
-        public StarDetails(@NonNull StarData star) {
+        public StarDetails(@NonNull StarData star, @Nullable String distanceOverride) {
             this.star = star;
+            this.distanceOverride = distanceOverride;
         }
 
         /**
@@ -618,6 +685,9 @@ public class StarInfoViewModel extends AndroidViewModel {
          */
         @NonNull
         public String getFormattedDistance() {
+            if (distanceOverride != null && !distanceOverride.isEmpty()) {
+                return distanceOverride;
+            }
             if (!star.hasKnownDistance()) {
                 return "Unknown";
             }

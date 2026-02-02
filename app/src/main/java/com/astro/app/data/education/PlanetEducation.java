@@ -19,6 +19,8 @@ public class PlanetEducation {
     @NonNull
     private final List<String> facts;
     @Nullable
+    private final String distance;
+    @Nullable
     private final String howToSpot;
     @Nullable
     private final String funFact;
@@ -27,12 +29,14 @@ public class PlanetEducation {
                            @NonNull String name,
                            @Nullable String summary,
                            @NonNull List<String> facts,
+                           @Nullable String distance,
                            @Nullable String howToSpot,
                            @Nullable String funFact) {
         this.id = id;
         this.name = name;
         this.summary = summary;
         this.facts = Collections.unmodifiableList(facts);
+        this.distance = distance;
         this.howToSpot = howToSpot;
         this.funFact = funFact;
     }
@@ -55,6 +59,11 @@ public class PlanetEducation {
     @NonNull
     public List<String> getFacts() {
         return facts;
+    }
+
+    @Nullable
+    public String getDistance() {
+        return distance;
     }
 
     @Nullable

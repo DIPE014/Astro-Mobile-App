@@ -32,6 +32,7 @@ public class EducationDetailActivity extends AppCompatActivity {
 
     private View planetSection;
     private TextView tvPlanetSummary;
+    private TextView tvPlanetDistance;
     private TextView tvPlanetFacts;
     private TextView tvPlanetHowToSpot;
     private TextView tvPlanetFunFact;
@@ -66,6 +67,7 @@ public class EducationDetailActivity extends AppCompatActivity {
 
         planetSection = findViewById(R.id.sectionPlanet);
         tvPlanetSummary = findViewById(R.id.tvPlanetSummary);
+        tvPlanetDistance = findViewById(R.id.tvPlanetDistance);
         tvPlanetFacts = findViewById(R.id.tvPlanetFacts);
         tvPlanetHowToSpot = findViewById(R.id.tvPlanetHowToSpot);
         tvPlanetFunFact = findViewById(R.id.tvPlanetFunFact);
@@ -147,6 +149,7 @@ public class EducationDetailActivity extends AppCompatActivity {
         }
 
         setTextOrHide(tvPlanetSummary, education.getSummary());
+        setTextOrHide(tvPlanetDistance, education.getDistance());
         setTextOrHide(tvPlanetHowToSpot, education.getHowToSpot());
         setTextOrHide(tvPlanetFunFact, education.getFunFact());
         setTextOrHide(tvPlanetFacts, buildBulletList(education.getFacts()));
