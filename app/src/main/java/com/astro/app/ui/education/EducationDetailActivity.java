@@ -2,6 +2,7 @@ package com.astro.app.ui.education;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +30,7 @@ public class EducationDetailActivity extends AppCompatActivity {
 
     private TextView tvTitle;
     private TextView tvSubtitle;
+    private ImageView ivEducationImage;
 
     private View planetSection;
     private TextView tvPlanetSummary;
@@ -64,6 +66,7 @@ public class EducationDetailActivity extends AppCompatActivity {
     private void initializeViews() {
         tvTitle = findViewById(R.id.tvEducationTitle);
         tvSubtitle = findViewById(R.id.tvEducationSubtitle);
+        ivEducationImage = findViewById(R.id.ivEducationImage);
 
         planetSection = findViewById(R.id.sectionPlanet);
         tvPlanetSummary = findViewById(R.id.tvPlanetSummary);
@@ -140,6 +143,16 @@ public class EducationDetailActivity extends AppCompatActivity {
                 tvSubtitle.setText(R.string.object_planet);
             }
         }
+        if (ivEducationImage != null) {
+            String name = education.getName();
+            if ("Sun".equalsIgnoreCase(name)) {
+                ivEducationImage.setImageResource(android.R.drawable.ic_menu_compass);
+            } else if ("Moon".equalsIgnoreCase(name)) {
+                ivEducationImage.setImageResource(android.R.drawable.btn_star_big_on);
+            } else {
+                ivEducationImage.setImageResource(android.R.drawable.ic_menu_compass);
+            }
+        }
 
         if (constellationSection != null) {
             constellationSection.setVisibility(View.GONE);
@@ -161,6 +174,9 @@ public class EducationDetailActivity extends AppCompatActivity {
         }
         if (tvSubtitle != null) {
             tvSubtitle.setText(R.string.object_constellation);
+        }
+        if (ivEducationImage != null) {
+            ivEducationImage.setImageResource(android.R.drawable.ic_menu_myplaces);
         }
 
         if (planetSection != null) {

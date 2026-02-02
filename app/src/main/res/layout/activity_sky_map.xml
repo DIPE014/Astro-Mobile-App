@@ -472,27 +472,6 @@
 
     </LinearLayout>
 
-    <!-- Compass Indicator -->
-    <FrameLayout
-        android:id="@+id/compassContainer"
-        android:layout_width="@dimen/sky_map_compass_size"
-        android:layout_height="@dimen/sky_map_compass_size"
-        android:layout_marginStart="@dimen/sky_map_compass_margin"
-        android:layout_marginBottom="@dimen/margin_medium"
-        app:layout_constraintBottom_toTopOf="@id/bottomControls"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <!-- Compass View will be added programmatically -->
-        <ImageView
-            android:id="@+id/ivCompass"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:contentDescription="@string/direction_north"
-            android:src="@android:drawable/ic_menu_compass"
-            app:tint="@color/sky_map_compass" />
-
-    </FrameLayout>
-
     <!-- Center Crosshair -->
     <View
         android:id="@+id/crosshairHorizontal"

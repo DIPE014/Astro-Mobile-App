@@ -311,6 +311,7 @@ public class SkyMapActivity extends AppCompatActivity {
 
                     lastViewAzimuth = finalAzimuth;
                     lastViewAltitude = finalAltitude;
+                    updateAngleIndicator(finalAzimuth, finalAltitude);
 
                     // Update search arrow if active
                     if (searchArrowView != null && searchArrowView.isActive()) {
@@ -422,8 +423,7 @@ public class SkyMapActivity extends AppCompatActivity {
                     astronomerModel.setLocation(new LatLong(latitude, longitude));
                 }
 
-                // Update GPS indicator to show connected status
-                updateGpsIndicator(true, String.format("%.2f°, %.2f°", latitude, longitude));
+                updateGpsIndicator(true, getString(R.string.gps_connected));
             });
         });
 
@@ -442,9 +442,21 @@ public class SkyMapActivity extends AppCompatActivity {
             int iconColor = connected ? R.color.gps_connected : R.color.gps_searching;
             ivGpsIcon.setColorFilter(ContextCompat.getColor(this, iconColor));
         }
-        if (tvGpsStatus != null) {
-            tvGpsStatus.setText(statusText);
+    }
+
+    /**
+     * Updates the top-left angle indicator (Azimuth/Altitude).
+     */
+    private void updateAngleIndicator(float azimuth, float altitude) {
+        if (tvGpsStatus == null) {
+            return;
         }
+        float normalizedAzimuth = azimuth % 360f;
+        if (normalizedAzimuth < 0f) {
+            normalizedAzimuth += 360f;
+        }
+        tvGpsStatus.setText(String.format(java.util.Locale.US,
+                "Az %.1f°  Alt %.1f°", normalizedAzimuth, altitude));
     }
 
     /**
@@ -569,6 +581,7 @@ public class SkyMapActivity extends AppCompatActivity {
         gpsIndicator = findViewById(R.id.gpsIndicator);
         ivGpsIcon = findViewById(R.id.ivGpsIcon);
         tvGpsStatus = findViewById(R.id.tvGpsStatus);
+        updateAngleIndicator(lastViewAzimuth, lastViewAltitude);
 
         // Search arrow view
         searchArrowView = findViewById(R.id.searchArrow);

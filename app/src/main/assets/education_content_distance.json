@@ -8,7 +8,8 @@
     { "id": "jupiter", "displayName": "Jupiter", "distance": "778 million km", "funFact": "A gas giant so massive that 1,300 Earths could fit inside it." },
     { "id": "saturn", "displayName": "Saturn", "distance": "1.4 billion km", "funFact": "Its spectacular rings are made of billions of chunks of ice and rock." },
     { "id": "uranus", "displayName": "Uranus", "distance": "2.9 billion km", "funFact": "An ice giant that tilts so far it actually orbits on its side." },
-    { "id": "neptune", "displayName": "Neptune", "distance": "4.5 billion km", "funFact": "Has the strongest winds in the solar system, reaching 2,100 km/h." }
+    { "id": "neptune", "displayName": "Neptune", "distance": "4.5 billion km", "funFact": "Has the strongest winds in the solar system, reaching 2,100 km/h." },
+    { "id": "pluto", "displayName": "Pluto", "distance": "5.9 billion km", "funFact": "Pluto is a dwarf planet in the Kuiper Belt and needs 248 Earth years to orbit the Sun." }
   ],
   "brightest_stars": [
     { "id": "sirius", "displayName": "Sirius", "distance": "8.6 ly", "funFact": "The brightest star in the night sky. Known as the 'Dog Star'." },

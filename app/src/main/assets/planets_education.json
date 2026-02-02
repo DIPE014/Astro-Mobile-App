@@ -96,6 +96,18 @@
     "funFact": "Neptune was the first planet found using math predictions before it was widely observed."
   },
   {
+    "id": "pluto",
+    "name": "Pluto",
+    "summary": "Pluto is a dwarf planet in the Kuiper Belt, far beyond Neptune.",
+    "facts": [
+      "Pluto was discovered in 1930 by Clyde Tombaugh.",
+      "It has five known moons; Charon is the largest and makes Pluto-Charon behave like a double world.",
+      "One Pluto year lasts about 248 Earth years."
+    ],
+    "howToSpot": "Pluto is too faint for naked-eye viewing. You need a telescope, dark skies, and accurate sky charts.",
+    "funFact": "Pluto and Charon orbit a point in space outside Pluto's surface."
+  },
+  {
     "id": "sun",
     "name": "Sun",
     "summary": "The Sun is a star at the center of our solar system and provides the light and heat that support life on Earth.",
