@@ -85,13 +85,26 @@ public class PlateSolveActivity extends AppCompatActivity {
             });
         }
 
-        // Check native library
+        // Check native library and load index files
         if (!AstrometryNative.isLibraryLoaded()) {
             tvStatus.setText("ERROR: Native library not loaded!");
             btnDetectStars.setEnabled(false);
             btnSolve.setEnabled(false);
         } else {
-            tvStatus.setText("Native library loaded. Pick an image to test.");
+            // Load index files from assets at startup
+            int indexCount = 0;
+            try {
+                indexCount = solver.loadIndexesFromAssets("indexes");
+                Log.i(TAG, "Loaded " + indexCount + " index files from assets");
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to load index files: " + e.getMessage());
+            }
+
+            if (indexCount > 0) {
+                tvStatus.setText("Ready! " + indexCount + " index files loaded. Pick an image.");
+            } else {
+                tvStatus.setText("Warning: No index files found. Solve will not work.");
+            }
         }
 
         btnPickImage.setOnClickListener(v -> pickImage());
@@ -268,15 +281,6 @@ public class PlateSolveActivity extends AppCompatActivity {
         tvStatus.setText("Solving plate... (this requires index files)");
 
         executor.execute(() -> {
-            // Try to load index files
-            try {
-                solver.clearIndexPaths();
-                int count = solver.loadIndexesFromAssets("indexes");
-                Log.i(TAG, "Loaded " + count + " index files from assets");
-            } catch (Exception e) {
-                Log.w(TAG, "No index files in assets: " + e.getMessage());
-            }
-
             long startTime = System.currentTimeMillis();
 
             solver.solve(currentBitmap, new NativePlateSolver.SolveCallback() {
