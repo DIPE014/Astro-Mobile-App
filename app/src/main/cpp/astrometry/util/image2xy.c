@@ -65,6 +65,7 @@ int image2xy_run(simplexy_t* s,
         if (!s->image) {
             s->image = upconvert(s->image_u8, s->nx, s->ny);
             free_fimage = TRUE;
+            s->image_u8 = NULL;  // Clear to satisfy simplexy assertion
         }
         if (!s->image)
             goto bailout;
