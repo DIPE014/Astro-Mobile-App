@@ -44,6 +44,26 @@ public class AstrometryNative {
     );
 
     /**
+     * Solve field using detected stars and index files.
+     * @param starXY Array of [x0,y0,flux0, x1,y1,flux1, ...]
+     * @param numStars Number of stars
+     * @param imageWidth Image width
+     * @param imageHeight Image height
+     * @param indexPaths Paths to index files
+     * @param scaleLow Lower pixel scale bound (arcsec/pixel)
+     * @param scaleHigh Upper pixel scale bound (arcsec/pixel)
+     * @param logOddsThreshold Minimum log-odds to accept solution
+     * @return Array [solved, ra, dec, crpixX, crpixY, cd11, cd12, cd21, cd22, pixelScale, rotation, logOdds]
+     */
+    public static native double[] solveFieldNative(
+        float[] starXY, int numStars,
+        int imageWidth, int imageHeight,
+        String[] indexPaths,
+        double scaleLow, double scaleHigh,
+        double logOddsThreshold
+    );
+
+    /**
      * Represents a detected star with position and flux.
      */
     public static class NativeStar {
@@ -114,5 +134,84 @@ public class AstrometryNative {
         }
 
         return grayscale;
+    }
+
+    /**
+     * Result of plate solving operation.
+     */
+    public static class SolveResult {
+        public final boolean solved;
+        public final double ra;           // Right ascension in degrees
+        public final double dec;          // Declination in degrees
+        public final double crpixX;       // Reference pixel X
+        public final double crpixY;       // Reference pixel Y
+        public final double[] cd;         // CD matrix [4] = {cd11, cd12, cd21, cd22}
+        public final double pixelScale;   // Arcseconds per pixel
+        public final double rotation;     // Field rotation in degrees
+        public final double logOdds;      // Confidence measure
+
+        public SolveResult(double[] result) {
+            this.solved = result[0] > 0.5;
+            this.ra = result[1];
+            this.dec = result[2];
+            this.crpixX = result[3];
+            this.crpixY = result[4];
+            this.cd = new double[] {result[5], result[6], result[7], result[8]};
+            this.pixelScale = result[9];
+            this.rotation = result[10];
+            this.logOdds = result[11];
+        }
+
+        public static SolveResult failed() {
+            return new SolveResult(new double[12]);
+        }
+    }
+
+    /**
+     * Solve field given detected stars and index files.
+     * @param stars List of detected stars
+     * @param imageWidth Image width
+     * @param imageHeight Image height
+     * @param indexPaths Paths to index files
+     * @param scaleLow Lower pixel scale bound (arcsec/pixel)
+     * @param scaleHigh Upper pixel scale bound (arcsec/pixel)
+     * @return SolveResult with solution or failed status
+     */
+    public static SolveResult solveField(
+            List<NativeStar> stars,
+            int imageWidth,
+            int imageHeight,
+            String[] indexPaths,
+            double scaleLow,
+            double scaleHigh) {
+
+        if (!libraryLoaded) {
+            Log.e(TAG, "Native library not loaded");
+            return SolveResult.failed();
+        }
+
+        if (stars == null || stars.isEmpty()) {
+            Log.e(TAG, "No stars provided");
+            return SolveResult.failed();
+        }
+
+        // Convert stars to flat array
+        float[] starXY = new float[stars.size() * 3];
+        for (int i = 0; i < stars.size(); i++) {
+            NativeStar s = stars.get(i);
+            starXY[i * 3] = s.x;
+            starXY[i * 3 + 1] = s.y;
+            starXY[i * 3 + 2] = s.flux;
+        }
+
+        // Call native solver
+        double[] result = solveFieldNative(starXY, stars.size(),
+                imageWidth, imageHeight, indexPaths, scaleLow, scaleHigh, 20.0);
+
+        if (result == null) {
+            return SolveResult.failed();
+        }
+
+        return new SolveResult(result);
     }
 }

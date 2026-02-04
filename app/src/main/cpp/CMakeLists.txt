@@ -89,6 +89,7 @@ set(LIBKD_SOURCES
     astrometry/libkd/kdint_duu.c
     astrometry/libkd/kdint_dds.c
     astrometry/libkd/kdint_dss.c
+    astrometry/libkd/kdint_lll.c
 )
 
 # UTIL sources (star detection + utilities)
@@ -120,6 +121,7 @@ set(UTIL_SOURCES
     astrometry/util/fileutils.c
     astrometry/util/errors.c
     astrometry/util/log.c
+    astrometry/util/datalog.c
     astrometry/util/tic.c
     astrometry/util/an-endian.c
     # SIP/WCS
