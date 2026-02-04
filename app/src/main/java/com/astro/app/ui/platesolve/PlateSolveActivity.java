@@ -3,11 +3,15 @@ package com.astro.app.ui.platesolve;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -43,9 +47,11 @@ public class PlateSolveActivity extends AppCompatActivity {
     private ProgressBar progressBar;
 
     private Bitmap currentBitmap;
+    private Bitmap originalBitmap;
     private List<AstrometryNative.NativeStar> detectedStars;
     private NativePlateSolver solver;
     private ExecutorService executor;
+    private CheckBox cbShowStars;
 
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -67,9 +73,17 @@ public class PlateSolveActivity extends AppCompatActivity {
         btnDetectStars = findViewById(R.id.btnDetectStars);
         btnSolve = findViewById(R.id.btnSolve);
         progressBar = findViewById(R.id.progressBar);
+        cbShowStars = findViewById(R.id.cbShowStars);
 
         executor = Executors.newSingleThreadExecutor();
         solver = new NativePlateSolver(this);
+
+        // Toggle star overlay
+        if (cbShowStars != null) {
+            cbShowStars.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                updateImageDisplay();
+            });
+        }
 
         // Check native library
         if (!AstrometryNative.isLibraryLoaded()) {
@@ -103,10 +117,11 @@ public class PlateSolveActivity extends AppCompatActivity {
     private void loadImage(Uri uri) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
-            currentBitmap = BitmapFactory.decodeStream(inputStream);
+            originalBitmap = BitmapFactory.decodeStream(inputStream);
             inputStream.close();
 
-            if (currentBitmap != null) {
+            if (originalBitmap != null) {
+                currentBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
                 imageView.setImageBitmap(currentBitmap);
                 tvStatus.setText(String.format(Locale.US, "Image loaded: %dx%d",
                         currentBitmap.getWidth(), currentBitmap.getHeight()));
@@ -114,11 +129,78 @@ public class PlateSolveActivity extends AppCompatActivity {
                 btnDetectStars.setEnabled(true);
                 btnSolve.setEnabled(false);
                 detectedStars = null;
+                if (cbShowStars != null) {
+                    cbShowStars.setChecked(false);
+                    cbShowStars.setEnabled(false);
+                }
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to load image", e);
             tvStatus.setText("Failed to load image: " + e.getMessage());
         }
+    }
+
+    private void updateImageDisplay() {
+        if (originalBitmap == null) return;
+
+        currentBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
+
+        if (cbShowStars != null && cbShowStars.isChecked() && detectedStars != null) {
+            drawStarsOnBitmap(currentBitmap, detectedStars);
+        }
+
+        imageView.setImageBitmap(currentBitmap);
+    }
+
+    private void drawStarsOnBitmap(Bitmap bitmap, List<AstrometryNative.NativeStar> stars) {
+        Canvas canvas = new Canvas(bitmap);
+
+        // Find max flux for scaling
+        float maxFlux = 0;
+        for (AstrometryNative.NativeStar s : stars) {
+            if (s.flux > maxFlux) maxFlux = s.flux;
+        }
+
+        Paint circlePaint = new Paint();
+        circlePaint.setStyle(Paint.Style.STROKE);
+        circlePaint.setStrokeWidth(2);
+        circlePaint.setAntiAlias(true);
+
+        Paint textPaint = new Paint();
+        textPaint.setColor(Color.YELLOW);
+        textPaint.setTextSize(24);
+        textPaint.setAntiAlias(true);
+
+        // Sort by flux (brightest first)
+        stars.sort((a, b) -> Float.compare(b.flux, a.flux));
+
+        for (int i = 0; i < stars.size(); i++) {
+            AstrometryNative.NativeStar s = stars.get(i);
+
+            // Circle size based on flux (brighter = bigger)
+            float radius = 5 + 15 * (s.flux / maxFlux);
+
+            // Color: bright stars are yellow, dim stars are cyan
+            if (i < 20) {
+                circlePaint.setColor(Color.YELLOW);
+            } else if (i < 100) {
+                circlePaint.setColor(Color.GREEN);
+            } else {
+                circlePaint.setColor(Color.CYAN);
+            }
+
+            canvas.drawCircle(s.x, s.y, radius, circlePaint);
+
+            // Label top 10 brightest stars
+            if (i < 10) {
+                canvas.drawText(String.valueOf(i + 1), s.x + radius + 2, s.y - radius, textPaint);
+            }
+        }
+
+        // Draw legend
+        textPaint.setTextSize(32);
+        textPaint.setColor(Color.WHITE);
+        canvas.drawText(stars.size() + " stars detected", 20, 50, textPaint);
     }
 
     private void detectStars() {
@@ -160,6 +242,13 @@ public class PlateSolveActivity extends AppCompatActivity {
                     tvResults.setText(sb.toString());
                     tvStatus.setText(String.format(Locale.US, "Found %d stars", stars.size()));
                     btnSolve.setEnabled(true);
+
+                    // Enable star overlay checkbox
+                    if (cbShowStars != null) {
+                        cbShowStars.setEnabled(true);
+                        cbShowStars.setChecked(true);  // Auto-show stars
+                    }
+                    updateImageDisplay();
                 } else {
                     tvStatus.setText("No stars detected");
                     tvResults.setText("Try adjusting detection parameters or use a different image.");
