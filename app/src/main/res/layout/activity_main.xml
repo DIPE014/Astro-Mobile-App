@@ -95,7 +95,7 @@
         android:layout_height="@dimen/button_height_large"
         android:layout_marginStart="@dimen/margin_huge"
         android:layout_marginEnd="@dimen/margin_huge"
-        android:layout_marginBottom="@dimen/margin_massive"
+        android:layout_marginBottom="@dimen/margin_medium"
         android:text="@string/nav_sky_map"
         android:textAllCaps="false"
         android:textSize="@dimen/text_size_large"
@@ -105,10 +105,33 @@
         app:iconPadding="@dimen/button_icon_padding"
         app:iconSize="@dimen/icon_size_medium"
         app:iconTint="@color/on_primary"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btnPlateSolve"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:rippleColor="@color/ripple" />
+
+    <!-- Plate Solve Test Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPlateSolve"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/button_height_large"
+        android:layout_marginStart="@dimen/margin_huge"
+        android:layout_marginEnd="@dimen/margin_huge"
+        android:layout_marginBottom="@dimen/margin_massive"
+        android:text="Plate Solve Test"
+        android:textAllCaps="false"
+        android:textColor="@color/text_secondary"
+        app:cornerRadius="@dimen/button_corner_radius"
+        app:icon="@android:drawable/ic_menu_gallery"
+        app:iconGravity="textStart"
+        app:iconPadding="@dimen/button_icon_padding"
+        app:iconSize="@dimen/icon_size_medium"
+        app:iconTint="@color/text_secondary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:strokeColor="@color/outline" />
 
     <!-- Decorative Star Elements - Top Left -->
     <ImageView

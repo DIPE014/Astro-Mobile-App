@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.astro.app.databinding.ActivityMainBinding;
+import com.astro.app.ui.platesolve.PlateSolveActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
 import com.astro.app.ui.skymap.SkyMapActivity;
@@ -63,6 +64,12 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             });
         }
+
+        // Navigate to Plate Solve Test
+        binding.btnPlateSolve.setOnClickListener(v -> {
+            Intent intent = new Intent(this, PlateSolveActivity.class);
+            startActivity(intent);
+        });
     }
 
     /**

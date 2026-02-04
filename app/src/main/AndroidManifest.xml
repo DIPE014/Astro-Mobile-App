@@ -58,6 +58,11 @@
             android:exported="false"
             android:theme="@style/Theme.AstroApp" />
 
+        <activity
+            android:name=".ui.platesolve.PlateSolveActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AstroApp" />
+
     </application>
 
 </manifest>
