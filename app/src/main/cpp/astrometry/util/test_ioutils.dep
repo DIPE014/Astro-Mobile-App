@@ -1,0 +1,5 @@
+test_ioutils.o: test_ioutils.c cutest.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/fileutils.h \
+ ../include/astrometry/log.h ../include/astrometry/tic.h md5.h

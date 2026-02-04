@@ -1,0 +1,4 @@
+test_qsort_r.o: test_qsort_r.c cutest.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph

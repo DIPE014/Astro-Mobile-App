@@ -1,0 +1,1 @@
+test_endian.o: test_endian.c ../include/astrometry/an-endian.h cutest.h

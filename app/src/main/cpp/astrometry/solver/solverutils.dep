@@ -1,0 +1,6 @@
+solverutils.o: solverutils.c ../include/astrometry/solverutils.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/ioutils.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/bl.h ../include/astrometry/errors.h \
+ ../include/astrometry/log.h

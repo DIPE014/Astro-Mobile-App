@@ -1,0 +1,63 @@
+anqfits.o: anqfits.c ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_error.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_table.h ../include/astrometry/qfits_memory.h \
+ ../include/astrometry/qfits_rw.h ../include/astrometry/qfits_card.h \
+ ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_convert.h \
+ ../include/astrometry/qfits_byteswap.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/errors.h
+qfits_card.o: qfits_card.c ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_card.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_error.h
+qfits_convert.o: qfits_convert.c ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_config.h ../include/astrometry/an-endian.h \
+ ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_byteswap.h \
+ ../include/astrometry/qfits_error.h
+qfits_error.o: qfits_error.c ../include/astrometry/qfits_error.h
+qfits_header.o: qfits_header.c ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_card.h \
+ ../include/astrometry/qfits_error.h ../include/astrometry/qfits_memory.h
+qfits_image.o: qfits_image.c ../include/astrometry/qfits_config.h \
+ ../include/astrometry/an-endian.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_rw.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_byteswap.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_error.h ../include/astrometry/qfits_memory.h \
+ ../include/astrometry/qfits_std.h
+qfits_md5.o: qfits_md5.c ../include/astrometry/qfits_md5.h md5.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_error.h
+qfits_table.o: qfits_table.c ../include/astrometry/qfits_config.h \
+ ../include/astrometry/an-endian.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_float.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_byteswap.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/qfits_rw.h \
+ ../include/astrometry/qfits_md5.h ../include/astrometry/qfits_error.h \
+ ../include/astrometry/qfits_memory.h
+qfits_time.o: qfits_time.c ../include/astrometry/qfits_time.h
+qfits_tools.o: qfits_tools.c ../include/astrometry/qfits_config.h \
+ ../include/astrometry/an-endian.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_card.h \
+ ../include/astrometry/qfits_rw.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_error.h \
+ ../include/astrometry/qfits_memory.h
+qfits_byteswap.o: qfits_byteswap.c ../include/astrometry/qfits_config.h \
+ ../include/astrometry/an-endian.h ../include/astrometry/qfits_byteswap.h
+qfits_memory.o: qfits_memory.c ../include/astrometry/qfits_error.h
+qfits_rw.o: qfits_rw.c ../include/astrometry/qfits_rw.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_card.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_error.h \
+ ../include/astrometry/qfits_memory.h
+qfits_float.o: qfits_float.c ../include/astrometry/qfits_config.h \
+ ../include/astrometry/an-endian.h ../include/astrometry/qfits_float.h
+md5.o: md5.c md5.h

@@ -1,0 +1,973 @@
+sip-utils.o: sip-utils.c ../gsl-an/gsl/gsl_matrix_double.h \
+ ../gsl-an/gsl/gsl_types.h ../gsl-an/gsl/gsl_errno.h \
+ ../gsl-an/gsl/gsl_inline.h ../gsl-an/gsl/gsl_check_range.h \
+ ../gsl-an/gsl/gsl_vector_double.h ../gsl-an/gsl/gsl_block_double.h \
+ ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/sip-utils.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/gslutils.h ../include/astrometry/starutil.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/errors.h ../include/astrometry/bl.h \
+ ../include/astrometry/log.h
+fit-wcs.o: fit-wcs.c ../gsl-an/gsl/gsl_matrix.h \
+ ../gsl-an/gsl/gsl_matrix_complex_long_double.h ../gsl-an/gsl/gsl_types.h \
+ ../gsl-an/gsl/gsl_errno.h ../gsl-an/gsl/gsl_complex.h \
+ ../gsl-an/gsl/gsl_check_range.h \
+ ../gsl-an/gsl/gsl_vector_complex_long_double.h \
+ ../gsl-an/gsl/gsl_vector_long_double.h ../gsl-an/gsl/gsl_inline.h \
+ ../gsl-an/gsl/gsl_block_long_double.h ../gsl-an/gsl/gsl_vector_complex.h \
+ ../gsl-an/gsl/gsl_block_complex_long_double.h \
+ ../gsl-an/gsl/gsl_matrix_complex_double.h \
+ ../gsl-an/gsl/gsl_vector_complex_double.h \
+ ../gsl-an/gsl/gsl_vector_double.h ../gsl-an/gsl/gsl_block_double.h \
+ ../gsl-an/gsl/gsl_block_complex_double.h \
+ ../gsl-an/gsl/gsl_matrix_complex_float.h \
+ ../gsl-an/gsl/gsl_vector_complex_float.h \
+ ../gsl-an/gsl/gsl_vector_float.h ../gsl-an/gsl/gsl_block_float.h \
+ ../gsl-an/gsl/gsl_block_complex_float.h \
+ ../gsl-an/gsl/gsl_matrix_long_double.h ../gsl-an/gsl/gsl_matrix_double.h \
+ ../gsl-an/gsl/gsl_matrix_float.h ../gsl-an/gsl/gsl_matrix_ulong.h \
+ ../gsl-an/gsl/gsl_vector_ulong.h ../gsl-an/gsl/gsl_block_ulong.h \
+ ../gsl-an/gsl/gsl_matrix_long.h ../gsl-an/gsl/gsl_vector_long.h \
+ ../gsl-an/gsl/gsl_block_long.h ../gsl-an/gsl/gsl_matrix_uint.h \
+ ../gsl-an/gsl/gsl_vector_uint.h ../gsl-an/gsl/gsl_block_uint.h \
+ ../gsl-an/gsl/gsl_matrix_int.h ../gsl-an/gsl/gsl_vector_int.h \
+ ../gsl-an/gsl/gsl_block_int.h ../gsl-an/gsl/gsl_matrix_ushort.h \
+ ../gsl-an/gsl/gsl_vector_ushort.h ../gsl-an/gsl/gsl_block_ushort.h \
+ ../gsl-an/gsl/gsl_matrix_short.h ../gsl-an/gsl/gsl_vector_short.h \
+ ../gsl-an/gsl/gsl_block_short.h ../gsl-an/gsl/gsl_matrix_uchar.h \
+ ../gsl-an/gsl/gsl_vector_uchar.h ../gsl-an/gsl/gsl_block_uchar.h \
+ ../gsl-an/gsl/gsl_matrix_char.h ../gsl-an/gsl/gsl_vector_char.h \
+ ../gsl-an/gsl/gsl_block_char.h ../gsl-an/gsl/gsl_linalg.h \
+ ../gsl-an/gsl/gsl_mode.h ../gsl-an/gsl/gsl_permutation.h \
+ ../gsl-an/gsl/gsl_vector.h ../gsl-an/gsl/gsl_blas.h \
+ ../gsl-an/gsl/gsl_blas_types.h ../gsl-an/gsl/gsl_cblas.h \
+ ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/fit-wcs.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/starkd.h ../include/astrometry/kdtree.h \
+ ../include/astrometry/kdtree_fits_io.h ../include/astrometry/fitsbin.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/fitstable.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/starutil.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h ../include/astrometry/sip.h \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/log.h \
+ ../include/astrometry/errors.h ../include/astrometry/gslutils.h \
+ ../include/astrometry/sip-utils.h
+sip.o: sip.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/starutil.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph
+anwcs.o: anwcs.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_rw.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/anwcs.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/errors.h \
+ ../include/astrometry/log.h ../include/astrometry/sip.h \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/sip-utils.h \
+ ../include/astrometry/starutil.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/bl.h
+wcs-resample.o: wcs-resample.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h wcs-resample.h \
+ ../include/astrometry/anwcs.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/starutil.h \
+ ../include/astrometry/bl.h boilerplate.h ../include/astrometry/log.h \
+ ../include/astrometry/errors.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/resample.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h
+gslutils.o: gslutils.c ../gsl-an/gsl/gsl_matrix_double.h \
+ ../gsl-an/gsl/gsl_types.h ../gsl-an/gsl/gsl_errno.h \
+ ../gsl-an/gsl/gsl_inline.h ../gsl-an/gsl/gsl_check_range.h \
+ ../gsl-an/gsl/gsl_vector_double.h ../gsl-an/gsl/gsl_block_double.h \
+ ../gsl-an/gsl/gsl_permutation.h ../gsl-an/gsl/gsl_linalg.h \
+ ../gsl-an/gsl/gsl_mode.h ../gsl-an/gsl/gsl_vector.h \
+ ../gsl-an/gsl/gsl_vector_complex_long_double.h \
+ ../gsl-an/gsl/gsl_complex.h ../gsl-an/gsl/gsl_vector_long_double.h \
+ ../gsl-an/gsl/gsl_block_long_double.h ../gsl-an/gsl/gsl_vector_complex.h \
+ ../gsl-an/gsl/gsl_block_complex_long_double.h \
+ ../gsl-an/gsl/gsl_vector_complex_double.h \
+ ../gsl-an/gsl/gsl_block_complex_double.h \
+ ../gsl-an/gsl/gsl_vector_complex_float.h \
+ ../gsl-an/gsl/gsl_vector_float.h ../gsl-an/gsl/gsl_block_float.h \
+ ../gsl-an/gsl/gsl_block_complex_float.h ../gsl-an/gsl/gsl_vector_ulong.h \
+ ../gsl-an/gsl/gsl_block_ulong.h ../gsl-an/gsl/gsl_vector_long.h \
+ ../gsl-an/gsl/gsl_block_long.h ../gsl-an/gsl/gsl_vector_uint.h \
+ ../gsl-an/gsl/gsl_block_uint.h ../gsl-an/gsl/gsl_vector_int.h \
+ ../gsl-an/gsl/gsl_block_int.h ../gsl-an/gsl/gsl_vector_ushort.h \
+ ../gsl-an/gsl/gsl_block_ushort.h ../gsl-an/gsl/gsl_vector_short.h \
+ ../gsl-an/gsl/gsl_block_short.h ../gsl-an/gsl/gsl_vector_uchar.h \
+ ../gsl-an/gsl/gsl_block_uchar.h ../gsl-an/gsl/gsl_vector_char.h \
+ ../gsl-an/gsl/gsl_block_char.h ../gsl-an/gsl/gsl_matrix.h \
+ ../gsl-an/gsl/gsl_matrix_complex_long_double.h \
+ ../gsl-an/gsl/gsl_matrix_complex_double.h \
+ ../gsl-an/gsl/gsl_matrix_complex_float.h \
+ ../gsl-an/gsl/gsl_matrix_long_double.h ../gsl-an/gsl/gsl_matrix_float.h \
+ ../gsl-an/gsl/gsl_matrix_ulong.h ../gsl-an/gsl/gsl_matrix_long.h \
+ ../gsl-an/gsl/gsl_matrix_uint.h ../gsl-an/gsl/gsl_matrix_int.h \
+ ../gsl-an/gsl/gsl_matrix_ushort.h ../gsl-an/gsl/gsl_matrix_short.h \
+ ../gsl-an/gsl/gsl_matrix_uchar.h ../gsl-an/gsl/gsl_matrix_char.h \
+ ../gsl-an/gsl/gsl_blas.h ../gsl-an/gsl/gsl_blas_types.h \
+ ../gsl-an/gsl/gsl_cblas.h ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/gslutils.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph
+wcs-pv2sip.o: wcs-pv2sip.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_table.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/bl.h \
+ ../include/astrometry/errors.h ../include/astrometry/log.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/sip.h \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/sip.h \
+ ../include/astrometry/sip-utils.h ../include/astrometry/starutil.h \
+ ../include/astrometry/starxy.h ../include/astrometry/tweak.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/starutil.h \
+ ../include/astrometry/starxy.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/qfits_rw.h ../include/astrometry/fit-wcs.h \
+ ../include/astrometry/starkd.h ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/ioutils.h
+matchobj.o: matchobj.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/matchobj.h ../include/astrometry/starutil.h \
+ ../include/astrometry/sip.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/index.h ../include/astrometry/quadfile.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/fitsbin.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/starkd.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/codekd.h ../include/astrometry/starutil.h \
+ ../include/astrometry/log.h ../include/astrometry/verify.h \
+ ../include/astrometry/matchobj.h ../include/astrometry/starxy.h
+fitsioutils.o: fitsioutils.c ../include/astrometry/qfits_convert.h \
+ ../include/astrometry/qfits_error.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/keywords.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/keywords.h ../include/astrometry/an-endian.h \
+ ../include/astrometry/errors.h ../include/astrometry/log.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h
+sip_qfits.o: sip_qfits.c ../include/astrometry/qfits_rw.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/errors.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/log.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_keywords.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h
+fitstable.o: fitstable.c ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_keywords.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/fitsfile.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/an-endian.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/log.h
+fitsbin.o: fitsbin.c ../include/astrometry/keywords.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/fitsfile.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-endian.h ../include/astrometry/tic.h \
+ ../include/astrometry/log.h
+fitsfile.o: fitsfile.c ../include/astrometry/fitsfile.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/keywords.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/errors.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph
+tic.o: tic.c ../include/astrometry/tic.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/log.h
+dallpeaks.o: dallpeaks.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/dimage.h ../include/astrometry/permutedsort.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/simplexy-common.h ../include/astrometry/log.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h \
+ dallpeaks.inc
+dcen3x3.o: dcen3x3.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/simplexy-common.h
+dfind.o: dfind.c ../include/astrometry/simplexy-common.h \
+ ../include/astrometry/dimage.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph dfind2.c \
+ ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/errors.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/bl.h ../include/astrometry/log.h
+dmedsmooth.o: dmedsmooth.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/simplexy-common.h
+dobjects.o: dobjects.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/dimage.h ../include/astrometry/simplexy-common.h \
+ ../include/astrometry/log.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph
+dpeaks.o: dpeaks.c ../include/astrometry/keywords.h \
+ ../include/astrometry/dimage.h ../include/astrometry/permutedsort.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/simplexy-common.h
+dselip.o: dselip.c ../include/astrometry/permutedsort.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h
+dsigma.o: dsigma.c ../include/astrometry/dimage.h \
+ ../include/astrometry/simplexy-common.h ../include/astrometry/log.h \
+ ../include/astrometry/an-bool.h dsigma.inc
+dsmooth.o: dsmooth.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/simplexy-common.h dsmooth.inc
+image2xy.o: image2xy.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/image2xy.h ../include/astrometry/simplexy.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/simplexy.h ../include/astrometry/dimage.h \
+ ../include/astrometry/errors.h ../include/astrometry/log.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h
+simplexy.o: simplexy.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/simplexy.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/ctmf.h ../include/astrometry/dimage.h \
+ ../include/astrometry/simplexy-common.h ../include/astrometry/log.h \
+ ../include/astrometry/errors.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/resample.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_table.h
+ctmf.o: ctmf.c
+multiindex.o: multiindex.c ../include/astrometry/multiindex.h \
+ ../include/astrometry/index.h ../include/astrometry/quadfile.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/fitsbin.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/starkd.h ../include/astrometry/kdtree.h \
+ ../include/astrometry/kdtree_fits_io.h ../include/astrometry/fitstable.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/codekd.h \
+ ../include/astrometry/index.h ../include/astrometry/log.h \
+ ../include/astrometry/errors.h
+index.o: index.c ../include/astrometry/index.h \
+ ../include/astrometry/quadfile.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/starkd.h ../include/astrometry/kdtree.h \
+ ../include/astrometry/kdtree_fits_io.h ../include/astrometry/fitstable.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/codekd.h \
+ ../include/astrometry/log.h ../include/astrometry/errors.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/healpix.h \
+ ../include/astrometry/tic.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_rw.h ../include/astrometry/starutil.h
+indexset.o: indexset.c ../include/astrometry/indexset.h \
+ ../include/astrometry/index.h ../include/astrometry/quadfile.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/fitsbin.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/starkd.h ../include/astrometry/kdtree.h \
+ ../include/astrometry/kdtree_fits_io.h ../include/astrometry/fitstable.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/codekd.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/index.h
+codekd.o: codekd.c ../include/astrometry/codekd.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h \
+ ../include/astrometry/kdtree_fits_io.h ../include/astrometry/fitsbin.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/an-bool.h ../include/astrometry/starutil.h \
+ ../include/astrometry/errors.h
+starkd.o: starkd.c ../include/astrometry/starkd.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/starutil.h ../include/astrometry/fitsbin.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/errors.h \
+ ../include/astrometry/tic.h ../include/astrometry/log.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/fitsioutils.h
+rdlist.o: rdlist.c ../include/astrometry/rdlist.h \
+ ../include/astrometry/xylist.h ../include/astrometry/starxy.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/an-bool.h ../include/astrometry/fitstable.h \
+ ../include/astrometry/qfits_table.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/starutil.h
+xylist.o: xylist.c ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/qfits_header.h \
+ ../include/astrometry/xylist.h ../include/astrometry/starxy.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_keywords.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h
+starxy.o: starxy.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/starxy.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/permutedsort.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h
+qidxfile.o: qidxfile.c ../include/astrometry/qfits_header.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/keywords.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/starutil.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/qidxfile.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/errors.h
+quadfile.o: quadfile.c ../include/astrometry/quadfile.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/fitsbin.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/starutil.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/errors.h ../include/astrometry/an-endian.h
+scamp.o: scamp.c ../include/astrometry/scamp.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/starxy.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/scamp-catalog.h ../include/astrometry/fitstable.h \
+ ../include/astrometry/qfits_table.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_keywords.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/errors.h \
+ ../include/astrometry/log.h
+scamp-catalog.o: scamp-catalog.c ../include/astrometry/scamp-catalog.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/ioutils.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitstable.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/errors.h ../include/astrometry/log.h
+tabsort.o: tabsort.c ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/permutedsort.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/errors.h
+wcs-xy2rd.o: wcs-xy2rd.c ../include/astrometry/anwcs.h \
+ ../include/astrometry/sip.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/starutil.h ../include/astrometry/bl.h \
+ ../include/astrometry/xylist.h ../include/astrometry/starxy.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/rdlist.h \
+ ../include/astrometry/xylist.h ../include/astrometry/starutil.h \
+ boilerplate.h ../include/astrometry/errors.h ../include/astrometry/log.h
+wcs-rd2xy.o: wcs-rd2xy.c ../include/astrometry/anwcs.h \
+ ../include/astrometry/sip.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/starutil.h ../include/astrometry/bl.h \
+ ../include/astrometry/xylist.h ../include/astrometry/starxy.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/rdlist.h \
+ ../include/astrometry/xylist.h ../include/astrometry/starutil.h \
+ ../include/astrometry/errors.h
+matchfile.o: matchfile.c ../include/astrometry/matchfile.h \
+ ../include/astrometry/matchobj.h ../include/astrometry/starutil.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/sip.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/index.h ../include/astrometry/quadfile.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/fitsbin.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/starkd.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/codekd.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/sip.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h
+wcs-resample-main.o: wcs-resample-main.c wcs-resample.h \
+ ../include/astrometry/anwcs.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/starutil.h \
+ ../include/astrometry/bl.h boilerplate.h ../include/astrometry/log.h \
+ ../include/astrometry/errors.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h
+tabsort-main.o: tabsort-main.c ../include/astrometry/tabsort.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/keywords.h ../include/astrometry/an-bool.h
+wcs-xy2rd-main.o: wcs-xy2rd-main.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph boilerplate.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/wcs-rd2xy.h \
+ ../include/astrometry/bl.h ../include/astrometry/starutil.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/anwcs.h \
+ ../include/astrometry/sip.h ../include/astrometry/errors.h \
+ ../include/astrometry/wcs-xy2rd.h ../include/astrometry/log.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h
+wcs-rd2xy-main.o: wcs-rd2xy-main.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph boilerplate.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/wcs-rd2xy.h \
+ ../include/astrometry/bl.h ../include/astrometry/anwcs.h \
+ ../include/astrometry/sip.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/errors.h ../include/astrometry/log.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h
+fit-wcs-main.o: fit-wcs-main.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/starutil.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/fit-wcs.h \
+ ../include/astrometry/sip.h ../include/astrometry/starkd.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/xylist.h ../include/astrometry/starxy.h \
+ ../include/astrometry/rdlist.h ../include/astrometry/xylist.h \
+ ../include/astrometry/starutil.h boilerplate.h \
+ ../include/astrometry/sip.h ../include/astrometry/sip_qfits.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/anwcs.h \
+ ../include/astrometry/log.h ../include/astrometry/errors.h
+wcs-pv2sip-main.o: wcs-pv2sip-main.c ../include/astrometry/wcs-pv2sip.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ boilerplate.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/log.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_table.h
+an-fitstopnm.o: an-fitstopnm.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/permutedsort.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/log.h ../include/astrometry/errors.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h
+an-pnmtofits.o: an-pnmtofits.c ../include/astrometry/an-bool.h \
+ ../include/astrometry/os-features-config.h ../include/astrometry/log.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/errors.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/bl.h
+downsample-fits.o: downsample-fits.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/log.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/errors.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/qfits_convert.h \
+ ../include/astrometry/qfits_header.h
+fits-flip-endian.o: fits-flip-endian.c ../include/astrometry/an-bool.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/ioutils.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/errors.h ../include/astrometry/log.h \
+ ../include/astrometry/an-endian.h
+hpsplit.o: hpsplit.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/healpix.h ../include/astrometry/keywords.h \
+ ../include/astrometry/healpix-utils.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/starutil.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/errors.h ../include/astrometry/log.h boilerplate.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/bl.h ../include/astrometry/fitstable.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h
+wcs-to-tan.o: wcs-to-tan.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/starutil.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/fit-wcs.h \
+ ../include/astrometry/sip.h ../include/astrometry/starkd.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/xylist.h ../include/astrometry/starxy.h \
+ ../include/astrometry/rdlist.h ../include/astrometry/xylist.h \
+ ../include/astrometry/starutil.h boilerplate.h \
+ ../include/astrometry/sip.h ../include/astrometry/sip_qfits.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/anwcs.h \
+ ../include/astrometry/log.h ../include/astrometry/errors.h
+get-healpix.o: get-healpix.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/healpix.h ../include/astrometry/keywords.h \
+ ../include/astrometry/healpix-utils.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/starutil.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl.h
+fits-column-merge.o: fits-column-merge.c \
+ ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/keywords.h ../include/astrometry/an-bool.h \
+ boilerplate.h ../include/astrometry/ioutils.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph
+subtable.o: subtable.c ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/bl.h ../include/astrometry/errors.h
+fitsgetext.o: fitsgetext.c ../include/astrometry/an-bool.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/ioutils.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/log.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/errors.h
+wcsinfo.o: wcsinfo.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/sip-utils.h ../include/astrometry/sip.h \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/starutil.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph boilerplate.h \
+ ../include/astrometry/errors.h ../include/astrometry/bl.h
+pad-file.o: pad-file.c ../include/astrometry/ioutils.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/errors.h
+wcs-match.o: wcs-match.c boilerplate.h \
+ ../include/astrometry/qfits_header.h ../gsl-an/gsl/gsl_vector.h \
+ ../gsl-an/gsl/gsl_vector_complex_long_double.h ../gsl-an/gsl/gsl_types.h \
+ ../gsl-an/gsl/gsl_errno.h ../gsl-an/gsl/gsl_complex.h \
+ ../gsl-an/gsl/gsl_check_range.h ../gsl-an/gsl/gsl_vector_long_double.h \
+ ../gsl-an/gsl/gsl_inline.h ../gsl-an/gsl/gsl_block_long_double.h \
+ ../gsl-an/gsl/gsl_vector_complex.h \
+ ../gsl-an/gsl/gsl_block_complex_long_double.h \
+ ../gsl-an/gsl/gsl_vector_complex_double.h \
+ ../gsl-an/gsl/gsl_vector_double.h ../gsl-an/gsl/gsl_block_double.h \
+ ../gsl-an/gsl/gsl_block_complex_double.h \
+ ../gsl-an/gsl/gsl_vector_complex_float.h \
+ ../gsl-an/gsl/gsl_vector_float.h ../gsl-an/gsl/gsl_block_float.h \
+ ../gsl-an/gsl/gsl_block_complex_float.h ../gsl-an/gsl/gsl_vector_ulong.h \
+ ../gsl-an/gsl/gsl_block_ulong.h ../gsl-an/gsl/gsl_vector_long.h \
+ ../gsl-an/gsl/gsl_block_long.h ../gsl-an/gsl/gsl_vector_uint.h \
+ ../gsl-an/gsl/gsl_block_uint.h ../gsl-an/gsl/gsl_vector_int.h \
+ ../gsl-an/gsl/gsl_block_int.h ../gsl-an/gsl/gsl_vector_ushort.h \
+ ../gsl-an/gsl/gsl_block_ushort.h ../gsl-an/gsl/gsl_vector_short.h \
+ ../gsl-an/gsl/gsl_block_short.h ../gsl-an/gsl/gsl_vector_uchar.h \
+ ../gsl-an/gsl/gsl_block_uchar.h ../gsl-an/gsl/gsl_vector_char.h \
+ ../gsl-an/gsl/gsl_block_char.h ../gsl-an/gsl/gsl_multiroots.h \
+ ../gsl-an/gsl/gsl_math.h ../gsl-an/gsl/gsl_sys.h \
+ ../gsl-an/gsl/gsl_machine.h ../gsl-an/gsl/gsl_precision.h \
+ ../gsl-an/gsl/gsl_nan.h ../gsl-an/gsl/gsl_pow_int.h \
+ ../gsl-an/gsl/gsl_minmax.h ../gsl-an/gsl/gsl_matrix.h \
+ ../gsl-an/gsl/gsl_matrix_complex_long_double.h \
+ ../gsl-an/gsl/gsl_matrix_complex_double.h \
+ ../gsl-an/gsl/gsl_matrix_complex_float.h \
+ ../gsl-an/gsl/gsl_matrix_long_double.h ../gsl-an/gsl/gsl_matrix_double.h \
+ ../gsl-an/gsl/gsl_matrix_float.h ../gsl-an/gsl/gsl_matrix_ulong.h \
+ ../gsl-an/gsl/gsl_matrix_long.h ../gsl-an/gsl/gsl_matrix_uint.h \
+ ../gsl-an/gsl/gsl_matrix_int.h ../gsl-an/gsl/gsl_matrix_ushort.h \
+ ../gsl-an/gsl/gsl_matrix_short.h ../gsl-an/gsl/gsl_matrix_uchar.h \
+ ../gsl-an/gsl/gsl_matrix_char.h ../include/astrometry/anwcs.h \
+ ../include/astrometry/sip.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/errors.h ../include/astrometry/log.h
+wcs-pv2sip.o: wcs-pv2sip.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_table.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/bl.h \
+ ../include/astrometry/errors.h ../include/astrometry/log.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/sip.h \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/sip.h \
+ ../include/astrometry/sip-utils.h ../include/astrometry/starutil.h \
+ ../include/astrometry/starxy.h ../include/astrometry/tweak.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/starutil.h \
+ ../include/astrometry/starxy.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/qfits_rw.h ../include/astrometry/fit-wcs.h \
+ ../include/astrometry/starkd.h ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/ioutils.h
+test_bl.o: test_bl.c cutest.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph
+test_bt.o: test_bt.c ../include/astrometry/bt.h \
+ ../include/astrometry/keywords.h ../include/astrometry/an-bool.h \
+ cutest.h
+test_endian.o: test_endian.c ../include/astrometry/an-endian.h cutest.h
+test_fitstable.o: test_fitstable.c ../include/astrometry/fitstable.h \
+ ../include/astrometry/qfits_table.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/ioutils.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_keywords.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/permutedsort.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/an-endian.h \
+ ../include/astrometry/qfits_header.h cutest.h
+test_xylist.o: test_xylist.c ../include/astrometry/xylist.h \
+ ../include/astrometry/starxy.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_keywords.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/log.h cutest.h
+test_rdlist.o: test_rdlist.c ../include/astrometry/rdlist.h \
+ ../include/astrometry/xylist.h ../include/astrometry/starxy.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/an-bool.h ../include/astrometry/fitstable.h \
+ ../include/astrometry/qfits_table.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/starutil.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/qfits_header.h \
+ cutest.h
+test_healpix.o: test_healpix.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h cutest.h \
+ ../include/astrometry/starutil.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/healpix.h \
+ ../include/astrometry/healpix-utils.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/bl.h
+test_fitsioutils.o: test_fitsioutils.c cutest.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_rw.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/keywords.h ../include/astrometry/an-bool.h
+test_fitsbin.o: test_fitsbin.c ../include/astrometry/fitsbin.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/fitsioutils.h cutest.h
+test_log.o: test_log.c ../include/astrometry/log.h \
+ ../include/astrometry/an-bool.h cutest.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/ioutils.h \
+ ../include/astrometry/bl.h
+test_scamp_catalog.o: test_scamp_catalog.c \
+ ../include/astrometry/scamp-catalog.h ../include/astrometry/fitstable.h \
+ ../include/astrometry/qfits_table.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/ioutils.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_keywords.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/qfits_header.h cutest.h
+test_starutil.o: test_starutil.c ../include/astrometry/starutil.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ cutest.h
+test_svd.o: test_svd.c cutest.h ../gsl-an/gsl/gsl_matrix.h \
+ ../gsl-an/gsl/gsl_matrix_complex_long_double.h ../gsl-an/gsl/gsl_types.h \
+ ../gsl-an/gsl/gsl_errno.h ../gsl-an/gsl/gsl_complex.h \
+ ../gsl-an/gsl/gsl_check_range.h \
+ ../gsl-an/gsl/gsl_vector_complex_long_double.h \
+ ../gsl-an/gsl/gsl_vector_long_double.h ../gsl-an/gsl/gsl_inline.h \
+ ../gsl-an/gsl/gsl_block_long_double.h ../gsl-an/gsl/gsl_vector_complex.h \
+ ../gsl-an/gsl/gsl_block_complex_long_double.h \
+ ../gsl-an/gsl/gsl_matrix_complex_double.h \
+ ../gsl-an/gsl/gsl_vector_complex_double.h \
+ ../gsl-an/gsl/gsl_vector_double.h ../gsl-an/gsl/gsl_block_double.h \
+ ../gsl-an/gsl/gsl_block_complex_double.h \
+ ../gsl-an/gsl/gsl_matrix_complex_float.h \
+ ../gsl-an/gsl/gsl_vector_complex_float.h \
+ ../gsl-an/gsl/gsl_vector_float.h ../gsl-an/gsl/gsl_block_float.h \
+ ../gsl-an/gsl/gsl_block_complex_float.h \
+ ../gsl-an/gsl/gsl_matrix_long_double.h ../gsl-an/gsl/gsl_matrix_double.h \
+ ../gsl-an/gsl/gsl_matrix_float.h ../gsl-an/gsl/gsl_matrix_ulong.h \
+ ../gsl-an/gsl/gsl_vector_ulong.h ../gsl-an/gsl/gsl_block_ulong.h \
+ ../gsl-an/gsl/gsl_matrix_long.h ../gsl-an/gsl/gsl_vector_long.h \
+ ../gsl-an/gsl/gsl_block_long.h ../gsl-an/gsl/gsl_matrix_uint.h \
+ ../gsl-an/gsl/gsl_vector_uint.h ../gsl-an/gsl/gsl_block_uint.h \
+ ../gsl-an/gsl/gsl_matrix_int.h ../gsl-an/gsl/gsl_vector_int.h \
+ ../gsl-an/gsl/gsl_block_int.h ../gsl-an/gsl/gsl_matrix_ushort.h \
+ ../gsl-an/gsl/gsl_vector_ushort.h ../gsl-an/gsl/gsl_block_ushort.h \
+ ../gsl-an/gsl/gsl_matrix_short.h ../gsl-an/gsl/gsl_vector_short.h \
+ ../gsl-an/gsl/gsl_block_short.h ../gsl-an/gsl/gsl_matrix_uchar.h \
+ ../gsl-an/gsl/gsl_vector_uchar.h ../gsl-an/gsl/gsl_block_uchar.h \
+ ../gsl-an/gsl/gsl_matrix_char.h ../gsl-an/gsl/gsl_vector_char.h \
+ ../gsl-an/gsl/gsl_block_char.h ../gsl-an/gsl/gsl_linalg.h \
+ ../gsl-an/gsl/gsl_mode.h ../gsl-an/gsl/gsl_permutation.h \
+ ../gsl-an/gsl/gsl_vector.h
+test_ioutils.o: test_ioutils.c cutest.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/fileutils.h \
+ ../include/astrometry/log.h ../include/astrometry/tic.h md5.h
+test_anwcs.o: test_anwcs.c cutest.h ../include/astrometry/anwcs.h \
+ ../include/astrometry/sip.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/sip.h \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/errors.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/log.h
+test_sip-utils.o: test_sip-utils.c cutest.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/sip.h ../include/astrometry/sip-utils.h
+test_errors.o: test_errors.c ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph cutest.h
+test_multiindex.o: test_multiindex.c cutest.h \
+ ../include/astrometry/multiindex.h ../include/astrometry/index.h \
+ ../include/astrometry/quadfile.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/starkd.h ../include/astrometry/kdtree.h \
+ ../include/astrometry/kdtree_fits_io.h ../include/astrometry/fitstable.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/codekd.h \
+ ../include/astrometry/bl.h
+test_convolve_image.o: test_convolve_image.c cutest.h \
+ ../include/astrometry/convolve-image.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/keywords.h ../include/astrometry/an-bool.h
+test_qsort_r.o: test_qsort_r.c cutest.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph
+test_wcs.o: test_wcs.c ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/sip.h ../include/astrometry/anwcs.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h \
+ cutest.h
+test_big_tables.o: test_big_tables.c ../include/astrometry/fitstable.h \
+ ../include/astrometry/qfits_table.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/ioutils.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_keywords.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_tools.h ../include/astrometry/qfits_time.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/errors.h ../include/astrometry/log.h cutest.h
+test_dfind.o: test_dfind.c ../include/astrometry/dimage.h cutest.h \
+ ../include/astrometry/simplexy-common.h
+test_ctmf.o: test_ctmf.c ../include/astrometry/ctmf.h cutest.h
+test_dsmooth.o: test_dsmooth.c cutest.h
+test_dcen3x3.o: test_dcen3x3.c cutest.h ../include/astrometry/dimage.h
+test_simplexy.o: test_simplexy.c cutest.h ../include/astrometry/dimage.h \
+ ../include/astrometry/simplexy.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/log.h
+test_fit_wcs.o: test_fit_wcs.c cutest.h ../include/astrometry/fit-wcs.h \
+ ../include/astrometry/sip.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/starkd.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/fitstable.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/sip.h
+test_matchfile.o: test_matchfile.c cutest.h \
+ ../include/astrometry/matchfile.h ../include/astrometry/matchobj.h \
+ ../include/astrometry/starutil.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/sip.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/index.h \
+ ../include/astrometry/quadfile.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/starkd.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitstable.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/codekd.h ../include/astrometry/matchobj.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/starutil.h

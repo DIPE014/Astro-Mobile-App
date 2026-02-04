@@ -1,0 +1,5 @@
+test_fitsioutils.o: test_fitsioutils.c cutest.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_rw.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/keywords.h ../include/astrometry/an-bool.h

@@ -1,0 +1,3 @@
+test_bt.o: test_bt.c ../include/astrometry/bt.h \
+ ../include/astrometry/keywords.h ../include/astrometry/an-bool.h \
+ cutest.h

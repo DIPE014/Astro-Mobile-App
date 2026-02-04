@@ -1,0 +1,2 @@
+kdtree_dim.o: kdtree_dim.c ../include/astrometry/kdtree.h \
+ kdtree_internal.h ../include/astrometry/kdtree.h

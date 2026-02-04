@@ -1,0 +1,4 @@
+pad-file.o: pad-file.c ../include/astrometry/ioutils.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/errors.h

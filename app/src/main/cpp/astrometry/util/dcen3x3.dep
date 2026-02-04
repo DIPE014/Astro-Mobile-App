@@ -1,0 +1,3 @@
+dcen3x3.o: dcen3x3.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/simplexy-common.h

@@ -1,0 +1,1 @@
+qfits_memory.o: qfits_memory.c ../include/astrometry/qfits_error.h

@@ -1,0 +1,5 @@
+test_log.o: test_log.c ../include/astrometry/log.h \
+ ../include/astrometry/an-bool.h cutest.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/ioutils.h \
+ ../include/astrometry/bl.h

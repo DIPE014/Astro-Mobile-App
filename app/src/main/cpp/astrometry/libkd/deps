@@ -1,0 +1,330 @@
+kdtree.o: kdtree.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/kdtree.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_internal_common.h kdtree_mem.h \
+ ../include/astrometry/keywords.h an-fls.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/log.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h
+kdtree_dim.o: kdtree_dim.c ../include/astrometry/kdtree.h \
+ kdtree_internal.h ../include/astrometry/kdtree.h
+kdtree_mem.o: kdtree_mem.c kdtree_mem.h
+kdtree_fits_io.o: kdtree_fits_io.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/fitsbin.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ kdtree_internal.h kdtree_mem.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/ioutils.h \
+ ../include/astrometry/errors.h ../include/astrometry/fitsbin.h \
+ ../include/astrometry/tic.h ../include/astrometry/log.h
+kdint_ddd.o: kdint_ddd.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_d.h kdint_dtype_d.h kdint_ttype_d.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_fff.o: kdint_fff.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_f.h kdint_dtype_f.h kdint_ttype_f.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_lll.o: kdint_lll.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_l.h kdint_dtype_l.h kdint_ttype_l.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_ddu.o: kdint_ddu.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_d.h kdint_dtype_d.h kdint_ttype_u.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_duu.o: kdint_duu.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_d.h kdint_dtype_u.h kdint_ttype_u.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_dds.o: kdint_dds.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_d.h kdint_dtype_d.h kdint_ttype_s.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_dss.o: kdint_dss.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_d.h kdint_dtype_s.h kdint_ttype_s.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_ddd_noio.o: kdint_ddd.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_d.h kdint_dtype_d.h kdint_ttype_d.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_fff_noio.o: kdint_fff.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_f.h kdint_dtype_f.h kdint_ttype_f.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_lll_noio.o: kdint_lll.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_l.h kdint_dtype_l.h kdint_ttype_l.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_ddu_noio.o: kdint_ddu.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_d.h kdint_dtype_d.h kdint_ttype_u.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_duu_noio.o: kdint_duu.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_d.h kdint_dtype_u.h kdint_ttype_u.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_dds_noio.o: kdint_dds.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_d.h kdint_dtype_d.h kdint_ttype_s.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+kdint_dss_noio.o: kdint_dss.c ../include/astrometry/kdtree.h \
+ kdtree_internal_common.h kdint_etype_d.h kdint_dtype_s.h kdint_ttype_s.h \
+ kdtree_internal.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_mem.h \
+ ../include/astrometry/keywords.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h kdtree_internal_dists.c \
+ kdtree_internal_fits.c ../include/astrometry/kdtree_fits_io.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/ioutils.h
+dualtree.o: dualtree.c ../include/astrometry/dualtree.h \
+ ../include/astrometry/starutil.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/kdtree.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph
+dualtree_rangesearch.o: dualtree_rangesearch.c \
+ ../include/astrometry/dualtree_rangesearch.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/dualtree.h \
+ ../include/astrometry/starutil.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph
+dualtree_nearestneighbour.o: dualtree_nearestneighbour.c \
+ ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/dualtree_nearestneighbour.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/dualtree.h \
+ ../include/astrometry/starutil.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph
+fix-bb.o: fix-bb.c ../include/astrometry/kdtree.h \
+ ../include/astrometry/kdtree_fits_io.h ../include/astrometry/kdtree.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/errors.h ../include/astrometry/anqfits.h
+checktree.o: checktree.c ../include/astrometry/kdtree.h \
+ ../include/astrometry/kdtree_fits_io.h ../include/astrometry/kdtree.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h
+test_libkd.o: test_libkd.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/errors.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph cutest.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h an-fls.h test_libkd_common.c
+test_libkd_io.o: test_libkd_io.c cutest.h ../include/astrometry/kdtree.h \
+ ../include/astrometry/kdtree_fits_io.h ../include/astrometry/kdtree.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/an-bool.h \
+ test_libkd_common.c
+test_dualtree_nn.o: test_dualtree_nn.c cutest.h \
+ ../include/astrometry/dualtree_nearestneighbour.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/tic.h
+test_libkd-main.o: test_libkd-main.c cutest.h
+test_libkd_io-main.o: test_libkd_io-main.c cutest.h
+test_dualtree_nn-main.o: test_dualtree_nn-main.c cutest.h

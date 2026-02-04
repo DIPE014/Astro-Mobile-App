@@ -1,0 +1,1 @@
+qfits_time.o: qfits_time.c ../include/astrometry/qfits_time.h

@@ -1,0 +1,2 @@
+qfits_md5.o: qfits_md5.c ../include/astrometry/qfits_md5.h md5.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_error.h

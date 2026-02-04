@@ -1,0 +1,5 @@
+dualtree.o: dualtree.c ../include/astrometry/dualtree.h \
+ ../include/astrometry/starutil.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/kdtree.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph
