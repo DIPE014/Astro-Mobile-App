@@ -47,6 +47,7 @@ import com.astro.app.data.model.StarData;
 import com.astro.app.data.repository.ConstellationRepository;
 import com.astro.app.data.repository.StarRepository;
 import com.astro.app.ui.education.EducationDetailActivity;
+import com.astro.app.ui.platesolve.PlateSolveActivity;
 import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
@@ -716,6 +717,15 @@ public class SkyMapActivity extends AppCompatActivity {
         View fabSearch = findViewById(R.id.fabSearch);
         if (fabSearch != null) {
             fabSearch.setOnClickListener(v -> openSearch());
+        }
+
+        // Star Detection FAB
+        View fabDetect = findViewById(R.id.fabDetect);
+        if (fabDetect != null) {
+            fabDetect.setOnClickListener(v -> {
+                Intent intent = new Intent(this, PlateSolveActivity.class);
+                startActivity(intent);
+            });
         }
 
         if (btnSearchDetails != null) {

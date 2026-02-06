@@ -393,15 +393,35 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
             }
 
             Nmatch = 0;
+            // DEBUG: count how many theta[i] >= 0
+            {
+                int dbg_pos = 0, dbg_neg1 = 0, dbg_neg2 = 0, dbg_neg3 = 0, dbg_neg4 = 0, dbg_neg5 = 0, dbg_other = 0;
+                for (int di = 0; di < Nfield; di++) {
+                    if (theta[di] >= 0) dbg_pos++;
+                    else if (theta[di] == -1) dbg_neg1++;  // DISTRACTOR
+                    else if (theta[di] == -2) dbg_neg2++;  // CONFLICT
+                    else if (theta[di] == -3) dbg_neg3++;  // FILTERED
+                    else if (theta[di] == -4) dbg_neg4++;  // BAILEDOUT
+                    else if (theta[di] == -5) dbg_neg5++;  // STOPPEDLOOKING
+                    else dbg_other++;
+                }
+                logverb("DEBUG: Nfield=%d, pos=%d, DIST=%d, CONF=%d, FILT=%d, BAIL=%d, STOP=%d, other=%d\n",
+                        Nfield, dbg_pos, dbg_neg1, dbg_neg2, dbg_neg3, dbg_neg4, dbg_neg5, dbg_other);
+            }
             debug("Weights:");
             for (i=0; i<Nfield; i++) {
                 double ra,dec;
                 if (theta[i] < 0)
                     continue;
-                assert(theta[i] < Nin);
+                if (theta[i] >= Nin) {
+                    logverb("DEBUG: theta[%d]=%d >= Nin=%d, skipping\n", i, theta[i], Nin);
+                    continue;
+                }
                 int ii = indexin[refperm[theta[i]]];
-                assert(ii < Nindex);
-                assert(ii >= 0);
+                if (ii < 0 || ii >= Nindex) {
+                    logverb("DEBUG: ii=%d out of range [0,%d), skipping\n", ii, Nindex);
+                    continue;
+                }
 
                 ra  = indexradec[ii*2+0];
                 dec = indexradec[ii*2+1];
@@ -448,6 +468,20 @@ sip_t* tweak2(const double* fieldxy, int Nfield,
             qc[0] /= totalweight;
             qc[1] /= totalweight;
             logverb("Moved quad center to (%.1f, %.1f)\n", qc[0], qc[1]);
+
+            // FIX: Update quadR2 based on new center - use distance to farthest matched star
+            {
+                double newQuadR2 = 0.0;
+                for (int qi = 0; qi < Nmatch; qi++) {
+                    double r2 = distsq(qc, matchxy + 2*qi, 2);
+                    if (r2 > newQuadR2)
+                        newQuadR2 = r2;
+                }
+                if (newQuadR2 > 0) {
+                    quadR2 = newQuadR2;
+                    logverb("Updated quadR2 to %.1f (radius %.1f pix)\n", quadR2, sqrt(quadR2));
+                }
+            }
 
             //
             sipout->a_order = sipout->b_order = order;

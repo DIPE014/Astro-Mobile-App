@@ -1,17 +1,17 @@
 package com.astro.app.ui.platesolve;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -20,44 +20,64 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.astro.app.R;
 import com.astro.app.native_.AstrometryNative;
+import com.astro.app.native_.ConstellationOverlay;
 import com.astro.app.native_.NativePlateSolver;
 
+import java.io.File;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Test activity for plate solving functionality.
- * Allows picking an image from gallery and running star detection + plate solving.
+ * Constellation detection activity.
+ * Capture or pick a photo of the night sky, automatically detect and overlay constellations.
  */
 public class PlateSolveActivity extends AppCompatActivity {
     private static final String TAG = "PlateSolveActivity";
 
     private ImageView imageView;
     private TextView tvStatus;
-    private TextView tvResults;
     private Button btnPickImage;
-    private Button btnDetectStars;
-    private Button btnSolve;
+    private Button btnCapture;
     private ProgressBar progressBar;
-
-    private Bitmap currentBitmap;
-    private Bitmap originalBitmap;
-    private List<AstrometryNative.NativeStar> detectedStars;
-    private NativePlateSolver solver;
-    private ExecutorService executor;
     private CheckBox cbShowStars;
 
+    private Bitmap originalBitmap;
+    private Bitmap overlayBitmap;
+    private NativePlateSolver solver;
+    private ConstellationOverlay constellationOverlay;
+    private ExecutorService executor;
+    private Uri cameraPhotoUri;
+
+    // Gallery picker
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                     Uri imageUri = result.getData().getData();
-                    loadImage(imageUri);
+                    loadImageAndSolve(imageUri);
+                }
+            });
+
+    // Camera capture
+    private final ActivityResultLauncher<Uri> cameraLauncher =
+            registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
+                if (success && cameraPhotoUri != null) {
+                    loadImageAndSolve(cameraPhotoUri);
+                }
+            });
+
+    // Camera permission request
+    private final ActivityResultLauncher<String> cameraPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+                if (granted) {
+                    launchCamera();
+                } else {
+                    Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -68,51 +88,37 @@ public class PlateSolveActivity extends AppCompatActivity {
 
         imageView = findViewById(R.id.imageView);
         tvStatus = findViewById(R.id.tvStatus);
-        tvResults = findViewById(R.id.tvResults);
         btnPickImage = findViewById(R.id.btnPickImage);
-        btnDetectStars = findViewById(R.id.btnDetectStars);
-        btnSolve = findViewById(R.id.btnSolve);
+        btnCapture = findViewById(R.id.btnCapture);
         progressBar = findViewById(R.id.progressBar);
         cbShowStars = findViewById(R.id.cbShowStars);
+
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
 
         executor = Executors.newSingleThreadExecutor();
         solver = new NativePlateSolver(this);
 
-        // Toggle star overlay
+        constellationOverlay = new ConstellationOverlay();
+        constellationOverlay.loadConstellations(this);
+
         if (cbShowStars != null) {
-            cbShowStars.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                updateImageDisplay();
-            });
+            cbShowStars.setOnCheckedChangeListener((buttonView, isChecked) -> updateImageDisplay());
         }
 
-        // Check native library and load index files
-        if (!AstrometryNative.isLibraryLoaded()) {
-            tvStatus.setText("ERROR: Native library not loaded!");
-            btnDetectStars.setEnabled(false);
-            btnSolve.setEnabled(false);
-        } else {
-            // Load index files from assets at startup
-            int indexCount = 0;
+        // Load index files
+        if (AstrometryNative.isLibraryLoaded()) {
             try {
-                indexCount = solver.loadIndexesFromAssets("indexes");
-                Log.i(TAG, "Loaded " + indexCount + " index files from assets");
+                solver.loadIndexesFromAssets("indexes");
             } catch (Exception e) {
                 Log.e(TAG, "Failed to load index files: " + e.getMessage());
-            }
-
-            if (indexCount > 0) {
-                tvStatus.setText("Ready! " + indexCount + " index files loaded. Pick an image.");
-            } else {
-                tvStatus.setText("Warning: No index files found. Solve will not work.");
             }
         }
 
         btnPickImage.setOnClickListener(v -> pickImage());
-        btnDetectStars.setOnClickListener(v -> detectStars());
-        btnSolve.setOnClickListener(v -> solvePlate());
-
-        btnDetectStars.setEnabled(false);
-        btnSolve.setEnabled(false);
+        btnCapture.setOnClickListener(v -> captureImage());
     }
 
     @Override
@@ -127,219 +133,110 @@ public class PlateSolveActivity extends AppCompatActivity {
         imagePickerLauncher.launch(Intent.createChooser(intent, "Select Star Field Image"));
     }
 
-    private void loadImage(Uri uri) {
+    private void captureImage() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+        } else {
+            launchCamera();
+        }
+    }
+
+    private void launchCamera() {
+        File photoFile = new File(getCacheDir(), "capture_" + System.currentTimeMillis() + ".jpg");
+        cameraPhotoUri = FileProvider.getUriForFile(this,
+                getPackageName() + ".fileprovider", photoFile);
+        cameraLauncher.launch(cameraPhotoUri);
+    }
+
+    private void loadImageAndSolve(Uri uri) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
-            originalBitmap = BitmapFactory.decodeStream(inputStream);
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inScaled = false;
+            originalBitmap = BitmapFactory.decodeStream(inputStream, null, opts);
             inputStream.close();
 
             if (originalBitmap != null) {
-                currentBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
-                imageView.setImageBitmap(currentBitmap);
-                tvStatus.setText(String.format(Locale.US, "Image loaded: %dx%d",
-                        currentBitmap.getWidth(), currentBitmap.getHeight()));
-                tvResults.setText("");
-                btnDetectStars.setEnabled(true);
-                btnSolve.setEnabled(false);
-                detectedStars = null;
+                imageView.setImageBitmap(originalBitmap);
+                overlayBitmap = null;
                 if (cbShowStars != null) {
                     cbShowStars.setChecked(false);
                     cbShowStars.setEnabled(false);
+                    cbShowStars.setVisibility(View.GONE);
                 }
+                solvePlate();
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to load image", e);
-            tvStatus.setText("Failed to load image: " + e.getMessage());
+            showStatus("Failed to load image");
         }
     }
 
     private void updateImageDisplay() {
         if (originalBitmap == null) return;
 
-        currentBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
-
-        if (cbShowStars != null && cbShowStars.isChecked() && detectedStars != null) {
-            drawStarsOnBitmap(currentBitmap, detectedStars);
+        if (cbShowStars != null && cbShowStars.isChecked() && overlayBitmap != null) {
+            imageView.setImageBitmap(overlayBitmap);
+        } else {
+            imageView.setImageBitmap(originalBitmap);
         }
-
-        imageView.setImageBitmap(currentBitmap);
-    }
-
-    private void drawStarsOnBitmap(Bitmap bitmap, List<AstrometryNative.NativeStar> stars) {
-        Canvas canvas = new Canvas(bitmap);
-
-        // Find max flux for scaling
-        float maxFlux = 0;
-        for (AstrometryNative.NativeStar s : stars) {
-            if (s.flux > maxFlux) maxFlux = s.flux;
-        }
-
-        Paint circlePaint = new Paint();
-        circlePaint.setStyle(Paint.Style.STROKE);
-        circlePaint.setStrokeWidth(2);
-        circlePaint.setAntiAlias(true);
-
-        Paint textPaint = new Paint();
-        textPaint.setColor(Color.YELLOW);
-        textPaint.setTextSize(24);
-        textPaint.setAntiAlias(true);
-
-        // Sort by flux (brightest first)
-        stars.sort((a, b) -> Float.compare(b.flux, a.flux));
-
-        for (int i = 0; i < stars.size(); i++) {
-            AstrometryNative.NativeStar s = stars.get(i);
-
-            // Circle size based on flux (brighter = bigger)
-            float radius = 5 + 15 * (s.flux / maxFlux);
-
-            // Color: bright stars are yellow, dim stars are cyan
-            if (i < 20) {
-                circlePaint.setColor(Color.YELLOW);
-            } else if (i < 100) {
-                circlePaint.setColor(Color.GREEN);
-            } else {
-                circlePaint.setColor(Color.CYAN);
-            }
-
-            canvas.drawCircle(s.x, s.y, radius, circlePaint);
-
-            // Label top 10 brightest stars
-            if (i < 10) {
-                canvas.drawText(String.valueOf(i + 1), s.x + radius + 2, s.y - radius, textPaint);
-            }
-        }
-
-        // Draw legend
-        textPaint.setTextSize(32);
-        textPaint.setColor(Color.WHITE);
-        canvas.drawText(stars.size() + " stars detected", 20, 50, textPaint);
-    }
-
-    private void detectStars() {
-        if (currentBitmap == null) {
-            Toast.makeText(this, "No image loaded", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        setLoading(true);
-        tvStatus.setText("Detecting stars...");
-
-        executor.execute(() -> {
-            long startTime = System.currentTimeMillis();
-
-            List<AstrometryNative.NativeStar> stars = solver.detectStars(currentBitmap);
-
-            long elapsed = System.currentTimeMillis() - startTime;
-
-            runOnUiThread(() -> {
-                setLoading(false);
-
-                if (stars != null && !stars.isEmpty()) {
-                    detectedStars = stars;
-
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(String.format(Locale.US, "Detected %d stars in %d ms\n\n",
-                            stars.size(), elapsed));
-
-                    sb.append("Top 10 brightest stars:\n");
-                    // Sort by flux (brightness)
-                    stars.sort((a, b) -> Float.compare(b.flux, a.flux));
-
-                    for (int i = 0; i < Math.min(10, stars.size()); i++) {
-                        AstrometryNative.NativeStar s = stars.get(i);
-                        sb.append(String.format(Locale.US, "%2d. (%.1f, %.1f) flux=%.0f\n",
-                                i + 1, s.x, s.y, s.flux));
-                    }
-
-                    tvResults.setText(sb.toString());
-                    tvStatus.setText(String.format(Locale.US, "Found %d stars", stars.size()));
-                    btnSolve.setEnabled(true);
-
-                    // Enable star overlay checkbox
-                    if (cbShowStars != null) {
-                        cbShowStars.setEnabled(true);
-                        cbShowStars.setChecked(true);  // Auto-show stars
-                    }
-                    updateImageDisplay();
-                } else {
-                    tvStatus.setText("No stars detected");
-                    tvResults.setText("Try adjusting detection parameters or use a different image.");
-                    btnSolve.setEnabled(false);
-                }
-            });
-        });
     }
 
     private void solvePlate() {
-        if (currentBitmap == null) {
-            Toast.makeText(this, "No image loaded", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (originalBitmap == null) return;
 
         setLoading(true);
-        tvStatus.setText("Solving plate... (this requires index files)");
+        showStatus("Detecting constellations...");
 
         executor.execute(() -> {
-            long startTime = System.currentTimeMillis();
-
-            solver.solve(currentBitmap, new NativePlateSolver.SolveCallback() {
+            solver.solve(originalBitmap, new NativePlateSolver.SolveCallback() {
                 @Override
                 public void onProgress(String message) {
-                    runOnUiThread(() -> tvStatus.setText(message));
+                    runOnUiThread(() -> showStatus(message));
                 }
 
                 @Override
                 public void onSuccess(AstrometryNative.SolveResult result) {
-                    long elapsed = System.currentTimeMillis() - startTime;
+                    overlayBitmap = constellationOverlay.drawOverlay(originalBitmap, result);
 
                     runOnUiThread(() -> {
                         setLoading(false);
+                        hideStatus();
 
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(String.format(Locale.US, "=== SOLVED in %d ms ===\n\n", elapsed));
-                        sb.append(String.format(Locale.US, "RA:  %.4f°\n", result.ra));
-                        sb.append(String.format(Locale.US, "Dec: %.4f°\n", result.dec));
-                        sb.append(String.format(Locale.US, "Pixel scale: %.2f arcsec/pix\n", result.pixelScale));
-                        sb.append(String.format(Locale.US, "Rotation: %.1f°\n", result.rotation));
-                        sb.append(String.format(Locale.US, "Log-odds: %.1f\n", result.logOdds));
-                        sb.append(String.format(Locale.US, "\nReference pixel: (%.1f, %.1f)\n",
-                                result.crpixX, result.crpixY));
-                        sb.append(String.format(Locale.US, "CD matrix:\n  [%.6f, %.6f]\n  [%.6f, %.6f]",
-                                result.cd[0], result.cd[1], result.cd[2], result.cd[3]));
+                        imageView.setImageBitmap(overlayBitmap);
 
-                        tvResults.setText(sb.toString());
-                        tvStatus.setText("Plate solved successfully!");
+                        if (cbShowStars != null) {
+                            cbShowStars.setVisibility(View.VISIBLE);
+                            cbShowStars.setEnabled(true);
+                            cbShowStars.setChecked(true);
+                        }
                     });
                 }
 
                 @Override
                 public void onFailure(String error) {
-                    long elapsed = System.currentTimeMillis() - startTime;
-
                     runOnUiThread(() -> {
                         setLoading(false);
-                        tvStatus.setText("Solve failed: " + error);
-                        tvResults.setText(String.format(Locale.US,
-                                "Failed after %d ms\n\n" +
-                                "Possible reasons:\n" +
-                                "- No index files installed\n" +
-                                "- Wrong pixel scale range\n" +
-                                "- Not enough stars detected\n" +
-                                "- Image doesn't contain recognizable star field\n\n" +
-                                "To install index files, place .fits files in:\n" +
-                                "assets/indexes/ or /sdcard/astrometry/indexes/",
-                                elapsed));
+                        showStatus("Could not identify star field");
                     });
                 }
             });
         });
     }
 
+    private void showStatus(String text) {
+        tvStatus.setText(text);
+        tvStatus.setVisibility(View.VISIBLE);
+    }
+
+    private void hideStatus() {
+        tvStatus.setVisibility(View.GONE);
+    }
+
     private void setLoading(boolean loading) {
         progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
         btnPickImage.setEnabled(!loading);
-        btnDetectStars.setEnabled(!loading && currentBitmap != null);
-        btnSolve.setEnabled(!loading && detectedStars != null);
+        btnCapture.setEnabled(!loading);
     }
 }

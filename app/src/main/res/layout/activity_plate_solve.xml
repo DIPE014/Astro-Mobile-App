@@ -1,121 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/background_dark"
-    android:padding="16dp">
+    android:background="@color/background_dark">
 
-    <!-- Title -->
-    <TextView
+    <!-- Full-screen image -->
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"
+        android:contentDescription="Star field image" />
+
+    <!-- Loading spinner centered -->
+    <ProgressBar
+        android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Plate Solve Test"
-        android:textSize="24sp"
-        android:textColor="@color/text_primary"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
+        android:layout_gravity="center"
+        android:visibility="gone" />
 
-    <!-- Image Preview -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="#333333"
-        android:layout_marginBottom="16dp">
+    <!-- Status text overlay (shown during processing) -->
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="80dp"
+        android:background="#99000000"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:visibility="gone" />
 
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitCenter"
-            android:contentDescription="Star field image" />
-
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:visibility="gone" />
-
-    </FrameLayout>
-
-    <!-- Buttons Row 1 -->
+    <!-- Bottom bar: upload + toggle -->
     <LinearLayout
+        android:id="@+id/bottomBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#CC000000"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+        <Button
+            android:id="@+id/btnCapture"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Capture"
+            android:textAllCaps="false"
+            android:textSize="14sp"
+            android:layout_marginEnd="8dp" />
 
         <Button
             android:id="@+id/btnPickImage"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Gallery"
+            android:textAllCaps="false"
+            android:textSize="14sp" />
+
+        <View
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Pick Image"
-            android:layout_marginEnd="8dp" />
-
-        <Button
-            android:id="@+id/btnDetectStars"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Detect Stars"
-            android:layout_marginEnd="8dp" />
-
-        <Button
-            android:id="@+id/btnSolve"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Solve" />
-
-    </LinearLayout>
-
-    <!-- Options Row -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="8dp">
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
         <CheckBox
             android:id="@+id/cbShowStars"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Show detected stars"
-            android:textColor="@color/text_secondary"
-            android:enabled="false" />
+            android:text="Constellations"
+            android:textColor="#CCCCCC"
+            android:textSize="13sp"
+            android:enabled="false"
+            android:visibility="gone" />
 
     </LinearLayout>
 
-    <!-- Status -->
-    <TextView
-        android:id="@+id/tvStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Loading..."
-        android:textColor="@color/tertiary"
-        android:textSize="14sp"
-        android:layout_marginBottom="8dp" />
+    <!-- Back button top-left -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|start"
+        android:layout_margin="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Back"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:padding="12dp" />
 
-    <!-- Results -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="#222222"
-        android:padding="12dp">
-
-        <TextView
-            android:id="@+id/tvResults"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pick an image to start testing"
-            android:textColor="@color/text_secondary"
-            android:textSize="13sp"
-            android:fontFamily="monospace" />
-
-    </ScrollView>
-
-</LinearLayout>
+</FrameLayout>

@@ -48,7 +48,7 @@ public class NativePlateSolver {
     private int downsample = 2;          // Downsample factor
 
     // Solver parameters
-    private double scaleLow = 0.1;       // Lower pixel scale bound (arcsec/pixel)
+    private double scaleLow = 10.0;      // Lower pixel scale bound (arcsec/pixel) - matches solve-field --scale-low 10
     private double scaleHigh = 180.0;    // Upper pixel scale bound (arcsec/pixel)
     private double logOddsThreshold = 20.0;
 
@@ -154,30 +154,39 @@ public class NativePlateSolver {
     public int loadIndexesFromAssets(String assetDir) throws IOException {
         File indexDir = new File(context.getFilesDir(), "indexes");
         if (!indexDir.exists()) {
-            indexDir.mkdirs();
+            boolean created = indexDir.mkdirs();
+            Log.i(TAG, "Created index directory: " + indexDir.getAbsolutePath() + " success=" + created);
         }
 
         String[] assets = context.getAssets().list(assetDir);
-        if (assets == null) {
+        if (assets == null || assets.length == 0) {
+            Log.e(TAG, "No assets found in directory: " + assetDir);
             return 0;
         }
 
+        Log.i(TAG, "Found " + assets.length + " items in assets/" + assetDir);
+
         int count = 0;
         for (String asset : assets) {
+            Log.d(TAG, "Checking asset: " + asset);
             if (asset.endsWith(".fits")) {
                 File outFile = new File(indexDir, asset);
 
-                // Copy if not exists or different size
+                // Copy if not exists
                 if (!outFile.exists()) {
+                    Log.i(TAG, "Copying " + asset + " to " + outFile.getAbsolutePath());
                     copyAssetFile(assetDir + "/" + asset, outFile);
+                } else {
+                    Log.i(TAG, "Index already exists: " + outFile.getAbsolutePath() + " size=" + outFile.length());
                 }
 
                 addIndexPath(outFile.getAbsolutePath());
+                Log.i(TAG, "Added index path: " + outFile.getAbsolutePath());
                 count++;
             }
         }
 
-        Log.i(TAG, "Loaded " + count + " index files from assets");
+        Log.i(TAG, "Loaded " + count + " index files. Total paths: " + indexPaths.size());
         return count;
     }
 
