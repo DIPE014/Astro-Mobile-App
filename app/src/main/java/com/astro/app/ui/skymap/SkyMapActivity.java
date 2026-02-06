@@ -4,11 +4,14 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -190,6 +193,9 @@ public class SkyMapActivity extends AppCompatActivity {
     private boolean isPlanetsEnabled = false;
     @Nullable
     private StarData selectedStar;
+
+    // Manual mode indicator
+    private View manualModeIndicator;
 
     // GPS state
     private boolean isGpsEnabled = false;
@@ -599,6 +605,12 @@ public class SkyMapActivity extends AppCompatActivity {
             if (btnArToggle != null) {
                 btnArToggle.setIconTint(ColorStateList.valueOf(
                     ContextCompat.getColor(this, isManual ? R.color.icon_primary : R.color.icon_inactive)));
+            }
+            if (isManual) {
+                // Show a reset hint at the top of the screen
+                showManualModeIndicator();
+            } else {
+                hideManualModeIndicator();
             }
         });
         skyCanvasView.setOnSkyTapListener((x, y) -> {
@@ -1151,6 +1163,61 @@ public class SkyMapActivity extends AppCompatActivity {
                 btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_inactive));
             }
         }
+    }
+
+    /**
+     * Shows a semi-transparent banner at the top indicating manual mode is active.
+     * Tapping the banner resets to sensor-driven mode.
+     */
+    private void showManualModeIndicator() {
+        if (manualModeIndicator != null && manualModeIndicator.getParent() != null) return;
+
+        // Create a small indicator bar at top
+        LinearLayout indicator = new LinearLayout(this);
+        indicator.setOrientation(LinearLayout.HORIZONTAL);
+        indicator.setGravity(android.view.Gravity.CENTER);
+        indicator.setBackgroundColor(Color.argb(180, 30, 30, 60));
+        indicator.setPadding(16, 8, 16, 8);
+        indicator.setTag("manual_mode_indicator");
+
+        TextView text = new TextView(this);
+        text.setText("Manual Mode \u2014 Tap to reset");
+        text.setTextColor(Color.WHITE);
+        text.setTextSize(13);
+        indicator.addView(text);
+
+        // Make the whole bar clickable to reset
+        indicator.setOnClickListener(v -> {
+            if (skyCanvasView != null) {
+                skyCanvasView.exitManualMode();
+                updateARToggleButton();
+            }
+        });
+
+        // Add to root layout at the top, below the top controls
+        androidx.constraintlayout.widget.ConstraintLayout rootLayout =
+                (androidx.constraintlayout.widget.ConstraintLayout) skyOverlayContainer.getParent();
+        if (rootLayout != null) {
+            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams params =
+                    new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
+                        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
+                        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTENT);
+            params.topToBottom = R.id.topControls;  // Position below top controls
+            indicator.setLayoutParams(params);
+            rootLayout.addView(indicator);
+        }
+
+        manualModeIndicator = indicator;
+    }
+
+    /**
+     * Hides the manual mode indicator banner.
+     */
+    private void hideManualModeIndicator() {
+        if (manualModeIndicator != null && manualModeIndicator.getParent() != null) {
+            ((ViewGroup) manualModeIndicator.getParent()).removeView(manualModeIndicator);
+        }
+        manualModeIndicator = null;
     }
 
     /**
@@ -1877,6 +1944,13 @@ public class SkyMapActivity extends AppCompatActivity {
             rootLayout.removeView(previousStrip);
         }
 
+        // Track which object is currently highlighted so second tap opens details
+        final SkyCanvasView.SelectableObject[] selectedChipObject = {null};
+        final MaterialCardView[] selectedChipView = {null};
+        int defaultSurfaceColor = ContextCompat.getColor(this, R.color.surface);
+        // Improvement B: highlight color for selected chip stroke
+        int highlightStrokeColor = ContextCompat.getColor(this, R.color.star_selected);
+
         // Create horizontal chip container
         LinearLayout chipStrip = new LinearLayout(this);
         chipStrip.setTag("chip_strip");
@@ -1887,7 +1961,8 @@ public class SkyMapActivity extends AppCompatActivity {
                 (int) getResources().getDimension(R.dimen.padding_small),
                 (int) getResources().getDimension(R.dimen.padding_small),
                 (int) getResources().getDimension(R.dimen.padding_small));
-        chipStrip.setBackgroundColor(ContextCompat.getColor(this, R.color.overlay_dark));
+        // Issue 3: Use lighter semi-transparent background so starmap stays visible
+        chipStrip.setBackgroundColor(Color.argb(160, 20, 20, 40));
 
         for (SkyCanvasView.SelectableObject obj : objects) {
             // Create chip card
@@ -1898,7 +1973,7 @@ public class SkyMapActivity extends AppCompatActivity {
                     (int) getResources().getDimension(R.dimen.margin_extra_small), 0,
                     (int) getResources().getDimension(R.dimen.margin_extra_small), 0);
             chip.setLayoutParams(chipParams);
-            chip.setCardBackgroundColor(ContextCompat.getColor(this, R.color.surface));
+            chip.setCardBackgroundColor(defaultSurfaceColor);
             chip.setCardElevation(getResources().getDimension(R.dimen.elevation_small));
             chip.setRadius(getResources().getDimension(R.dimen.corner_radius_medium));
             chip.setContentPadding(
@@ -1906,6 +1981,8 @@ public class SkyMapActivity extends AppCompatActivity {
                     (int) getResources().getDimension(R.dimen.padding_extra_small),
                     (int) getResources().getDimension(R.dimen.padding_small),
                     (int) getResources().getDimension(R.dimen.padding_extra_small));
+            // Improvement B: default no stroke
+            chip.setStrokeWidth(0);
 
             // Chip content: icon + name
             LinearLayout chipContent = new LinearLayout(this);
@@ -1937,10 +2014,43 @@ public class SkyMapActivity extends AppCompatActivity {
 
             chip.addView(chipContent);
 
+            // Issue 1: Restore highlight-then-detail flow for chips
+            // First tap = highlight object on sky map + visually mark chip as selected
+            // Second tap on same chip = dismiss strip and open details
+            // Tapping a different chip = switch highlight to that object
             chip.setOnClickListener(v -> {
-                // Remove strip and open details
-                rootLayout.removeView(chipStrip);
-                openObjectDetails(obj);
+                if (selectedChipObject[0] == obj) {
+                    // Second tap on same chip: dismiss and open details
+                    rootLayout.removeView(chipStrip);
+                    openObjectDetails(obj);
+                } else {
+                    // First tap (or different chip): highlight the object
+                    // Improvement B: Reset previous chip's visual state
+                    if (selectedChipView[0] != null) {
+                        selectedChipView[0].setStrokeWidth(0);
+                    }
+                    selectedChipObject[0] = obj;
+                    selectedChipView[0] = chip;
+
+                    // Improvement B: Mark this chip as selected with a stroke
+                    chip.setStrokeWidth((int) getResources().getDimension(R.dimen.divider_height) * 2);
+                    chip.setStrokeColor(ColorStateList.valueOf(highlightStrokeColor));
+
+                    // Highlight the object on the sky map
+                    if (obj.type.equals("planet")) {
+                        skyCanvasView.setHighlightedPlanet(obj.name);
+                    } else if (obj.type.equals("constellation")) {
+                        skyCanvasView.clearHighlight();
+                    } else {
+                        StarData star = skyCanvasView.getStarById(obj.id);
+                        if (star != null) {
+                            skyCanvasView.setHighlightedStar(star);
+                        }
+                    }
+                    Toast.makeText(SkyMapActivity.this,
+                            getString(R.string.object_highlighted, obj.getDisplayName()),
+                            Toast.LENGTH_SHORT).show();
+                }
             });
 
             chipStrip.addView(chip);
@@ -1957,16 +2067,22 @@ public class SkyMapActivity extends AppCompatActivity {
         // Add to parent (which is a ConstraintLayout)
         rootLayout.addView(chipStrip);
 
-        // Auto-dismiss after 5 seconds
+        // Auto-dismiss after 8 seconds (longer to allow highlight-then-detail flow)
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             if (chipStrip.getParent() != null) {
                 rootLayout.removeView(chipStrip);
+                if (skyCanvasView != null) {
+                    skyCanvasView.clearHighlight();
+                }
             }
-        }, 5000);
+        }, 8000);
     }
 
     private void showCompactBottomSheet(List<SkyCanvasView.SelectableObject> objects) {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
+
+        // Issue 1: Track currently selected/highlighted object for the detail button
+        final SkyCanvasView.SelectableObject[] selectedObject = {null};
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -1987,10 +2103,30 @@ public class SkyMapActivity extends AppCompatActivity {
                 (int) getResources().getDimension(R.dimen.padding_small));
         layout.addView(title);
 
+        // Issue 2: Limit ScrollView height to approximately 3 items (56dp each ~ 220dp total with title)
+        int maxListHeightPx = (int) (220 * getResources().getDisplayMetrics().density);
+
         // Scrollable list
         ScrollView scrollView = new ScrollView(this);
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        scrollView.setLayoutParams(scrollParams);
+        // Issue 2: Cap the scroll view so only ~3 items are visible at a time
+        scrollView.post(() -> {
+            if (scrollView.getHeight() > maxListHeightPx) {
+                LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) scrollView.getLayoutParams();
+                lp.height = maxListHeightPx;
+                scrollView.setLayoutParams(lp);
+            }
+        });
+
         LinearLayout listLayout = new LinearLayout(this);
         listLayout.setOrientation(LinearLayout.VERTICAL);
+
+        // Improvement A: Create the "View Details" button (initially hidden until an object is highlighted)
+        MaterialButton detailButton = new MaterialButton(this);
+        detailButton.setText(R.string.confirm_selection);
+        detailButton.setVisibility(View.GONE);
 
         for (SkyCanvasView.SelectableObject obj : objects) {
             LinearLayout itemLayout = new LinearLayout(this);
@@ -2049,10 +2185,30 @@ public class SkyMapActivity extends AppCompatActivity {
 
             itemLayout.addView(infoLayout);
 
-            // Tap item directly opens details (no confirm button needed)
+            // Issue 1: Restore highlight-then-detail flow
+            // First tap highlights the object on the sky map
             itemLayout.setOnClickListener(v -> {
+                selectedObject[0] = obj;
+                if (obj.type.equals("planet")) {
+                    skyCanvasView.setHighlightedPlanet(obj.name);
+                } else if (obj.type.equals("constellation")) {
+                    skyCanvasView.clearHighlight();
+                } else {
+                    StarData star = skyCanvasView.getStarById(obj.id);
+                    if (star != null) {
+                        skyCanvasView.setHighlightedStar(star);
+                    }
+                }
+                Toast.makeText(this, getString(R.string.object_highlighted, obj.getDisplayName()),
+                        Toast.LENGTH_SHORT).show();
+                // Improvement A: Show the "View Details" button now that an object is selected
+                detailButton.setVisibility(View.VISIBLE);
+            });
+            // Issue 1: Long-press opens details directly as a shortcut
+            itemLayout.setOnLongClickListener(v -> {
                 dialog.dismiss();
                 openObjectDetails(obj);
+                return true;
             });
 
             listLayout.addView(itemLayout);
@@ -2069,17 +2225,33 @@ public class SkyMapActivity extends AppCompatActivity {
         scrollView.addView(listLayout);
         layout.addView(scrollView);
 
+        // Improvement A: "View Details" button at the bottom of the sheet
+        // Opens details for the currently highlighted/selected object
+        detailButton.setOnClickListener(v -> {
+            if (selectedObject[0] != null) {
+                dialog.dismiss();
+                openObjectDetails(selectedObject[0]);
+            }
+        });
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnParams.topMargin = (int) getResources().getDimension(R.dimen.margin_small);
+        detailButton.setLayoutParams(btnParams);
+        layout.addView(detailButton);
+
         dialog.setContentView(layout);
 
-        // Set peek height to 40% of screen
+        // Issue 2: Set peek height to ~3 items + title (~220dp) instead of 40% of screen
         dialog.setOnShowListener(d -> {
             BottomSheetDialog bsd = (BottomSheetDialog) d;
             View bottomSheet = bsd.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (bottomSheet != null) {
                 com.google.android.material.bottomsheet.BottomSheetBehavior<View> behavior =
                         com.google.android.material.bottomsheet.BottomSheetBehavior.from(bottomSheet);
-                int screenHeight = getResources().getDisplayMetrics().heightPixels;
-                behavior.setPeekHeight((int) (screenHeight * 0.4));
+                int peekHeightPx = (int) (220 * getResources().getDisplayMetrics().density);
+                behavior.setPeekHeight(peekHeightPx);
+                // Issue 2: Start collapsed so only ~3 items show initially
+                behavior.setState(com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED);
             }
         });
 
@@ -2089,6 +2261,12 @@ public class SkyMapActivity extends AppCompatActivity {
             }
         });
         dialog.show();
+
+        // Issue 3: Remove background dim to keep starmap visible
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setDimAmount(0f);
+        }
     }
 
     /**

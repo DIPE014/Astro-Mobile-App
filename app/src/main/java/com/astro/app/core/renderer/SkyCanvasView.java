@@ -287,16 +287,31 @@ public class SkyCanvasView extends View {
         gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                if (isPinching || !isManualMode) return false;
+                if (isPinching) return false;
+                // Single finger drag auto-enters manual mode
+                if (!isManualMode) {
+                    enterManualMode();
+                }
+                float sensitivity = 1.5f; // Makes panning feel more responsive
                 float pixelsPerDegree = Math.min(getWidth(), getHeight()) / fieldOfView;
-                manualAzimuth += distanceX / pixelsPerDegree;
-                manualAltitude += distanceY / pixelsPerDegree;
+                manualAzimuth += (distanceX / pixelsPerDegree) * sensitivity;
+                manualAltitude += (distanceY / pixelsPerDegree) * sensitivity;
                 manualAltitude = Math.max(-90f, Math.min(90f, manualAltitude));
                 manualAzimuth = ((manualAzimuth % 360f) + 360f) % 360f;
                 azimuthOffset = manualAzimuth;
                 altitudeOffset = manualAltitude;
                 invalidate();
                 return true;
+            }
+
+            // Improvement: Double-tap to reset manual mode
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                if (isManualMode) {
+                    exitManualMode();
+                    return true;
+                }
+                return false;
             }
         });
     }
