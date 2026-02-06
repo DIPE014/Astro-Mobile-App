@@ -611,6 +611,34 @@ public class SkyMapActivity extends AppCompatActivity {
             }
         });
 
+        skyCanvasView.setOnTrajectoryListener((planetName, x, y) -> {
+            if (universe == null) return;
+            new Thread(() -> {
+                try {
+                    SolarSystemBody body = null;
+                    for (SolarSystemBody b : SolarSystemBody.values()) {
+                        if (b.name().equalsIgnoreCase(planetName)) {
+                            body = b;
+                            break;
+                        }
+                    }
+                    if (body == null) return;
+
+                    long now = (timeTravelClock != null) ? timeTravelClock.getCurrentTimeMillis() : System.currentTimeMillis();
+                    long sixMonthsMs = 6L * 30 * 24 * 3600 * 1000;
+                    long step = 2L * 24 * 3600 * 1000; // 2 days
+                    List<SkyCanvasView.TrajectoryPoint> points = new ArrayList<>();
+                    for (long t = now - sixMonthsMs; t <= now + sixMonthsMs; t += step) {
+                        RaDec raDec = universe.getRaDec(body, new Date(t));
+                        points.add(new SkyCanvasView.TrajectoryPoint(t, raDec.getRa(), raDec.getDec()));
+                    }
+                    runOnUiThread(() -> skyCanvasView.startTrajectory(planetName, points, now));
+                } catch (Exception e) {
+                    Log.e(TAG, "Error computing trajectory: " + e.getMessage());
+                }
+            }).start();
+        });
+
         // Create a dummy SkyGLSurfaceView for compatibility (won't be displayed)
         // This prevents null pointer exceptions in other parts of the code
         SkyRenderer renderer = new SkyRenderer();
