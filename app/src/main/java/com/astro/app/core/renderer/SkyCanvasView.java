@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -55,10 +57,15 @@ public class SkyCanvasView extends View {
         void onManualModeChanged(boolean isManual);
     }
 
+    public interface OnTrajectoryListener {
+        void onPlanetLongPressed(String planetName, float x, float y);
+    }
+
     private OnStarSelectedListener starSelectedListener;
     private OnObjectSelectedListener objectSelectedListener;
     private OnSkyTapListener skyTapListener;
     private OnManualModeListener manualModeListener;
+    private OnTrajectoryListener trajectoryListener;
 
     private Paint starPaint;
     private Paint linePaint;
@@ -142,6 +149,17 @@ public class SkyCanvasView extends View {
     private boolean useSimpleStarMap = true;
     private boolean searchModeActive = false;
 
+    // Trajectory mode
+    private boolean isTrajectoryMode = false;
+    private String trajectoryPlanetName = null;
+    private List<TrajectoryPoint> trajectoryPoints = null;
+    private int trajectoryCurrentIndex = -1;
+    private Paint trajectoryLinePaint;
+    private Paint trajectoryDotPaint;
+    private Paint trajectoryTimePaint;
+    private Paint trajectoryTimeBgPaint;
+    private GestureDetector trajectoryGestureDetector;
+
     public SkyCanvasView(Context context) {
         super(context);
         init();
@@ -213,6 +231,35 @@ public class SkyCanvasView extends View {
         reticlePaint.setStyle(Paint.Style.STROKE);
         reticlePaint.setStrokeWidth(3f);
         reticlePaint.setColor(RETICLE_COLOR);
+
+        trajectoryLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        trajectoryLinePaint.setStyle(Paint.Style.STROKE);
+        trajectoryLinePaint.setStrokeWidth(3f);
+        trajectoryLinePaint.setColor(Color.argb(180, 255, 165, 0));
+
+        trajectoryDotPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        trajectoryDotPaint.setStyle(Paint.Style.FILL);
+        trajectoryDotPaint.setColor(Color.argb(220, 255, 200, 0));
+
+        trajectoryTimePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        trajectoryTimePaint.setTextSize(24f);
+        trajectoryTimePaint.setColor(Color.WHITE);
+        trajectoryTimePaint.setTextAlign(Paint.Align.CENTER);
+
+        trajectoryTimeBgPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        trajectoryTimeBgPaint.setStyle(Paint.Style.FILL);
+        trajectoryTimeBgPaint.setColor(Color.argb(180, 30, 30, 30));
+
+        trajectoryGestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public void onLongPress(MotionEvent e) {
+                if (isTrajectoryMode) return;
+                SelectableObject planet = findNearestPlanet(e.getX(), e.getY(), 80f);
+                if (planet != null && trajectoryListener != null) {
+                    trajectoryListener.onPlanetLongPressed(planet.name, e.getX(), e.getY());
+                }
+            }
+        });
     }
 
     private void initGestureDetectors() {
@@ -786,6 +833,10 @@ public class SkyCanvasView extends View {
             } else if (highlightedPlanetName != null) {
                 drawHighlightedPlanetOverlay(canvas, width, height);
             }
+            // Draw trajectory overlay
+            if (isTrajectoryMode) {
+                drawTrajectory(canvas, width, height);
+            }
         } else {
             // Draw constellation lines (from complex projection mode)
             for (float[] line : lines) {
@@ -1142,6 +1193,110 @@ public class SkyCanvasView extends View {
 
         if (planetsDrawn > 0) {
             Log.d(TAG, "PLANETS: Drew " + planetsDrawn + " planets on screen");
+        }
+    }
+
+    /**
+     * Draws the planet trajectory path and current position marker.
+     */
+    private void drawTrajectory(Canvas canvas, int width, int height) {
+        if (!isTrajectoryMode || trajectoryPoints == null || trajectoryPoints.isEmpty()) return;
+
+        double lst = calculateLocalSiderealTime();
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+        float pixelsPerDegree = Math.min(width, height) / fieldOfView;
+
+        // Draw trajectory path
+        Path path = new Path();
+        boolean pathStarted = false;
+        float lastX = 0, lastY = 0;
+
+        for (int i = 0; i < trajectoryPoints.size(); i++) {
+            TrajectoryPoint pt = trajectoryPoints.get(i);
+            double[] altAz = raDecToAltAz(pt.ra, pt.dec, lst);
+            float[] screenPos = projectToScreen(altAz[0], altAz[1],
+                    altitudeOffset, azimuthOffset, centerX, centerY, pixelsPerDegree);
+
+            if (screenPos[2] > 0.5f) {
+                float x = screenPos[0];
+                float y = screenPos[1];
+                if (x >= -100 && x <= width + 100 && y >= -100 && y <= height + 100) {
+                    if (!pathStarted) {
+                        path.moveTo(x, y);
+                        pathStarted = true;
+                    } else {
+                        // Check for large jumps (wrapping)
+                        float dx = x - lastX;
+                        float dy = y - lastY;
+                        if (Math.sqrt(dx * dx + dy * dy) < width / 2f) {
+                            path.lineTo(x, y);
+                        } else {
+                            path.moveTo(x, y);
+                        }
+                    }
+                    lastX = x;
+                    lastY = y;
+
+                    // Draw small dots along the path every 10th point
+                    if (i % 10 == 0) {
+                        canvas.drawCircle(x, y, 3f, trajectoryDotPaint);
+                    }
+                } else {
+                    pathStarted = false;
+                }
+            } else {
+                pathStarted = false;
+            }
+        }
+        canvas.drawPath(path, trajectoryLinePaint);
+
+        // Draw current position marker + time label
+        if (trajectoryCurrentIndex >= 0 && trajectoryCurrentIndex < trajectoryPoints.size()) {
+            TrajectoryPoint current = trajectoryPoints.get(trajectoryCurrentIndex);
+            double[] altAz = raDecToAltAz(current.ra, current.dec, lst);
+            float[] screenPos = projectToScreen(altAz[0], altAz[1],
+                    altitudeOffset, azimuthOffset, centerX, centerY, pixelsPerDegree);
+
+            if (screenPos[2] > 0.5f) {
+                float x = screenPos[0];
+                float y = screenPos[1];
+
+                // Enlarged planet marker
+                trajectoryDotPaint.setColor(Color.argb(255, 255, 200, 0));
+                canvas.drawCircle(x, y, 12f, trajectoryDotPaint);
+                trajectoryDotPaint.setColor(Color.argb(220, 255, 200, 0));
+
+                // Pulsing ring
+                float pulse = (float) (0.8f + 0.2f *
+                        Math.sin((System.currentTimeMillis() % 1500L) / 1500.0 * Math.PI * 2.0));
+                Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                ringPaint.setStyle(Paint.Style.STROKE);
+                ringPaint.setStrokeWidth(2f);
+                ringPaint.setColor(Color.argb((int)(150 * pulse), 255, 200, 0));
+                canvas.drawCircle(x, y, 18f * pulse, ringPaint);
+
+                // Time label
+                String timeText = formatTrajectoryTime(current.timeMillis);
+                float textWidth = trajectoryTimePaint.measureText(timeText);
+                float labelX = x;
+                float labelY = y - 30;
+
+                // Background rounded rect
+                RectF bgRect = new RectF(labelX - textWidth / 2 - 12, labelY - 20,
+                        labelX + textWidth / 2 + 12, labelY + 8);
+                canvas.drawRoundRect(bgRect, 8, 8, trajectoryTimeBgPaint);
+
+                // Text
+                canvas.drawText(timeText, labelX, labelY, trajectoryTimePaint);
+
+                // Planet name below marker
+                trajectoryTimePaint.setTextSize(20f);
+                canvas.drawText(trajectoryPlanetName, x, y + 30, trajectoryTimePaint);
+                trajectoryTimePaint.setTextSize(24f);
+
+                postInvalidateOnAnimation();
+            }
         }
     }
 
@@ -1795,6 +1950,20 @@ public class SkyCanvasView extends View {
     }
 
     /**
+     * Data class representing a point along a planet's trajectory.
+     */
+    public static class TrajectoryPoint {
+        public final long timeMillis;
+        public final float ra;
+        public final float dec;
+        public TrajectoryPoint(long timeMillis, float ra, float dec) {
+            this.timeMillis = timeMillis;
+            this.ra = ra;
+            this.dec = dec;
+        }
+    }
+
+    /**
      * Gets all celestial objects (stars and planets) within the center reticle.
      *
      * @return List of SelectableObject within the reticle area
@@ -1993,6 +2162,45 @@ public class SkyCanvasView extends View {
         this.skyTapListener = listener;
     }
 
+    public void setOnTrajectoryListener(OnTrajectoryListener l) { this.trajectoryListener = l; }
+
+    public void startTrajectory(String planetName, List<TrajectoryPoint> points, long currentTime) {
+        this.isTrajectoryMode = true;
+        this.trajectoryPlanetName = planetName;
+        this.trajectoryPoints = points;
+        this.trajectoryCurrentIndex = findClosestTimeIndex(points, currentTime);
+        invalidate();
+    }
+
+    public void clearTrajectory() {
+        this.isTrajectoryMode = false;
+        this.trajectoryPlanetName = null;
+        this.trajectoryPoints = null;
+        this.trajectoryCurrentIndex = -1;
+        invalidate();
+    }
+
+    public boolean isTrajectoryMode() { return isTrajectoryMode; }
+
+    public static int findClosestTimeIndex(List<TrajectoryPoint> points, long time) {
+        if (points == null || points.isEmpty()) return -1;
+        int closest = 0;
+        long minDiff = Math.abs(points.get(0).timeMillis - time);
+        for (int i = 1; i < points.size(); i++) {
+            long diff = Math.abs(points.get(i).timeMillis - time);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closest = i;
+            }
+        }
+        return closest;
+    }
+
+    public static String formatTrajectoryTime(long timeMillis) {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM d, yyyy", java.util.Locale.US);
+        return sdf.format(new Date(timeMillis));
+    }
+
     /**
      * Gets the currently highlighted star, if any.
      *
@@ -2024,8 +2232,39 @@ public class SkyCanvasView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        // Zoom-pan gesture detectors
         if (scaleGestureDetector != null) scaleGestureDetector.onTouchEvent(event);
         if (gestureDetector != null) gestureDetector.onTouchEvent(event);
+
+        // Feed gesture detector for long-press detection
+        if (trajectoryGestureDetector != null) trajectoryGestureDetector.onTouchEvent(event);
+
+        // Trajectory drag handling
+        if (isTrajectoryMode && trajectoryPoints != null && !trajectoryPoints.isEmpty()) {
+            if (event.getAction() == MotionEvent.ACTION_MOVE || event.getAction() == MotionEvent.ACTION_DOWN) {
+                float touchX = event.getX();
+                float touchY = event.getY();
+                int closest = findClosestTrajectoryPointOnScreen(touchX, touchY);
+                if (closest >= 0) {
+                    trajectoryCurrentIndex = closest;
+                    invalidate();
+                }
+                return true;
+            }
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                // Check if tap was far from trajectory - if so, clear it
+                float touchX = event.getX();
+                float touchY = event.getY();
+                int closest = findClosestTrajectoryPointOnScreen(touchX, touchY);
+                if (closest < 0) {
+                    clearTrajectory();
+                }
+                return true;
+            }
+        }
+
+        // Original touch handling
+        Log.d("TOUCH", "Touch at " + event.getX() + ", " + event.getY() + " action=" + event.getAction());
 
         if (event.getAction() == MotionEvent.ACTION_UP && !isPinching) {
             float touchX = event.getX();
@@ -2058,6 +2297,38 @@ public class SkyCanvasView extends View {
             }
         }
         return true;
+    }
+
+    private int findClosestTrajectoryPointOnScreen(float touchX, float touchY) {
+        if (trajectoryPoints == null || trajectoryPoints.isEmpty()) return -1;
+
+        int width = getWidth();
+        int height = getHeight();
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+        float pixelsPerDegree = Math.min(width, height) / fieldOfView;
+        double lst = calculateLocalSiderealTime();
+
+        int closestIndex = -1;
+        float minDist = 80f; // Max touch distance in pixels
+
+        for (int i = 0; i < trajectoryPoints.size(); i++) {
+            TrajectoryPoint pt = trajectoryPoints.get(i);
+            double[] altAz = raDecToAltAz(pt.ra, pt.dec, lst);
+            float[] screenPos = projectToScreen(altAz[0], altAz[1],
+                    altitudeOffset, azimuthOffset, centerX, centerY, pixelsPerDegree);
+
+            if (screenPos[2] > 0.5f) {
+                float dx = screenPos[0] - touchX;
+                float dy = screenPos[1] - touchY;
+                float dist = (float) Math.sqrt(dx * dx + dy * dy);
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestIndex = i;
+                }
+            }
+        }
+        return closestIndex;
     }
 
     @Nullable
