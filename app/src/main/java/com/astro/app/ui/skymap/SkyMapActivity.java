@@ -597,7 +597,7 @@ public class SkyMapActivity extends AppCompatActivity {
         skyCanvasView.setEnabled(true);
         skyCanvasView.setOnManualModeListener(isManual -> {
             if (btnArToggle != null) {
-                btnArToggle.setIconTintList(ColorStateList.valueOf(
+                btnArToggle.setIconTint(ColorStateList.valueOf(
                     ContextCompat.getColor(this, isManual ? R.color.icon_primary : R.color.icon_inactive)));
             }
         });
