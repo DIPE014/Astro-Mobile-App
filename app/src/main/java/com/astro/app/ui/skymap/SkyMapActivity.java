@@ -1770,16 +1770,23 @@ public class SkyMapActivity extends AppCompatActivity {
         boolean hasObjects = !objects.isEmpty();
 
         if (hasObjects && fabSelect.getVisibility() != View.VISIBLE) {
-            fabSelect.setText(getString(R.string.select) + " (" + objects.size() + ")");
+            if (objects.size() == 1) {
+                fabSelect.setText(objects.get(0).getDisplayName());
+            } else {
+                fabSelect.setText(getString(R.string.select) + " (" + objects.size() + ")");
+            }
             fabSelect.setVisibility(View.VISIBLE);
             fabSelect.animate().alpha(1f).setDuration(200).start();
         } else if (hasObjects) {
-            fabSelect.setText(getString(R.string.select) + " (" + objects.size() + ")");
+            if (objects.size() == 1) {
+                fabSelect.setText(objects.get(0).getDisplayName());
+            } else {
+                fabSelect.setText(getString(R.string.select) + " (" + objects.size() + ")");
+            }
         } else if (!hasObjects && fabSelect.getVisibility() == View.VISIBLE) {
             fabSelect.animate().alpha(0f).setDuration(200).withEndAction(() -> {
                 fabSelect.setVisibility(View.GONE);
             }).start();
-            // Clear any highlight when no objects in reticle
             skyCanvasView.clearHighlight();
         }
     }
@@ -1796,66 +1803,178 @@ public class SkyMapActivity extends AppCompatActivity {
             return;
         }
 
+        // Case 1: Single object - go directly to details
+        if (objects.size() == 1) {
+            openObjectDetails(objects.get(0));
+            return;
+        }
+
+        // Case 2: 2-4 objects - show compact chip strip
+        if (objects.size() <= 4) {
+            showCompactChipStrip(objects);
+            return;
+        }
+
+        // Case 3: 5+ objects - show compact bottom sheet
+        showCompactBottomSheet(objects);
+    }
+
+    private void showCompactChipStrip(List<SkyCanvasView.SelectableObject> objects) {
+        // Find root ConstraintLayout
+        androidx.constraintlayout.widget.ConstraintLayout rootLayout =
+                (androidx.constraintlayout.widget.ConstraintLayout) skyOverlayContainer.getParent();
+        if (rootLayout == null) return;
+
+        // Find and remove previous strip by tag
+        View previousStrip = rootLayout.findViewWithTag("chip_strip");
+        if (previousStrip != null) {
+            rootLayout.removeView(previousStrip);
+        }
+
+        // Create horizontal chip container
+        LinearLayout chipStrip = new LinearLayout(this);
+        chipStrip.setTag("chip_strip");
+        chipStrip.setOrientation(LinearLayout.HORIZONTAL);
+        chipStrip.setGravity(android.view.Gravity.CENTER);
+        chipStrip.setPadding(
+                (int) getResources().getDimension(R.dimen.padding_small),
+                (int) getResources().getDimension(R.dimen.padding_small),
+                (int) getResources().getDimension(R.dimen.padding_small),
+                (int) getResources().getDimension(R.dimen.padding_small));
+        chipStrip.setBackgroundColor(ContextCompat.getColor(this, R.color.overlay_dark));
+
+        for (SkyCanvasView.SelectableObject obj : objects) {
+            // Create chip card
+            MaterialCardView chip = new MaterialCardView(this);
+            LinearLayout.LayoutParams chipParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            chipParams.setMargins(
+                    (int) getResources().getDimension(R.dimen.margin_extra_small), 0,
+                    (int) getResources().getDimension(R.dimen.margin_extra_small), 0);
+            chip.setLayoutParams(chipParams);
+            chip.setCardBackgroundColor(ContextCompat.getColor(this, R.color.surface));
+            chip.setCardElevation(getResources().getDimension(R.dimen.elevation_small));
+            chip.setRadius(getResources().getDimension(R.dimen.corner_radius_medium));
+            chip.setContentPadding(
+                    (int) getResources().getDimension(R.dimen.padding_small),
+                    (int) getResources().getDimension(R.dimen.padding_extra_small),
+                    (int) getResources().getDimension(R.dimen.padding_small),
+                    (int) getResources().getDimension(R.dimen.padding_extra_small));
+
+            // Chip content: icon + name
+            LinearLayout chipContent = new LinearLayout(this);
+            chipContent.setOrientation(LinearLayout.HORIZONTAL);
+            chipContent.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+            ImageView icon = new ImageView(this);
+            int iconRes = obj.type.equals("planet") ?
+                    android.R.drawable.presence_online :
+                    obj.type.equals("constellation") ?
+                            android.R.drawable.ic_menu_myplaces :
+                            android.R.drawable.btn_star_big_on;
+            icon.setImageResource(iconRes);
+            icon.setColorFilter(ContextCompat.getColor(this,
+                    obj.type.equals("planet") ? R.color.planet_color : R.color.star_color));
+            LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
+                    (int) getResources().getDimension(R.dimen.icon_size_small),
+                    (int) getResources().getDimension(R.dimen.icon_size_small));
+            iconParams.rightMargin = (int) getResources().getDimension(R.dimen.margin_extra_small);
+            icon.setLayoutParams(iconParams);
+            chipContent.addView(icon);
+
+            TextView nameText = new TextView(this);
+            nameText.setText(obj.getDisplayName());
+            nameText.setTextSize(13);
+            nameText.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            nameText.setMaxLines(1);
+            chipContent.addView(nameText);
+
+            chip.addView(chipContent);
+
+            chip.setOnClickListener(v -> {
+                // Remove strip and open details
+                rootLayout.removeView(chipStrip);
+                openObjectDetails(obj);
+            });
+
+            chipStrip.addView(chip);
+        }
+
+        // Position above bottom controls
+        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams params =
+                new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
+                        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
+                        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTENT);
+        params.bottomToTop = R.id.bottomControls;
+        chipStrip.setLayoutParams(params);
+
+        // Add to parent (which is a ConstraintLayout)
+        rootLayout.addView(chipStrip);
+
+        // Auto-dismiss after 5 seconds
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (chipStrip.getParent() != null) {
+                rootLayout.removeView(chipStrip);
+            }
+        }, 5000);
+    }
+
+    private void showCompactBottomSheet(List<SkyCanvasView.SelectableObject> objects) {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
 
-        // Create dialog layout programmatically
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(
-                (int) getResources().getDimension(R.dimen.padding_medium),
-                (int) getResources().getDimension(R.dimen.padding_medium),
-                (int) getResources().getDimension(R.dimen.padding_medium),
-                (int) getResources().getDimension(R.dimen.padding_medium)
-        );
+                (int) getResources().getDimension(R.dimen.padding_small),
+                (int) getResources().getDimension(R.dimen.padding_small),
+                (int) getResources().getDimension(R.dimen.padding_small),
+                (int) getResources().getDimension(R.dimen.padding_small));
         layout.setBackgroundColor(ContextCompat.getColor(this, R.color.surface));
 
         // Title
         TextView title = new TextView(this);
         title.setText(R.string.objects_in_reticle);
-        title.setTextSize(20);
+        title.setTextSize(18);
         title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
-        title.setPadding(0, 0, 0, (int) getResources().getDimension(R.dimen.padding_medium));
+        title.setPadding(
+                (int) getResources().getDimension(R.dimen.padding_small), 0, 0,
+                (int) getResources().getDimension(R.dimen.padding_small));
         layout.addView(title);
 
-        // Create scrollable list
+        // Scrollable list
         ScrollView scrollView = new ScrollView(this);
-        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
-        scrollView.setLayoutParams(scrollParams);
         LinearLayout listLayout = new LinearLayout(this);
         listLayout.setOrientation(LinearLayout.VERTICAL);
-
-        // Track currently selected item for highlight preview
-        final SkyCanvasView.SelectableObject[] selectedObject = {null};
 
         for (SkyCanvasView.SelectableObject obj : objects) {
             LinearLayout itemLayout = new LinearLayout(this);
             itemLayout.setOrientation(LinearLayout.HORIZONTAL);
+            itemLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
             itemLayout.setPadding(
                     (int) getResources().getDimension(R.dimen.padding_small),
-                    (int) getResources().getDimension(R.dimen.padding_medium),
                     (int) getResources().getDimension(R.dimen.padding_small),
-                    (int) getResources().getDimension(R.dimen.padding_medium)
-            );
+                    (int) getResources().getDimension(R.dimen.padding_small),
+                    (int) getResources().getDimension(R.dimen.padding_small));
             itemLayout.setBackgroundResource(android.R.drawable.list_selector_background);
 
-            // Object icon (placeholder - could be customized per type)
+            // Icon
             ImageView icon = new ImageView(this);
             int iconRes = obj.type.equals("planet") ?
                     android.R.drawable.presence_online :
-                    android.R.drawable.btn_star_big_on;
+                    obj.type.equals("constellation") ?
+                            android.R.drawable.ic_menu_myplaces :
+                            android.R.drawable.btn_star_big_on;
             icon.setImageResource(iconRes);
             icon.setColorFilter(ContextCompat.getColor(this,
                     obj.type.equals("planet") ? R.color.planet_color : R.color.star_color));
             LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
-                    (int) getResources().getDimension(R.dimen.icon_size_medium),
-                    (int) getResources().getDimension(R.dimen.icon_size_medium)
-            );
-            iconParams.rightMargin = (int) getResources().getDimension(R.dimen.margin_medium);
+                    (int) getResources().getDimension(R.dimen.icon_size_small),
+                    (int) getResources().getDimension(R.dimen.icon_size_small));
+            iconParams.rightMargin = (int) getResources().getDimension(R.dimen.margin_small);
             icon.setLayoutParams(iconParams);
             itemLayout.addView(icon);
 
-            // Object info
+            // Info
             LinearLayout infoLayout = new LinearLayout(this);
             infoLayout.setOrientation(LinearLayout.VERTICAL);
             infoLayout.setLayoutParams(new LinearLayout.LayoutParams(
@@ -1863,7 +1982,7 @@ public class SkyMapActivity extends AppCompatActivity {
 
             TextView nameText = new TextView(this);
             nameText.setText(obj.getDisplayName());
-            nameText.setTextSize(16);
+            nameText.setTextSize(14);
             nameText.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
             infoLayout.addView(nameText);
 
@@ -1875,40 +1994,19 @@ public class SkyMapActivity extends AppCompatActivity {
                 typeString = getString(R.string.object_constellation);
             } else {
                 typeString = getString(R.string.object_star);
-            }
-            if (obj.type.equals("star")) {
                 typeString += " (mag " + String.format("%.1f", obj.magnitude) + ")";
             }
             typeText.setText(typeString);
-            typeText.setTextSize(12);
+            typeText.setTextSize(11);
             typeText.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
             infoLayout.addView(typeText);
 
             itemLayout.addView(infoLayout);
 
-            // Click handler - highlight object on tap
+            // Tap item directly opens details (no confirm button needed)
             itemLayout.setOnClickListener(v -> {
-                selectedObject[0] = obj;
-                // Highlight the object on the sky view
-                if (obj.type.equals("planet")) {
-                    skyCanvasView.setHighlightedPlanet(obj.name);
-                } else if (obj.type.equals("constellation")) {
-                    skyCanvasView.clearHighlight();
-                } else {
-                    StarData star = skyCanvasView.getStarById(obj.id);
-                    if (star != null) {
-                        skyCanvasView.setHighlightedStar(star);
-                    }
-                }
-                Toast.makeText(this, getString(R.string.object_highlighted, obj.getDisplayName()),
-                        Toast.LENGTH_SHORT).show();
-            });
-
-            // Long press to confirm and open details
-            itemLayout.setOnLongClickListener(v -> {
                 dialog.dismiss();
                 openObjectDetails(obj);
-                return true;
             });
 
             listLayout.addView(itemLayout);
@@ -1918,37 +2016,28 @@ public class SkyMapActivity extends AppCompatActivity {
             divider.setBackgroundColor(ContextCompat.getColor(this, R.color.divider));
             LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    (int) getResources().getDimension(R.dimen.divider_height)
-            );
+                    (int) getResources().getDimension(R.dimen.divider_height));
             listLayout.addView(divider, dividerParams);
         }
 
         scrollView.addView(listLayout);
         layout.addView(scrollView);
 
-        // Confirm button
-        MaterialButton confirmButton = new MaterialButton(this);
-        confirmButton.setText(R.string.confirm_selection);
-        confirmButton.setOnClickListener(v -> {
-            dialog.dismiss();
-            if (selectedObject[0] != null) {
-                openObjectDetails(selectedObject[0]);
-            } else if (!objects.isEmpty()) {
-                // If nothing selected, open details for first object
-                openObjectDetails(objects.get(0));
+        dialog.setContentView(layout);
+
+        // Set peek height to 40% of screen
+        dialog.setOnShowListener(d -> {
+            BottomSheetDialog bsd = (BottomSheetDialog) d;
+            View bottomSheet = bsd.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet != null) {
+                com.google.android.material.bottomsheet.BottomSheetBehavior<View> behavior =
+                        com.google.android.material.bottomsheet.BottomSheetBehavior.from(bottomSheet);
+                int screenHeight = getResources().getDisplayMetrics().heightPixels;
+                behavior.setPeekHeight((int) (screenHeight * 0.4));
             }
         });
-        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        buttonParams.topMargin = (int) getResources().getDimension(R.dimen.margin_medium);
-        confirmButton.setLayoutParams(buttonParams);
-        layout.addView(confirmButton);
 
-        dialog.setContentView(layout);
         dialog.setOnDismissListener(d -> {
-            // Clear highlight when dialog is dismissed without selection
             if (skyCanvasView != null) {
                 skyCanvasView.clearHighlight();
             }
