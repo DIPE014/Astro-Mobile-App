@@ -3,6 +3,7 @@ package com.astro.app.ui.skymap;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.drawable.GradientDrawable;
 import android.hardware.SensorManager;
 import android.os.Bundle;
@@ -594,6 +595,12 @@ public class SkyMapActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));
         skyCanvasView.setEnabled(true);
+        skyCanvasView.setOnManualModeListener(isManual -> {
+            if (btnArToggle != null) {
+                btnArToggle.setIconTintList(ColorStateList.valueOf(
+                    ContextCompat.getColor(this, isManual ? R.color.icon_primary : R.color.icon_inactive)));
+            }
+        });
         skyCanvasView.setOnSkyTapListener((x, y) -> {
             if (searchTargetName != null) {
                 clearSearchTarget();
@@ -670,7 +677,14 @@ public class SkyMapActivity extends AppCompatActivity {
 
         // AR toggle button
         if (btnArToggle != null) {
-            btnArToggle.setOnClickListener(v -> toggleARMode());
+            btnArToggle.setOnClickListener(v -> {
+                if (skyCanvasView != null && skyCanvasView.isManualMode()) {
+                    skyCanvasView.exitManualMode();
+                    updateARToggleButton();
+                } else {
+                    toggleARMode();
+                }
+            });
         }
 
         // Settings button
@@ -1097,7 +1111,11 @@ public class SkyMapActivity extends AppCompatActivity {
      */
     private void updateARToggleButton() {
         if (btnArToggle != null) {
-            if (isARModeEnabled) {
+            boolean isManual = skyCanvasView != null && skyCanvasView.isManualMode();
+            if (isManual) {
+                btnArToggle.setIconResource(android.R.drawable.ic_menu_compass);
+                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
+            } else if (isARModeEnabled) {
                 btnArToggle.setIconResource(android.R.drawable.ic_menu_camera);
                 btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
             } else {

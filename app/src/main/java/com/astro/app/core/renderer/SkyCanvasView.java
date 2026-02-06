@@ -6,7 +6,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -49,9 +51,14 @@ public class SkyCanvasView extends View {
         void onSkyTap(float x, float y);
     }
 
+    public interface OnManualModeListener {
+        void onManualModeChanged(boolean isManual);
+    }
+
     private OnStarSelectedListener starSelectedListener;
     private OnObjectSelectedListener objectSelectedListener;
     private OnSkyTapListener skyTapListener;
+    private OnManualModeListener manualModeListener;
 
     private Paint starPaint;
     private Paint linePaint;
@@ -66,6 +73,20 @@ public class SkyCanvasView extends View {
     private double observerLongitude = -74.0060;
     private float azimuthOffset = 0f;  // Device orientation in degrees
     private float altitudeOffset = 45f; // Device tilt (0 = horizon, 90 = zenith)
+
+    // Manual mode state
+    private boolean isManualMode = false;
+    private float manualAzimuth = 0f;
+    private float manualAltitude = 45f;
+
+    // Gesture detectors
+    private GestureDetector gestureDetector;
+    private ScaleGestureDetector scaleGestureDetector;
+    private boolean isPinching = false;
+
+    // FOV limits
+    private static final float MIN_FOV = 20f;
+    private static final float MAX_FOV = 120f;
     private long observationTime = System.currentTimeMillis(); // Time for sky calculations
 
     // Star data from repository
@@ -124,11 +145,13 @@ public class SkyCanvasView extends View {
     public SkyCanvasView(Context context) {
         super(context);
         init();
+        initGestureDetectors();
     }
 
     public SkyCanvasView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
+        initGestureDetectors();
     }
 
     private void init() {
@@ -191,6 +214,65 @@ public class SkyCanvasView extends View {
         reticlePaint.setStrokeWidth(3f);
         reticlePaint.setColor(RETICLE_COLOR);
     }
+
+    private void initGestureDetectors() {
+        scaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            @Override
+            public boolean onScaleBegin(ScaleGestureDetector detector) {
+                isPinching = true;
+                enterManualMode();
+                return true;
+            }
+            @Override
+            public boolean onScale(ScaleGestureDetector detector) {
+                float scaleFactor = detector.getScaleFactor();
+                fieldOfView /= scaleFactor;
+                fieldOfView = Math.max(MIN_FOV, Math.min(MAX_FOV, fieldOfView));
+                invalidate();
+                return true;
+            }
+            @Override
+            public void onScaleEnd(ScaleGestureDetector detector) {
+                isPinching = false;
+            }
+        });
+
+        gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                if (isPinching || !isManualMode) return false;
+                float pixelsPerDegree = Math.min(getWidth(), getHeight()) / fieldOfView;
+                manualAzimuth += distanceX / pixelsPerDegree;
+                manualAltitude += distanceY / pixelsPerDegree;
+                manualAltitude = Math.max(-90f, Math.min(90f, manualAltitude));
+                manualAzimuth = ((manualAzimuth % 360f) + 360f) % 360f;
+                azimuthOffset = manualAzimuth;
+                altitudeOffset = manualAltitude;
+                invalidate();
+                return true;
+            }
+        });
+    }
+
+    public void enterManualMode() {
+        if (!isManualMode) {
+            isManualMode = true;
+            manualAzimuth = azimuthOffset;
+            manualAltitude = altitudeOffset;
+            if (manualModeListener != null) manualModeListener.onManualModeChanged(true);
+        }
+    }
+
+    public void exitManualMode() {
+        isManualMode = false;
+        fieldOfView = 90f;
+        if (manualModeListener != null) manualModeListener.onManualModeChanged(false);
+        invalidate();
+    }
+
+    public boolean isManualMode() { return isManualMode; }
+
+    public void setOnManualModeListener(OnManualModeListener l) { this.manualModeListener = l; }
 
     /**
      * Sets the real star data from the repository.
@@ -324,6 +406,7 @@ public class SkyCanvasView extends View {
      * @param altitude Vertical angle in degrees (0 = horizon, 90 = zenith)
      */
     public void setOrientation(float azimuth, float altitude) {
+        if (isManualMode) return;  // Ignore sensor updates in manual mode
         this.azimuthOffset = azimuth;
         this.altitudeOffset = altitude;
         // Always invalidate to trigger redraw with new orientation
@@ -1941,9 +2024,10 @@ public class SkyCanvasView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Log.d("TOUCH", "Touch at " + event.getX() + ", " + event.getY() + " action=" + event.getAction());
+        if (scaleGestureDetector != null) scaleGestureDetector.onTouchEvent(event);
+        if (gestureDetector != null) gestureDetector.onTouchEvent(event);
 
-        if (event.getAction() == MotionEvent.ACTION_UP) {
+        if (event.getAction() == MotionEvent.ACTION_UP && !isPinching) {
             float touchX = event.getX();
             float touchY = event.getY();
 
@@ -1954,11 +2038,9 @@ public class SkyCanvasView extends View {
                 return true;
             }
 
-            // Find nearest star within tap radius (larger for easier selection)
+            // Find nearest star within tap radius
             StarData nearestStar = findNearestStar(touchX, touchY, 120f);
-            Log.d("TOUCH", "Nearest star: " + (nearestStar != null ? nearestStar.getName() : "null"));
             if (nearestStar != null && starSelectedListener != null) {
-                Log.d("TOUCH", "Calling star selected listener for: " + nearestStar.getName());
                 starSelectedListener.onStarSelected(nearestStar);
                 return true;
             }
@@ -1975,7 +2057,6 @@ public class SkyCanvasView extends View {
                 return true;
             }
         }
-        // Return true to indicate we handled the touch event
         return true;
     }
 
