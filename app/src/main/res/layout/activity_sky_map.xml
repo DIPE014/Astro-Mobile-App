@@ -284,7 +284,7 @@
             android:layout_height="@dimen/bottom_nav_height"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="@dimen/padding_medium">
+            android:paddingHorizontal="@dimen/padding_small">
 
             <!-- Constellations Toggle -->
             <LinearLayout
@@ -295,7 +295,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_small">
+                android:padding="@dimen/padding_extra_small">
 
                 <ImageView
                     android:id="@+id/ivConstellations"
@@ -324,7 +324,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_small">
+                android:padding="@dimen/padding_extra_small">
 
                 <ImageView
                     android:id="@+id/ivGrid"
@@ -353,7 +353,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_small">
+                android:padding="@dimen/padding_extra_small">
 
                 <ImageView
                     android:id="@+id/ivTimeTravel"
@@ -382,7 +382,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_small">
+                android:padding="@dimen/padding_extra_small">
 
                 <ImageView
                     android:id="@+id/ivPlanets"
