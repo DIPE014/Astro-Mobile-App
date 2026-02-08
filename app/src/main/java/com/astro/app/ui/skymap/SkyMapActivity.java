@@ -144,6 +144,8 @@ public class SkyMapActivity extends AppCompatActivity {
     private TextView tvInfoPanelMagnitude;
     private TextView tvInfoPanelRA;
     private TextView tvInfoPanelDec;
+    private View infoPanelQuickInfo;
+    private MaterialButton btnInfoPanelDetails;
     private MaterialButton btnSearchDetails;
     private FrameLayout loadingOverlay;
     private View gpsIndicator;
@@ -193,6 +195,10 @@ public class SkyMapActivity extends AppCompatActivity {
     private boolean isPlanetsEnabled = false;
     @Nullable
     private StarData selectedStar;
+    @Nullable
+    private Toast starToast;
+    @Nullable
+    private ConstellationBoundaryResolver constellationBoundaryResolver;
 
     // Manual mode indicator
     private View manualModeIndicator;
@@ -238,6 +244,7 @@ public class SkyMapActivity extends AppCompatActivity {
 
         // Inject dependencies
         ((AstroApplication) getApplication()).getAppComponent().inject(this);
+        constellationBoundaryResolver = ConstellationBoundaryResolver.fromAssets(getAssets());
 
         initializeViews();
         initializeManagers();
@@ -568,6 +575,8 @@ public class SkyMapActivity extends AppCompatActivity {
         tvInfoPanelMagnitude = findViewById(R.id.tvInfoPanelMagnitude);
         tvInfoPanelRA = findViewById(R.id.tvInfoPanelRA);
         tvInfoPanelDec = findViewById(R.id.tvInfoPanelDec);
+        infoPanelQuickInfo = findViewById(R.id.infoPanelQuickInfo);
+        btnInfoPanelDetails = findViewById(R.id.btnInfoPanelDetails);
         loadingOverlay = findViewById(R.id.loadingOverlay);
         btnArToggle = findViewById(R.id.btnArToggle);
         btnSearchDetails = findViewById(R.id.btnSearchDetails);
@@ -622,11 +631,18 @@ public class SkyMapActivity extends AppCompatActivity {
 
         Log.d(TAG, "SkyCanvasView created - Canvas2D rendering enabled");
 
+        skyCanvasView.setOnStarSelectedListener(viewModel::selectObject);
+
         skyCanvasView.setOnObjectSelectedListener(obj -> {
             if ("planet".equals(obj.type)) {
                 openEducationDetail(EducationDetailActivity.TYPE_PLANET, obj.name, obj.id);
             } else if ("constellation".equals(obj.type)) {
                 openEducationDetail(EducationDetailActivity.TYPE_CONSTELLATION, obj.name, obj.id);
+            } else if ("star".equals(obj.type)) {
+                StarData star = skyCanvasView.getStarById(obj.id);
+                if (star != null) {
+                    viewModel.selectObject(star);
+                }
             }
         });
 
@@ -788,9 +804,8 @@ public class SkyMapActivity extends AppCompatActivity {
         }
 
         // Info panel details button
-        MaterialButton btnDetails = findViewById(R.id.btnInfoPanelDetails);
-        if (btnDetails != null) {
-            btnDetails.setOnClickListener(v -> {
+        if (btnInfoPanelDetails != null) {
+            btnInfoPanelDetails.setOnClickListener(v -> {
                 if (selectedStar != null) {
                     openStarDetails(selectedStar);
                 }
@@ -2354,14 +2369,29 @@ public class SkyMapActivity extends AppCompatActivity {
     private void showStarInfo(@NonNull StarData star) {
         selectedStar = star;
 
-        tvInfoPanelName.setText(star.getName());
-        tvInfoPanelType.setText(getString(R.string.star_type_format,
-                star.getConstellationId() != null ? star.getConstellationId() : getString(R.string.unknown)));
-        tvInfoPanelMagnitude.setText(String.format("%.2f", star.getMagnitude()));
-        tvInfoPanelRA.setText(formatRA(star.getRa()));
-        tvInfoPanelDec.setText(formatDec(star.getDec()));
+        // Only show fallback toast for stars outside the top-100 set.
+        if (skyCanvasView != null && skyCanvasView.isTopStar(star.getId())) {
+            return;
+        }
 
-        infoPanel.setVisibility(View.VISIBLE);
+        // Per current UX requirement: star tap shows toast only (no info panel).
+        if (infoPanel != null) {
+            infoPanel.setVisibility(View.GONE);
+        }
+        if (starToast != null) {
+            starToast.cancel();
+        }
+        starToast = Toast.makeText(this,
+                getString(R.string.star_in_constellation_format, resolveConstellationName(star)),
+                Toast.LENGTH_SHORT);
+        starToast.show();
+
+        // Shorter than default Toast.LENGTH_SHORT.
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (starToast != null) {
+                starToast.cancel();
+            }
+        }, 700);
     }
 
     /**
@@ -2385,6 +2415,39 @@ public class SkyMapActivity extends AppCompatActivity {
         intent.putExtra(StarInfoActivity.EXTRA_STAR_DEC, star.getDec());
         intent.putExtra(StarInfoActivity.EXTRA_STAR_MAGNITUDE, star.getMagnitude());
         startActivity(intent);
+    }
+
+    @NonNull
+    private String resolveConstellationName(@NonNull StarData star) {
+        String constellationId = star.getConstellationId();
+        if (constellationId == null || constellationId.trim().isEmpty()) {
+            if (constellationBoundaryResolver != null) {
+                String name = constellationBoundaryResolver.findConstellationName(star.getRa(), star.getDec());
+                if (name != null && !name.trim().isEmpty()) {
+                    return name;
+                }
+            }
+            return getString(R.string.unknown);
+        }
+        if (constellationRepository != null) {
+            try {
+                com.astro.app.data.model.ConstellationData constellation =
+                        constellationRepository.getConstellationById(constellationId);
+                if (constellation != null && constellation.getName() != null
+                        && !constellation.getName().trim().isEmpty()) {
+                    return constellation.getName();
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Failed to resolve constellation: " + constellationId, e);
+            }
+        }
+        if (constellationBoundaryResolver != null) {
+            String name = constellationBoundaryResolver.findConstellationName(star.getRa(), star.getDec());
+            if (name != null && !name.trim().isEmpty()) {
+                return name;
+            }
+        }
+        return constellationId;
     }
 
     private void openEducationDetail(@NonNull String type, @NonNull String name, @Nullable String id) {

@@ -1902,10 +1902,20 @@ public class SkyCanvasView extends View {
     }
 
     /**
+     * Returns whether a star is in the cached top-100 set.
+     */
+    public boolean isTopStar(@Nullable String starId) {
+        return starId != null && topStarIds.contains(starId);
+    }
+
+    /**
      * Sets the listener for star selection events.
      *
      * @param listener The listener to notify when a star is tapped
      */
+    public void setOnStarSelectedListener(@Nullable OnStarSelectedListener listener) {
+        this.starSelectedListener = listener;
+    }
 
     /**
      * Sets the listener for non-star object taps (planets, constellations).
@@ -2292,23 +2302,38 @@ public class SkyCanvasView extends View {
                 return true;
             }
 
-            // Find nearest star within tap radius
-            StarData nearestStar = findNearestStar(touchX, touchY, 120f);
-            if (nearestStar != null && starSelectedListener != null) {
-                starSelectedListener.onStarSelected(nearestStar);
-                return true;
-            }
-
             SelectableObject nearestPlanet = findNearestPlanet(touchX, touchY, 60f);
             if (nearestPlanet != null && objectSelectedListener != null) {
                 objectSelectedListener.onObjectSelected(nearestPlanet);
                 return true;
             }
 
-            SelectableObject nearestConstellation = findNearestConstellation(touchX, touchY, 80f);
+            // Handle constellation taps before star taps to avoid accidental star fallback.
+            SelectableObject nearestConstellation = findNearestConstellation(touchX, touchY, 60f);
             if (nearestConstellation != null && objectSelectedListener != null) {
                 objectSelectedListener.onObjectSelected(nearestConstellation);
                 return true;
+            }
+
+            // Find nearest star within tap radius
+            // Use a generous hit radius so dim/small stars remain tappable.
+            StarData nearestStar = findNearestStar(touchX, touchY, 260f);
+            if (nearestStar != null) {
+                if (starSelectedListener != null) {
+                    starSelectedListener.onStarSelected(nearestStar);
+                    return true;
+                }
+                if (objectSelectedListener != null) {
+                    objectSelectedListener.onObjectSelected(new SelectableObject(
+                            nearestStar.getId(),
+                            nearestStar.getName(),
+                            "star",
+                            nearestStar.getMagnitude(),
+                            nearestStar.getRa(),
+                            nearestStar.getDec()
+                    ));
+                    return true;
+                }
             }
         }
         return true;
@@ -2476,25 +2501,22 @@ public class SkyCanvasView extends View {
         // Pixels per degree
         float pixelsPerDegree = Math.min(width, height) / fieldOfView;
 
-        // Prefer highlighted star if it is within tap radius
+        // Prefer highlighted star if it is within tap radius.
+        // Do not filter by horizon/visibility so any loaded star can be selected.
         if (highlightedStar != null) {
             float ra = highlightedStar.getRa();
             float dec = highlightedStar.getDec();
             double[] altAz = raDecToAltAz(ra, dec, lst);
             double starAlt = altAz[0];
             double starAz = altAz[1];
-            if (starAlt >= -5) {
-                float[] screenPos = projectToScreen(starAlt, starAz,
-                        altitudeOffset, azimuthOffset,
-                        centerX, centerY, pixelsPerDegree);
-                if (screenPos[2] >= 0.5f) {
-                    float x = screenPos[0];
-                    float y = screenPos[1];
-                    float dist = (float) Math.sqrt(Math.pow(touchX - x, 2) + Math.pow(touchY - y, 2));
-                    if (dist <= maxDistance) {
-                        return highlightedStar;
-                    }
-                }
+            float[] screenPos = projectToScreen(starAlt, starAz,
+                    altitudeOffset, azimuthOffset,
+                    centerX, centerY, pixelsPerDegree);
+            float x = screenPos[0];
+            float y = screenPos[1];
+            float dist = (float) Math.sqrt(Math.pow(touchX - x, 2) + Math.pow(touchY - y, 2));
+            if (dist <= maxDistance) {
+                return highlightedStar;
             }
         }
 
@@ -2507,18 +2529,10 @@ public class SkyCanvasView extends View {
             double starAlt = altAz[0];
             double starAz = altAz[1];
 
-            // Skip stars below horizon
-            if (starAlt < -5) continue;
-
             // Use proper spherical projection (same as drawSimpleStarMap)
             float[] screenPos = projectToScreen(starAlt, starAz,
                     altitudeOffset, azimuthOffset,
                     centerX, centerY, pixelsPerDegree);
-
-            // Skip if not visible (behind us)
-            if (screenPos[2] < 0.5f) {
-                continue;
-            }
 
             float x = screenPos[0];
             float y = screenPos[1];

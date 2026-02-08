@@ -180,6 +180,7 @@
     <string name="ar_mode_off">AR mode disabled</string>
     <string name="camera_error">Camera error: %1$s</string>
     <string name="star_type_format">Star - %1$s</string>
+    <string name="star_in_constellation_format">Star in %1$s</string>
     <string name="star_details_coming_soon">Details for %1$s coming soon</string>
     <string name="unknown">Unknown</string>
 
