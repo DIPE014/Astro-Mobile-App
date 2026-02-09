@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -89,6 +90,10 @@ public class SkyCanvasView extends View {
     // Gesture detectors
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
+    private boolean suppressNextTapAfterPinch = false;
+    private boolean suppressNextTapAfterDoubleTap = false;
+    private long lastDoubleTapTimeMs = 0L;
+    private static final long DOUBLE_TAP_SUPPRESS_WINDOW_MS = 250L;
     private boolean isPinching = false;
 
     // FOV limits
@@ -267,7 +272,10 @@ public class SkyCanvasView extends View {
             @Override
             public boolean onScaleBegin(ScaleGestureDetector detector) {
                 isPinching = true;
-                enterManualMode();
+                suppressNextTapAfterPinch = true;
+                if (isManualMode) {
+                    exitManualMode();
+                }
                 return true;
             }
             @Override
@@ -287,26 +295,15 @@ public class SkyCanvasView extends View {
         gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                if (isPinching) return false;
-                // Single finger drag auto-enters manual mode
-                if (!isManualMode) {
-                    enterManualMode();
-                }
-                float sensitivity = 1.5f; // Makes panning feel more responsive
-                float pixelsPerDegree = Math.min(getWidth(), getHeight()) / fieldOfView;
-                manualAzimuth += (distanceX / pixelsPerDegree) * sensitivity;
-                manualAltitude += (distanceY / pixelsPerDegree) * sensitivity;
-                manualAltitude = Math.max(-90f, Math.min(90f, manualAltitude));
-                manualAzimuth = ((manualAzimuth % 360f) + 360f) % 360f;
-                azimuthOffset = manualAzimuth;
-                altitudeOffset = manualAltitude;
-                invalidate();
-                return true;
+                // Disable swipe navigation; keep tilt-based navigation
+                return false;
             }
 
             // Improvement: Double-tap to reset manual mode
             @Override
             public boolean onDoubleTap(MotionEvent e) {
+                suppressNextTapAfterDoubleTap = true;
+                lastDoubleTapTimeMs = SystemClock.uptimeMillis();
                 if (isManualMode) {
                     exitManualMode();
                     return true;
@@ -520,7 +517,7 @@ public class SkyCanvasView extends View {
         // Calculate declination
         // sin(dec) = sin(alt) * sin(lat) + cos(alt) * cos(lat) * cos(az)
         double sinDec = Math.sin(altRad) * Math.sin(latRad) +
-                        Math.cos(altRad) * Math.cos(latRad) * Math.cos(azRad);
+                Math.cos(altRad) * Math.cos(latRad) * Math.cos(azRad);
         sinDec = Math.max(-1, Math.min(1, sinDec)); // Clamp to [-1, 1]
         double dec = Math.toDegrees(Math.asin(sinDec));
 
@@ -673,7 +670,7 @@ public class SkyCanvasView extends View {
         // Log LST for time travel debugging (only log occasionally to avoid spam)
         if (lastLoggedLst < 0 || Math.abs(lst - lastLoggedLst) > 1.0) {
             Log.d(TAG, "TIME_TRAVEL: LST = " + String.format("%.2f", lst) + "° for time " +
-                new Date(observationTime));
+                    new Date(observationTime));
             lastLoggedLst = lst;
         }
 
@@ -703,12 +700,12 @@ public class SkyCanvasView extends View {
 
         // Calculate altitude
         double sinAlt = Math.sin(decRad) * Math.sin(latRad) +
-                        Math.cos(decRad) * Math.cos(latRad) * Math.cos(haRad);
+                Math.cos(decRad) * Math.cos(latRad) * Math.cos(haRad);
         double altitude = Math.toDegrees(Math.asin(sinAlt));
 
         // Calculate azimuth
         double cosA = (Math.sin(decRad) - Math.sin(Math.toRadians(altitude)) * Math.sin(latRad)) /
-                      (Math.cos(Math.toRadians(altitude)) * Math.cos(latRad));
+                (Math.cos(Math.toRadians(altitude)) * Math.cos(latRad));
         cosA = Math.max(-1, Math.min(1, cosA)); // Clamp to [-1, 1]
         double azimuth = Math.toDegrees(Math.acos(cosA));
 
@@ -857,9 +854,9 @@ public class SkyCanvasView extends View {
             for (float[] line : lines) {
                 linePaint.setColor((int) line[4]);
                 canvas.drawLine(
-                    line[0] * width, line[1] * height,
-                    line[2] * width, line[3] * height,
-                    linePaint
+                        line[0] * width, line[1] * height,
+                        line[2] * width, line[3] * height,
+                        linePaint
                 );
             }
 
@@ -1486,9 +1483,9 @@ public class SkyCanvasView extends View {
 
                     // Only draw if at least one endpoint is on screen
                     boolean startOnScreen = startScreen[0] >= -50 && startScreen[0] <= width + 50 &&
-                                            startScreen[1] >= -50 && startScreen[1] <= height + 50;
+                            startScreen[1] >= -50 && startScreen[1] <= height + 50;
                     boolean endOnScreen = endScreen[0] >= -50 && endScreen[0] <= width + 50 &&
-                                          endScreen[1] >= -50 && endScreen[1] <= height + 50;
+                            endScreen[1] >= -50 && endScreen[1] <= height + 50;
                     if (startOnScreen || endOnScreen) {
                         // Check for azimuth wraparound
                         float azDiff = Math.abs((float)startAltAz[1] - (float)endAltAz[1]);
@@ -1515,9 +1512,9 @@ public class SkyCanvasView extends View {
 
                             // Only draw if at least one endpoint is on screen
                             boolean startOnScreen = start[0] >= -50 && start[0] <= width + 50 &&
-                                                    start[1] >= -50 && start[1] <= height + 50;
+                                    start[1] >= -50 && start[1] <= height + 50;
                             boolean endOnScreen = end[0] >= -50 && end[0] <= width + 50 &&
-                                                  end[1] >= -50 && end[1] <= height + 50;
+                                    end[1] >= -50 && end[1] <= height + 50;
                             if (startOnScreen || endOnScreen) {
                                 // Check for azimuth wraparound (stars on opposite sides of sky)
                                 float azDiff = Math.abs(start[3] - end[3]);
@@ -1633,7 +1630,7 @@ public class SkyCanvasView extends View {
             float[] labelPos = projectToScreen(alt, 0, altitudeOffset, azimuthOffset,
                     centerX, centerY, pixelsPerDegree);
             if (labelPos[2] > 0.5f && labelPos[0] >= 0 && labelPos[0] <= width &&
-                labelPos[1] >= 0 && labelPos[1] <= height) {
+                    labelPos[1] >= 0 && labelPos[1] <= height) {
                 String label = alt + "\u00b0";
                 canvas.drawText(label, labelPos[0] + 4, labelPos[1] - 4, gridLabelPaint);
             }
@@ -1664,7 +1661,7 @@ public class SkyCanvasView extends View {
             float[] labelPos = projectToScreen(5, az, altitudeOffset, azimuthOffset,
                     centerX, centerY, pixelsPerDegree);
             if (labelPos[2] > 0.5f && labelPos[0] >= 0 && labelPos[0] <= width &&
-                labelPos[1] >= 0 && labelPos[1] <= height) {
+                    labelPos[1] >= 0 && labelPos[1] <= height) {
                 String label;
                 if (az == 0) label = "N";
                 else if (az == 90) label = "E";
@@ -1679,7 +1676,7 @@ public class SkyCanvasView extends View {
         float[] zenithPos = projectToScreen(90, 0, altitudeOffset, azimuthOffset,
                 centerX, centerY, pixelsPerDegree);
         if (zenithPos[2] > 0.5f && zenithPos[0] >= 0 && zenithPos[0] <= width &&
-            zenithPos[1] >= 0 && zenithPos[1] <= height) {
+                zenithPos[1] >= 0 && zenithPos[1] <= height) {
             Paint zenithPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             zenithPaint.setColor(nightMode ? Color.argb(150, 200, 150, 150) : Color.argb(150, 200, 200, 255));
             zenithPaint.setStyle(Paint.Style.STROKE);
@@ -1692,7 +1689,7 @@ public class SkyCanvasView extends View {
         float[] nadirPos = projectToScreen(-90, 0, altitudeOffset, azimuthOffset,
                 centerX, centerY, pixelsPerDegree);
         if (nadirPos[2] > 0.5f && nadirPos[0] >= 0 && nadirPos[0] <= width &&
-            nadirPos[1] >= 0 && nadirPos[1] <= height) {
+                nadirPos[1] >= 0 && nadirPos[1] <= height) {
             Paint nadirPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
             nadirPaint.setColor(nightMode ? Color.argb(150, 150, 100, 100) : Color.argb(150, 150, 150, 200));
             nadirPaint.setStyle(Paint.Style.STROKE);
@@ -1902,18 +1899,11 @@ public class SkyCanvasView extends View {
     }
 
     /**
-     * Returns whether a star is in the cached top-100 set.
-     */
-    public boolean isTopStar(@Nullable String starId) {
-        return starId != null && topStarIds.contains(starId);
-    }
-
-    /**
      * Sets the listener for star selection events.
      *
      * @param listener The listener to notify when a star is tapped
      */
-    public void setOnStarSelectedListener(@Nullable OnStarSelectedListener listener) {
+    public void setOnStarSelectedListener(OnStarSelectedListener listener) {
         this.starSelectedListener = listener;
     }
 
@@ -2292,6 +2282,17 @@ public class SkyCanvasView extends View {
         Log.d("TOUCH", "Touch at " + event.getX() + ", " + event.getY() + " action=" + event.getAction());
 
         if (event.getAction() == MotionEvent.ACTION_UP && !isPinching) {
+            if (suppressNextTapAfterPinch) {
+                suppressNextTapAfterPinch = false;
+                return true;
+            }
+            if (suppressNextTapAfterDoubleTap) {
+                suppressNextTapAfterDoubleTap = false;
+                return true;
+            }
+            if (SystemClock.uptimeMillis() - lastDoubleTapTimeMs <= DOUBLE_TAP_SUPPRESS_WINDOW_MS) {
+                return true;
+            }
             float touchX = event.getX();
             float touchY = event.getY();
 
@@ -2302,38 +2303,32 @@ public class SkyCanvasView extends View {
                 return true;
             }
 
+            // Prefer constellation label taps when labels are visible
+            if (showConstellationLabels && objectSelectedListener != null) {
+                SelectableObject labelConstellation = findNearestConstellation(touchX, touchY, 60f);
+                if (labelConstellation != null) {
+                    objectSelectedListener.onObjectSelected(labelConstellation);
+                    return true;
+                }
+            }
+
             SelectableObject nearestPlanet = findNearestPlanet(touchX, touchY, 60f);
             if (nearestPlanet != null && objectSelectedListener != null) {
                 objectSelectedListener.onObjectSelected(nearestPlanet);
                 return true;
             }
 
-            // Handle constellation taps before star taps to avoid accidental star fallback.
-            SelectableObject nearestConstellation = findNearestConstellation(touchX, touchY, 60f);
-            if (nearestConstellation != null && objectSelectedListener != null) {
-                objectSelectedListener.onObjectSelected(nearestConstellation);
+            // Find nearest star within tap radius
+            StarData nearestStar = findNearestStar(touchX, touchY, 120f);
+            if (nearestStar != null && starSelectedListener != null) {
+                starSelectedListener.onStarSelected(nearestStar);
                 return true;
             }
 
-            // Find nearest star within tap radius
-            // Use a generous hit radius so dim/small stars remain tappable.
-            StarData nearestStar = findNearestStar(touchX, touchY, 260f);
-            if (nearestStar != null) {
-                if (starSelectedListener != null) {
-                    starSelectedListener.onStarSelected(nearestStar);
-                    return true;
-                }
-                if (objectSelectedListener != null) {
-                    objectSelectedListener.onObjectSelected(new SelectableObject(
-                            nearestStar.getId(),
-                            nearestStar.getName(),
-                            "star",
-                            nearestStar.getMagnitude(),
-                            nearestStar.getRa(),
-                            nearestStar.getDec()
-                    ));
-                    return true;
-                }
+            SelectableObject nearestConstellation = findNearestConstellation(touchX, touchY, 80f);
+            if (nearestConstellation != null && objectSelectedListener != null) {
+                objectSelectedListener.onObjectSelected(nearestConstellation);
+                return true;
             }
         }
         return true;
@@ -2406,16 +2401,35 @@ public class SkyCanvasView extends View {
             float x = screenPos[0];
             float y = screenPos[1];
             float dist = (float) Math.sqrt(Math.pow(x - touchX, 2) + Math.pow(y - touchY, 2));
-            if (dist <= minDist) {
-                minDist = dist;
-                nearest = new SelectableObject(
-                        "planet_" + name.toLowerCase(),
-                        name,
-                        "planet",
-                        -2.0f,
-                        ra,
-                        dec
-                );
+
+            boolean hitLabel = false;
+            if (planetLabelPaint != null) {
+                float textWidth = planetLabelPaint.measureText(name);
+                Paint.FontMetrics fm = planetLabelPaint.getFontMetrics();
+                float textHeight = fm.descent - fm.ascent;
+                float labelLeft = x + 6;
+                float labelTop = y - textHeight;
+                float labelRight = labelLeft + textWidth;
+                float labelBottom = y + 6;
+                if (touchX >= labelLeft && touchX <= labelRight &&
+                        touchY >= labelTop && touchY <= labelBottom) {
+                    hitLabel = true;
+                }
+            }
+
+            if (hitLabel || dist <= minDist) {
+                float candidateDist = hitLabel ? 0f : dist;
+                if (candidateDist <= minDist) {
+                    minDist = candidateDist;
+                    nearest = new SelectableObject(
+                            "planet_" + name.toLowerCase(),
+                            name,
+                            "planet",
+                            -2.0f,
+                            ra,
+                            dec
+                    );
+                }
             }
         }
 
@@ -2501,22 +2515,25 @@ public class SkyCanvasView extends View {
         // Pixels per degree
         float pixelsPerDegree = Math.min(width, height) / fieldOfView;
 
-        // Prefer highlighted star if it is within tap radius.
-        // Do not filter by horizon/visibility so any loaded star can be selected.
+        // Prefer highlighted star if it is within tap radius
         if (highlightedStar != null) {
             float ra = highlightedStar.getRa();
             float dec = highlightedStar.getDec();
             double[] altAz = raDecToAltAz(ra, dec, lst);
             double starAlt = altAz[0];
             double starAz = altAz[1];
-            float[] screenPos = projectToScreen(starAlt, starAz,
-                    altitudeOffset, azimuthOffset,
-                    centerX, centerY, pixelsPerDegree);
-            float x = screenPos[0];
-            float y = screenPos[1];
-            float dist = (float) Math.sqrt(Math.pow(touchX - x, 2) + Math.pow(touchY - y, 2));
-            if (dist <= maxDistance) {
-                return highlightedStar;
+            if (starAlt >= -90) {
+                float[] screenPos = projectToScreen(starAlt, starAz,
+                        altitudeOffset, azimuthOffset,
+                        centerX, centerY, pixelsPerDegree);
+                if (screenPos[2] >= 0.5f) {
+                    float x = screenPos[0];
+                    float y = screenPos[1];
+                    float dist = (float) Math.sqrt(Math.pow(touchX - x, 2) + Math.pow(touchY - y, 2));
+                    if (dist <= maxDistance) {
+                        return highlightedStar;
+                    }
+                }
             }
         }
 
@@ -2529,10 +2546,18 @@ public class SkyCanvasView extends View {
             double starAlt = altAz[0];
             double starAz = altAz[1];
 
+            // Allow tapping stars below horizon as well
+            if (starAlt < -90) continue;
+
             // Use proper spherical projection (same as drawSimpleStarMap)
             float[] screenPos = projectToScreen(starAlt, starAz,
                     altitudeOffset, azimuthOffset,
                     centerX, centerY, pixelsPerDegree);
+
+            // Skip if not visible (behind us)
+            if (screenPos[2] < 0.5f) {
+                continue;
+            }
 
             float x = screenPos[0];
             float y = screenPos[1];

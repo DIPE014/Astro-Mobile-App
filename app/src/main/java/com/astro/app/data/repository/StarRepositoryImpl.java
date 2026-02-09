@@ -51,6 +51,9 @@ public class StarRepositoryImpl implements StarRepository {
     private static final String JSON_KEY_BRIGHTEST_STARS = "brightest_stars";
     private static final float NAMED_STAR_MATCH_TOLERANCE_DEG = 0.1f;
     private static final int COLOR_NAMED_STAR_ORANGE = 0xFFFFA500;
+    private static final String BOUNDARIES_ASSET = "bound_18.json";
+    private static final String CONSTELLATION_NAMES_ASSET = "constellations.json";
+    private static final float RA_WRAP_THRESHOLD_HOURS = 12.0f;
 
     private final ProtobufParser protobufParser;
     private final AssetDataSource assetDataSource;
@@ -66,6 +69,11 @@ public class StarRepositoryImpl implements StarRepository {
     /** Map from lowercase star name to StarData for fast lookup */
     @Nullable
     private Map<String, StarData> starNameMap;
+    @Nullable
+    private List<ConstellationBoundary> constellationBoundaries;
+    private boolean constellationBoundariesLoaded = false;
+    @Nullable
+    private Map<String, String> constellationIdByAbbr;
 
     /**
      * Creates a StarRepositoryImpl with the provided parser.
@@ -247,6 +255,11 @@ public class StarRepositoryImpl implements StarRepository {
                     .setSize(size)
                     .setMagnitude(magnitude);
 
+            String constellationId = getConstellationIdForPosition(ra, dec);
+            if (constellationId != null) {
+                builder.setConstellationId(constellationId);
+            }
+
             if (namedStar != null) {
                 builder.setName(namedStar.displayName);
                 builder.setColor(COLOR_NAMED_STAR_ORANGE);
@@ -419,6 +432,206 @@ public class StarRepositoryImpl implements StarRepository {
         return delta > 180.0f ? 360.0f - delta : delta;
     }
 
+    @Nullable
+    private String getConstellationIdForPosition(float raDegrees, float decDegrees) {
+        List<ConstellationBoundary> boundaries = getConstellationBoundaries();
+        if (boundaries == null || boundaries.isEmpty()) {
+            return null;
+        }
+        float raHours = raDegrees / 15.0f;
+        for (ConstellationBoundary boundary : boundaries) {
+            if (isPointInPolygon(raHours, decDegrees, boundary)) {
+                return boundary.id;
+            }
+        }
+        return null;
+    }
+
+    private boolean isPointInPolygon(float raHours, float decDegrees, @NonNull ConstellationBoundary boundary) {
+        float adjustedRa = raHours;
+        if (boundary.crossesZero && adjustedRa < RA_WRAP_THRESHOLD_HOURS) {
+            adjustedRa += 24.0f;
+        }
+
+        boolean inside = false;
+        int count = boundary.points.size();
+        for (int i = 0, j = count - 1; i < count; j = i++) {
+            BoundaryPoint pi = boundary.points.get(i);
+            BoundaryPoint pj = boundary.points.get(j);
+
+            float xi = pi.raHours;
+            float xj = pj.raHours;
+            if (boundary.crossesZero) {
+                if (xi < RA_WRAP_THRESHOLD_HOURS) xi += 24.0f;
+                if (xj < RA_WRAP_THRESHOLD_HOURS) xj += 24.0f;
+            }
+
+            float yi = pi.decDegrees;
+            float yj = pj.decDegrees;
+
+            boolean intersects = ((yi > decDegrees) != (yj > decDegrees)) &&
+                    (adjustedRa < (xj - xi) * (decDegrees - yi) / (yj - yi) + xi);
+            if (intersects) {
+                inside = !inside;
+            }
+        }
+
+        return inside;
+    }
+
+    @Nullable
+    private List<ConstellationBoundary> getConstellationBoundaries() {
+        if (constellationBoundariesLoaded) {
+            return constellationBoundaries;
+        }
+        constellationBoundariesLoaded = true;
+        constellationBoundaries = loadConstellationBoundaries();
+        return constellationBoundaries;
+    }
+
+    @Nullable
+    private List<ConstellationBoundary> loadConstellationBoundaries() {
+        Map<String, String> idByAbbr = getConstellationIdByAbbr();
+        if (idByAbbr == null || idByAbbr.isEmpty()) {
+            Log.w(TAG, "Constellation name map missing; boundaries will not be assigned");
+            return null;
+        }
+
+        try (java.io.InputStream inputStream = assetDataSource.openAsset(BOUNDARIES_ASSET)) {
+            String json = readStreamToString(inputStream);
+            JSONObject root = new JSONObject(json);
+            JSONArray polygons = root.optJSONArray("polygons");
+            if (polygons == null || polygons.length() == 0) {
+                Log.w(TAG, "No 'polygons' array in " + BOUNDARIES_ASSET);
+                return null;
+            }
+
+            List<ConstellationBoundary> boundaries = new ArrayList<>(polygons.length());
+            for (int i = 0; i < polygons.length(); i++) {
+                JSONObject polygon = polygons.optJSONObject(i);
+                if (polygon == null) continue;
+                String abbr = polygon.optString("constellation", "").trim().toUpperCase(Locale.ROOT);
+                if (abbr.isEmpty()) continue;
+
+                String id = idByAbbr.get(abbr);
+                if (id == null || id.isEmpty()) {
+                    continue;
+                }
+
+                JSONArray points = polygon.optJSONArray("points");
+                if (points == null || points.length() == 0) {
+                    continue;
+                }
+
+                List<BoundaryPoint> boundaryPoints = new ArrayList<>(points.length());
+                float minRa = Float.MAX_VALUE;
+                float maxRa = -Float.MAX_VALUE;
+                for (int j = 0; j < points.length(); j++) {
+                    JSONObject point = points.optJSONObject(j);
+                    if (point == null) continue;
+                    float raHours = (float) point.optDouble("ra_h", Float.NaN);
+                    float decDegrees = (float) point.optDouble("dec_deg", Float.NaN);
+                    if (Float.isNaN(raHours) || Float.isNaN(decDegrees)) {
+                        continue;
+                    }
+                    minRa = Math.min(minRa, raHours);
+                    maxRa = Math.max(maxRa, raHours);
+                    boundaryPoints.add(new BoundaryPoint(raHours, decDegrees));
+                }
+
+                if (boundaryPoints.isEmpty()) {
+                    continue;
+                }
+
+                boolean crossesZero = (maxRa - minRa) > RA_WRAP_THRESHOLD_HOURS;
+                boundaries.add(new ConstellationBoundary(abbr, id, boundaryPoints, crossesZero));
+            }
+
+            if (boundaries.isEmpty()) {
+                Log.w(TAG, "No valid constellation boundaries in " + BOUNDARIES_ASSET);
+                return null;
+            }
+
+            Log.d(TAG, "Loaded " + boundaries.size() + " constellation boundaries");
+            return boundaries;
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to load constellation boundaries from " + BOUNDARIES_ASSET, e);
+            return null;
+        }
+    }
+
+    @Nullable
+    private Map<String, String> getConstellationIdByAbbr() {
+        if (constellationIdByAbbr != null) {
+            return constellationIdByAbbr;
+        }
+        constellationIdByAbbr = loadConstellationIdByAbbr();
+        return constellationIdByAbbr;
+    }
+
+    @Nullable
+    private Map<String, String> loadConstellationIdByAbbr() {
+        try (java.io.InputStream inputStream = assetDataSource.openAsset(CONSTELLATION_NAMES_ASSET)) {
+            String json = readStreamToString(inputStream);
+            JSONObject root = new JSONObject(json);
+            Map<String, String> map = new HashMap<>();
+            JSONArray names = root.names();
+            if (names == null) {
+                return null;
+            }
+            for (int i = 0; i < names.length(); i++) {
+                String abbr = names.optString(i, "").trim();
+                if (abbr.isEmpty()) continue;
+                String fullName = root.optString(abbr, "").trim();
+                if (fullName.isEmpty()) continue;
+                String id = toSnakeCaseId(fullName);
+                if (!id.isEmpty()) {
+                    map.put(abbr.toUpperCase(Locale.ROOT), id);
+                }
+            }
+            return map;
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to load constellation names from " + CONSTELLATION_NAMES_ASSET, e);
+            return null;
+        }
+    }
+
+    @NonNull
+    private String toSnakeCaseId(@NonNull String name) {
+        String normalized = java.text.Normalizer.normalize(name, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        String cleaned = normalized.replaceAll("[^a-zA-Z0-9]+", "_")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("^_+|_+$", "");
+        return cleaned;
+    }
+
+    private static final class ConstellationBoundary {
+        private final String abbr;
+        private final String id;
+        private final List<BoundaryPoint> points;
+        private final boolean crossesZero;
+
+        private ConstellationBoundary(String abbr, String id,
+                                      List<BoundaryPoint> points,
+                                      boolean crossesZero) {
+            this.abbr = abbr;
+            this.id = id;
+            this.points = points;
+            this.crossesZero = crossesZero;
+        }
+    }
+
+    private static final class BoundaryPoint {
+        private final float raHours;
+        private final float decDegrees;
+
+        private BoundaryPoint(float raHours, float decDegrees) {
+            this.raHours = raHours;
+            this.decDegrees = decDegrees;
+        }
+    }
+
     private static class NamedStar {
         private final String displayName;
         private final float ra;
@@ -436,3 +649,5 @@ public class StarRepositoryImpl implements StarRepository {
         }
     }
 }
+
+

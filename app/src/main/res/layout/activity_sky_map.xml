@@ -129,6 +129,19 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:tint="@color/icon_secondary" />
 
+            <!-- Details Button (next to Close) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnInfoPanelDetails"
+                style="@style/Widget.AstroApp.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_extra_small"
+                android:text="@string/star_details"
+                android:textAllCaps="false"
+                app:layout_constraintEnd_toStartOf="@id/btnCloseInfoPanel"
+                app:layout_constraintTop_toTopOf="parent"
+                app:rippleColor="@color/ripple_primary" />
+
             <!-- Object Name -->
             <TextView
                 android:id="@+id/tvInfoPanelName"
@@ -137,7 +150,7 @@
                 android:layout_marginEnd="@dimen/margin_medium"
                 android:textAppearance="@style/TextAppearance.AstroApp.TitleLarge"
                 android:textColor="@color/text_primary"
-                app:layout_constraintEnd_toStartOf="@id/btnCloseInfoPanel"
+                app:layout_constraintEnd_toStartOf="@id/btnInfoPanelDetails"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Polaris" />
@@ -249,19 +262,6 @@
                 </LinearLayout>
 
             </LinearLayout>
-
-            <!-- More Details Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnInfoPanelDetails"
-                style="@style/Widget.AstroApp.Button.Text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:text="@string/star_details"
-                android:textAllCaps="false"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/infoPanelQuickInfo"
-                app:rippleColor="@color/ripple_primary" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -420,23 +420,6 @@
         app:layout_constraintBottom_toTopOf="@id/bottomControls"
         app:layout_constraintEnd_toEndOf="parent"
         app:rippleColor="@color/ripple_primary" />
-
-    <!-- Select FAB (appears when objects are in reticle) -->
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fabSelect"
-        style="@style/Widget.AstroApp.FloatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/margin_medium"
-        android:contentDescription="@string/cd_select_button"
-        android:text="@string/select"
-        android:visibility="gone"
-        app:icon="@android:drawable/ic_menu_view"
-        app:layout_constraintBottom_toTopOf="@id/bottomControls"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:rippleColor="@color/ripple_primary"
-        tools:visibility="visible" />
 
     <!-- GPS Status Indicator -->
     <LinearLayout
@@ -611,3 +594,4 @@
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

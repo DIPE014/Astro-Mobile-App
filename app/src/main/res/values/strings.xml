@@ -180,7 +180,6 @@
     <string name="ar_mode_off">AR mode disabled</string>
     <string name="camera_error">Camera error: %1$s</string>
     <string name="star_type_format">Star - %1$s</string>
-    <string name="star_in_constellation_format">Star in %1$s</string>
     <string name="star_details_coming_soon">Details for %1$s coming soon</string>
     <string name="unknown">Unknown</string>
 
@@ -286,6 +285,7 @@
     <string name="cd_select_button">Select objects in reticle</string>
     <string name="cd_reticle">Selection reticle</string>
     <string name="object_highlighted">%1$s highlighted</string>
+    <string name="star_belongs_constellation">Star in %1$s</string>
 
     <!-- Empty States -->
     <string name="empty_favorites">No favorites yet</string>
@@ -293,3 +293,5 @@
     <string name="empty_search">Start searching</string>
     <string name="empty_search_description">Search for stars, planets, constellations, and more.</string>
 </resources>
+
+
