@@ -287,6 +287,19 @@
     <string name="object_highlighted">%1$s highlighted</string>
     <string name="star_belongs_constellation">Star in %1$s</string>
 
+    <!-- DSO Layer -->
+    <string name="show_dso">Deep Sky</string>
+    <string name="cd_dso_toggle">Toggle deep sky objects</string>
+
+    <!-- Tonight\'s Highlights -->
+    <string name="tonights_sky">Tonight\'s Sky</string>
+    <string name="tonights_planets">Planets</string>
+    <string name="tonights_bright_stars">Bright Stars</string>
+    <string name="tonights_constellations">Constellations</string>
+    <string name="tonights_deep_sky">Deep Sky</string>
+    <string name="tonights_no_objects">No objects visible right now</string>
+    <string name="tonights_altitude">Alt %1$.0f\u00b0</string>
+
     <!-- Empty States -->
     <string name="empty_favorites">No favorites yet</string>
     <string name="empty_favorites_description">Tap the star icon on any celestial object to add it to your favorites.</string>

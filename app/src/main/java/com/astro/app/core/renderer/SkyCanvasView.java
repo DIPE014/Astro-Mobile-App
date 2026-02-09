@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 
 import com.astro.app.data.model.ConstellationData;
 import com.astro.app.data.model.GeocentricCoords;
+import com.astro.app.data.model.MessierObjectData;
 import com.astro.app.data.model.StarData;
 
 import java.util.ArrayList;
@@ -154,6 +155,14 @@ public class SkyCanvasView extends View {
     private boolean useSimpleStarMap = true;
     private boolean searchModeActive = false;
 
+    // DSO (Deep Sky Objects) data
+    private List<MessierObjectData> dsoData = new CopyOnWriteArrayList<>();
+    private boolean showDSOs = false;
+    private Paint dsoPaint;
+    private Paint dsoLabelPaint;
+    private Paint dsoGlowPaint;
+    private final Path dsoPath = new Path();
+
     // Trajectory mode
     private boolean isTrajectoryMode = false;
     private String trajectoryPlanetName = null;
@@ -236,6 +245,17 @@ public class SkyCanvasView extends View {
         reticlePaint.setStyle(Paint.Style.STROKE);
         reticlePaint.setStrokeWidth(3f);
         reticlePaint.setColor(RETICLE_COLOR);
+
+        dsoPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        dsoPaint.setStyle(Paint.Style.STROKE);
+        dsoPaint.setStrokeWidth(2f);
+
+        dsoLabelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        dsoLabelPaint.setTextSize(20f);
+        dsoLabelPaint.setColor(Color.argb(200, 100, 180, 255));
+
+        dsoGlowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        dsoGlowPaint.setStyle(Paint.Style.FILL);
 
         trajectoryLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         trajectoryLinePaint.setStyle(Paint.Style.STROKE);
@@ -839,6 +859,10 @@ public class SkyCanvasView extends View {
                 drawConstellations(canvas, width, height);
             }
             drawSimpleStarMap(canvas, width, height);
+            // Draw DSOs between stars and planets
+            if (showDSOs) {
+                drawDSOs(canvas, width, height);
+            }
             // Draw planets on top of stars
             if (showPlanets) {
                 drawPlanets(canvas, width, height);
@@ -1114,6 +1138,65 @@ public class SkyCanvasView extends View {
      * Draws planets on the sky map.
      * Uses proper spherical (gnomonic) projection for correct rendering near zenith.
      */
+    /**
+     * Draws Deep Sky Objects (Messier catalog) on the sky view.
+     */
+    private void drawDSOs(Canvas canvas, int width, int height) {
+        if (dsoData.isEmpty()) return;
+
+        double lst = calculateLocalSiderealTime();
+        float centerX = width / 2f;
+        float centerY = height / 2f;
+        float pixelsPerDegree = Math.min(width, height) / fieldOfView;
+
+        for (MessierObjectData dso : dsoData) {
+            double[] altAz = raDecToAltAz(dso.getRa(), dso.getDec(), lst);
+            float[] screenPos = projectToScreen(altAz[0], altAz[1],
+                    altitudeOffset, azimuthOffset, centerX, centerY, pixelsPerDegree);
+
+            if (screenPos[2] < 0.5f) continue;
+
+            float x = screenPos[0];
+            float y = screenPos[1];
+            if (x < -50 || x > width + 50 || y < -50 || y > height + 50) continue;
+
+            float drawSize = Math.max(4f, dso.getSize() * 1.5f);
+            int baseColor = nightMode ? Color.argb(180, 200, 80, 80) : dso.getColor();
+            dsoPaint.setColor(baseColor);
+
+            if (dso.isGalaxy()) {
+                // Diamond shape for galaxies
+                dsoPath.reset();
+                dsoPath.moveTo(x, y - drawSize);
+                dsoPath.lineTo(x + drawSize, y);
+                dsoPath.lineTo(x, y + drawSize);
+                dsoPath.lineTo(x - drawSize, y);
+                dsoPath.close();
+                canvas.drawPath(dsoPath, dsoPaint);
+            } else if (dso.isCluster()) {
+                // Small square for clusters
+                canvas.drawRect(x - drawSize, y - drawSize,
+                        x + drawSize, y + drawSize, dsoPaint);
+            } else if (dso.isNebula()) {
+                // Circle with glow for nebulae
+                dsoGlowPaint.setColor(baseColor);
+                dsoGlowPaint.setAlpha(40);
+                canvas.drawCircle(x, y, drawSize * 2f, dsoGlowPaint);
+                canvas.drawCircle(x, y, drawSize, dsoPaint);
+            } else {
+                canvas.drawCircle(x, y, drawSize, dsoPaint);
+            }
+
+            // Label
+            if (nightMode) {
+                dsoLabelPaint.setColor(Color.argb(180, 200, 100, 100));
+            } else {
+                dsoLabelPaint.setColor(Color.argb(200, 100, 180, 255));
+            }
+            canvas.drawText(dso.getName(), x + drawSize + 4, y + 4, dsoLabelPaint);
+        }
+    }
+
     private void drawPlanets(Canvas canvas, int width, int height) {
         if (planetData.isEmpty()) {
             return;
@@ -1837,6 +1920,25 @@ public class SkyCanvasView extends View {
         invalidate();
     }
 
+    public void setDSOData(List<MessierObjectData> data) {
+        this.dsoData.clear();
+        if (data != null) {
+            this.dsoData.addAll(data);
+        }
+        if (showDSOs) {
+            invalidate();
+        }
+    }
+
+    public void setDSOsVisible(boolean visible) {
+        this.showDSOs = visible;
+        invalidate();
+    }
+
+    public boolean isDSOsVisible() {
+        return showDSOs;
+    }
+
     public void setNightMode(boolean enabled) {
         this.nightMode = enabled;
         invalidate();
@@ -2114,11 +2216,37 @@ public class SkyCanvasView extends View {
             }
         }
 
+        // Check DSOs if visible
+        if (showDSOs && !dsoData.isEmpty()) {
+            for (MessierObjectData dso : dsoData) {
+                float ra = dso.getRa();
+                float dec = dso.getDec();
+
+                double[] altAz = raDecToAltAz(ra, dec, lst);
+                float[] screenPos = projectToScreen(altAz[0], altAz[1],
+                        altitudeOffset, azimuthOffset,
+                        centerX, centerY, pixelsPerDegree);
+
+                if (screenPos[2] < 0.5f) continue;
+
+                float x = screenPos[0];
+                float y = screenPos[1];
+                float distFromCenter = (float) Math.sqrt(
+                        Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
+                if (distFromCenter <= reticleRadiusPx) {
+                    objects.add(new SelectableObject(
+                            dso.getId(), dso.getName(), "dso",
+                            dso.getMagnitude(), ra, dec));
+                }
+            }
+        }
+
         // Sort by magnitude (brightest first for stars, planets first overall)
         objects.sort((a, b) -> {
             // Planets come first
             if (!a.type.equals(b.type)) {
-                return a.type.equals("planet") ? -1 : 1;
+                if (a.type.equals("planet")) return -1;
+                if (b.type.equals("planet")) return 1;
             }
             // Then sort by magnitude (lower = brighter = first)
             return Float.compare(a.magnitude, b.magnitude);

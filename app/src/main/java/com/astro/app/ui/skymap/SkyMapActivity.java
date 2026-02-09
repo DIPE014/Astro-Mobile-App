@@ -49,10 +49,14 @@ import com.astro.app.core.renderer.SkyCanvasView;
 import com.astro.app.core.renderer.SkyGLSurfaceView;
 import com.astro.app.core.renderer.SkyRenderer;
 import com.astro.app.core.math.Vector3;
+import com.astro.app.core.highlights.TonightsHighlights;
 import com.astro.app.data.model.ConstellationData;
+import com.astro.app.data.model.MessierObjectData;
 import com.astro.app.data.model.StarData;
 import com.astro.app.data.repository.ConstellationRepository;
+import com.astro.app.data.repository.MessierRepository;
 import com.astro.app.data.repository.StarRepository;
+import com.astro.app.ui.highlights.TonightsHighlightsFragment;
 import com.astro.app.ui.education.EducationDetailActivity;
 import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
@@ -125,6 +129,9 @@ public class SkyMapActivity extends AppCompatActivity {
     @Inject
     Universe universe;
 
+    @Inject
+    MessierRepository messierRepository;
+
     // Camera components
     private CameraManager cameraManager;
     private CameraPermissionHandler permissionHandler;
@@ -188,6 +195,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private boolean isConstellationsEnabled = true;
     private boolean isGridEnabled = false;
     private boolean isPlanetsEnabled = false;
+    private boolean isDSOEnabled = false;
     @Nullable
     private StarData selectedStar;
 
@@ -795,6 +803,18 @@ public class SkyMapActivity extends AppCompatActivity {
             btnPlanets.setOnClickListener(v -> togglePlanets());
         }
 
+        // DSO toggle button
+        View btnDSO = findViewById(R.id.btnDSO);
+        if (btnDSO != null) {
+            btnDSO.setOnClickListener(v -> toggleDSO());
+        }
+
+        // Tonight's Highlights button
+        View btnTonight = findViewById(R.id.btnTonight);
+        if (btnTonight != null) {
+            btnTonight.setOnClickListener(v -> showTonightsHighlights());
+        }
+
         // Initialize toggle button visual states
         initializeToggleButtonStates();
 
@@ -1004,6 +1024,14 @@ public class SkyMapActivity extends AppCompatActivity {
             skyCanvasView.setConstellationData(constellations);
             skyCanvasView.setConstellationsVisible(isConstellationsEnabled);
             Log.d(TAG, "CONSTELLATIONS: Loaded " + constellations.size() + " constellations for canvas");
+        }
+
+        // Load DSO data
+        if (messierRepository != null) {
+            List<MessierObjectData> dsos = messierRepository.getAllObjects();
+            skyCanvasView.setDSOData(dsos);
+            skyCanvasView.setDSOsVisible(isDSOEnabled);
+            Log.d(TAG, "DSO: Loaded " + dsos.size() + " deep sky objects for canvas");
         }
 
         // Set observer location - use current GPS coordinates if available, otherwise default
@@ -1346,6 +1374,11 @@ public class SkyMapActivity extends AppCompatActivity {
         View btnPlanets = findViewById(R.id.btnPlanets);
         ImageView ivPlanets = findViewById(R.id.ivPlanets);
         updateToggleButtonVisual(ivPlanets, btnPlanets, isPlanetsEnabled);
+
+        // DSO toggle
+        View btnDSO = findViewById(R.id.btnDSO);
+        ImageView ivDSO = findViewById(R.id.ivDSO);
+        updateToggleButtonVisual(ivDSO, btnDSO, isDSOEnabled);
     }
 
     /**
@@ -1499,6 +1532,72 @@ public class SkyMapActivity extends AppCompatActivity {
         updateToggleButtonVisual(ivPlanets, btnPlanets, isPlanetsEnabled);
 
         Log.d(TAG, "Planets visibility toggled to: " + isPlanetsEnabled);
+    }
+
+    /**
+     * Toggles visibility of Deep Sky Objects in the sky view.
+     */
+    private void toggleDSO() {
+        isDSOEnabled = !isDSOEnabled;
+
+        if (skyCanvasView != null) {
+            skyCanvasView.setDSOsVisible(isDSOEnabled);
+        }
+
+        View btnDSO = findViewById(R.id.btnDSO);
+        ImageView ivDSO = findViewById(R.id.ivDSO);
+        updateToggleButtonVisual(ivDSO, btnDSO, isDSOEnabled);
+
+        Log.d(TAG, "DSO visibility toggled to: " + isDSOEnabled);
+    }
+
+    /**
+     * Shows the Tonight's Highlights bottom sheet.
+     */
+    private void showTonightsHighlights() {
+        new Thread(() -> {
+            long time = (timeTravelClock != null)
+                    ? timeTravelClock.getCurrentTimeMillis()
+                    : System.currentTimeMillis();
+
+            List<StarData> stars = (starRepository != null)
+                    ? starRepository.getAllStars() : null;
+            List<ConstellationData> constellationList = (constellationRepository != null)
+                    ? constellationRepository.getAllConstellations() : null;
+            List<MessierObjectData> dsos = (messierRepository != null)
+                    ? messierRepository.getAllObjects() : null;
+
+            List<TonightsHighlights.Highlight> highlights =
+                    TonightsHighlights.compute(universe, stars, constellationList, dsos,
+                            currentLatitude, currentLongitude, time);
+
+            runOnUiThread(() -> {
+                TonightsHighlightsFragment fragment = TonightsHighlightsFragment.newInstance();
+                fragment.setHighlights(highlights);
+                fragment.setOnHighlightSelectedListener(highlight -> {
+                    // Navigate to the selected object using search target mechanism
+                    searchTargetName = highlight.name;
+                    searchTargetRa = highlight.ra;
+                    searchTargetDec = highlight.dec;
+                    searchTargetBelowHorizonNotified = false;
+                    searchTargetInViewNotified = false;
+                    setSearchModeActive(true);
+
+                    if (searchArrowView != null) {
+                        searchArrowView.setTarget(searchTargetRa, searchTargetDec,
+                                searchTargetName, null);
+                        searchArrowView.setVisibility(View.VISIBLE);
+                        searchArrowView.setOnClickListener(v -> clearSearchTarget());
+                        updateSearchArrow();
+                    }
+
+                    Toast.makeText(this,
+                            getString(R.string.search_navigating_to, searchTargetName),
+                            Toast.LENGTH_SHORT).show();
+                });
+                fragment.show(getSupportFragmentManager(), "tonights_highlights");
+            });
+        }).start();
     }
 
     /**

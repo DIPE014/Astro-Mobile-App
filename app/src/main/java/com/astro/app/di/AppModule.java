@@ -15,6 +15,8 @@ import com.astro.app.data.parser.AssetDataSource;
 import com.astro.app.data.parser.ProtobufParser;
 import com.astro.app.data.repository.ConstellationRepository;
 import com.astro.app.data.repository.ConstellationRepositoryImpl;
+import com.astro.app.data.repository.MessierRepository;
+import com.astro.app.data.repository.MessierRepositoryImpl;
 import com.astro.app.data.repository.StarRepository;
 import com.astro.app.data.repository.StarRepositoryImpl;
 
@@ -163,6 +165,12 @@ public class AppModule {
      *
      * @return the Universe instance
      */
+    @Provides
+    @Singleton
+    MessierRepository provideMessierRepository(ProtobufParser protobufParser) {
+        return new MessierRepositoryImpl(protobufParser);
+    }
+
     @Provides
     @Singleton
     Universe provideUniverse() {
