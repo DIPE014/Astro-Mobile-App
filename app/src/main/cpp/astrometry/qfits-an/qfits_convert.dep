@@ -1,0 +1,5 @@
+qfits_convert.o: qfits_convert.c ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_config.h ../include/astrometry/an-endian.h \
+ ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_byteswap.h \
+ ../include/astrometry/qfits_error.h

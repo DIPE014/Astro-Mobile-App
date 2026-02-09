@@ -1,0 +1,3 @@
+dsigma.o: dsigma.c ../include/astrometry/dimage.h \
+ ../include/astrometry/simplexy-common.h ../include/astrometry/log.h \
+ ../include/astrometry/an-bool.h dsigma.inc

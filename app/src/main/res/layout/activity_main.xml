@@ -95,7 +95,7 @@
         android:layout_height="@dimen/button_height_large"
         android:layout_marginStart="@dimen/margin_huge"
         android:layout_marginEnd="@dimen/margin_huge"
-        android:layout_marginBottom="@dimen/margin_massive"
+        android:layout_marginBottom="@dimen/margin_medium"
         android:text="@string/nav_sky_map"
         android:textAllCaps="false"
         android:textSize="@dimen/text_size_large"
@@ -108,6 +108,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_bias="0.85"
         app:rippleColor="@color/ripple" />
 
     <!-- Decorative Star Elements - Top Left -->

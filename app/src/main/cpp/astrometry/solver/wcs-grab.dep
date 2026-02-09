@@ -1,0 +1,11 @@
+wcs-grab.o: wcs-grab.c ../include/astrometry/log.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/errors.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/sip.h ../include/astrometry/sip_qfits.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/sip.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_table.h ../util/boilerplate.h \
+ ../include/astrometry/anqfits.h ../include/astrometry/qfits_keywords.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h

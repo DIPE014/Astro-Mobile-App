@@ -1,0 +1,3 @@
+dsmooth.o: dsmooth.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/simplexy-common.h dsmooth.inc

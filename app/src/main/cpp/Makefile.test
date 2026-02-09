@@ -1,0 +1,87 @@
+# Makefile for native testing (without JNI/Android)
+
+CC = gcc
+CFLAGS = -O3 -Wall -Wno-unused-parameter -Wno-pointer-sign -Wno-format \
+         -DHAVE_NETPBM=0 -DHAVE_CFITSIO=0 -DSIMPLEXY_REENTRANT
+
+INCLUDES = -I. \
+           -Iastrometry/include \
+           -Iastrometry/include/astrometry \
+           -Iastrometry/gsl-an \
+           -Iastrometry/util \
+           -Iastrometry/solver \
+           -Iastrometry/libkd \
+           -Iastrometry/qfits-an
+
+# GSL sources (excluding *_source.c templates and included files)
+GSL_SOURCES = $(filter-out %_source.c, \
+              $(filter-out %/givens.c %/apply_givens.c %/svdstep.c, \
+              $(wildcard astrometry/gsl-an/sys/*.c) \
+              $(wildcard astrometry/gsl-an/err/*.c) \
+              $(wildcard astrometry/gsl-an/vector/*.c) \
+              $(wildcard astrometry/gsl-an/matrix/*.c) \
+              $(wildcard astrometry/gsl-an/blas/*.c) \
+              $(wildcard astrometry/gsl-an/cblas/*.c) \
+              $(wildcard astrometry/gsl-an/linalg/*.c) \
+              $(wildcard astrometry/gsl-an/permutation/*.c) \
+              $(wildcard astrometry/gsl-an/block/*.c)))
+
+# QFITS sources
+QFITS_SOURCES = astrometry/qfits-an/anqfits.c \
+                astrometry/qfits-an/qfits_card.c \
+                astrometry/qfits-an/qfits_convert.c \
+                astrometry/qfits-an/qfits_error.c \
+                astrometry/qfits-an/qfits_float.c \
+                astrometry/qfits-an/qfits_header.c \
+                astrometry/qfits-an/qfits_image.c \
+                astrometry/qfits-an/qfits_memory.c \
+                astrometry/qfits-an/qfits_rw.c \
+                astrometry/qfits-an/qfits_table.c \
+                astrometry/qfits-an/qfits_time.c \
+                astrometry/qfits-an/qfits_tools.c \
+                astrometry/qfits-an/qfits_byteswap.c \
+                astrometry/qfits-an/md5.c
+
+# UTIL sources (star detection)
+UTIL_SOURCES = astrometry/util/simplexy.c \
+               astrometry/util/dallpeaks.c \
+               astrometry/util/dcen3x3.c \
+               astrometry/util/dfind.c \
+               astrometry/util/dmedsmooth.c \
+               astrometry/util/dpeaks.c \
+               astrometry/util/dselip.c \
+               astrometry/util/dsigma.c \
+               astrometry/util/dsmooth.c \
+               astrometry/util/ctmf.c \
+               astrometry/util/image2xy.c \
+               astrometry/util/resample.c \
+               astrometry/util/dobjects.c \
+               astrometry/util/starutil.c \
+               astrometry/util/mathutil.c \
+               astrometry/util/bl.c \
+               astrometry/util/bl-sort.c \
+               astrometry/util/bt.c \
+               astrometry/util/healpix.c \
+               astrometry/util/healpix-utils.c \
+               astrometry/util/permutedsort.c \
+               astrometry/util/ioutils.c \
+               astrometry/util/fileutils.c \
+               astrometry/util/errors.c \
+               astrometry/util/log.c \
+               astrometry/util/datalog.c \
+               astrometry/util/tic.c \
+               astrometry/util/an-endian.c \
+               astrometry/util/fitsioutils.c \
+               astrometry/util/fitsbin.c \
+               astrometry/util/fitsfile.c \
+               astrometry/util/fitstable.c
+
+ALL_SOURCES = $(GSL_SOURCES) $(QFITS_SOURCES) $(UTIL_SOURCES)
+
+test_native: test_native.c $(ALL_SOURCES)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^ -lm
+
+clean:
+	rm -f test_native
+
+.PHONY: clean

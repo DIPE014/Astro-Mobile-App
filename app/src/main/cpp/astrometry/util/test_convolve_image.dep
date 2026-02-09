@@ -1,0 +1,5 @@
+test_convolve_image.o: test_convolve_image.c cutest.h \
+ ../include/astrometry/convolve-image.h \
+ ../include/astrometry/fitsioutils.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_table.h \
+ ../include/astrometry/keywords.h ../include/astrometry/an-bool.h

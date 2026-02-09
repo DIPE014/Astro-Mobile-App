@@ -1,0 +1,4 @@
+test_sip-utils.o: test_sip-utils.c cutest.h ../include/astrometry/sip.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/sip.h ../include/astrometry/sip-utils.h

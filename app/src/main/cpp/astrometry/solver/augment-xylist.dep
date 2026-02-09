@@ -1,0 +1,27 @@
+augment-xylist.o: augment-xylist.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/fileutils.h ../include/astrometry/bl.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/solver.h \
+ ../include/astrometry/starutil.h ../include/astrometry/starxy.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/matchobj.h \
+ ../include/astrometry/sip.h ../include/astrometry/index.h \
+ ../include/astrometry/quadfile.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/fitsbin.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/qfits_table.h \
+ ../include/astrometry/qfits_keywords.h ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_image.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_time.h ../include/astrometry/starkd.h \
+ ../include/astrometry/kdtree_fits_io.h ../include/astrometry/fitstable.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/codekd.h \
+ ../include/astrometry/verify.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/solverutils.h ../include/astrometry/sip_qfits.h \
+ ../include/astrometry/tabsort.h cut-table.h \
+ ../include/astrometry/errors.h ../include/astrometry/fits-guess-scale.h \
+ ../include/astrometry/image2xy-files.h ../include/astrometry/simplexy.h \
+ ../include/astrometry/resort-xylist.h ../include/astrometry/an-opts.h \
+ ../include/astrometry/augment-xylist.h ../include/astrometry/an-opts.h \
+ ../include/astrometry/log.h ../include/astrometry/anqfits.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h

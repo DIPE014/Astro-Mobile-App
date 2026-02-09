@@ -1,0 +1,3 @@
+qfits_card.o: qfits_card.c ../include/astrometry/qfits_std.h \
+ ../include/astrometry/qfits_card.h ../include/astrometry/qfits_tools.h \
+ ../include/astrometry/qfits_std.h ../include/astrometry/qfits_error.h

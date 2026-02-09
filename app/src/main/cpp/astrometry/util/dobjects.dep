@@ -1,0 +1,7 @@
+dobjects.o: dobjects.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/dimage.h ../include/astrometry/simplexy-common.h \
+ ../include/astrometry/log.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph

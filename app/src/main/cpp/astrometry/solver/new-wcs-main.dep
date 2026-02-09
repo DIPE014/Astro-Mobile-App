@@ -1,0 +1,7 @@
+new-wcs-main.o: new-wcs-main.c ../include/astrometry/new-wcs.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/fitsioutils.h \
+ ../include/astrometry/qfits_header.h ../include/astrometry/qfits_image.h \
+ ../include/astrometry/qfits_table.h ../include/astrometry/keywords.h \
+ ../include/astrometry/errors.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/log.h

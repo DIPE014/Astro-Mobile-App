@@ -1,0 +1,3 @@
+test_simplexy.o: test_simplexy.c cutest.h ../include/astrometry/dimage.h \
+ ../include/astrometry/simplexy.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/log.h

@@ -1,0 +1,2 @@
+qfits_float.o: qfits_float.c ../include/astrometry/qfits_config.h \
+ ../include/astrometry/an-endian.h ../include/astrometry/qfits_float.h

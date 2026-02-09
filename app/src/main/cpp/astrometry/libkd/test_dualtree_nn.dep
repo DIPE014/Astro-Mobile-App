@@ -1,0 +1,6 @@
+test_dualtree_nn.o: test_dualtree_nn.c cutest.h \
+ ../include/astrometry/dualtree_nearestneighbour.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/tic.h

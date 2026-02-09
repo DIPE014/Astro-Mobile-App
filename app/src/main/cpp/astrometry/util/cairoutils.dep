@@ -1,0 +1,6 @@
+cairoutils.o: cairoutils.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/cairoutils.h ../include/astrometry/errors.h
