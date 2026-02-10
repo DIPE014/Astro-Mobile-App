@@ -447,6 +447,18 @@ When the user drags, the view enters **manual mode**:
 - Drag updates `manualAzimuth` and `manualAltitude`
 - Double-tap exits manual mode and returns to sensor tracking
 
+### Manual Scroll Mode
+
+Optional setting for smoother drag-to-pan experience:
+- **Enable in Settings** → activates `GestureDetector.onScroll()` handler
+- **Smooth scrolling** → converts screen drag distance to azimuth/altitude deltas
+- **Tap suppression** → 300ms cooldown after scroll ends prevents accidental star info popups
+- **Auto-enter manual mode** → first scroll gesture activates manual pan automatically
+- **Scroll detection** → tracks `isCurrentlyScrolling` state from ACTION_DOWN to ACTION_UP/CANCEL
+- Formula: `azimuthDelta = distanceX / (screenSize / FOV)` (same for altitude)
+
+This reduces UI clutter when exploring the sky map by hand, avoiding unintended taps on stars during pan gestures.
+
 ### Smart Selection
 
 Objects are detected using `getObjectsInReticle()`:

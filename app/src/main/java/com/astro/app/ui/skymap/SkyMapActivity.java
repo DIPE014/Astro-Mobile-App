@@ -486,6 +486,14 @@ public class SkyMapActivity extends AppCompatActivity {
             }
         });
 
+        // Observe manual scroll mode setting
+        settingsViewModel.getEnableManualScroll().observe(this, enabled -> {
+            if (enabled != null && skyCanvasView != null) {
+                skyCanvasView.setManualScrollEnabled(enabled);
+                Log.d(TAG, "Manual scroll mode: " + enabled);
+            }
+        });
+
         // Observe ViewModel night mode state
         viewModel.getNightMode().observe(this, this::onNightModeChanged);
 

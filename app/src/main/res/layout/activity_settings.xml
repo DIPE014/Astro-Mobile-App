@@ -304,6 +304,52 @@
 
                     </LinearLayout>
 
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/divider_height"
+                        android:layout_marginStart="@dimen/divider_inset_start"
+                        android:background="@color/divider" />
+
+                    <!-- Manual Scroll Mode Switch -->
+                    <LinearLayout
+                        android:id="@+id/rowManualScroll"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/list_item_height_two_line"
+                        android:background="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="@dimen/padding_medium">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_manual_scroll"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_manual_scroll_summary"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+                                android:textColor="@color/text_secondary" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchManualScroll"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checked="false" />
+
+                    </LinearLayout>
+
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>

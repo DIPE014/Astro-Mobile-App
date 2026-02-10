@@ -87,6 +87,10 @@ public class SkyCanvasView extends View {
     private boolean isManualMode = false;
     private float manualAzimuth = 0f;
     private float manualAltitude = 45f;
+    private boolean manualScrollEnabled = false;  // Setting: allow drag-to-scroll
+    private boolean isCurrentlyScrolling = false; // Active scroll gesture
+    private long lastScrollEndTimeMs = 0L;
+    private static final long SCROLL_TAP_COOLDOWN_MS = 300L; // Suppress taps after scroll
 
     // Gesture detectors
     private GestureDetector gestureDetector;
@@ -315,7 +319,37 @@ public class SkyCanvasView extends View {
         gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                // Disable swipe navigation; keep tilt-based navigation
+                if (!manualScrollEnabled) return false;
+
+                // Enter manual mode on first scroll
+                if (!isManualMode) {
+                    enterManualMode();
+                }
+
+                isCurrentlyScrolling = true;
+
+                // Convert screen drag to sky rotation (smooth, intuitive)
+                float azimuthDelta = distanceX / (Math.min(getWidth(), getHeight()) / fieldOfView);
+                float altitudeDelta = -distanceY / (Math.min(getWidth(), getHeight()) / fieldOfView);
+
+                manualAzimuth += azimuthDelta;
+                manualAltitude += altitudeDelta;
+
+                // Clamp altitude to valid range
+                manualAltitude = Math.max(-90f, Math.min(90f, manualAltitude));
+
+                // Normalize azimuth to 0-360
+                manualAzimuth = ((manualAzimuth % 360) + 360) % 360;
+
+                invalidate();
+                return true;
+            }
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                // Mark scroll as ended when fling starts
+                isCurrentlyScrolling = false;
+                lastScrollEndTimeMs = SystemClock.uptimeMillis();
                 return false;
             }
 
@@ -1949,6 +1983,17 @@ public class SkyCanvasView extends View {
         updateStarPositions();
     }
 
+    /**
+     * Enables or disables manual scroll mode.
+     * When enabled, dragging the screen pans the sky view instead of requiring pinch first.
+     *
+     * @param enabled true to allow drag-to-scroll, false to require pinch-zoom for manual mode
+     */
+    public void setManualScrollEnabled(boolean enabled) {
+        this.manualScrollEnabled = enabled;
+        Log.d(TAG, "Manual scroll mode " + (enabled ? "enabled" : "disabled"));
+    }
+
     public void setStars(List<float[]> newStars) {
         stars.clear();
         stars.addAll(newStars);
@@ -2406,10 +2451,22 @@ public class SkyCanvasView extends View {
             }
         }
 
+        // Detect scroll end
+        if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+            if (isCurrentlyScrolling) {
+                isCurrentlyScrolling = false;
+                lastScrollEndTimeMs = SystemClock.uptimeMillis();
+            }
+        }
+
         // Original touch handling
         Log.d("TOUCH", "Touch at " + event.getX() + ", " + event.getY() + " action=" + event.getAction());
 
         if (event.getAction() == MotionEvent.ACTION_UP && !isPinching) {
+            // Suppress taps immediately after scrolling to avoid accidental star selection
+            if (SystemClock.uptimeMillis() - lastScrollEndTimeMs <= SCROLL_TAP_COOLDOWN_MS) {
+                return true;
+            }
             if (suppressNextTapAfterPinch) {
                 suppressNextTapAfterPinch = false;
                 return true;

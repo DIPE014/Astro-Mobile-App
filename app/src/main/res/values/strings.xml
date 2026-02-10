@@ -138,6 +138,8 @@
     <string name="settings_star_labels_summary">Show names on bright stars</string>
     <string name="settings_magnitude_limit">Magnitude Limit</string>
     <string name="settings_magnitude_limit_summary">Show stars up to magnitude %1$s</string>
+    <string name="settings_manual_scroll">Manual Scroll Mode</string>
+    <string name="settings_manual_scroll_summary">Drag to pan the sky map smoothly</string>
     <string name="settings_location_auto">Auto-detect Location</string>
     <string name="settings_location_auto_summary">Use GPS to determine your location</string>
     <string name="settings_location_manual">Set Location Manually</string>

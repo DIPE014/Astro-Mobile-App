@@ -30,6 +30,7 @@ Point your camera at the sky to see celestial objects rendered in augmented real
 
 ### Gestures & Interaction
 - **Pinch-to-zoom** - Adjust field of view (20° to 120°)
+- **Manual scroll mode** - Enable in Settings to drag-and-pan smoothly with reduced tap sensitivity (prevents accidental star info popups)
 - **Manual pan** - Drag to override sensor tracking, double-tap to reset
 - **Long-press planet** - View 60-day orbital trajectory with time labels
 - **Smart selection** - Reticle-based selection with chips (2-4 objects) or bottom sheet (5+)
@@ -83,8 +84,9 @@ git clone https://github.com/DIPE014/Astro-Mobile-App.git
 4. **Search** - Tap the search icon to find specific objects
 5. **Toggle Layers** - Use the bottom bar to show/hide constellations, planets, grid, and deep sky objects
 6. **Zoom** - Pinch to zoom in or out on the sky
-7. **Trajectories** - Long-press a planet to see its path over the next 60 days
-8. **Tonight's Sky** - Tap the calendar icon to see what's visible tonight
+7. **Manual Scroll** - Enable in Settings to drag-and-pan the sky map smoothly with your finger
+8. **Trajectories** - Long-press a planet to see its path over the next 60 days
+9. **Tonight's Sky** - Tap the calendar icon to see what's visible tonight
 
 ## Tech Stack
 
