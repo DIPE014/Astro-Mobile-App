@@ -2,10 +2,10 @@
   "solar_system": [
     {
       "id": "sun",
-      "displayName": "Sun",
-      "constellation": "N/A (Solar System)",
-      "funFact": "The Sun's core is a staggering 15 million degrees Celsius, where nuclear fusion turns 600 million tons of hydrogen into helium every second. It is so massive that it accounts for 99.8% of the total mass of the entire solar system. Light takes about 8 minutes and 20 seconds to travel from the Sun to Earth, meaning if the Sun suddenlight-years went out, we wouldn't know for nearlight-years nine minutes.",
-      "history": "Worshipped as a deity by nearlight-years every ancient civilization, the Sun was known as Ra in Egypt, Helios in Greece, and Sol in Rome. It was onlight-years in the 16th century, thanks to Nicolaus Copernicus, that humanity began to accept the heliocentric model, realizing that the Earth revolves around the Sun rather than the other way around.",
+      "displayName": "The Sun",
+      "constellation": "N/A (Our Star)",
+      "funFact": "The Sun's core is a staggering 15 million degrees Celsius, where nuclear fusion turns 600 million tons of hydrogen into helium every second. It is so massive that it accounts for 99.8% of the total mass of the entire solar system. Light takes about 8 minutes and 20 seconds to travel from the Sun to Earth, meaning if the Sun suddenly went out, we wouldn't know for nearly nine minutes.",
+      "history": "Worshipped as a deity by nearly every ancient civilization, the Sun was known as Ra in Egypt, Helios in Greece, and Sol in Rome. It was only in the 16th century, thanks to Nicolaus Copernicus, that humanity began to accept the heliocentric model, realizing that the Earth revolves around the Sun rather than the other way around.",
       "ra": 314.586838,
       "dec": -17.158251,
       "raDecEpoch": "equator/equinox of date",
@@ -19,29 +19,11 @@
       "luminosity": "3.828 \u00d7 10^26 W (1 L\u2609)"
     },
     {
-      "id": "moon",
-      "displayName": "Moon",
-      "constellation": "N/A (Earth's Satellite)",
-      "funFact": "The Moon is moving away from Earth by about 3.8 cm each year. Its gravity raises tides and gradually slows Earth's rotation by about 1.7 milliseconds per century. The same side always faces Earth because it is tidally locked.",
-      "history": "Revered in myth and religion worldwide, the Moon shaped early calendars and navigation. Galileo's 1609 telescope observations revealed mountains and craters, overturning the idea of perfect celestial spheres.",
-      "ra": 122.941467,
-      "dec": 23.282837,
-      "raDecEpoch": "equator/equinox of date",
-      "raDecNote": "Geocentric apparent equatorial coordinates at 2026-02-01T00:00:00Z. Recompute for other datetimes/observers (planets move).",
-      "distance": "384,400 km (average)",
-      "apparent_magnitude": -12.74,
-      "absolute_magnitude": 0.23,
-      "temperature": "-173°C to 127°C (surface range)",
-      "radius": "1,737.4 km",
-      "mass": "7.342 × 10^22 kg",
-      "luminosity": "0 (reflects sunlight)"
-    },
-    {
       "id": "mercury",
       "displayName": "Mercury",
       "constellation": "N/A (Solar System)",
-      "funFact": "Despite being the closest planet to the Sun, Mercury is not the hottest; it lacks an atmosphere to trap heat, causing its temperature to swing wildlight-years. It is also shrinking\u2014as its iron core cools, it contracts, causing the surface to wrinkle with giant cliffs known as lobate scarps.",
-      "history": "Named after the swift Roman messenger god because of its rapid 88-day orbit. Ancient Sumerians recorded it as earlight-years as 3,000 BC, and it was often called 'Hermaon' by the Greeks when seen in the evening.",
+      "funFact": "Despite being the closest planet to the Sun, Mercury is not the hottest; it lacks an atmosphere to trap heat, causing its temperature to swing wildly. It is also shrinking\u2014as its iron core cools, it contracts, causing the surface to wrinkle with giant cliffs known as lobate scarps.",
+      "history": "Named after the swift Roman messenger god because of its rapid 88-day orbit. Ancient Sumerians recorded it as early as 3,000 BC, and it was often called 'Hermaon' by the Greeks when seen in the evening.",
       "ra": 322.50678,
       "dec": -16.765766,
       "raDecEpoch": "equator/equinox of date",
@@ -58,8 +40,8 @@
       "id": "venus",
       "displayName": "Venus",
       "constellation": "N/A (Solar System)",
-      "funFact": "Venus is often called Earth\u2019s 'Evil Twin' due to its similar size but runaway greenhouse effect. Its atmosphere is so thick and acidic that it would crush a human instantlight-years, and it is hot enough to melt lead. It also rotates backwards on its axis compared to most other planets.",
-      "history": "Named after the Roman goddess of love and beauty, Venus is the onlight-years planet named after a female figure. Historicallight-years, the Maya tracked its movements with extreme precision, basing their entire calendar system on its 584-day cycle.",
+      "funFact": "Venus is often called Earth\u2019s 'Evil Twin' due to its similar size but runaway greenhouse effect. Its atmosphere is so thick and acidic that it would crush a human instantly, and it is hot enough to melt lead. It also rotates backwards on its axis compared to most other planets.",
+      "history": "Named after the Roman goddess of love and beauty, Venus is the only planet named after a female figure. Historically, the Maya tracked its movements with extreme precision, basing their entire calendar system on its 584-day cycle.",
       "ra": 298.572477,
       "dec": -22.299428,
       "raDecEpoch": "equator/equinox of date",
@@ -76,7 +58,7 @@
       "id": "mars",
       "displayName": "Mars",
       "constellation": "N/A (Solar System)",
-      "funFact": "Mars is home to Olight-yearsmpus Mons, the largest volcano in the solar system, which stands three times higher than Mount Everest. It also has Valles Marineris, a canyon system that would stretch across the entire United States.",
+      "funFact": "Mars is home to Olympus Mons, the largest volcano in the solar system, which stands three times higher than Mount Everest. It also has Valles Marineris, a canyon system that would stretch across the entire United States.",
       "history": "Known as the 'Red Planet' due to iron oxide on its surface, it was named after the Roman god of war. Its moons, Phobos and Deimos, are named after the Greek personifications of fear and panic.",
       "ra": 321.557687,
       "dec": -15.625971,
@@ -112,7 +94,7 @@
       "id": "saturn",
       "displayName": "Saturn",
       "constellation": "N/A (Solar System)",
-      "funFact": "Saturn\u2019s rings are made of billions of individual chunks of ice and rock. Despite its size, Saturn is the least dense planet in our solar system; if you had a bathtub big enough, Saturn would actuallight-years float in water.",
+      "funFact": "Saturn\u2019s rings are made of billions of individual chunks of ice and rock. Despite its size, Saturn is the least dense planet in our solar system; if you had a bathtub big enough, Saturn would actually float in water.",
       "history": "Named after the Roman god of agriculture, Saturn was the most distant planet known to ancient astronomers. Galileo first saw the rings in 1610, but he thought they were two smaller planets stuck to the sides.",
       "ra": 0.443247,
       "dec": -1.615443,
@@ -130,8 +112,8 @@
       "id": "uranus",
       "displayName": "Uranus",
       "constellation": "N/A (Solar System)",
-      "funFact": "Uranus is an 'Ice Giant' and is unique because it rotates on its side. This means for part of its 84-year orbit, its north pole points directlight-years at the Sun, leading to 42 years of continuous sunlight followed by 42 years of darkness.",
-      "history": "Discovered by William Herschel in 1781, it was the first planet discovered using a telescope. Herschel originallight-years wanted to name it 'Georgium Sidus' after King George III.",
+      "funFact": "Uranus is an 'Ice Giant' and is unique because it rotates on its side. This means for part of its 84-year orbit, its north pole points directly at the Sun, leading to 42 years of continuous sunlight followed by 42 years of darkness.",
+      "history": "Discovered by William Herschel in 1781, it was the first planet discovered using a telescope. Herschel originally wanted to name it 'Georgium Sidus' after King George III.",
       "ra": 55.138872,
       "dec": 19.42971,
       "raDecEpoch": "equator/equinox of date",
@@ -149,7 +131,7 @@
       "displayName": "Neptune",
       "constellation": "N/A (Solar System)",
       "funFact": "Neptune is the windiest world in our solar system, with winds reaching speeds of 2,100 km/h. It has a deep blue color caused by methane in its atmosphere. Its moon Triton orbits in the opposite direction of the planet's rotation.",
-      "history": "Neptune was the first planet located through mathematical predictions rather than observation. After astronomers noticed Uranus's orbit was irregular, they used math to find Neptune exactlight-years where predicted in 1846.",
+      "history": "Neptune was the first planet located through mathematical predictions rather than observation. After astronomers noticed Uranus's orbit was irregular, they used math to find Neptune exactly where predicted in 1846.",
       "ra": 1.432446,
       "dec": -0.25845,
       "raDecEpoch": "equator/equinox of date",
@@ -161,24 +143,6 @@
       "radius": "24,622 km (3.9 R\u2295)",
       "mass": "1.024 \u00d7 10^26 kg (17 M\u2295)",
       "luminosity": "N/A (Reflective)"
-    },
-    {
-      "id": "pluto",
-      "displayName": "Pluto",
-      "constellation": "N/A (Solar System)",
-      "funFact": "Pluto and its largest moon, Charon, form a binary system where both bodies orbit a point outside Pluto. Pluto also has a heart-shaped region called Tombaugh Regio.",
-      "history": "Discovered in 1930 by Clyde Tombaugh. It was classified as the ninth planet until 2006, when it was reclassified as a dwarf planet by the IAU.",
-      "ra": 0.0,
-      "dec": 0.0,
-      "raDecEpoch": "equator/equinox of date",
-      "raDecNote": "Placeholder coordinates. Replace with geocentric apparent equatorial coordinates for the observation date (Pluto moves).",
-      "distance": "5.9 billion km (Avg)",
-      "apparent_magnitude": 14.0,
-      "absolute_magnitude": -0.7,
-      "temperature": "-229\u00b0C (avg)",
-      "radius": "1,188 km (0.186 R\u2295)",
-      "mass": "1.309 \u00d7 10^22 kg (0.00218 M\u2295)",
-      "luminosity": "N/A (Reflective)"
     }
   ],
   "brightest_stars": [
@@ -186,12 +150,12 @@
       "id": "sirius",
       "displayName": "Sirius",
       "constellation": "Canis Major",
-      "funFact": "Sirius is the brightest star in our night sky. It's actuallight-years a binary system with a bright star (Sirius A) and a tiny white dwarf (Sirius B).",
+      "funFact": "Sirius is the brightest star in our night sky. It's actually a binary system with a bright star (Sirius A) and a tiny white dwarf (Sirius B).",
       "history": "Known as the 'Dog Star,' it was the most important star to Ancient Egyptians as its dawn rising heralded the Nile's flooding.",
       "ra": 101.28722,
       "dec": -16.71612,
       "raDecEpoch": "J2000.0",
-      "distance": "8.6 light-years",
+      "distance": "8.6 ly",
       "apparent_magnitude": -1.46,
       "absolute_magnitude": 1.42,
       "temperature": "9,667\u00b0C",
@@ -204,11 +168,11 @@
       "displayName": "Canopus",
       "constellation": "Carina",
       "funFact": "Canopus is the second brightest star in the sky and was once used as a primary guide star for NASA spacecraft navigation.",
-      "history": "Named after the legendary pilot of King Menelaus's fleet in the Trojan War. Essential for Polight-yearsnesian voyagers.",
+      "history": "Named after the legendary pilot of King Menelaus's fleet in the Trojan War. Essential for Polynesian voyagers.",
       "ra": 95.98792,
       "dec": -52.69566,
       "raDecEpoch": "J2000.0",
-      "distance": "310 light-years",
+      "distance": "310 ly",
       "apparent_magnitude": -0.74,
       "absolute_magnitude": -5.53,
       "temperature": "7,077\u00b0C",
@@ -225,7 +189,7 @@
       "ra": 219.91147,
       "dec": -60.83398,
       "raDecEpoch": "J2000.0",
-      "distance": "4.37 light-years",
+      "distance": "4.37 ly",
       "apparent_magnitude": -0.27,
       "absolute_magnitude": 4.38,
       "temperature": "5,517\u00b0C",
@@ -237,12 +201,12 @@
       "id": "arcturus",
       "displayName": "Arcturus",
       "constellation": "Bo\u00f6tes",
-      "funFact": "Arcturus is a red giant moving extremelight-years fast. Light from it was used to open the 1933 Chicago World's Fair.",
+      "funFact": "Arcturus is a red giant moving extremely fast. Light from it was used to open the 1933 Chicago World's Fair.",
       "history": "Name means 'Guardian of the Bear' because it follows Ursa Major. Known as H\u014dk\u016ble\u02bba in Hawaii, the star of gladness.",
       "ra": 213.91545,
       "dec": 19.18241,
       "raDecEpoch": "J2000.0",
-      "distance": "37 light-years",
+      "distance": "37 ly",
       "apparent_magnitude": -0.05,
       "absolute_magnitude": -0.31,
       "temperature": "4,015\u00b0C",
@@ -253,13 +217,13 @@
     {
       "id": "vega",
       "displayName": "Vega",
-      "constellation": "light-yearsra",
+      "constellation": "Lyra",
       "funFact": "Vega was the first star ever to be photographed (1850). It spins so fast its equator bulges, making it look like an egg.",
       "history": "Served as the North Pole star in 12,000 BC and will do so again in 13,727 AD. Central to the Japanese Tanabata festival.",
       "ra": 279.2346,
       "dec": 38.78369,
       "raDecEpoch": "J2000.0",
-      "distance": "25 light-years",
+      "distance": "25 ly",
       "apparent_magnitude": 0.03,
       "absolute_magnitude": 0.58,
       "temperature": "9,330\u00b0C",
@@ -276,7 +240,7 @@
       "ra": 79.17225,
       "dec": 45.99799,
       "raDecEpoch": "J2000.0",
-      "distance": "43 light-years",
+      "distance": "43 ly",
       "apparent_magnitude": 0.08,
       "absolute_magnitude": -0.48,
       "temperature": "4,667\u00b0C",
@@ -293,7 +257,7 @@
       "ra": 78.63447,
       "dec": -8.20164,
       "raDecEpoch": "J2000.0",
-      "distance": "860 light-years",
+      "distance": "860 ly",
       "apparent_magnitude": 0.13,
       "absolute_magnitude": -7.84,
       "temperature": "11,827\u00b0C",
@@ -310,7 +274,7 @@
       "ra": 114.8255,
       "dec": 5.22499,
       "raDecEpoch": "J2000.0",
-      "distance": "11.4 light-years",
+      "distance": "11.4 ly",
       "apparent_magnitude": 0.34,
       "absolute_magnitude": 2.68,
       "temperature": "6,260\u00b0C",
@@ -323,11 +287,11 @@
       "displayName": "Betelgeuse",
       "constellation": "Orion",
       "funFact": "A massive red supergiant nearing the end of its life. If it replaced the Sun, its surface would extend past Mars.",
-      "history": "Name derived from Arabic 'Yad al-Jauza' (Hand of the Giant). It significantlight-years dimmed in 2019, causing supernova rumors.",
+      "history": "Name derived from Arabic 'Yad al-Jauza' (Hand of the Giant). It significantly dimmed in 2019, causing supernova rumors.",
       "ra": 88.79293,
       "dec": 7.40706,
       "raDecEpoch": "J2000.0",
-      "distance": "640 light-years",
+      "distance": "640 ly",
       "apparent_magnitude": 0.5,
       "absolute_magnitude": -5.85,
       "temperature": "3,320\u00b0C",
@@ -344,7 +308,7 @@
       "ra": 24.42834,
       "dec": -57.23676,
       "raDecEpoch": "J2000.0",
-      "distance": "139 light-years",
+      "distance": "139 ly",
       "apparent_magnitude": 0.46,
       "absolute_magnitude": -2.77,
       "temperature": "14,700\u00b0C",
@@ -367,7 +331,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "altair",
@@ -384,7 +348,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "acrux",
@@ -401,7 +365,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "aldebaran",
@@ -418,7 +382,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "antares",
@@ -435,7 +399,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "spica",
@@ -452,7 +416,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "pollux",
@@ -469,14 +433,14 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "fomalhaut",
       "displayName": "Fomalhaut",
       "constellation": "Piscis Austrinus",
       "funFact": "Surrounded by a massive disk of dust and debris. This star is one of the 100 brightest objects in our night sky, providing essential light for ancient navigation.",
-      "history": "Known as 'The Lonelight-years Star of the South'. Recorded by astronomers for centuries, its name reflects the rich mythological heritage of the constellation Piscis Austrinus.",
+      "history": "Known as 'The Lonely Star of the South'. Recorded by astronomers for centuries, its name reflects the rich mythological heritage of the constellation Piscis Austrinus.",
       "ra": 344.41257,
       "dec": -29.62224,
       "raDecEpoch": "J2000.0",
@@ -486,7 +450,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "deneb",
@@ -503,7 +467,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "mimosa",
@@ -520,13 +484,13 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "regulus",
       "displayName": "Regulus",
       "constellation": "Leo",
-      "funFact": "Located directlight-years on the path the Sun takes. This star is one of the 100 brightest objects in our night sky, providing essential light for ancient navigation.",
+      "funFact": "Located directly on the path the Sun takes. This star is one of the 100 brightest objects in our night sky, providing essential light for ancient navigation.",
       "history": "The 'Little King' of the Lion. Recorded by astronomers for centuries, its name reflects the rich mythological heritage of the constellation Leo.",
       "ra": 152.09298,
       "dec": 11.96721,
@@ -537,7 +501,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "adhara",
@@ -554,13 +518,13 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "castor",
       "displayName": "Castor",
       "constellation": "Gemini",
-      "funFact": "Actuallight-years a complex system of six individual stars. This star is one of the 100 brightest objects in our night sky, providing essential light for ancient navigation.",
+      "funFact": "Actually a complex system of six individual stars. This star is one of the 100 brightest objects in our night sky, providing essential light for ancient navigation.",
       "history": "The 'mortal' twin brother of Pollux. Recorded by astronomers for centuries, its name reflects the rich mythological heritage of the constellation Gemini.",
       "ra": 113.64951,
       "dec": 31.88828,
@@ -571,7 +535,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "gacrux",
@@ -588,7 +552,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "shaula",
@@ -605,7 +569,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "bellatrix",
@@ -622,7 +586,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "elnath",
@@ -639,7 +603,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "miaplacidus",
@@ -656,7 +620,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "alnilam",
@@ -673,7 +637,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "alnitak",
@@ -690,7 +654,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "al_nair",
@@ -707,7 +671,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "alioth",
@@ -724,7 +688,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "regor",
@@ -741,14 +705,14 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "dubhe",
       "displayName": "Dubhe",
       "constellation": "Ursa Major",
       "funFact": "One of the stars used to find the North Star. This star is one of the 100 brightest objects in our night sky, providing essential light for ancient navigation.",
-      "history": "Name simplight-years means 'bear'. Recorded by astronomers for centuries, its name reflects the rich mythological heritage of the constellation Ursa Major.",
+      "history": "Name simply means 'bear'. Recorded by astronomers for centuries, its name reflects the rich mythological heritage of the constellation Ursa Major.",
       "ra": 165.93233,
       "dec": 61.75103,
       "raDecEpoch": "J2000.0",
@@ -758,7 +722,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "mirfak",
@@ -775,7 +739,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "wezen",
@@ -792,7 +756,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "kaus_australis",
@@ -809,7 +773,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "alkaid",
@@ -826,7 +790,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "avior",
@@ -843,7 +807,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "menkalinan",
@@ -860,7 +824,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "atria",
@@ -877,7 +841,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "alhena",
@@ -894,7 +858,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "peacock",
@@ -911,7 +875,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "polaris",
@@ -928,7 +892,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "mirzam",
@@ -945,13 +909,13 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "alphard",
       "displayName": "Alphard",
       "constellation": "Hydra",
-      "funFact": "The onlight-years bright star in the long Hydra constellation. This star is one of the 100 brightest objects in our night sky, providing essential light for ancient navigation.",
+      "funFact": "The only bright star in the long Hydra constellation. This star is one of the 100 brightest objects in our night sky, providing essential light for ancient navigation.",
       "history": "Name means 'the solitary one'. Recorded by astronomers for centuries, its name reflects the rich mythological heritage of the constellation Hydra.",
       "ra": 141.89685,
       "dec": -8.6586,
@@ -962,7 +926,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "algieba",
@@ -979,7 +943,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "hamal",
@@ -996,7 +960,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "deneb_kaitos",
@@ -1013,7 +977,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "nunki",
@@ -1030,7 +994,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "menkent",
@@ -1047,7 +1011,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "alpheratz",
@@ -1064,7 +1028,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "mirach",
@@ -1081,7 +1045,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "kochab",
@@ -1098,7 +1062,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "saiph",
@@ -1115,7 +1079,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "rasalhague",
@@ -1132,7 +1096,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "algol",
@@ -1149,7 +1113,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "tiaki",
@@ -1166,7 +1130,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "al_dhanab",
@@ -1183,7 +1147,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "denebola",
@@ -1200,7 +1164,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "muphrid",
@@ -1217,7 +1181,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "aspidiske",
@@ -1234,7 +1198,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "suhail",
@@ -1251,7 +1215,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "alphecca",
@@ -1268,7 +1232,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "mintaka",
@@ -1285,7 +1249,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "sadr",
@@ -1302,7 +1266,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "tarn",
@@ -1319,7 +1283,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "naos",
@@ -1336,14 +1300,14 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "almach",
       "displayName": "Almach",
       "constellation": "Andromeda",
       "funFact": "A stunning quadruple star system. This star is one of the 100 brightest objects in our night sky, providing essential light for ancient navigation.",
-      "history": "Name means 'desert light-yearsnx'. Recorded by astronomers for centuries, its name reflects the rich mythological heritage of the constellation Andromeda.",
+      "history": "Name means 'desert lynx'. Recorded by astronomers for centuries, its name reflects the rich mythological heritage of the constellation Andromeda.",
       "ra": 30.97476,
       "dec": 42.32973,
       "raDecEpoch": "J2000.0",
@@ -1353,7 +1317,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "enif",
@@ -1370,7 +1334,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "kappa_velorum",
@@ -1387,7 +1351,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "phecda",
@@ -1404,7 +1368,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "merak",
@@ -1421,7 +1385,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "izhar",
@@ -1438,7 +1402,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "mizar",
@@ -1455,7 +1419,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "deneb_algedi",
@@ -1472,7 +1436,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "gienah",
@@ -1489,7 +1453,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "menkar",
@@ -1506,7 +1470,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "aludra",
@@ -1523,7 +1487,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "markab",
@@ -1540,7 +1504,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "scheat",
@@ -1557,7 +1521,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "zubeneschamali",
@@ -1574,7 +1538,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "unukalhai",
@@ -1591,7 +1555,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "alderamin",
@@ -1608,7 +1572,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "sabik",
@@ -1625,7 +1589,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "al_terf",
@@ -1642,7 +1606,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "phact",
@@ -1659,7 +1623,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "zubenelgenubi",
@@ -1676,7 +1640,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "al_janah",
@@ -1693,7 +1657,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "shir",
@@ -1711,7 +1675,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "mekbuda",
@@ -1728,7 +1692,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "mu_velorum",
@@ -1745,7 +1709,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "acamar",
@@ -1762,7 +1726,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "al_minliar",
@@ -1780,7 +1744,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "al_balii",
@@ -1798,7 +1762,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "zavijava",
@@ -1815,7 +1779,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     },
     {
       "id": "al_nayat",
@@ -1832,7 +1796,7 @@
       "radius": "2 million km",
       "mass": "3e30 kg",
       "luminosity": "50 L\u2609",
-      "distance": "100 light-years "
+      "distance": "100 light-years (Approx)"
     }
   ]
 }

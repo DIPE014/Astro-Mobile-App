@@ -82,6 +82,17 @@
             app:iconTint="@color/icon_primary"
             app:rippleColor="@color/ripple" />
 
+        <!-- Tonight's Highlights Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTonight"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="@dimen/touch_target_min"
+            android:layout_height="@dimen/touch_target_min"
+            android:contentDescription="@string/tonights_sky"
+            app:icon="@android:drawable/ic_menu_my_calendar"
+            app:iconTint="@color/icon_primary"
+            app:rippleColor="@color/ripple" />
+
         <!-- Settings Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSettings"
@@ -129,6 +140,19 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:tint="@color/icon_secondary" />
 
+            <!-- Details Button (next to Close) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnInfoPanelDetails"
+                style="@style/Widget.AstroApp.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_extra_small"
+                android:text="@string/star_details"
+                android:textAllCaps="false"
+                app:layout_constraintEnd_toStartOf="@id/btnCloseInfoPanel"
+                app:layout_constraintTop_toTopOf="parent"
+                app:rippleColor="@color/ripple_primary" />
+
             <!-- Object Name -->
             <TextView
                 android:id="@+id/tvInfoPanelName"
@@ -137,7 +161,7 @@
                 android:layout_marginEnd="@dimen/margin_medium"
                 android:textAppearance="@style/TextAppearance.AstroApp.TitleLarge"
                 android:textColor="@color/text_primary"
-                app:layout_constraintEnd_toStartOf="@id/btnCloseInfoPanel"
+                app:layout_constraintEnd_toStartOf="@id/btnInfoPanelDetails"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Polaris" />
@@ -250,19 +274,6 @@
 
             </LinearLayout>
 
-            <!-- More Details Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnInfoPanelDetails"
-                style="@style/Widget.AstroApp.Button.Text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:text="@string/star_details"
-                android:textAllCaps="false"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/infoPanelQuickInfo"
-                app:rippleColor="@color/ripple_primary" />
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </com.google.android.material.card.MaterialCardView>
@@ -284,7 +295,7 @@
             android:layout_height="@dimen/bottom_nav_height"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="@dimen/padding_medium">
+            android:paddingHorizontal="@dimen/padding_small">
 
             <!-- Constellations Toggle -->
             <LinearLayout
@@ -295,7 +306,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_small">
+                android:padding="@dimen/padding_extra_small">
 
                 <ImageView
                     android:id="@+id/ivConstellations"
@@ -324,7 +335,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_small">
+                android:padding="@dimen/padding_extra_small">
 
                 <ImageView
                     android:id="@+id/ivGrid"
@@ -353,7 +364,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_small">
+                android:padding="@dimen/padding_extra_small">
 
                 <ImageView
                     android:id="@+id/ivTimeTravel"
@@ -382,7 +393,7 @@
                 android:background="?attr/selectableItemBackground"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:padding="@dimen/padding_small">
+                android:padding="@dimen/padding_extra_small">
 
                 <ImageView
                     android:id="@+id/ivPlanets"
@@ -397,6 +408,35 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/margin_extra_small"
                     android:text="@string/object_planet"
+                    android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
+                    android:textColor="@color/text_secondary" />
+
+            </LinearLayout>
+
+            <!-- Deep Sky Toggle -->
+            <LinearLayout
+                android:id="@+id/btnDSO"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="@dimen/padding_extra_small">
+
+                <ImageView
+                    android:id="@+id/ivDSO"
+                    android:layout_width="@dimen/bottom_nav_icon_size"
+                    android:layout_height="@dimen/bottom_nav_icon_size"
+                    android:contentDescription="@string/cd_dso_toggle"
+                    android:src="@android:drawable/ic_menu_compass"
+                    app:tint="@color/icon_inactive" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_extra_small"
+                    android:text="@string/show_dso"
                     android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
                     android:textColor="@color/text_secondary" />
 
@@ -626,3 +666,4 @@
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

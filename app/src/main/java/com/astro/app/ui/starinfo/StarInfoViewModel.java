@@ -394,7 +394,14 @@ public class StarInfoViewModel extends AndroidViewModel {
                         displayName,
                         star.optString("constellation", "").trim(),
                         star.optString("funFact", "").trim(),
-                        star.optString("history", "").trim());
+                        star.optString("history", "").trim(),
+                        star.optString("distance", "").trim(),
+                        star.optString("apparent_magnitude", "").trim(),
+                        star.optString("absolute_magnitude", "").trim(),
+                        star.optString("temperature", "").trim(),
+                        star.optString("radius", "").trim(),
+                        star.optString("mass", "").trim(),
+                        star.optString("luminosity", "").trim());
                 map.put(displayName.toLowerCase(java.util.Locale.ROOT), entry);
             }
 
@@ -686,15 +693,36 @@ public class StarInfoViewModel extends AndroidViewModel {
         private final String constellation;
         private final String funFact;
         private final String history;
+        private final String distance;
+        private final String apparentMagnitude;
+        private final String absoluteMagnitude;
+        private final String temperature;
+        private final String radius;
+        private final String mass;
+        private final String luminosity;
 
         public EducationStar(@NonNull String displayName,
                              @NonNull String constellation,
                              @NonNull String funFact,
-                             @NonNull String history) {
+                             @NonNull String history,
+                             @NonNull String distance,
+                             @NonNull String apparentMagnitude,
+                             @NonNull String absoluteMagnitude,
+                             @NonNull String temperature,
+                             @NonNull String radius,
+                             @NonNull String mass,
+                             @NonNull String luminosity) {
             this.displayName = displayName;
             this.constellation = constellation;
             this.funFact = funFact;
             this.history = history;
+            this.distance = distance;
+            this.apparentMagnitude = apparentMagnitude;
+            this.absoluteMagnitude = absoluteMagnitude;
+            this.temperature = temperature;
+            this.radius = radius;
+            this.mass = mass;
+            this.luminosity = luminosity;
         }
 
         @NonNull
@@ -715,6 +743,41 @@ public class StarInfoViewModel extends AndroidViewModel {
         @NonNull
         public String getHistory() {
             return history;
+        }
+
+        @NonNull
+        public String getDistance() {
+            return distance;
+        }
+
+        @NonNull
+        public String getApparentMagnitude() {
+            return apparentMagnitude;
+        }
+
+        @NonNull
+        public String getAbsoluteMagnitude() {
+            return absoluteMagnitude;
+        }
+
+        @NonNull
+        public String getTemperature() {
+            return temperature;
+        }
+
+        @NonNull
+        public String getRadius() {
+            return radius;
+        }
+
+        @NonNull
+        public String getMass() {
+            return mass;
+        }
+
+        @NonNull
+        public String getLuminosity() {
+            return luminosity;
         }
     }
 }

@@ -3,7 +3,7 @@
 ## Requirements
 
 - Android Studio Hedgehog (2023.1.1) or newer
-- JDK 11 or higher
+- JDK 17 or higher (JDK 21 recommended — Android Studio bundles JBR 21)
 - Android SDK 34
 - Physical Android device (required for sensors/camera)
 
@@ -61,4 +61,13 @@ Sensors (accelerometer, magnetometer, gyroscope) don't require explicit permissi
 
 **Build fails?**
 - Sync Gradle files (File → Sync Project with Gradle Files)
-- Check JDK version matches project requirements
+- Check JDK version: AGP 8.3.2 requires JDK 17+. Use Android Studio's bundled JBR:
+  ```bash
+  # Windows (command line build)
+  set JAVA_HOME=C:\Program Files\Android\Android Studio\jbr
+  gradlew.bat assembleDebug
+
+  # Linux/Mac
+  export JAVA_HOME=/path/to/android-studio/jbr
+  ./gradlew assembleDebug
+  ```

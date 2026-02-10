@@ -347,8 +347,122 @@ Never visible: dec < φ - 90°
 | RA/Dec | Sky coordinates, like lat/long for stars |
 | Stars | Fixed positions, loaded from database |
 | Planets | Calculated from orbital mechanics + time |
+| Deep Sky Objects | Galaxies, clusters, nebulae from Messier catalog |
 | Transformation | Sensor data → screen via matrix math |
 | Time Travel | Change the "current time" for all calculations |
 | Sidereal Time | Earth's rotation determines visible sky |
+| Tonight's Highlights | Filter visible objects by altitude threshold |
+| Trajectories | Sample planet positions over time to show orbital path |
+| Gestures | Pinch-zoom, manual pan, long-press for trajectory |
 
 The app essentially answers: **"Given my location, the time, and where I'm pointing, what celestial objects should I see?"**
+
+---
+
+## 11. Deep Sky Objects (Messier Catalog)
+
+### What Are DSOs?
+
+Deep Sky Objects are celestial objects beyond our solar system that aren't individual stars:
+
+| Type | Examples | Shape Icon |
+|------|----------|------------|
+| **Galaxies** | M31 (Andromeda), M51 (Whirlpool) | Diamond |
+| **Star Clusters** | M45 (Pleiades), M13 (Hercules Cluster) | Square |
+| **Nebulae** | M42 (Orion Nebula), M1 (Crab Nebula) | Glowing circle |
+
+### Data Source
+
+DSOs are loaded from `messier.binary` (protobuf format), same pattern as stars and constellations:
+
+```
+messier.binary → ProtobufParser.parseMessierObjects()
+    → MessierRepositoryImpl (lazy cache)
+    → SkyCanvasView.drawDSOs()
+```
+
+Each object has: name, RA/Dec position, color, size, and shape type (galaxy/cluster/nebula).
+
+### Visibility Rendering
+
+DSOs are rendered between the star layer and planet layer, using shape-coded icons to distinguish types at a glance.
+
+---
+
+## 12. Tonight's Highlights
+
+### How It Works
+
+`TonightsHighlights.compute()` finds objects visible right now:
+
+1. **Get observer context** - latitude, longitude, current time
+2. **Calculate Local Sidereal Time** - determines which RA is overhead
+3. **For each object** - compute altitude using the Alt/Az formula
+4. **Filter by altitude threshold**:
+   - Planets: above 5°
+   - Bright stars (mag < 1.5): above 5°
+   - Constellations: above 20°
+   - Deep sky objects: above 10°
+5. **Sort** - planets first, then by altitude descending
+
+### Alt/Az from RA/Dec
+
+The same formula used everywhere in the app:
+
+```
+Hour Angle = LST - RA
+sin(Alt) = sin(Dec)sin(Lat) + cos(Dec)cos(Lat)cos(HA)
+cos(Az) = (sin(Dec) - sin(Lat)sin(Alt)) / (cos(Lat)cos(Alt))
+```
+
+---
+
+## 13. Planet Trajectory Visualization
+
+When you long-press a planet, the app shows its path over 60 days (±30 from now):
+
+1. **Sample positions** - Call `Universe.getRaDec(body, date)` at 2-day intervals
+2. **Project to screen** - Convert each RA/Dec to screen coordinates via Alt/Az
+3. **Draw path** - Connect points with an orange line
+4. **Show markers** - Dots at each sample, with time labels for key positions
+5. **Highlight current** - Larger marker at today's position
+
+This helps users understand how planets move against the fixed star background (retrograde motion, conjunctions, etc.).
+
+---
+
+## 14. Gesture System
+
+### Pinch-to-Zoom
+
+The `ScaleGestureDetector` adjusts field of view:
+- **Pinch in** → smaller FOV → more zoomed in (min 20°)
+- **Pinch out** → larger FOV → wider view (max 120°)
+- `pixelsPerDegree = screenSize / FOV` controls the projection scale
+
+### Manual Pan
+
+When the user drags, the view enters **manual mode**:
+- Sensor orientation is overridden
+- Drag updates `manualAzimuth` and `manualAltitude`
+- Double-tap exits manual mode and returns to sensor tracking
+
+### Manual Scroll Mode
+
+Optional setting for smoother drag-to-pan experience:
+- **Enable in Settings** → activates `GestureDetector.onScroll()` handler
+- **Smooth scrolling** → converts screen drag distance to azimuth/altitude deltas
+- **Tap suppression** → 300ms cooldown after scroll ends prevents accidental star info popups
+- **Auto-enter manual mode** → first scroll gesture activates manual pan automatically
+- **Scroll detection** → tracks `isCurrentlyScrolling` state from ACTION_DOWN to ACTION_UP/CANCEL
+- Formula: `azimuthDelta = distanceX / (screenSize / FOV)` (same for altitude)
+
+This reduces UI clutter when exploring the sky map by hand, avoiding unintended taps on stars during pan gestures.
+
+### Smart Selection
+
+Objects are detected using `getObjectsInReticle()`:
+- Checks stars, planets, constellations, and DSOs within the center reticle circle
+- **1 object** → show info panel directly
+- **2-4 objects** → horizontal chip strip at bottom
+- **5+ objects** → scrollable bottom sheet

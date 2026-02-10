@@ -40,6 +40,7 @@ public class SettingsActivity extends AppCompatActivity {
     private MaterialSwitch switchStarLabels;
     private MaterialSwitch switchConstellationLines;
     private MaterialSwitch switchConstellationNames;
+    private MaterialSwitch switchManualScroll;
 
     // Prevent recursive updates
     private boolean isUpdatingUI = false;
@@ -72,6 +73,7 @@ public class SettingsActivity extends AppCompatActivity {
         switchStarLabels = findViewById(R.id.switchStarLabels);
         switchConstellationLines = findViewById(R.id.switchConstellationLines);
         switchConstellationNames = findViewById(R.id.switchConstellationNames);
+        switchManualScroll = findViewById(R.id.switchManualScroll);
 
         // Configure Slider ranges (Sliders are configured via XML, but we can adjust programmatically if needed)
         if (sliderBrightness != null) {
@@ -150,6 +152,15 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
         }
+
+        // Manual Scroll Switch
+        if (switchManualScroll != null) {
+            switchManualScroll.setOnCheckedChangeListener((button, isChecked) -> {
+                if (!isUpdatingUI) {
+                    viewModel.setEnableManualScroll(isChecked);
+                }
+            });
+        }
     }
 
     /**
@@ -213,6 +224,15 @@ public class SettingsActivity extends AppCompatActivity {
             isUpdatingUI = true;
             if (switchConstellationNames != null && show != null) {
                 switchConstellationNames.setChecked(show);
+            }
+            isUpdatingUI = false;
+        });
+
+        // Manual Scroll Mode
+        viewModel.getEnableManualScroll().observe(this, enabled -> {
+            isUpdatingUI = true;
+            if (switchManualScroll != null && enabled != null) {
+                switchManualScroll.setChecked(enabled);
             }
             isUpdatingUI = false;
         });

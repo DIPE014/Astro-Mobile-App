@@ -3,12 +3,18 @@ package com.astro.app.ui.skymap;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -43,9 +49,14 @@ import com.astro.app.core.renderer.SkyCanvasView;
 import com.astro.app.core.renderer.SkyGLSurfaceView;
 import com.astro.app.core.renderer.SkyRenderer;
 import com.astro.app.core.math.Vector3;
+import com.astro.app.core.highlights.TonightsHighlights;
+import com.astro.app.data.model.ConstellationData;
+import com.astro.app.data.model.MessierObjectData;
 import com.astro.app.data.model.StarData;
 import com.astro.app.data.repository.ConstellationRepository;
+import com.astro.app.data.repository.MessierRepository;
 import com.astro.app.data.repository.StarRepository;
+import com.astro.app.ui.highlights.TonightsHighlightsFragment;
 import com.astro.app.ui.education.EducationDetailActivity;
 import com.astro.app.ui.platesolve.PlateSolveActivity;
 import com.astro.app.ui.search.SearchActivity;
@@ -53,18 +64,14 @@ import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
 import com.astro.app.ui.starinfo.StarInfoActivity;
 import com.astro.app.search.SearchArrowView;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import android.os.Handler;
-import android.os.Looper;
+import java.util.Locale;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 
 import javax.inject.Inject;
 
@@ -123,6 +130,9 @@ public class SkyMapActivity extends AppCompatActivity {
     @Inject
     Universe universe;
 
+    @Inject
+    MessierRepository messierRepository;
+
     // Camera components
     private CameraManager cameraManager;
     private CameraPermissionHandler permissionHandler;
@@ -141,6 +151,10 @@ public class SkyMapActivity extends AppCompatActivity {
     private TextView tvInfoPanelMagnitude;
     private TextView tvInfoPanelRA;
     private TextView tvInfoPanelDec;
+    private View infoPanelDivider;
+    private View infoPanelQuickInfo;
+    private MaterialButton btnInfoPanelDetails;
+    private GestureDetector infoPanelGestureDetector;
     private MaterialButton btnSearchDetails;
     private FrameLayout loadingOverlay;
     private View gpsIndicator;
@@ -175,12 +189,6 @@ public class SkyMapActivity extends AppCompatActivity {
     @Nullable
     private Vector3 lastViewUp = null;
 
-    // Reticle selection
-    private ExtendedFloatingActionButton fabSelect;
-    private Handler reticleCheckHandler;
-    private Runnable reticleCheckRunnable;
-    private static final long RETICLE_CHECK_INTERVAL_MS = 500;  // Check every 500ms
-
     // State
     // Default to MAP mode (AR disabled) for better emulator compatibility
     // On devices without camera or on emulator, this ensures stars are visible
@@ -188,8 +196,12 @@ public class SkyMapActivity extends AppCompatActivity {
     private boolean isConstellationsEnabled = true;
     private boolean isGridEnabled = false;
     private boolean isPlanetsEnabled = false;
+    private boolean isDSOEnabled = false;
     @Nullable
     private StarData selectedStar;
+
+    // Manual mode indicator
+    private View manualModeIndicator;
 
     // GPS state
     private boolean isGpsEnabled = false;
@@ -475,6 +487,14 @@ public class SkyMapActivity extends AppCompatActivity {
             }
         });
 
+        // Observe manual scroll mode setting
+        settingsViewModel.getEnableManualScroll().observe(this, enabled -> {
+            if (enabled != null && skyCanvasView != null) {
+                skyCanvasView.setManualScrollEnabled(enabled);
+                Log.d(TAG, "Manual scroll mode: " + enabled);
+            }
+        });
+
         // Observe ViewModel night mode state
         viewModel.getNightMode().observe(this, this::onNightModeChanged);
 
@@ -562,6 +582,9 @@ public class SkyMapActivity extends AppCompatActivity {
         tvInfoPanelMagnitude = findViewById(R.id.tvInfoPanelMagnitude);
         tvInfoPanelRA = findViewById(R.id.tvInfoPanelRA);
         tvInfoPanelDec = findViewById(R.id.tvInfoPanelDec);
+        infoPanelDivider = findViewById(R.id.infoPanelDivider);
+        infoPanelQuickInfo = findViewById(R.id.infoPanelQuickInfo);
+        btnInfoPanelDetails = findViewById(R.id.btnInfoPanelDetails);
         loadingOverlay = findViewById(R.id.loadingOverlay);
         btnArToggle = findViewById(R.id.btnArToggle);
         btnSearchDetails = findViewById(R.id.btnSearchDetails);
@@ -574,9 +597,6 @@ public class SkyMapActivity extends AppCompatActivity {
         // Search arrow view
         searchArrowView = findViewById(R.id.searchArrow);
         tvSearchTapHint = findViewById(R.id.tvSearchTapHint);
-
-        // Select FAB for reticle selection
-        fabSelect = findViewById(R.id.fabSelect);
 
         // Create PreviewView programmatically for camera
         cameraPreview = new PreviewView(this);
@@ -595,6 +615,18 @@ public class SkyMapActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT));
         skyCanvasView.setEnabled(true);
+        skyCanvasView.setOnManualModeListener(isManual -> {
+            if (btnArToggle != null) {
+                btnArToggle.setIconTint(ColorStateList.valueOf(
+                        ContextCompat.getColor(this, isManual ? R.color.icon_primary : R.color.icon_inactive)));
+            }
+            if (isManual) {
+                // Show a reset hint at the top of the screen
+                showManualModeIndicator();
+            } else {
+                hideManualModeIndicator();
+            }
+        });
         skyCanvasView.setOnSkyTapListener((x, y) -> {
             if (searchTargetName != null) {
                 clearSearchTarget();
@@ -611,11 +643,74 @@ public class SkyMapActivity extends AppCompatActivity {
                 openEducationDetail(EducationDetailActivity.TYPE_CONSTELLATION, obj.name, obj.id);
             }
         });
+        skyCanvasView.setOnStarSelectedListener(star -> {
+            viewModel.selectObject(star);
+            skyCanvasView.setHighlightedStar(star);
+        });
+
+        skyCanvasView.setOnTrajectoryListener((planetName, x, y) -> {
+            if (universe == null) return;
+            new Thread(() -> {
+                try {
+                    SolarSystemBody body = null;
+                    for (SolarSystemBody b : SolarSystemBody.values()) {
+                        if (b.name().equalsIgnoreCase(planetName)) {
+                            body = b;
+                            break;
+                        }
+                    }
+                    if (body == null) return;
+
+                    long now = (timeTravelClock != null) ? timeTravelClock.getCurrentTimeMillis() : System.currentTimeMillis();
+                    long sixMonthsMs = 6L * 30 * 24 * 3600 * 1000;
+                    long step = 2L * 24 * 3600 * 1000; // 2 days
+                    List<SkyCanvasView.TrajectoryPoint> points = new ArrayList<>();
+                    for (long t = now - sixMonthsMs; t <= now + sixMonthsMs; t += step) {
+                        RaDec raDec = universe.getRaDec(body, new Date(t));
+                        points.add(new SkyCanvasView.TrajectoryPoint(t, raDec.getRa(), raDec.getDec()));
+                    }
+                    runOnUiThread(() -> skyCanvasView.startTrajectory(planetName, points, now));
+                } catch (Exception e) {
+                    Log.e(TAG, "Error computing trajectory: " + e.getMessage());
+                }
+            }).start();
+        });
 
         // Create a dummy SkyGLSurfaceView for compatibility (won't be displayed)
         // This prevents null pointer exceptions in other parts of the code
         SkyRenderer renderer = new SkyRenderer();
         skyGLSurfaceView = new SkyGLSurfaceView(this, renderer);
+    }
+
+    private void setupInfoPanelGestures() {
+        infoPanelGestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDown(MotionEvent e) {
+                return true;
+            }
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                if (selectedStar == null) return false;
+                boolean isGeneratedName = selectedStar.getName() != null &&
+                        selectedStar.getName().startsWith("Star ");
+                if (isGeneratedName) return false;
+
+                float dy = e1.getY() - e2.getY();
+                if (dy > 120 && Math.abs(velocityY) > Math.abs(velocityX)) {
+                    openStarDetails(selectedStar);
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        if (infoPanel != null) {
+            infoPanel.setOnTouchListener((v, event) -> {
+                infoPanelGestureDetector.onTouchEvent(event);
+                return true;
+            });
+        }
     }
 
     /**
@@ -671,7 +766,14 @@ public class SkyMapActivity extends AppCompatActivity {
 
         // AR toggle button
         if (btnArToggle != null) {
-            btnArToggle.setOnClickListener(v -> toggleARMode());
+            btnArToggle.setOnClickListener(v -> {
+                if (skyCanvasView != null && skyCanvasView.isManualMode()) {
+                    skyCanvasView.exitManualMode();
+                    updateARToggleButton();
+                } else {
+                    toggleARMode();
+                }
+            });
         }
 
         // Settings button
@@ -710,6 +812,18 @@ public class SkyMapActivity extends AppCompatActivity {
             btnPlanets.setOnClickListener(v -> togglePlanets());
         }
 
+        // DSO toggle button
+        View btnDSO = findViewById(R.id.btnDSO);
+        if (btnDSO != null) {
+            btnDSO.setOnClickListener(v -> toggleDSO());
+        }
+
+        // Tonight's Highlights button
+        View btnTonight = findViewById(R.id.btnTonight);
+        if (btnTonight != null) {
+            btnTonight.setOnClickListener(v -> showTonightsHighlights());
+        }
+
         // Initialize toggle button visual states
         initializeToggleButtonStates();
 
@@ -732,11 +846,6 @@ public class SkyMapActivity extends AppCompatActivity {
             btnSearchDetails.setOnClickListener(v -> openSearchTargetEducation());
         }
 
-        // Select FAB (for reticle selection)
-        if (fabSelect != null) {
-            fabSelect.setOnClickListener(v -> showObjectSelectionDialog());
-        }
-
         // Close info panel
         View btnCloseInfoPanel = findViewById(R.id.btnCloseInfoPanel);
         if (btnCloseInfoPanel != null) {
@@ -744,14 +853,15 @@ public class SkyMapActivity extends AppCompatActivity {
         }
 
         // Info panel details button
-        MaterialButton btnDetails = findViewById(R.id.btnInfoPanelDetails);
-        if (btnDetails != null) {
-            btnDetails.setOnClickListener(v -> {
+        if (btnInfoPanelDetails != null) {
+            btnInfoPanelDetails.setOnClickListener(v -> {
                 if (selectedStar != null) {
                     openStarDetails(selectedStar);
                 }
             });
         }
+
+        setupInfoPanelGestures();
 
         // Set up tap gesture on sky view
         skyGLSurfaceView.setGestureListener(new SkyGLSurfaceView.SimpleGestureListener() {
@@ -934,6 +1044,14 @@ public class SkyMapActivity extends AppCompatActivity {
             Log.d(TAG, "CONSTELLATIONS: Loaded " + constellations.size() + " constellations for canvas");
         }
 
+        // Load DSO data
+        if (messierRepository != null) {
+            List<MessierObjectData> dsos = messierRepository.getAllObjects();
+            skyCanvasView.setDSOData(dsos);
+            skyCanvasView.setDSOsVisible(isDSOEnabled);
+            Log.d(TAG, "DSO: Loaded " + dsos.size() + " deep sky objects for canvas");
+        }
+
         // Set observer location - use current GPS coordinates if available, otherwise default
         // GPS updates will automatically update this via the LocationListener
         skyCanvasView.setObserverLocation(currentLatitude, currentLongitude);
@@ -1107,7 +1225,11 @@ public class SkyMapActivity extends AppCompatActivity {
      */
     private void updateARToggleButton() {
         if (btnArToggle != null) {
-            if (isARModeEnabled) {
+            boolean isManual = skyCanvasView != null && skyCanvasView.isManualMode();
+            if (isManual) {
+                btnArToggle.setIconResource(android.R.drawable.ic_menu_compass);
+                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
+            } else if (isARModeEnabled) {
                 btnArToggle.setIconResource(android.R.drawable.ic_menu_camera);
                 btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
             } else {
@@ -1115,6 +1237,61 @@ public class SkyMapActivity extends AppCompatActivity {
                 btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_inactive));
             }
         }
+    }
+
+    /**
+     * Shows a semi-transparent banner at the top indicating manual mode is active.
+     * Tapping the banner resets to sensor-driven mode.
+     */
+    private void showManualModeIndicator() {
+        if (manualModeIndicator != null && manualModeIndicator.getParent() != null) return;
+
+        // Create a small indicator bar at top
+        LinearLayout indicator = new LinearLayout(this);
+        indicator.setOrientation(LinearLayout.HORIZONTAL);
+        indicator.setGravity(android.view.Gravity.CENTER);
+        indicator.setBackgroundColor(Color.argb(180, 30, 30, 60));
+        indicator.setPadding(16, 8, 16, 8);
+        indicator.setTag("manual_mode_indicator");
+
+        TextView text = new TextView(this);
+        text.setText("Manual Mode \u2014 Tap to reset");
+        text.setTextColor(Color.WHITE);
+        text.setTextSize(13);
+        indicator.addView(text);
+
+        // Make the whole bar clickable to reset
+        indicator.setOnClickListener(v -> {
+            if (skyCanvasView != null) {
+                skyCanvasView.exitManualMode();
+                updateARToggleButton();
+            }
+        });
+
+        // Add to root layout at the top, below the top controls
+        androidx.constraintlayout.widget.ConstraintLayout rootLayout =
+                (androidx.constraintlayout.widget.ConstraintLayout) skyOverlayContainer.getParent();
+        if (rootLayout != null) {
+            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams params =
+                    new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
+                            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
+                            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTENT);
+            params.topToBottom = R.id.topControls;  // Position below top controls
+            indicator.setLayoutParams(params);
+            rootLayout.addView(indicator);
+        }
+
+        manualModeIndicator = indicator;
+    }
+
+    /**
+     * Hides the manual mode indicator banner.
+     */
+    private void hideManualModeIndicator() {
+        if (manualModeIndicator != null && manualModeIndicator.getParent() != null) {
+            ((ViewGroup) manualModeIndicator.getParent()).removeView(manualModeIndicator);
+        }
+        manualModeIndicator = null;
     }
 
     /**
@@ -1215,6 +1392,11 @@ public class SkyMapActivity extends AppCompatActivity {
         View btnPlanets = findViewById(R.id.btnPlanets);
         ImageView ivPlanets = findViewById(R.id.ivPlanets);
         updateToggleButtonVisual(ivPlanets, btnPlanets, isPlanetsEnabled);
+
+        // DSO toggle
+        View btnDSO = findViewById(R.id.btnDSO);
+        ImageView ivDSO = findViewById(R.id.ivDSO);
+        updateToggleButtonVisual(ivDSO, btnDSO, isDSOEnabled);
     }
 
     /**
@@ -1368,6 +1550,72 @@ public class SkyMapActivity extends AppCompatActivity {
         updateToggleButtonVisual(ivPlanets, btnPlanets, isPlanetsEnabled);
 
         Log.d(TAG, "Planets visibility toggled to: " + isPlanetsEnabled);
+    }
+
+    /**
+     * Toggles visibility of Deep Sky Objects in the sky view.
+     */
+    private void toggleDSO() {
+        isDSOEnabled = !isDSOEnabled;
+
+        if (skyCanvasView != null) {
+            skyCanvasView.setDSOsVisible(isDSOEnabled);
+        }
+
+        View btnDSO = findViewById(R.id.btnDSO);
+        ImageView ivDSO = findViewById(R.id.ivDSO);
+        updateToggleButtonVisual(ivDSO, btnDSO, isDSOEnabled);
+
+        Log.d(TAG, "DSO visibility toggled to: " + isDSOEnabled);
+    }
+
+    /**
+     * Shows the Tonight's Highlights bottom sheet.
+     */
+    private void showTonightsHighlights() {
+        new Thread(() -> {
+            long time = (timeTravelClock != null)
+                    ? timeTravelClock.getCurrentTimeMillis()
+                    : System.currentTimeMillis();
+
+            List<StarData> stars = (starRepository != null)
+                    ? starRepository.getAllStars() : null;
+            List<ConstellationData> constellationList = (constellationRepository != null)
+                    ? constellationRepository.getAllConstellations() : null;
+            List<MessierObjectData> dsos = (messierRepository != null)
+                    ? messierRepository.getAllObjects() : null;
+
+            List<TonightsHighlights.Highlight> highlights =
+                    TonightsHighlights.compute(universe, stars, constellationList, dsos,
+                            currentLatitude, currentLongitude, time);
+
+            runOnUiThread(() -> {
+                TonightsHighlightsFragment fragment = TonightsHighlightsFragment.newInstance();
+                fragment.setHighlights(highlights);
+                fragment.setOnHighlightSelectedListener(highlight -> {
+                    // Navigate to the selected object using search target mechanism
+                    searchTargetName = highlight.name;
+                    searchTargetRa = highlight.ra;
+                    searchTargetDec = highlight.dec;
+                    searchTargetBelowHorizonNotified = false;
+                    searchTargetInViewNotified = false;
+                    setSearchModeActive(true);
+
+                    if (searchArrowView != null) {
+                        searchArrowView.setTarget(searchTargetRa, searchTargetDec,
+                                searchTargetName, null);
+                        searchArrowView.setVisibility(View.VISIBLE);
+                        searchArrowView.setOnClickListener(v -> clearSearchTarget());
+                        updateSearchArrow();
+                    }
+
+                    Toast.makeText(this,
+                            getString(R.string.search_navigating_to, searchTargetName),
+                            Toast.LENGTH_SHORT).show();
+                });
+                fragment.show(getSupportFragmentManager(), "tonights_highlights");
+            });
+        }).start();
     }
 
     /**
@@ -1737,233 +1985,27 @@ public class SkyMapActivity extends AppCompatActivity {
         return new double[]{altitude, azimuth};
     }
 
-    // ===================================================================
-    // RETICLE SELECTION METHODS
-    // ===================================================================
-
-    /**
-     * Starts periodic checking for objects in the reticle.
-     * Shows/hides the Select FAB based on whether objects are present.
-     */
-    private void startReticleChecking() {
-        if (reticleCheckHandler == null) {
-            reticleCheckHandler = new Handler(Looper.getMainLooper());
-        }
-        if (reticleCheckRunnable == null) {
-            reticleCheckRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    updateSelectButtonVisibility();
-                    reticleCheckHandler.postDelayed(this, RETICLE_CHECK_INTERVAL_MS);
-                }
-            };
-        }
-        reticleCheckHandler.post(reticleCheckRunnable);
-    }
-
-    /**
-     * Stops periodic checking for objects in the reticle.
-     */
-    private void stopReticleChecking() {
-        if (reticleCheckHandler != null && reticleCheckRunnable != null) {
-            reticleCheckHandler.removeCallbacks(reticleCheckRunnable);
-        }
-    }
-
-    /**
-     * Updates the visibility of the Select FAB based on objects in reticle.
-     */
-    private void updateSelectButtonVisibility() {
-        if (fabSelect == null || skyCanvasView == null) return;
-
-        List<SkyCanvasView.SelectableObject> objects = skyCanvasView.getObjectsInReticle();
-        boolean hasObjects = !objects.isEmpty();
-
-        if (hasObjects && fabSelect.getVisibility() != View.VISIBLE) {
-            fabSelect.setText(getString(R.string.select) + " (" + objects.size() + ")");
-            fabSelect.setVisibility(View.VISIBLE);
-            fabSelect.animate().alpha(1f).setDuration(200).start();
-        } else if (hasObjects) {
-            fabSelect.setText(getString(R.string.select) + " (" + objects.size() + ")");
-        } else if (!hasObjects && fabSelect.getVisibility() == View.VISIBLE) {
-            fabSelect.animate().alpha(0f).setDuration(200).withEndAction(() -> {
-                fabSelect.setVisibility(View.GONE);
-            }).start();
-            // Clear any highlight when no objects in reticle
-            skyCanvasView.clearHighlight();
-        }
-    }
-
-    /**
-     * Shows a bottom sheet dialog listing objects in the reticle.
-     */
-    private void showObjectSelectionDialog() {
-        if (skyCanvasView == null) return;
-
-        List<SkyCanvasView.SelectableObject> objects = skyCanvasView.getObjectsInReticle();
-        if (objects.isEmpty()) {
-            Toast.makeText(this, R.string.no_objects_in_reticle, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        BottomSheetDialog dialog = new BottomSheetDialog(this);
-
-        // Create dialog layout programmatically
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(
-                (int) getResources().getDimension(R.dimen.padding_medium),
-                (int) getResources().getDimension(R.dimen.padding_medium),
-                (int) getResources().getDimension(R.dimen.padding_medium),
-                (int) getResources().getDimension(R.dimen.padding_medium)
-        );
-        layout.setBackgroundColor(ContextCompat.getColor(this, R.color.surface));
-
-        // Title
-        TextView title = new TextView(this);
-        title.setText(R.string.objects_in_reticle);
-        title.setTextSize(20);
-        title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
-        title.setPadding(0, 0, 0, (int) getResources().getDimension(R.dimen.padding_medium));
-        layout.addView(title);
-
-        // Create scrollable list
-        ScrollView scrollView = new ScrollView(this);
-        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
-        scrollView.setLayoutParams(scrollParams);
-        LinearLayout listLayout = new LinearLayout(this);
-        listLayout.setOrientation(LinearLayout.VERTICAL);
-
-        // Track currently selected item for highlight preview
-        final SkyCanvasView.SelectableObject[] selectedObject = {null};
-
-        for (SkyCanvasView.SelectableObject obj : objects) {
-            LinearLayout itemLayout = new LinearLayout(this);
-            itemLayout.setOrientation(LinearLayout.HORIZONTAL);
-            itemLayout.setPadding(
-                    (int) getResources().getDimension(R.dimen.padding_small),
-                    (int) getResources().getDimension(R.dimen.padding_medium),
-                    (int) getResources().getDimension(R.dimen.padding_small),
-                    (int) getResources().getDimension(R.dimen.padding_medium)
-            );
-            itemLayout.setBackgroundResource(android.R.drawable.list_selector_background);
-
-            // Object icon (placeholder - could be customized per type)
-            ImageView icon = new ImageView(this);
-            int iconRes = obj.type.equals("planet") ?
-                    android.R.drawable.presence_online :
-                    android.R.drawable.btn_star_big_on;
-            icon.setImageResource(iconRes);
-            icon.setColorFilter(ContextCompat.getColor(this,
-                    obj.type.equals("planet") ? R.color.planet_color : R.color.star_color));
-            LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
-                    (int) getResources().getDimension(R.dimen.icon_size_medium),
-                    (int) getResources().getDimension(R.dimen.icon_size_medium)
-            );
-            iconParams.rightMargin = (int) getResources().getDimension(R.dimen.margin_medium);
-            icon.setLayoutParams(iconParams);
-            itemLayout.addView(icon);
-
-            // Object info
-            LinearLayout infoLayout = new LinearLayout(this);
-            infoLayout.setOrientation(LinearLayout.VERTICAL);
-            infoLayout.setLayoutParams(new LinearLayout.LayoutParams(
-                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-
-            TextView nameText = new TextView(this);
-            nameText.setText(obj.getDisplayName());
-            nameText.setTextSize(16);
-            nameText.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
-            infoLayout.addView(nameText);
-
-            TextView typeText = new TextView(this);
-            String typeString;
-            if (obj.type.equals("planet")) {
-                typeString = getString(R.string.object_planet);
-            } else if (obj.type.equals("constellation")) {
-                typeString = getString(R.string.object_constellation);
-            } else {
-                typeString = getString(R.string.object_star);
+    @Nullable
+    private String getConstellationDisplayName(@NonNull String constellationId) {
+        if (constellationRepository != null) {
+            ConstellationData constellation = constellationRepository.getConstellationById(constellationId);
+            if (constellation != null) {
+                return constellation.getName();
             }
-            if (obj.type.equals("star")) {
-                typeString += " (mag " + String.format("%.1f", obj.magnitude) + ")";
-            }
-            typeText.setText(typeString);
-            typeText.setTextSize(12);
-            typeText.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
-            infoLayout.addView(typeText);
-
-            itemLayout.addView(infoLayout);
-
-            // Click handler - highlight object on tap
-            itemLayout.setOnClickListener(v -> {
-                selectedObject[0] = obj;
-                // Highlight the object on the sky view
-                if (obj.type.equals("planet")) {
-                    skyCanvasView.setHighlightedPlanet(obj.name);
-                } else if (obj.type.equals("constellation")) {
-                    skyCanvasView.clearHighlight();
-                } else {
-                    StarData star = skyCanvasView.getStarById(obj.id);
-                    if (star != null) {
-                        skyCanvasView.setHighlightedStar(star);
-                    }
-                }
-                Toast.makeText(this, getString(R.string.object_highlighted, obj.getDisplayName()),
-                        Toast.LENGTH_SHORT).show();
-            });
-
-            // Long press to confirm and open details
-            itemLayout.setOnLongClickListener(v -> {
-                dialog.dismiss();
-                openObjectDetails(obj);
-                return true;
-            });
-
-            listLayout.addView(itemLayout);
-
-            // Add divider
-            View divider = new View(this);
-            divider.setBackgroundColor(ContextCompat.getColor(this, R.color.divider));
-            LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    (int) getResources().getDimension(R.dimen.divider_height)
-            );
-            listLayout.addView(divider, dividerParams);
         }
-
-        scrollView.addView(listLayout);
-        layout.addView(scrollView);
-
-        // Confirm button
-        MaterialButton confirmButton = new MaterialButton(this);
-        confirmButton.setText(R.string.confirm_selection);
-        confirmButton.setOnClickListener(v -> {
-            dialog.dismiss();
-            if (selectedObject[0] != null) {
-                openObjectDetails(selectedObject[0]);
-            } else if (!objects.isEmpty()) {
-                // If nothing selected, open details for first object
-                openObjectDetails(objects.get(0));
+        String cleaned = constellationId.replace('_', ' ').trim();
+        if (cleaned.isEmpty()) return null;
+        String[] parts = cleaned.split("\\s+");
+        StringBuilder builder = new StringBuilder();
+        for (String part : parts) {
+            if (part.isEmpty()) continue;
+            if (builder.length() > 0) builder.append(" ");
+            builder.append(Character.toUpperCase(part.charAt(0)));
+            if (part.length() > 1) {
+                builder.append(part.substring(1).toLowerCase(Locale.ROOT));
             }
-        });
-        LinearLayout.LayoutParams buttonParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        buttonParams.topMargin = (int) getResources().getDimension(R.dimen.margin_medium);
-        confirmButton.setLayoutParams(buttonParams);
-        layout.addView(confirmButton);
-
-        dialog.setContentView(layout);
-        dialog.setOnDismissListener(d -> {
-            // Clear highlight when dialog is dismissed without selection
-            if (skyCanvasView != null) {
-                skyCanvasView.clearHighlight();
-            }
-        });
-        dialog.show();
+        }
+        return builder.toString();
     }
 
     /**
@@ -2051,12 +2093,39 @@ public class SkyMapActivity extends AppCompatActivity {
     private void showStarInfo(@NonNull StarData star) {
         selectedStar = star;
 
-        tvInfoPanelName.setText(star.getName());
-        tvInfoPanelType.setText(getString(R.string.star_type_format,
-                star.getConstellationId() != null ? star.getConstellationId() : getString(R.string.unknown)));
-        tvInfoPanelMagnitude.setText(String.format("%.2f", star.getMagnitude()));
-        tvInfoPanelRA.setText(formatRA(star.getRa()));
-        tvInfoPanelDec.setText(formatDec(star.getDec()));
+        boolean isGeneratedName = star.getName() != null && star.getName().startsWith("Star ");
+        String constellationLabel = getString(R.string.unknown);
+        if (star.getConstellationId() != null && !star.getConstellationId().isEmpty()) {
+            String displayName = getConstellationDisplayName(star.getConstellationId());
+            if (displayName != null && !displayName.isEmpty()) {
+                constellationLabel = displayName;
+            }
+        }
+
+        if (isGeneratedName) {
+            tvInfoPanelName.setText(getString(R.string.star_belongs_constellation, constellationLabel));
+            tvInfoPanelType.setVisibility(View.GONE);
+            infoPanelDivider.setVisibility(View.VISIBLE);
+            infoPanelQuickInfo.setVisibility(View.VISIBLE);
+            if (btnInfoPanelDetails != null) {
+                btnInfoPanelDetails.setVisibility(View.GONE);
+            }
+            tvInfoPanelMagnitude.setText(String.format("%.2f", star.getMagnitude()));
+            tvInfoPanelRA.setText(formatRA(star.getRa()));
+            tvInfoPanelDec.setText(formatDec(star.getDec()));
+        } else {
+            tvInfoPanelName.setText(star.getName());
+            tvInfoPanelType.setText(getString(R.string.star_type_format, constellationLabel));
+            tvInfoPanelType.setVisibility(View.VISIBLE);
+            infoPanelDivider.setVisibility(View.VISIBLE);
+            infoPanelQuickInfo.setVisibility(View.VISIBLE);
+            if (btnInfoPanelDetails != null) {
+                btnInfoPanelDetails.setVisibility(View.VISIBLE);
+            }
+            tvInfoPanelMagnitude.setText(String.format("%.2f", star.getMagnitude()));
+            tvInfoPanelRA.setText(formatRA(star.getRa()));
+            tvInfoPanelDec.setText(formatDec(star.getDec()));
+        }
 
         infoPanel.setVisibility(View.VISIBLE);
     }
@@ -2177,8 +2246,6 @@ public class SkyMapActivity extends AppCompatActivity {
             startCameraPreview();
         }
 
-        // Start checking for objects in reticle
-        startReticleChecking();
     }
 
     /**
@@ -2204,8 +2271,6 @@ public class SkyMapActivity extends AppCompatActivity {
             locationController.stop();
         }
 
-        // Stop checking for objects in reticle
-        stopReticleChecking();
 
         // Stop camera
         if (cameraManager != null) {
@@ -2223,3 +2288,5 @@ public class SkyMapActivity extends AppCompatActivity {
         }
     }
 }
+
+

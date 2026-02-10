@@ -47,6 +47,7 @@ public class SettingsViewModel extends AndroidViewModel {
     public static final String KEY_FIELD_OF_VIEW = "field_of_view";
     public static final String KEY_CONSTELLATION_LINE_COLOR = "constellation_line_color";
     public static final String KEY_USE_MAGNETIC_CORRECTION = "use_magnetic_correction";
+    public static final String KEY_ENABLE_MANUAL_SCROLL = "enable_manual_scroll";
 
     // Default values
     private static final float DEFAULT_STAR_BRIGHTNESS = 1.0f;
@@ -62,6 +63,7 @@ public class SettingsViewModel extends AndroidViewModel {
     private static final float DEFAULT_FIELD_OF_VIEW = 45f;
     private static final int DEFAULT_CONSTELLATION_LINE_COLOR = 0x40FFFFFF;
     private static final boolean DEFAULT_USE_MAGNETIC_CORRECTION = true;
+    private static final boolean DEFAULT_ENABLE_MANUAL_SCROLL = false;
 
     // ==================== LiveData Fields ====================
 
@@ -103,6 +105,9 @@ public class SettingsViewModel extends AndroidViewModel {
 
     /** Use magnetic declination correction */
     private final MutableLiveData<Boolean> useMagneticCorrectionLiveData = new MutableLiveData<>();
+
+    /** Enable manual scroll mode (drag to pan sky) */
+    private final MutableLiveData<Boolean> enableManualScrollLiveData = new MutableLiveData<>();
 
     /** Settings changed flag for notifying other components */
     private final MutableLiveData<Boolean> settingsChangedLiveData = new MutableLiveData<>(false);
@@ -154,6 +159,8 @@ public class SettingsViewModel extends AndroidViewModel {
                 sharedPreferences.getInt(KEY_CONSTELLATION_LINE_COLOR, DEFAULT_CONSTELLATION_LINE_COLOR));
         useMagneticCorrectionLiveData.setValue(
                 sharedPreferences.getBoolean(KEY_USE_MAGNETIC_CORRECTION, DEFAULT_USE_MAGNETIC_CORRECTION));
+        enableManualScrollLiveData.setValue(
+                sharedPreferences.getBoolean(KEY_ENABLE_MANUAL_SCROLL, DEFAULT_ENABLE_MANUAL_SCROLL));
 
         Log.d(TAG, "Settings loaded from SharedPreferences");
     }
@@ -312,6 +319,16 @@ public class SettingsViewModel extends AndroidViewModel {
     @NonNull
     public LiveData<Boolean> getUseMagneticCorrection() {
         return useMagneticCorrectionLiveData;
+    }
+
+    /**
+     * Returns the LiveData for manual scroll mode.
+     *
+     * @return LiveData containing true if manual scroll is enabled
+     */
+    @NonNull
+    public LiveData<Boolean> getEnableManualScroll() {
+        return enableManualScrollLiveData;
     }
 
     /**
@@ -480,6 +497,17 @@ public class SettingsViewModel extends AndroidViewModel {
         useMagneticCorrectionLiveData.setValue(use);
         saveBoolean(KEY_USE_MAGNETIC_CORRECTION, use);
         Log.d(TAG, "Use magnetic correction set to: " + use);
+    }
+
+    /**
+     * Sets whether manual scroll mode is enabled.
+     *
+     * @param enabled true to enable drag-to-pan, false to use sensor-only
+     */
+    public void setEnableManualScroll(boolean enabled) {
+        enableManualScrollLiveData.setValue(enabled);
+        saveBoolean(KEY_ENABLE_MANUAL_SCROLL, enabled);
+        Log.d(TAG, "Manual scroll mode set to: " + enabled);
     }
 
     // ==================== Apply Settings to Components ====================

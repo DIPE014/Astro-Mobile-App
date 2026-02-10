@@ -138,6 +138,8 @@
     <string name="settings_star_labels_summary">Show names on bright stars</string>
     <string name="settings_magnitude_limit">Magnitude Limit</string>
     <string name="settings_magnitude_limit_summary">Show stars up to magnitude %1$s</string>
+    <string name="settings_manual_scroll">Manual Scroll Mode</string>
+    <string name="settings_manual_scroll_summary">Drag to pan the sky map smoothly</string>
     <string name="settings_location_auto">Auto-detect Location</string>
     <string name="settings_location_auto_summary">Use GPS to determine your location</string>
     <string name="settings_location_manual">Set Location Manually</string>
@@ -285,6 +287,20 @@
     <string name="cd_select_button">Select objects in reticle</string>
     <string name="cd_reticle">Selection reticle</string>
     <string name="object_highlighted">%1$s highlighted</string>
+    <string name="star_belongs_constellation">Star in %1$s</string>
+
+    <!-- DSO Layer -->
+    <string name="show_dso">Deep Sky</string>
+    <string name="cd_dso_toggle">Toggle deep sky objects</string>
+
+    <!-- Tonight\'s Highlights -->
+    <string name="tonights_sky">Tonight\'s Sky</string>
+    <string name="tonights_planets">Planets</string>
+    <string name="tonights_bright_stars">Bright Stars</string>
+    <string name="tonights_constellations">Constellations</string>
+    <string name="tonights_deep_sky">Deep Sky</string>
+    <string name="tonights_no_objects">No objects visible right now</string>
+    <string name="tonights_altitude">Alt %1$.0f\u00b0</string>
 
     <!-- Empty States -->
     <string name="empty_favorites">No favorites yet</string>
@@ -292,3 +308,5 @@
     <string name="empty_search">Start searching</string>
     <string name="empty_search_description">Search for stars, planets, constellations, and more.</string>
 </resources>
+
+

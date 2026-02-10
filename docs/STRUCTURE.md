@@ -33,6 +33,10 @@ com/astro/app/
 │   ├── starinfo/               # Star detail screen
 │   │   ├── StarInfoActivity.java
 │   │   └── StarInfoViewModel.java
+│   ├── education/              # Educational content detail
+│   │   └── EducationDetailActivity.java
+│   ├── highlights/             # Tonight's sky
+│   │   └── TonightsHighlightsFragment.java
 │   ├── settings/               # Settings screen
 │   │   ├── SettingsActivity.java
 │   │   └── SettingsViewModel.java
@@ -53,6 +57,8 @@ com/astro/app/
 │   │       ├── Universe.kt
 │   │       ├── SolarSystemObject.kt
 │   │       └── Moon.kt
+│   ├── highlights/             # Tonight's sky computation
+│   │   └── TonightsHighlights.java
 │   ├── math/                   # Math utilities
 │   │   ├── Vector3.kt
 │   │   ├── Matrix3x3.kt
@@ -79,12 +85,16 @@ com/astro/app/
 │   ├── model/                  # Data models
 │   │   ├── StarData.java
 │   │   ├── ConstellationData.java
+│   │   ├── MessierObjectData.java
 │   │   └── GeocentricCoords.java
 │   ├── repository/             # Data access
 │   │   ├── StarRepository.java
 │   │   ├── StarRepositoryImpl.java
 │   │   ├── ConstellationRepository.java
-│   │   └── ConstellationRepositoryImpl.java
+│   │   ├── ConstellationRepositoryImpl.java
+│   │   ├── MessierRepository.java
+│   │   ├── MessierRepositoryImpl.java
+│   │   └── EducationRepository.java
 │   └── parser/                 # Data parsing
 │       ├── ProtobufParser.java
 │       └── AssetDataSource.java
@@ -117,9 +127,17 @@ res/
 
 ```
 assets/
-├── stars.binary            # Hipparcos star catalog
-├── constellations.binary   # Constellation data
-└── messier.binary          # Deep sky objects
+├── stars.binary                            # Hipparcos star catalog
+├── constellations.binary                   # Constellation data
+├── messier.binary                          # Deep sky objects (Messier catalog)
+├── bound.json                              # IAU constellation boundaries
+├── bound_18.json                           # Simplified boundaries
+├── bound_edges_18.json                     # Boundary edges
+├── bound_in_18.json                        # Boundary interior points
+├── education_content.json                  # Constellation/planet education
+├── constellation_education_no_is_zodiac.json  # Constellation details
+├── constellations.json                     # Constellation metadata
+└── full_education_content_100.json         # 100 brightest stars education
 ```
 
 ## Tests (`app/src/test/`)

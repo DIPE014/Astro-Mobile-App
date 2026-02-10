@@ -64,6 +64,11 @@ The app uses matrix-based sensor transformation (matching stardroid's approach):
 | Sensors | `AstronomerModelImpl.java`, `SensorController.java` |
 | Star Data | `StarRepositoryImpl.java`, `ProtobufParser.java` |
 | Planets | `PlanetsLayer.java`, `Universe.kt`, `SolarSystemBody.kt` |
+| Deep Sky Objects | `MessierRepositoryImpl.java`, `MessierObjectData.java` |
+| Trajectories | `SkyCanvasView.java` (drawTrajectory, TrajectoryPoint) |
+| Tonight's Sky | `TonightsHighlights.java`, `TonightsHighlightsFragment.java` |
+| Education | `EducationRepository.java`, `EducationDetailActivity.java` |
+| Constellation ID | `ConstellationBoundaryResolver.java` (IAU boundaries) |
 | Search | `SearchActivity.java`, `SearchArrowView.java` |
 | Time Travel | `TimeTravelClock.java`, `TimeTravelDialogFragment.java` |
 
