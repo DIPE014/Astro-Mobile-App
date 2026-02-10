@@ -291,4 +291,11 @@
     <string name="empty_favorites_description">Tap the star icon on any celestial object to add it to your favorites.</string>
     <string name="empty_search">Start searching</string>
     <string name="empty_search_description">Search for stars, planets, constellations, and more.</string>
+
+    <!-- Image Stacking -->
+    <string name="image_stacking">Image Stacking</string>
+    <string name="capture_frame">Capture Frame</string>
+    <string name="finish">Finish</string>
+    <string name="processing_frame">Processing frame…</string>
+    <string name="cd_stacked_preview">Stacked image preview</string>
 </resources>
