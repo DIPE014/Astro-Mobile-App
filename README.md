@@ -2,6 +2,20 @@
 
 An Android augmented reality astronomy app that helps you explore the night sky. Point your phone at the sky and see stars, planets, and constellations overlaid on your camera view in real-time.
 
+## 📢 Latest Release - Week 5 UX Update (February 10, 2026)
+
+We've released a major update with enhanced sky map interactions and new features! 🎉
+
+**New Features:**
+- 🔍 **Pinch-to-Zoom** - Adjust field of view from 20° to 120°
+- 🎯 **Planet Trajectories** - Long-press planets to see their 60-day orbital path
+- ✨ **Deep Sky Objects** - Explore Messier catalog galaxies, clusters, and nebulae
+- 🌟 **Tonight's Highlights** - Quick view of visible objects right now
+- 📚 **Enhanced Education** - Detailed information for 100 brightest stars and all planets
+- 🎨 **Smart Selection UI** - Improved object selection with chips and bottom sheets
+
+See [RELEASE_NOTES.md](RELEASE_NOTES.md) for full details, bug fixes, and known limitations.
+
 ## Features
 
 ### Real-Time Sky View
