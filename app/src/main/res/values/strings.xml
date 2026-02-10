@@ -242,6 +242,7 @@
     <string name="cd_night_mode_toggle">Toggle night mode</string>
     <string name="cd_zoom_controls">Zoom controls</string>
     <string name="cd_ar_toggle">Toggle AR camera mode</string>
+    <string name="cd_stack_button">Stack multiple frames</string>
 
     <!-- Time and Date -->
     <string name="time_now">Now</string>

@@ -421,6 +421,21 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:rippleColor="@color/ripple_primary" />
 
+    <!-- Image Stacking FAB (layers icon, above detect) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabStack"
+        style="@style/Widget.AstroApp.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/fab_margin"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:contentDescription="@string/cd_stack_button"
+        android:src="@android:drawable/ic_menu_gallery"
+        app:fabSize="normal"
+        app:layout_constraintBottom_toTopOf="@id/fabDetect"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:rippleColor="@color/ripple_primary" />
+
     <!-- Star Detection FAB (camera icon, above search) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabDetect"

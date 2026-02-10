@@ -50,6 +50,7 @@ import com.astro.app.ui.education.EducationDetailActivity;
 import com.astro.app.ui.platesolve.PlateSolveActivity;
 import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
+import com.astro.app.ui.stacking.ImageStackingActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
 import com.astro.app.ui.starinfo.StarInfoActivity;
 import com.astro.app.search.SearchArrowView;
@@ -724,6 +725,15 @@ public class SkyMapActivity extends AppCompatActivity {
         if (fabDetect != null) {
             fabDetect.setOnClickListener(v -> {
                 Intent intent = new Intent(this, PlateSolveActivity.class);
+                startActivity(intent);
+            });
+        }
+
+        // Image Stacking FAB
+        View fabStack = findViewById(R.id.fabStack);
+        if (fabStack != null) {
+            fabStack.setOnClickListener(v -> {
+                Intent intent = new Intent(this, ImageStackingActivity.class);
                 startActivity(intent);
             });
         }
