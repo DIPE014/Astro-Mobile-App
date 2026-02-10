@@ -4,8 +4,11 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Size;
+import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -33,6 +36,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Activity for image stacking feature.
@@ -62,6 +66,7 @@ public class ImageStackingActivity extends AppCompatActivity {
     private ImageStackingManager stackingManager;
     private boolean sessionStarted = false;
     private int targetFrames = 10;  // Default target
+    private volatile boolean isDestroyed = false;
 
     // Permission
     private final ActivityResultLauncher<String> cameraPermissionLauncher =
@@ -147,6 +152,8 @@ public class ImageStackingActivity extends AppCompatActivity {
         // ImageCapture use case
         imageCapture = new ImageCapture.Builder()
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setTargetRotation(Surface.ROTATION_0)
+                .setTargetResolution(new Size(1920, 1440))  // Fixed resolution to prevent mismatches
                 .build();
 
         // Bind to lifecycle
@@ -175,7 +182,7 @@ public class ImageStackingActivity extends AppCompatActivity {
     }
 
     private void captureFrame() {
-        if (imageCapture == null) return;
+        if (imageCapture == null || isDestroyed) return;
 
         // Show processing
         showLoading(true);
@@ -309,18 +316,44 @@ public class ImageStackingActivity extends AppCompatActivity {
     }
 
     private Bitmap imageProxyToBitmap(ImageProxy image) {
-        ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
-        return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        try {
+            // With JPEG output format configured above, this works correctly
+            ImageProxy.PlaneProxy[] planes = image.getPlanes();
+            ByteBuffer buffer = planes[0].getBuffer();
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+
+            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            if (bitmap == null) {
+                Log.e(TAG, "Failed to decode ImageProxy to Bitmap");
+            }
+            return bitmap;
+        } catch (Exception e) {
+            Log.e(TAG, "Error converting ImageProxy to Bitmap", e);
+            return null;
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        isDestroyed = true;
+
+        // Shutdown camera executor and wait for pending tasks
         if (cameraExecutor != null) {
-            cameraExecutor.shutdown();
+            cameraExecutor.shutdownNow();  // Interrupt running tasks
+            try {
+                // Wait up to 2 seconds for tasks to complete
+                if (!cameraExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+                    Log.w(TAG, "Camera executor did not terminate in time");
+                }
+            } catch (InterruptedException e) {
+                Log.w(TAG, "Interrupted while waiting for executor shutdown", e);
+                Thread.currentThread().interrupt();  // Restore interrupted status
+            }
         }
+
+        // Now safe to release native resources
         if (stackingManager != null) {
             stackingManager.release();
         }

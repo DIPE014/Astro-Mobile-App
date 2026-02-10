@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "astrometry/starxy.h"
 #include "astrometry/kdtree.h"
@@ -360,8 +361,6 @@ static int ransac_affine(correspondence_t* corr, int num_corr, affine_t* best_af
         return 0;
     }
 
-    srand(time(NULL));
-
     int best_inliers = 0;
     double best_rms = 1e9;
     affine_t best;
@@ -503,6 +502,10 @@ Java_com_astro_app_native_1_StackingNative_initStackingNative(
         LOGE("Failed to allocate context");
         return 0;
     }
+
+    // Initialize random seed once per session (combines timestamp + process ID)
+    srand((unsigned int)time(NULL) ^ (unsigned int)getpid());
+    LOGI("Initialized random seed for stacking session");
 
     ctx->width = width;
     ctx->height = height;
