@@ -1,0 +1,4 @@
+test_solverutils.o: test_solverutils.c ../util/cutest.h \
+ ../include/astrometry/solverutils.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/bl.h

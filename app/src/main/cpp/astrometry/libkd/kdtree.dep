@@ -1,0 +1,9 @@
+kdtree.o: kdtree.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/kdtree.h kdtree_internal.h \
+ ../include/astrometry/kdtree.h kdtree_internal_common.h kdtree_mem.h \
+ ../include/astrometry/keywords.h an-fls.h ../include/astrometry/errors.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/bl.h \
+ ../include/astrometry/keywords.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/log.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h

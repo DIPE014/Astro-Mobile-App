@@ -1,0 +1,6 @@
+dselip.o: dselip.c ../include/astrometry/permutedsort.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h

@@ -1,0 +1,7 @@
+test_anwcs.o: test_anwcs.c cutest.h ../include/astrometry/anwcs.h \
+ ../include/astrometry/sip.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/qfits_header.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph ../include/astrometry/sip.h \
+ ../include/astrometry/sip_qfits.h ../include/astrometry/errors.h \
+ ../include/astrometry/ioutils.h ../include/astrometry/log.h

@@ -461,6 +461,38 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:rippleColor="@color/ripple_primary" />
 
+    <!-- Star Detection FAB (camera icon, above search) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabDetect"
+        style="@style/Widget.AstroApp.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/fab_margin"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:contentDescription="Detect constellations from photo"
+        android:src="@android:drawable/ic_menu_camera"
+        app:fabSize="normal"
+        app:layout_constraintBottom_toTopOf="@id/fabSearch"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:rippleColor="@color/ripple_primary" />
+
+    <!-- Select FAB (appears when objects are in reticle) -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabSelect"
+        style="@style/Widget.AstroApp.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:contentDescription="@string/cd_select_button"
+        android:text="@string/select"
+        android:visibility="gone"
+        app:icon="@android:drawable/ic_menu_view"
+        app:layout_constraintBottom_toTopOf="@id/bottomControls"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:rippleColor="@color/ripple_primary"
+        tools:visibility="visible" />
+
     <!-- GPS Status Indicator -->
     <LinearLayout
         android:id="@+id/gpsIndicator"

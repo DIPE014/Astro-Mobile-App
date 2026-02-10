@@ -1,0 +1,8 @@
+get-healpix.o: get-healpix.c ../include/astrometry/os-features.h \
+ ../include/astrometry/os-features-config.h \
+ ../include/astrometry/healpix.h ../include/astrometry/keywords.h \
+ ../include/astrometry/healpix-utils.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/starutil.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/mathutil.h ../include/astrometry/bl.h \
+ ../include/astrometry/bl.h

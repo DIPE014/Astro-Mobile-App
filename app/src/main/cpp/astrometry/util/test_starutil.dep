@@ -1,0 +1,3 @@
+test_starutil.o: test_starutil.c ../include/astrometry/starutil.h \
+ ../include/astrometry/an-bool.h ../include/astrometry/keywords.h \
+ cutest.h

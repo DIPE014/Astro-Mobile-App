@@ -1,0 +1,7 @@
+dualtree_rangesearch.o: dualtree_rangesearch.c \
+ ../include/astrometry/dualtree_rangesearch.h \
+ ../include/astrometry/kdtree.h ../include/astrometry/dualtree.h \
+ ../include/astrometry/starutil.h ../include/astrometry/an-bool.h \
+ ../include/astrometry/keywords.h ../include/astrometry/mathutil.h \
+ ../include/astrometry/bl.h ../include/astrometry/bl-nl.h \
+ ../include/astrometry/bl-nl.ph

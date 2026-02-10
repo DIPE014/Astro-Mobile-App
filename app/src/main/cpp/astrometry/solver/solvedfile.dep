@@ -1,0 +1,4 @@
+solvedfile.o: solvedfile.c ../include/astrometry/solvedfile.h \
+ ../include/astrometry/bl.h ../include/astrometry/keywords.h \
+ ../include/astrometry/bl-nl.h ../include/astrometry/bl-nl.ph \
+ ../include/astrometry/an-bool.h ../include/astrometry/errors.h

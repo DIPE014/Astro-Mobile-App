@@ -1,0 +1,2 @@
+test_dfind.o: test_dfind.c ../include/astrometry/dimage.h cutest.h \
+ ../include/astrometry/simplexy-common.h
