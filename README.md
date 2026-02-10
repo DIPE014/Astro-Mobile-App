@@ -28,11 +28,28 @@ Point your camera at the sky to see celestial objects rendered in augmented real
 - See how the sky looked on your birthday
 - Plan observations for upcoming celestial events
 
+### Gestures & Interaction
+- **Pinch-to-zoom** - Adjust field of view (20° to 120°)
+- **Manual pan** - Drag to override sensor tracking, double-tap to reset
+- **Long-press planet** - View 60-day orbital trajectory with time labels
+- **Smart selection** - Reticle-based selection with chips (2-4 objects) or bottom sheet (5+)
+
+### Deep Sky Objects
+- **Messier catalog** - Galaxies, star clusters, and nebulae rendered on the sky map
+- Shape-coded icons: diamonds (galaxies), squares (clusters), glowing circles (nebulae)
+- Toggle visibility from the bottom control bar
+
+### Tonight's Highlights
+- One-tap view of what's visible right now from your location
+- Shows planets, bright stars, constellations, and deep sky objects above the horizon
+- Tap any highlight to navigate the sky map to that object
+
 ### Additional Features
 - **Night Mode** - Red theme to preserve dark adaptation
 - **Coordinate Grid** - Alt/Az grid overlay for reference
 - **GPS Tracking** - Automatic location updates for accurate sky positioning
-- **Star Info** - Tap any star to see detailed information
+- **Star Info** - Tap any star to see detailed information including parent constellation
+- **Educational Content** - Detailed info for 100 brightest stars, all constellations, and planets
 
 ## Screenshots
 
@@ -64,7 +81,10 @@ git clone https://github.com/DIPE014/Astro-Mobile-App.git
 2. **Point at the Sky** - Hold your phone up toward the sky
 3. **Explore** - Move your phone around to discover stars and constellations
 4. **Search** - Tap the search icon to find specific objects
-5. **Toggle Layers** - Use the toolbar to show/hide constellations, planets, and grid
+5. **Toggle Layers** - Use the bottom bar to show/hide constellations, planets, grid, and deep sky objects
+6. **Zoom** - Pinch to zoom in or out on the sky
+7. **Trajectories** - Long-press a planet to see its path over the next 60 days
+8. **Tonight's Sky** - Tap the calendar icon to see what's visible tonight
 
 ## Tech Stack
 
