@@ -319,10 +319,21 @@ public class SkyCanvasView extends View {
         gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                if (!manualScrollEnabled) return false;
+                Log.d(TAG, "onScroll called: manualScrollEnabled=" + manualScrollEnabled + ", distanceX=" + distanceX + ", distanceY=" + distanceY);
+                if (!manualScrollEnabled) {
+                    Log.d(TAG, "onScroll rejected: manual scroll not enabled");
+                    return false;
+                }
+
+                // Null check for MotionEvents (can be null in some edge cases)
+                if (e2 == null) {
+                    Log.w(TAG, "onScroll: e2 is null, ignoring");
+                    return false;
+                }
 
                 // Enter manual mode on first scroll
                 if (!isManualMode) {
+                    Log.d(TAG, "onScroll: entering manual mode");
                     enterManualMode();
                 }
 
