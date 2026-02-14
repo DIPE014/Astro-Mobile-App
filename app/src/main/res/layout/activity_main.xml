@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
-    tools:context=".ui.MainActivity">
+    tools:context=".MainActivity">
 
     <!-- Settings Icon Button - Top Right -->
     <com.google.android.material.button.MaterialButton

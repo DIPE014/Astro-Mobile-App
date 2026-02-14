@@ -94,4 +94,16 @@
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         android:padding="12dp" />
 
+    <!-- Info/tips button top-right -->
+    <ImageButton
+        android:id="@+id/btnInfo"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Photo tips"
+        android:src="@android:drawable/ic_menu_info_details"
+        android:padding="12dp" />
+
 </FrameLayout>

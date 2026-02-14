@@ -139,7 +139,7 @@
     <string name="settings_magnitude_limit">Magnitude Limit</string>
     <string name="settings_magnitude_limit_summary">Show stars up to magnitude %1$s</string>
     <string name="settings_manual_scroll">Manual Scroll Mode</string>
-    <string name="settings_manual_scroll_summary">Drag to pan the sky map smoothly</string>
+    <string name="settings_manual_scroll_summary">Enable drag mode — disables sensor tracking. Drag to pan, pinch to zoom.</string>
     <string name="settings_location_auto">Auto-detect Location</string>
     <string name="settings_location_auto_summary">Use GPS to determine your location</string>
     <string name="settings_location_manual">Set Location Manually</string>
@@ -307,6 +307,41 @@
     <string name="empty_favorites_description">Tap the star icon on any celestial object to add it to your favorites.</string>
     <string name="empty_search">Start searching</string>
     <string name="empty_search_description">Search for stars, planets, constellations, and more.</string>
+
+    <!-- Plate Solve Tips -->
+    <string name="plate_solve_tips_title">Tips for Best Results</string>
+    <string name="plate_solve_tip_dark_sky_title">Find a clear, dark sky</string>
+    <string name="plate_solve_tip_dark_sky_desc">Go to an area away from city lights. The darker the sky, the better the detection results.</string>
+    <string name="plate_solve_tip_obstructions_title">Minimize obstructions</string>
+    <string name="plate_solve_tip_obstructions_desc">Try to avoid trees, buildings, or mountains in your photo. Aim for as much open sky as possible.</string>
+    <string name="plate_solve_tip_visible_stars_title">Stars visible to naked eye</string>
+    <string name="plate_solve_tip_visible_stars_desc">Make sure you can see at least a few bright stars with your bare eyes before taking the photo.</string>
+    <string name="plate_solve_tip_steady_title">Hold your phone steady</string>
+    <string name="plate_solve_tip_steady_desc">Keep your phone as still as possible to avoid blurry stars. Lean against something for stability.</string>
+    <string name="plate_solve_tip_bright_lights_title">Avoid bright lights</string>
+    <string name="plate_solve_tip_bright_lights_desc">Streetlights, the moon, or other bright lights in the frame can wash out faint stars.</string>
+    <string name="plate_solve_tips_dont_show_again">Don\'t show again</string>
+    <string name="plate_solve_tips_got_it">Got it</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_done">Done</string>
+    <string name="onboarding_welcome_title">sEEEstar</string>
+    <string name="onboarding_welcome_description">Your personal guide to the night sky</string>
+    <string name="onboarding_sky_map_title">Sky Map</string>
+    <string name="onboarding_sky_map_description">Point your device at the sky to see stars, constellations, and planets in real time</string>
+    <string name="onboarding_controls_title">Controls</string>
+    <string name="onboarding_controls_description">Toggle constellations, grid, planets, deep sky objects, and time travel from the bottom bar</string>
+    <string name="onboarding_star_detection_title">Star Detection</string>
+    <string name="onboarding_star_detection_description">Take a photo of the night sky and we\'ll identify the constellations for you</string>
+    <string name="onboarding_drag_zoom_title">Drag &amp; Zoom</string>
+    <string name="onboarding_drag_zoom_description">Pinch to zoom in/out. Enable drag mode in Settings to manually pan the sky</string>
+    <string name="onboarding_search_title">Search</string>
+    <string name="onboarding_search_description">Search for any star, constellation, or planet and follow the arrow to find it</string>
+    <string name="settings_replay_tutorial">Replay Tutorial</string>
+    <string name="settings_replay_tutorial_summary">Watch the app introduction again</string>
+    <string name="settings_replay_tutorial_toast">Tutorial will show on next app launch</string>
 </resources>
 
 
