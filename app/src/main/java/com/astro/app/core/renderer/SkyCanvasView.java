@@ -297,9 +297,6 @@ public class SkyCanvasView extends View {
             public boolean onScaleBegin(ScaleGestureDetector detector) {
                 isPinching = true;
                 suppressNextTapAfterPinch = true;
-                if (isManualMode) {
-                    exitManualMode();
-                }
                 return true;
             }
             @Override
@@ -319,9 +316,9 @@ public class SkyCanvasView extends View {
         gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                Log.d(TAG, "onScroll called: manualScrollEnabled=" + manualScrollEnabled + ", distanceX=" + distanceX + ", distanceY=" + distanceY);
-                if (!manualScrollEnabled) {
-                    Log.d(TAG, "onScroll rejected: manual scroll not enabled");
+                Log.d(TAG, "onScroll called: manualScrollEnabled=" + manualScrollEnabled + ", isManualMode=" + isManualMode + ", distanceX=" + distanceX + ", distanceY=" + distanceY);
+                if (!manualScrollEnabled || !isManualMode) {
+                    Log.d(TAG, "onScroll rejected: manual scroll not enabled or not in manual mode");
                     return false;
                 }
 
@@ -329,12 +326,6 @@ public class SkyCanvasView extends View {
                 if (e2 == null) {
                     Log.w(TAG, "onScroll: e2 is null, ignoring");
                     return false;
-                }
-
-                // Enter manual mode on first scroll
-                if (!isManualMode) {
-                    Log.d(TAG, "onScroll: entering manual mode");
-                    enterManualMode();
                 }
 
                 isCurrentlyScrolling = true;
@@ -364,15 +355,10 @@ public class SkyCanvasView extends View {
                 return false;
             }
 
-            // Improvement: Double-tap to reset manual mode
             @Override
             public boolean onDoubleTap(MotionEvent e) {
                 suppressNextTapAfterDoubleTap = true;
                 lastDoubleTapTimeMs = SystemClock.uptimeMillis();
-                if (isManualMode) {
-                    exitManualMode();
-                    return true;
-                }
                 return false;
             }
         });
@@ -389,7 +375,6 @@ public class SkyCanvasView extends View {
 
     public void exitManualMode() {
         isManualMode = false;
-        fieldOfView = 90f;
         if (manualModeListener != null) manualModeListener.onManualModeChanged(false);
         invalidate();
     }
@@ -2002,6 +1987,11 @@ public class SkyCanvasView extends View {
      */
     public void setManualScrollEnabled(boolean enabled) {
         this.manualScrollEnabled = enabled;
+        if (enabled) {
+            enterManualMode();
+        } else {
+            exitManualMode();
+        }
         Log.d(TAG, "Manual scroll mode " + (enabled ? "enabled" : "disabled"));
     }
 
