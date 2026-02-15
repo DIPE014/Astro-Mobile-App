@@ -10,7 +10,6 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.GestureDetector;
@@ -71,7 +70,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import android.widget.LinearLayout;
 
 import javax.inject.Inject;
 
@@ -201,8 +199,6 @@ public class SkyMapActivity extends AppCompatActivity {
     @Nullable
     private StarData selectedStar;
 
-    // Manual mode indicator
-    private View manualModeIndicator;
 
     // GPS state
     private boolean isGpsEnabled = false;
@@ -625,23 +621,10 @@ public class SkyMapActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT));
         skyCanvasView.setEnabled(true);
         skyCanvasView.setOnManualModeListener(isManual -> {
-            if (btnArToggle != null) {
-                btnArToggle.setIconTint(ColorStateList.valueOf(
-                        ContextCompat.getColor(this, isManual ? R.color.icon_primary : R.color.icon_inactive)));
-            }
             if (isManual) {
-                // Pause sensor updates to prevent drift during manual mode
-                if (sensorController != null) {
-                    sensorController.pause();
-                }
-                // Show a reset hint at the top of the screen
-                showManualModeIndicator();
+                if (sensorController != null) sensorController.pause();
             } else {
-                // Resume sensor updates when returning to sensor mode
-                if (sensorController != null) {
-                    sensorController.resume();
-                }
-                hideManualModeIndicator();
+                if (sensorController != null) sensorController.resume();
             }
         });
         skyCanvasView.setOnSkyTapListener((x, y) -> {
@@ -783,14 +766,7 @@ public class SkyMapActivity extends AppCompatActivity {
 
         // AR toggle button
         if (btnArToggle != null) {
-            btnArToggle.setOnClickListener(v -> {
-                if (skyCanvasView != null && skyCanvasView.isManualMode()) {
-                    skyCanvasView.exitManualMode();
-                    updateARToggleButton();
-                } else {
-                    toggleARMode();
-                }
-            });
+            btnArToggle.setOnClickListener(v -> toggleARMode());
         }
 
         // Settings button
@@ -1019,6 +995,9 @@ public class SkyMapActivity extends AppCompatActivity {
         cameraPreviewContainer.setVisibility(View.GONE);
 
         showLoading(false);
+
+        // Show tooltip tutorial if first time
+        showTooltipTutorialIfNeeded();
     }
 
     /**
@@ -1245,11 +1224,7 @@ public class SkyMapActivity extends AppCompatActivity {
      */
     private void updateARToggleButton() {
         if (btnArToggle != null) {
-            boolean isManual = skyCanvasView != null && skyCanvasView.isManualMode();
-            if (isManual) {
-                btnArToggle.setIconResource(android.R.drawable.ic_menu_compass);
-                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
-            } else if (isARModeEnabled) {
+            if (isARModeEnabled) {
                 btnArToggle.setIconResource(android.R.drawable.ic_menu_camera);
                 btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
             } else {
@@ -1257,61 +1232,6 @@ public class SkyMapActivity extends AppCompatActivity {
                 btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_inactive));
             }
         }
-    }
-
-    /**
-     * Shows a semi-transparent banner at the top indicating manual mode is active.
-     * Tapping the banner resets to sensor-driven mode.
-     */
-    private void showManualModeIndicator() {
-        if (manualModeIndicator != null && manualModeIndicator.getParent() != null) return;
-
-        // Create a small indicator bar at top
-        LinearLayout indicator = new LinearLayout(this);
-        indicator.setOrientation(LinearLayout.HORIZONTAL);
-        indicator.setGravity(android.view.Gravity.CENTER);
-        indicator.setBackgroundColor(Color.argb(180, 30, 30, 60));
-        indicator.setPadding(16, 8, 16, 8);
-        indicator.setTag("manual_mode_indicator");
-
-        TextView text = new TextView(this);
-        text.setText("Manual Mode \u2014 Tap to reset");
-        text.setTextColor(Color.WHITE);
-        text.setTextSize(13);
-        indicator.addView(text);
-
-        // Make the whole bar clickable to reset
-        indicator.setOnClickListener(v -> {
-            if (skyCanvasView != null) {
-                skyCanvasView.exitManualMode();
-                updateARToggleButton();
-            }
-        });
-
-        // Add to root layout at the top, below the top controls
-        androidx.constraintlayout.widget.ConstraintLayout rootLayout =
-                (androidx.constraintlayout.widget.ConstraintLayout) skyOverlayContainer.getParent();
-        if (rootLayout != null) {
-            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams params =
-                    new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
-                            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
-                            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTENT);
-            params.topToBottom = R.id.topControls;  // Position below top controls
-            indicator.setLayoutParams(params);
-            rootLayout.addView(indicator);
-        }
-
-        manualModeIndicator = indicator;
-    }
-
-    /**
-     * Hides the manual mode indicator banner.
-     */
-    private void hideManualModeIndicator() {
-        if (manualModeIndicator != null && manualModeIndicator.getParent() != null) {
-            ((ViewGroup) manualModeIndicator.getParent()).removeView(manualModeIndicator);
-        }
-        manualModeIndicator = null;
     }
 
     /**
@@ -2255,6 +2175,17 @@ public class SkyMapActivity extends AppCompatActivity {
             sensorController.start();
         }
 
+        // Re-read manual scroll preference (may have changed in SettingsActivity)
+        android.content.SharedPreferences prefs = getSharedPreferences(SettingsViewModel.PREFS_NAME, MODE_PRIVATE);
+        boolean manualScrollEnabled = prefs.getBoolean(SettingsViewModel.KEY_ENABLE_MANUAL_SCROLL, false);
+        if (skyCanvasView != null) {
+            skyCanvasView.setManualScrollEnabled(manualScrollEnabled);
+        }
+        // If manual mode is active, pause sensors (they were just started above)
+        if (manualScrollEnabled && sensorController != null) {
+            sensorController.pause();
+        }
+
         // Start GPS location updates if permission is granted
         if (locationController != null && hasLocationPermission()) {
             locationController.start();
@@ -2330,7 +2261,7 @@ public class SkyMapActivity extends AppCompatActivity {
             // Tooltip 2: Drag to explore (center)
             tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                 null,
-                "Drag with your finger to manually explore the sky. The view will freeze while you drag.",
+                "Enable Manual Scroll in Settings to freely explore the sky by dragging. Pinch to zoom in/out.",
                 com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
                 false
             ));

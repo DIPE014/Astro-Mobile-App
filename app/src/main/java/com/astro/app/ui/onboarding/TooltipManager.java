@@ -92,6 +92,7 @@ public class TooltipManager {
      */
     public void start() {
         if (tooltips.isEmpty()) {
+            // No tooltips added (views not ready?) — don't mark as completed
             return;
         }
 
@@ -179,7 +180,15 @@ public class TooltipManager {
         textParams.topMargin = (int) bubbleRect.top;
 
         currentTooltipView.addView(messageText, textParams);
-        currentTooltipView.addView(buttonContainer, buttonContainerParams);
+
+        // Position buttons inside the bubble (not at screen bottom)
+        FrameLayout.LayoutParams bubbleButtonParams = new FrameLayout.LayoutParams(
+            (int) bubbleRect.width(),
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        bubbleButtonParams.leftMargin = (int) bubbleRect.left;
+        bubbleButtonParams.topMargin = (int) bubbleRect.bottom - dpToPx(48);
+        currentTooltipView.addView(buttonContainer, bubbleButtonParams);
 
         // Add to activity root
         ViewGroup rootView = (ViewGroup) activity.findViewById(android.R.id.content);

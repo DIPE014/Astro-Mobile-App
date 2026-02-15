@@ -528,7 +528,7 @@ public class SkyCanvasView extends View {
      * @return Current view RA in degrees (0-360)
      */
     public float getViewRa() {
-        double[] raDec = altAzToRaDec(altitudeOffset, azimuthOffset);
+        double[] raDec = altAzToRaDec(getViewAltitude(), getViewAzimuth());
         return (float) raDec[0];
     }
 
@@ -538,7 +538,7 @@ public class SkyCanvasView extends View {
      * @return Current view Dec in degrees (-90 to +90)
      */
     public float getViewDec() {
-        double[] raDec = altAzToRaDec(altitudeOffset, azimuthOffset);
+        double[] raDec = altAzToRaDec(getViewAltitude(), getViewAzimuth());
         return (float) raDec[1];
     }
 
@@ -614,7 +614,7 @@ public class SkyCanvasView extends View {
      * @return Azimuth in degrees (0 = North)
      */
     public float getViewAzimuth() {
-        return azimuthOffset;
+        return isManualMode ? manualAzimuth : azimuthOffset;
     }
 
     /**
@@ -623,7 +623,7 @@ public class SkyCanvasView extends View {
      * @return Altitude in degrees (0 = horizon, 90 = zenith)
      */
     public float getViewAltitude() {
-        return altitudeOffset;
+        return isManualMode ? manualAltitude : altitudeOffset;
     }
 
     /**
@@ -982,7 +982,7 @@ public class SkyCanvasView extends View {
 
             // Use proper spherical projection
             float[] screenPos = projectToScreen(starAlt, starAz,
-                    altitudeOffset, azimuthOffset,
+                    getViewAltitude(), getViewAzimuth(),
                     centerX, centerY, pixelsPerDegree);
 
             // Skip if not visible (behind us)
@@ -1182,7 +1182,7 @@ public class SkyCanvasView extends View {
         for (MessierObjectData dso : dsoData) {
             double[] altAz = raDecToAltAz(dso.getRa(), dso.getDec(), lst);
             float[] screenPos = projectToScreen(altAz[0], altAz[1],
-                    altitudeOffset, azimuthOffset, centerX, centerY, pixelsPerDegree);
+                    getViewAltitude(), getViewAzimuth(), centerX, centerY, pixelsPerDegree);
 
             if (screenPos[2] < 0.5f) continue;
 
@@ -1258,7 +1258,7 @@ public class SkyCanvasView extends View {
 
             // Use proper spherical projection
             float[] screenPos = projectToScreen(planetAlt, planetAz,
-                    altitudeOffset, azimuthOffset,
+                    getViewAltitude(), getViewAzimuth(),
                     centerX, centerY, pixelsPerDegree);
 
             // Skip if not visible (behind us)
@@ -1341,7 +1341,7 @@ public class SkyCanvasView extends View {
             TrajectoryPoint pt = trajectoryPoints.get(i);
             double[] altAz = raDecToAltAz(pt.ra, pt.dec, lst);
             float[] screenPos = projectToScreen(altAz[0], altAz[1],
-                    altitudeOffset, azimuthOffset, centerX, centerY, pixelsPerDegree);
+                    getViewAltitude(), getViewAzimuth(), centerX, centerY, pixelsPerDegree);
 
             if (screenPos[2] > 0.5f) {
                 float x = screenPos[0];
@@ -1381,7 +1381,7 @@ public class SkyCanvasView extends View {
             TrajectoryPoint current = trajectoryPoints.get(trajectoryCurrentIndex);
             double[] altAz = raDecToAltAz(current.ra, current.dec, lst);
             float[] screenPos = projectToScreen(altAz[0], altAz[1],
-                    altitudeOffset, azimuthOffset, centerX, centerY, pixelsPerDegree);
+                    getViewAltitude(), getViewAzimuth(), centerX, centerY, pixelsPerDegree);
 
             if (screenPos[2] > 0.5f) {
                 float x = screenPos[0];
@@ -1453,7 +1453,7 @@ public class SkyCanvasView extends View {
         double planetAz = altAz[1];
 
         float[] screenPos = projectToScreen(planetAlt, planetAz,
-                altitudeOffset, azimuthOffset,
+                getViewAltitude(), getViewAzimuth(),
                 centerX, centerY, pixelsPerDegree);
 
         if (screenPos[2] < 0.5f) {
@@ -1561,7 +1561,7 @@ public class SkyCanvasView extends View {
 
                 // Use proper spherical projection
                 float[] screenPos = projectToScreen(starAlt, starAz,
-                        altitudeOffset, azimuthOffset,
+                        getViewAltitude(), getViewAzimuth(),
                         centerX, centerY, pixelsPerDegree);
 
                 // Store screen position, visibility flag, and azimuth
@@ -1583,10 +1583,10 @@ public class SkyCanvasView extends View {
 
                     // Project to screen
                     float[] startScreen = projectToScreen(startAltAz[0], startAltAz[1],
-                            altitudeOffset, azimuthOffset,
+                            getViewAltitude(), getViewAzimuth(),
                             centerX, centerY, pixelsPerDegree);
                     float[] endScreen = projectToScreen(endAltAz[0], endAltAz[1],
-                            altitudeOffset, azimuthOffset,
+                            getViewAltitude(), getViewAzimuth(),
                             centerX, centerY, pixelsPerDegree);
 
                     // Skip if either point is behind us
@@ -1655,7 +1655,7 @@ public class SkyCanvasView extends View {
 
                 // Use proper spherical projection for label position
                 float[] labelPos = projectToScreen(cAlt, cAz,
-                        altitudeOffset, azimuthOffset,
+                        getViewAltitude(), getViewAzimuth(),
                         centerX, centerY, pixelsPerDegree);
 
                 // Only draw if visible and on screen
@@ -1720,7 +1720,7 @@ public class SkyCanvasView extends View {
             // Draw altitude circle as a series of connected points
             float lastX = -1, lastY = -1;
             for (int az = 0; az <= 360; az += 5) {
-                float[] pos = projectToScreen(alt, az, altitudeOffset, azimuthOffset,
+                float[] pos = projectToScreen(alt, az, getViewAltitude(), getViewAzimuth(),
                         centerX, centerY, pixelsPerDegree);
                 if (pos[2] > 0.5f) {
                     float x = pos[0];
@@ -1740,7 +1740,7 @@ public class SkyCanvasView extends View {
             }
 
             // Draw altitude label at azimuth 0 (North) if visible
-            float[] labelPos = projectToScreen(alt, 0, altitudeOffset, azimuthOffset,
+            float[] labelPos = projectToScreen(alt, 0, getViewAltitude(), getViewAzimuth(),
                     centerX, centerY, pixelsPerDegree);
             if (labelPos[2] > 0.5f && labelPos[0] >= 0 && labelPos[0] <= width &&
                     labelPos[1] >= 0 && labelPos[1] <= height) {
@@ -1754,7 +1754,7 @@ public class SkyCanvasView extends View {
             // Draw azimuth line as a series of connected points from nadir to zenith
             float lastX = -1, lastY = -1;
             for (int alt = -90; alt <= 90; alt += 5) {
-                float[] pos = projectToScreen(alt, az, altitudeOffset, azimuthOffset,
+                float[] pos = projectToScreen(alt, az, getViewAltitude(), getViewAzimuth(),
                         centerX, centerY, pixelsPerDegree);
                 if (pos[2] > 0.5f) {
                     float x = pos[0];
@@ -1771,7 +1771,7 @@ public class SkyCanvasView extends View {
             }
 
             // Draw azimuth label at horizon level if visible
-            float[] labelPos = projectToScreen(5, az, altitudeOffset, azimuthOffset,
+            float[] labelPos = projectToScreen(5, az, getViewAltitude(), getViewAzimuth(),
                     centerX, centerY, pixelsPerDegree);
             if (labelPos[2] > 0.5f && labelPos[0] >= 0 && labelPos[0] <= width &&
                     labelPos[1] >= 0 && labelPos[1] <= height) {
@@ -1786,7 +1786,7 @@ public class SkyCanvasView extends View {
         }
 
         // Draw zenith marker if visible (altitude = +90°)
-        float[] zenithPos = projectToScreen(90, 0, altitudeOffset, azimuthOffset,
+        float[] zenithPos = projectToScreen(90, 0, getViewAltitude(), getViewAzimuth(),
                 centerX, centerY, pixelsPerDegree);
         if (zenithPos[2] > 0.5f && zenithPos[0] >= 0 && zenithPos[0] <= width &&
                 zenithPos[1] >= 0 && zenithPos[1] <= height) {
@@ -1799,7 +1799,7 @@ public class SkyCanvasView extends View {
         }
 
         // Draw nadir marker if visible (altitude = -90°, below horizon)
-        float[] nadirPos = projectToScreen(-90, 0, altitudeOffset, azimuthOffset,
+        float[] nadirPos = projectToScreen(-90, 0, getViewAltitude(), getViewAzimuth(),
                 centerX, centerY, pixelsPerDegree);
         if (nadirPos[2] > 0.5f && nadirPos[0] >= 0 && nadirPos[0] <= width &&
                 nadirPos[1] >= 0 && nadirPos[1] <= height) {
@@ -2159,7 +2159,7 @@ public class SkyCanvasView extends View {
 
             // Use proper spherical projection
             float[] screenPos = projectToScreen(starAlt, starAz,
-                    altitudeOffset, azimuthOffset,
+                    getViewAltitude(), getViewAzimuth(),
                     centerX, centerY, pixelsPerDegree);
 
             // Skip if not visible (behind us)
@@ -2199,7 +2199,7 @@ public class SkyCanvasView extends View {
 
                 // Use proper spherical projection
                 float[] screenPos = projectToScreen(planetAlt, planetAz,
-                        altitudeOffset, azimuthOffset,
+                        getViewAltitude(), getViewAzimuth(),
                         centerX, centerY, pixelsPerDegree);
 
                 // Skip if not visible (behind us)
@@ -2239,7 +2239,7 @@ public class SkyCanvasView extends View {
                 double constellationAz = altAz[1];
 
                 float[] screenPos = projectToScreen(constellationAlt, constellationAz,
-                        altitudeOffset, azimuthOffset,
+                        getViewAltitude(), getViewAzimuth(),
                         centerX, centerY, pixelsPerDegree);
 
                 if (screenPos[2] < 0.5f) {
@@ -2270,7 +2270,7 @@ public class SkyCanvasView extends View {
 
                 double[] altAz = raDecToAltAz(ra, dec, lst);
                 float[] screenPos = projectToScreen(altAz[0], altAz[1],
-                        altitudeOffset, azimuthOffset,
+                        getViewAltitude(), getViewAzimuth(),
                         centerX, centerY, pixelsPerDegree);
 
                 if (screenPos[2] < 0.5f) continue;
@@ -2537,7 +2537,7 @@ public class SkyCanvasView extends View {
             TrajectoryPoint pt = trajectoryPoints.get(i);
             double[] altAz = raDecToAltAz(pt.ra, pt.dec, lst);
             float[] screenPos = projectToScreen(altAz[0], altAz[1],
-                    altitudeOffset, azimuthOffset, centerX, centerY, pixelsPerDegree);
+                    getViewAltitude(), getViewAzimuth(), centerX, centerY, pixelsPerDegree);
 
             if (screenPos[2] > 0.5f) {
                 float dx = screenPos[0] - touchX;
@@ -2577,7 +2577,7 @@ public class SkyCanvasView extends View {
             double az = altAz[1];
 
             float[] screenPos = projectToScreen(alt, az,
-                    altitudeOffset, azimuthOffset,
+                    getViewAltitude(), getViewAzimuth(),
                     centerX, centerY, pixelsPerDegree);
 
             if (screenPos[2] < 0.5f) {
@@ -2648,7 +2648,7 @@ public class SkyCanvasView extends View {
             double az = altAz[1];
 
             float[] screenPos = projectToScreen(alt, az,
-                    altitudeOffset, azimuthOffset,
+                    getViewAltitude(), getViewAzimuth(),
                     centerX, centerY, pixelsPerDegree);
 
             if (screenPos[2] < 0.5f) {
@@ -2710,7 +2710,7 @@ public class SkyCanvasView extends View {
             double starAz = altAz[1];
             if (starAlt >= -90) {
                 float[] screenPos = projectToScreen(starAlt, starAz,
-                        altitudeOffset, azimuthOffset,
+                        getViewAltitude(), getViewAzimuth(),
                         centerX, centerY, pixelsPerDegree);
                 if (screenPos[2] >= 0.5f) {
                     float x = screenPos[0];
@@ -2737,7 +2737,7 @@ public class SkyCanvasView extends View {
 
             // Use proper spherical projection (same as drawSimpleStarMap)
             float[] screenPos = projectToScreen(starAlt, starAz,
-                    altitudeOffset, azimuthOffset,
+                    getViewAltitude(), getViewAzimuth(),
                     centerX, centerY, pixelsPerDegree);
 
             // Skip if not visible (behind us)

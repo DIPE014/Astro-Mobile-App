@@ -45,6 +45,7 @@ public class TooltipView extends FrameLayout {
 
     private void init() {
         setWillNotDraw(false);
+        setLayerType(LAYER_TYPE_SOFTWARE, null);
 
         // Semi-transparent dark overlay
         scrimPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
