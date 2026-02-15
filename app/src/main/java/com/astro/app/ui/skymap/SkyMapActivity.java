@@ -160,6 +160,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private View gpsIndicator;
     private ImageView ivGpsIcon;
     private TextView tvGpsStatus;
+    private com.astro.app.ui.widgets.CompassView compassView;
 
     // Layers
     private StarsLayer starsLayer;
@@ -320,6 +321,11 @@ public class SkyMapActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (skyCanvasView != null) {
                         skyCanvasView.setOrientation(finalAzimuth, finalAltitude);
+                    }
+
+                    // Update compass rotation
+                    if (compassView != null) {
+                        compassView.setRotation(finalAzimuth);
                     }
 
                     lastViewAzimuth = finalAzimuth;
@@ -593,6 +599,9 @@ public class SkyMapActivity extends AppCompatActivity {
         gpsIndicator = findViewById(R.id.gpsIndicator);
         ivGpsIcon = findViewById(R.id.ivGpsIcon);
         tvGpsStatus = findViewById(R.id.tvGpsStatus);
+
+        // Compass view
+        compassView = findViewById(R.id.compassView);
 
         // Search arrow view
         searchArrowView = findViewById(R.id.searchArrow);

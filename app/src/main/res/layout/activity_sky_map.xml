@@ -528,25 +528,15 @@
     </LinearLayout>
 
     <!-- Compass Indicator -->
-    <FrameLayout
-        android:id="@+id/compassContainer"
+    <com.astro.app.ui.widgets.CompassView
+        android:id="@+id/compassView"
         android:layout_width="@dimen/sky_map_compass_size"
         android:layout_height="@dimen/sky_map_compass_size"
         android:layout_marginStart="@dimen/sky_map_compass_margin"
         android:layout_marginBottom="@dimen/margin_medium"
+        android:contentDescription="@string/direction_north"
         app:layout_constraintBottom_toTopOf="@id/bottomControls"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <!-- Compass View will be added programmatically -->
-        <ImageView
-            android:id="@+id/ivCompass"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:contentDescription="@string/direction_north"
-            android:src="@android:drawable/ic_menu_compass"
-            app:tint="@color/sky_map_compass" />
-
-    </FrameLayout>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Center Crosshair -->
     <View
