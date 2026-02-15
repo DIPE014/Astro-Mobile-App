@@ -184,7 +184,7 @@ public class CompassView extends View {
      *
      * @param azimuthDegrees Device azimuth (0 = North, 90 = East, etc.)
      */
-    public void setRotation(float azimuthDegrees) {
+    public void setAzimuthRotation(float azimuthDegrees) {
         // Normalize to 0-360 range
         targetRotation = ((azimuthDegrees % 360f) + 360f) % 360f;
 
@@ -217,7 +217,7 @@ public class CompassView extends View {
      *
      * @return Rotation in degrees (0-360)
      */
-    public float getRotation() {
+    public float getAzimuthRotation() {
         return ((currentRotation % 360f) + 360f) % 360f;
     }
 }

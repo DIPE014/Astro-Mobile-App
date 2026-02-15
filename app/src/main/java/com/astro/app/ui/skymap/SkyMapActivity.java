@@ -321,7 +321,7 @@ public class SkyMapActivity extends AppCompatActivity {
 
                     // Update compass rotation
                     if (compassView != null) {
-                        compassView.setRotation(finalAzimuth);
+                        compassView.setAzimuthRotation(finalAzimuth);
                     }
 
                     lastViewAzimuth = finalAzimuth;

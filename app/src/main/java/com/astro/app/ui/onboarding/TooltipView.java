@@ -91,42 +91,42 @@ public class TooltipView extends FrameLayout {
 
         switch (position) {
             case ABOVE:
-                // Arrow points down from bottom of bubble to top of anchor
+                // Arrow: base flush with bubble bottom, tip points down toward anchor
                 float bottomCenterX = bubbleRect.centerX();
                 float bottomY = bubbleRect.bottom;
-                arrowPath.moveTo(bottomCenterX, bottomY);
-                arrowPath.lineTo(bottomCenterX - arrowSize, bottomY + arrowSize);
-                arrowPath.lineTo(bottomCenterX + arrowSize, bottomY + arrowSize);
+                arrowPath.moveTo(bottomCenterX - arrowSize, bottomY);
+                arrowPath.lineTo(bottomCenterX + arrowSize, bottomY);
+                arrowPath.lineTo(bottomCenterX, bottomY + arrowSize);
                 arrowPath.close();
                 break;
 
             case BELOW:
-                // Arrow points up from top of bubble to bottom of anchor
+                // Arrow: base flush with bubble top, tip points up toward anchor
                 float topCenterX = bubbleRect.centerX();
                 float topY = bubbleRect.top;
-                arrowPath.moveTo(topCenterX, topY);
-                arrowPath.lineTo(topCenterX - arrowSize, topY - arrowSize);
-                arrowPath.lineTo(topCenterX + arrowSize, topY - arrowSize);
+                arrowPath.moveTo(topCenterX - arrowSize, topY);
+                arrowPath.lineTo(topCenterX + arrowSize, topY);
+                arrowPath.lineTo(topCenterX, topY - arrowSize);
                 arrowPath.close();
                 break;
 
             case LEFT:
-                // Arrow points right from right edge of bubble
+                // Arrow: base flush with bubble right edge, tip points right toward anchor
                 float rightY = bubbleRect.centerY();
                 float rightX = bubbleRect.right;
-                arrowPath.moveTo(rightX, rightY);
-                arrowPath.lineTo(rightX + arrowSize, rightY - arrowSize);
-                arrowPath.lineTo(rightX + arrowSize, rightY + arrowSize);
+                arrowPath.moveTo(rightX, rightY - arrowSize);
+                arrowPath.lineTo(rightX, rightY + arrowSize);
+                arrowPath.lineTo(rightX + arrowSize, rightY);
                 arrowPath.close();
                 break;
 
             case RIGHT:
-                // Arrow points left from left edge of bubble
+                // Arrow: base flush with bubble left edge, tip points left toward anchor
                 float leftY = bubbleRect.centerY();
                 float leftX = bubbleRect.left;
-                arrowPath.moveTo(leftX, leftY);
-                arrowPath.lineTo(leftX - arrowSize, leftY - arrowSize);
-                arrowPath.lineTo(leftX - arrowSize, leftY + arrowSize);
+                arrowPath.moveTo(leftX, leftY - arrowSize);
+                arrowPath.lineTo(leftX, leftY + arrowSize);
+                arrowPath.lineTo(leftX - arrowSize, leftY);
                 arrowPath.close();
                 break;
 

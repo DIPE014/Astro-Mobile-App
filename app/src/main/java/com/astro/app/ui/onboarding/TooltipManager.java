@@ -250,7 +250,7 @@ public class TooltipManager {
 
     private RectF getViewRect(View view) {
         int[] location = new int[2];
-        view.getLocationOnScreen(location);
+        view.getLocationInWindow(location);
         return new RectF(
             location[0],
             location[1],
