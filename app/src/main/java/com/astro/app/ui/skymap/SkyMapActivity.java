@@ -994,6 +994,9 @@ public class SkyMapActivity extends AppCompatActivity {
         updateARToggleButton();
 
         showLoading(false);
+
+        // Show tooltip tutorial if first time
+        showTooltipTutorialIfNeeded();
     }
 
     /**
@@ -2293,6 +2296,96 @@ public class SkyMapActivity extends AppCompatActivity {
         if (cameraManager != null) {
             cameraManager.stopCamera();
         }
+    }
+
+    /**
+     * Show the interactive tooltip tutorial on first launch.
+     */
+    private void showTooltipTutorialIfNeeded() {
+        // Check if user has already completed the tutorial
+        if (com.astro.app.ui.onboarding.TooltipManager.hasCompletedTutorial(this)) {
+            return;
+        }
+
+        // Post to ensure all views are laid out
+        findViewById(android.R.id.content).post(() -> {
+            // Find anchor views for tooltips
+            View btnConstellations = findViewById(R.id.btnConstellations);
+            View btnTimeTravel = findViewById(R.id.btnTimeTravel);
+            View fabSearch = findViewById(R.id.fabSearch);
+            View fabDetect = findViewById(R.id.fabDetect);
+
+            // Build tooltip sequence (6 tooltips)
+            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
+                new com.astro.app.ui.onboarding.TooltipManager(this);
+
+            // Tooltip 1: Welcome (center)
+            tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                null,
+                "Welcome to Astro! Point your phone at the sky to see constellations, planets, and stars in real-time.",
+                com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
+                false
+            ));
+
+            // Tooltip 2: Drag to explore (center)
+            tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                null,
+                "Drag with your finger to manually explore the sky. The view will freeze while you drag.",
+                com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
+                false
+            ));
+
+            // Tooltip 3: Constellations toggle (highlight)
+            if (btnConstellations != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnConstellations,
+                    "Toggle constellation lines and labels here.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    true
+                ));
+            }
+
+            // Tooltip 4: Time Travel (highlight)
+            if (btnTimeTravel != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnTimeTravel,
+                    "Use Time Travel to see how the sky looked in the past or will look in the future.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    true
+                ));
+            }
+
+            // Tooltip 5: Search (highlight)
+            if (fabSearch != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    fabSearch,
+                    "Search for any celestial object. An arrow will guide you to point your phone at it.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
+                    true
+                ));
+            }
+
+            // Tooltip 6: Star Detection (highlight)
+            if (fabDetect != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    fabDetect,
+                    "Take a photo to detect constellations using advanced plate-solving algorithms.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
+                    true
+                ));
+            }
+
+            // Start the tutorial
+            tooltipManager.start();
+        });
+    }
+
+    /**
+     * Replay the tooltip tutorial (called from Settings).
+     */
+    public void replayTooltipTutorial() {
+        com.astro.app.ui.onboarding.TooltipManager.resetTutorial(this);
+        showTooltipTutorialIfNeeded();
     }
 
     @Override
