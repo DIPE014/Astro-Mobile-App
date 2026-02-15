@@ -621,9 +621,17 @@ public class SkyMapActivity extends AppCompatActivity {
                         ContextCompat.getColor(this, isManual ? R.color.icon_primary : R.color.icon_inactive)));
             }
             if (isManual) {
+                // Pause sensor updates to prevent drift during manual mode
+                if (sensorController != null) {
+                    sensorController.pause();
+                }
                 // Show a reset hint at the top of the screen
                 showManualModeIndicator();
             } else {
+                // Resume sensor updates when returning to sensor mode
+                if (sensorController != null) {
+                    sensorController.resume();
+                }
                 hideManualModeIndicator();
             }
         });
