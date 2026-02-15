@@ -1,6 +1,7 @@
 package com.astro.app;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 
@@ -8,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.astro.app.databinding.ActivityMainBinding;
+import com.astro.app.ui.onboarding.OnboardingActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
 import com.astro.app.ui.skymap.SkyMapActivity;
@@ -33,6 +35,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Check if onboarding has been completed; if not, launch OnboardingActivity
+        SharedPreferences prefs = getSharedPreferences(
+                SettingsViewModel.PREFS_NAME, MODE_PRIVATE);
+        boolean hasCompletedOnboarding = prefs.getBoolean(
+                OnboardingActivity.KEY_HAS_COMPLETED_ONBOARDING, false);
+        if (!hasCompletedOnboarding) {
+            startActivity(new Intent(this, OnboardingActivity.class));
+        }
 
         // Initialize view binding
         binding = ActivityMainBinding.inflate(getLayoutInflater());

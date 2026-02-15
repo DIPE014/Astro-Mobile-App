@@ -79,6 +79,38 @@ public class SensorController implements SensorEventListener {
         }
     }
 
+    /**
+     * Temporarily pause sensor updates without fully unregistering.
+     * Used when manual mode is active to prevent conflicting updates.
+     */
+    public void pause() {
+        if (isRegistered) {
+            sensorManager.unregisterListener(this);
+            isRegistered = false;
+            Log.d(TAG, "Sensor listener paused (manual mode)");
+        }
+    }
+
+    /**
+     * Resume sensor updates after pause.
+     * Restores sensor tracking when returning from manual mode.
+     */
+    public void resume() {
+        if (rotationSensor != null && !isRegistered) {
+            boolean registered = sensorManager.registerListener(
+                    this,
+                    rotationSensor,
+                    SensorManager.SENSOR_DELAY_GAME
+            );
+            isRegistered = registered;
+            if (registered) {
+                Log.d(TAG, "Sensor listener resumed from pause");
+            } else {
+                Log.e(TAG, "Failed to resume sensor listener");
+            }
+        }
+    }
+
     @Override
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR && listener != null) {

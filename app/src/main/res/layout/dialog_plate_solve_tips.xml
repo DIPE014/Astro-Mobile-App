@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/surface_variant"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_large">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/plate_solve_tips_title"
+            android:textAppearance="@style/TextAppearance.AstroApp.TitleLarge"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="@dimen/margin_medium" />
+
+        <!-- Tip 1: Dark Sky -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_medium">
+
+            <ImageView
+                android:layout_width="@dimen/icon_size_large"
+                android:layout_height="@dimen/icon_size_large"
+                android:layout_marginEnd="@dimen/margin_medium"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:src="@android:drawable/ic_menu_compass"
+                android:contentDescription="Dark sky tip icon"
+                android:tint="@color/primary" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/plate_solve_tip_dark_sky_title"
+                    android:textAppearance="@style/TextAppearance.AstroApp.TitleSmall"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/plate_solve_tip_dark_sky_desc"
+                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginTop="@dimen/margin_tiny" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Tip 2: Minimize Obstructions -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_medium">
+
+            <ImageView
+                android:layout_width="@dimen/icon_size_large"
+                android:layout_height="@dimen/icon_size_large"
+                android:layout_marginEnd="@dimen/margin_medium"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:src="@android:drawable/ic_menu_crop"
+                android:contentDescription="Obstructions tip icon"
+                android:tint="@color/primary" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/plate_solve_tip_obstructions_title"
+                    android:textAppearance="@style/TextAppearance.AstroApp.TitleSmall"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/plate_solve_tip_obstructions_desc"
+                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginTop="@dimen/margin_tiny" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Tip 3: Stars Visible to Naked Eye -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_medium">
+
+            <ImageView
+                android:layout_width="@dimen/icon_size_large"
+                android:layout_height="@dimen/icon_size_large"
+                android:layout_marginEnd="@dimen/margin_medium"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:src="@android:drawable/btn_star_big_on"
+                android:contentDescription="Visible stars tip icon"
+                android:tint="@color/primary" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/plate_solve_tip_visible_stars_title"
+                    android:textAppearance="@style/TextAppearance.AstroApp.TitleSmall"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/plate_solve_tip_visible_stars_desc"
+                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginTop="@dimen/margin_tiny" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Tip 4: Hold Phone Steady -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_medium">
+
+            <ImageView
+                android:layout_width="@dimen/icon_size_large"
+                android:layout_height="@dimen/icon_size_large"
+                android:layout_marginEnd="@dimen/margin_medium"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:src="@android:drawable/ic_menu_camera"
+                android:contentDescription="Steady phone tip icon"
+                android:tint="@color/primary" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/plate_solve_tip_steady_title"
+                    android:textAppearance="@style/TextAppearance.AstroApp.TitleSmall"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/plate_solve_tip_steady_desc"
+                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginTop="@dimen/margin_tiny" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Tip 5: Avoid Bright Lights -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_medium">
+
+            <ImageView
+                android:layout_width="@dimen/icon_size_large"
+                android:layout_height="@dimen/icon_size_large"
+                android:layout_marginEnd="@dimen/margin_medium"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:src="@android:drawable/ic_menu_view"
+                android:contentDescription="Bright lights tip icon"
+                android:tint="@color/primary" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/plate_solve_tip_bright_lights_title"
+                    android:textAppearance="@style/TextAppearance.AstroApp.TitleSmall"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/plate_solve_tip_bright_lights_desc"
+                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginTop="@dimen/margin_tiny" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Don't show again checkbox -->
+        <CheckBox
+            android:id="@+id/cbDontShowAgain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/plate_solve_tips_dont_show_again"
+            android:textColor="@color/text_secondary"
+            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+            android:buttonTint="@color/primary"
+            android:layout_marginTop="@dimen/margin_small" />
+
+        <!-- Got it button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGotIt"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/plate_solve_tips_got_it"
+            android:textAllCaps="false"
+            android:layout_marginTop="@dimen/margin_medium" />
+
+    </LinearLayout>
+</ScrollView>
