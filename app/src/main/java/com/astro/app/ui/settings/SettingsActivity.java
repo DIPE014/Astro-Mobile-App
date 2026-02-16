@@ -1,12 +1,16 @@
 package com.astro.app.ui.settings;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.astro.app.R;
+import com.astro.app.ui.onboarding.OnboardingActivity;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.materialswitch.MaterialSwitch;
 
@@ -159,6 +163,19 @@ public class SettingsActivity extends AppCompatActivity {
                 if (!isUpdatingUI) {
                     viewModel.setEnableManualScroll(isChecked);
                 }
+            });
+        }
+
+        // Replay Tutorial Button
+        MaterialButton btnReplayTutorial = findViewById(R.id.btnReplayTutorial);
+        if (btnReplayTutorial != null) {
+            btnReplayTutorial.setOnClickListener(v -> {
+                SharedPreferences prefs = getSharedPreferences(
+                        SettingsViewModel.PREFS_NAME, MODE_PRIVATE);
+                prefs.edit().putBoolean(
+                        OnboardingActivity.KEY_HAS_COMPLETED_ONBOARDING, false).apply();
+                Toast.makeText(this, R.string.settings_replay_tutorial_toast,
+                        Toast.LENGTH_SHORT).show();
             });
         }
     }

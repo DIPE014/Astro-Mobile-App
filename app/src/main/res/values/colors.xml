@@ -98,6 +98,7 @@
     <color name="text_hint">#666666</color>
     <color name="text_link">#BB86FC</color>
     <color name="text_error">#CF6679</color>
+    <color name="text_on_light">#1C1B1F</color>
 
     <!-- Error/Warning/Success Colors -->
     <color name="error">#CF6679</color>

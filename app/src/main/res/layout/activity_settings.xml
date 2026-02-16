@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/background"
     android:fitsSystemWindows="true"
-    tools:context=".ui.SettingsActivity">
+    tools:context=".ui.settings.SettingsActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
@@ -782,6 +782,23 @@
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
+
+            <!-- Replay Tutorial Section -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReplayTutorial"
+                style="@style/Widget.AstroApp.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/button_height_large"
+                android:layout_marginHorizontal="@dimen/margin_medium"
+                android:layout_marginTop="@dimen/margin_large"
+                android:text="@string/settings_replay_tutorial"
+                android:textAllCaps="false"
+                app:cornerRadius="@dimen/button_corner_radius"
+                app:icon="@android:drawable/ic_menu_rotate"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/button_icon_padding"
+                app:iconSize="@dimen/icon_size_medium"
+                app:iconTint="@color/primary" />
 
         </LinearLayout>
 
