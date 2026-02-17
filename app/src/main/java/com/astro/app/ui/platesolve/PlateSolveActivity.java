@@ -1,7 +1,6 @@
 package com.astro.app.ui.platesolve;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -12,7 +11,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
@@ -27,10 +25,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-
-import com.astro.app.data.model.SkyBrightnessResult;
-import com.astro.app.ui.skybrightness.BortleScaleView;
-import com.astro.app.ui.skybrightness.SkyBrightnessAnalyzer;
 
 import com.astro.app.R;
 import com.astro.app.native_.AstrometryNative;
@@ -58,15 +52,12 @@ public class PlateSolveActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private CheckBox cbShowStars;
 
-    private Button btnSkyQuality;
-
     private Bitmap originalBitmap;
     private Bitmap overlayBitmap;
     private NativePlateSolver solver;
     private ConstellationOverlay constellationOverlay;
     private ExecutorService executor;
     private Uri cameraPhotoUri;
-    private SkyBrightnessResult skyBrightnessResult;
 
     // Gallery picker
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
@@ -129,11 +120,6 @@ public class PlateSolveActivity extends AppCompatActivity {
         constellationOverlay = new ConstellationOverlay();
         constellationOverlay.loadConstellations(this);
 
-        btnSkyQuality = findViewById(R.id.btnSkyQuality);
-        if (btnSkyQuality != null) {
-            btnSkyQuality.setOnClickListener(v -> showSkyQualityDialog());
-        }
-
         if (cbShowStars != null) {
             cbShowStars.setOnCheckedChangeListener((buttonView, isChecked) -> updateImageDisplay());
         }
@@ -190,18 +176,12 @@ public class PlateSolveActivity extends AppCompatActivity {
             if (originalBitmap != null) {
                 imageView.setImageBitmap(originalBitmap);
                 overlayBitmap = null;
-                skyBrightnessResult = null;
                 if (cbShowStars != null) {
                     cbShowStars.setChecked(false);
                     cbShowStars.setEnabled(false);
                     cbShowStars.setVisibility(View.GONE);
                 }
-                if (btnSkyQuality != null) {
-                    btnSkyQuality.setEnabled(false);
-                    btnSkyQuality.setVisibility(View.GONE);
-                }
                 solvePlate();
-                analyzeSkyBrightness(uri);
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to load image", e);
@@ -294,73 +274,6 @@ public class PlateSolveActivity extends AppCompatActivity {
             }
             dialog.dismiss();
         });
-
-        dialog.show();
-    }
-
-    private void analyzeSkyBrightness(Uri uri) {
-        executor.execute(() -> {
-            try {
-                android.media.ExifInterface exif = null;
-                try {
-                    InputStream exifStream = getContentResolver().openInputStream(uri);
-                    if (exifStream != null) {
-                        exif = new android.media.ExifInterface(exifStream);
-                        exifStream.close();
-                    }
-                } catch (Exception ignored) {
-                }
-
-                SkyBrightnessResult result = SkyBrightnessAnalyzer.analyze(originalBitmap, exif);
-                skyBrightnessResult = result;
-
-                runOnUiThread(() -> {
-                    if (btnSkyQuality != null) {
-                        btnSkyQuality.setVisibility(View.VISIBLE);
-                        btnSkyQuality.setEnabled(true);
-                    }
-                });
-            } catch (Exception e) {
-                Log.e(TAG, "Sky brightness analysis failed", e);
-            }
-        });
-    }
-
-    private void showSkyQualityDialog() {
-        if (skyBrightnessResult == null) return;
-
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_sky_quality, null);
-
-        TextView tvNumber = dialogView.findViewById(R.id.tvBortleNumber);
-        TextView tvLabel = dialogView.findViewById(R.id.tvBortleLabel);
-        TextView tvDescription = dialogView.findViewById(R.id.tvBortleDescription);
-        TextView tvTip = dialogView.findViewById(R.id.tvBortleTip);
-        BortleScaleView gauge = dialogView.findViewById(R.id.bortleScaleView);
-        ImageButton btnClose = dialogView.findViewById(R.id.btnCloseSkyQuality);
-
-        int bortle = skyBrightnessResult.getBortleClass();
-        tvNumber.setText(String.valueOf(bortle));
-        tvLabel.setText(skyBrightnessResult.getLabel());
-        tvDescription.setText(skyBrightnessResult.getDescription());
-        tvTip.setText(skyBrightnessResult.getTip());
-        gauge.setBortleClass(bortle);
-
-        // Color the number based on Bortle class
-        int[] colors = {
-                0xFF1B5E20, 0xFF2E7D32, 0xFF4CAF50, 0xFFCDDC39, 0xFFFFEB3B,
-                0xFFFFC107, 0xFFFF9800, 0xFFF44336, 0xFFB71C1C
-        };
-        if (bortle >= 1 && bortle <= 9) {
-            tvNumber.setTextColor(colors[bortle - 1]);
-        }
-
-        Dialog dialog = new Dialog(this);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(dialogView);
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        dialog.setCancelable(true);
-
-        btnClose.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
     }

@@ -70,17 +70,6 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <Button
-            android:id="@+id/btnSkyQuality"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="@string/sky_quality_button"
-            android:textAllCaps="false"
-            android:textSize="13sp"
-            android:enabled="false"
-            android:visibility="gone" />
-
         <CheckBox
             android:id="@+id/cbShowStars"
             android:layout_width="wrap_content"
