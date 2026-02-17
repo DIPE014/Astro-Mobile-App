@@ -116,7 +116,7 @@ public class OpenAIClient {
         body.put("model", MODEL);
         body.put("messages", messagesArray);
         body.put("max_completion_tokens", 1024);
-        body.put("temperature", 0.7);
+        body.put("temperature", 1);
         return body;
     }
 

@@ -394,6 +394,10 @@
     <string name="bortle_7">Suburban/Urban Transition</string>
     <string name="bortle_8">City Sky</string>
     <string name="bortle_9">Inner City</string>
+
+    <!-- Sky Quality Dialog (in PlateSolve) -->
+    <string name="sky_quality_title">Sky Quality</string>
+    <string name="sky_quality_button">Sky Quality</string>
 </resources>
 
 
