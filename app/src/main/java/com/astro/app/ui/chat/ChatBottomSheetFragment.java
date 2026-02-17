@@ -59,6 +59,17 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(this).get(ChatViewModel.class);
         apiKey = readApiKey();
+
+        // Pass observer context from SkyMapActivity to ViewModel
+        Bundle args = getArguments();
+        if (args != null) {
+            double lat = args.getDouble("latitude", Double.NaN);
+            double lon = args.getDouble("longitude", Double.NaN);
+            long timeMillis = args.getLong("timeMillis", 0);
+            float pointingRA = args.getFloat("pointingRA", Float.NaN);
+            float pointingDec = args.getFloat("pointingDec", Float.NaN);
+            viewModel.setContext(lat, lon, timeMillis, pointingRA, pointingDec);
+        }
     }
 
     @Nullable
@@ -174,6 +185,12 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment {
         Chip chip = root.findViewById(chipId);
         if (chip != null) {
             chip.setOnClickListener(v -> {
+                if (apiKey == null || apiKey.trim().isEmpty()) {
+                    Toast.makeText(requireContext(),
+                            R.string.chat_no_api_key,
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
                 String chipText = chip.getText().toString();
                 viewModel.sendMessage(chipText, apiKey);
             });

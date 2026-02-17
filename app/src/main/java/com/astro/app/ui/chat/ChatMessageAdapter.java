@@ -1,5 +1,7 @@
 package com.astro.app.ui.chat;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -87,6 +89,9 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     static class BotViewHolder extends RecyclerView.ViewHolder {
         private final TextView tvBotMessage;
+        private final Handler handler = new Handler(Looper.getMainLooper());
+        private Runnable animationRunnable;
+        private int dotCount = 0;
 
         BotViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -94,7 +99,35 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         }
 
         void bind(ChatMessage message) {
-            tvBotMessage.setText(message.getContent());
+            stopAnimation();
+            if (message.isThinking()) {
+                startThinkingAnimation();
+            } else {
+                tvBotMessage.setText(message.getContent());
+            }
+        }
+
+        private void startThinkingAnimation() {
+            dotCount = 0;
+            animationRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    dotCount = (dotCount % 3) + 1;
+                    StringBuilder dots = new StringBuilder("Thinking");
+                    for (int i = 0; i < dotCount; i++) dots.append('.');
+                    tvBotMessage.setText(dots.toString());
+                    handler.postDelayed(this, 500);
+                }
+            };
+            tvBotMessage.setText("Thinking.");
+            handler.postDelayed(animationRunnable, 500);
+        }
+
+        private void stopAnimation() {
+            if (animationRunnable != null) {
+                handler.removeCallbacks(animationRunnable);
+                animationRunnable = null;
+            }
         }
     }
 }

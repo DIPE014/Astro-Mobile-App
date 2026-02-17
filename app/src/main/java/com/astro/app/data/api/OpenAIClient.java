@@ -13,7 +13,11 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * HTTP client for the OpenAI Chat Completions API.
@@ -27,7 +31,7 @@ public class OpenAIClient {
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
     private static final String MODEL = "gpt-5-nano-2025-08-07";
     private static final int CONNECT_TIMEOUT_MS = 15_000;
-    private static final int READ_TIMEOUT_MS = 30_000;
+    private static final int READ_TIMEOUT_MS = 60_000;
     private static final int MAX_CONTEXT_MESSAGES = 20;
 
     private static final String SYSTEM_PROMPT =
@@ -42,8 +46,33 @@ public class OpenAIClient {
 
     private final String apiKey;
 
+    // Observer context for dynamic system prompt
+    private double observerLatitude = Double.NaN;
+    private double observerLongitude = Double.NaN;
+    private long observerTimeMillis = 0;
+    private float pointingRA = Float.NaN;
+    private float pointingDec = Float.NaN;
+
+    public interface StreamCallback {
+        void onToken(String token);
+        void onComplete(String fullResponse);
+        void onError(String error);
+    }
+
     public OpenAIClient(String apiKey) {
         this.apiKey = apiKey;
+    }
+
+    /**
+     * Sets the observer context for inclusion in the system prompt.
+     */
+    public void setObserverContext(double latitude, double longitude, long timeMillis,
+                                   float pointingRA, float pointingDec) {
+        this.observerLatitude = latitude;
+        this.observerLongitude = longitude;
+        this.observerTimeMillis = timeMillis;
+        this.pointingRA = pointingRA;
+        this.pointingDec = pointingDec;
     }
 
     /**
@@ -56,7 +85,7 @@ public class OpenAIClient {
     public String sendMessage(List<ChatMessage> messages) throws IOException {
         HttpURLConnection connection = null;
         try {
-            JSONObject requestBody = buildRequestBody(messages);
+            JSONObject requestBody = buildRequestBody(messages, false);
 
             URL url = new URL(API_URL);
             connection = (HttpURLConnection) url.openConnection();
@@ -93,13 +122,188 @@ public class OpenAIClient {
         }
     }
 
-    private JSONObject buildRequestBody(List<ChatMessage> messages) throws JSONException {
+    /**
+     * Sends the conversation to OpenAI with SSE streaming enabled.
+     * Tokens are delivered incrementally via the callback.
+     * Falls back to non-streaming if streaming yields no content.
+     */
+    public void sendMessageStreaming(List<ChatMessage> messages, StreamCallback callback) throws IOException {
+        HttpURLConnection connection = null;
+        try {
+            JSONObject requestBody = buildRequestBody(messages, true);
+
+            URL url = new URL(API_URL);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Authorization", "Bearer " + apiKey);
+            connection.setRequestProperty("Accept", "text/event-stream");
+            connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            connection.setReadTimeout(READ_TIMEOUT_MS);
+            connection.setDoOutput(true);
+
+            byte[] body = requestBody.toString().getBytes(StandardCharsets.UTF_8);
+            try (OutputStream os = connection.getOutputStream()) {
+                os.write(body);
+            }
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                String errorBody = readStream(connection.getErrorStream() != null
+                        ? new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8))
+                        : null);
+                callback.onError(parseErrorMessage(responseCode, errorBody));
+                return;
+            }
+
+            // Read SSE stream
+            StringBuilder fullResponse = new StringBuilder();
+            String rawBody = null;
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                StringBuilder rawCapture = new StringBuilder();
+                while ((line = reader.readLine()) != null) {
+                    rawCapture.append(line).append('\n');
+
+                    // Handle "data: ..." or "data:..." (with or without space)
+                    if (!line.startsWith("data:")) {
+                        continue;
+                    }
+                    String data = line.substring(5).trim();
+                    if (data.isEmpty() || "[DONE]".equals(data)) {
+                        if ("[DONE]".equals(data)) break;
+                        continue;
+                    }
+                    try {
+                        JSONObject chunk = new JSONObject(data);
+                        JSONArray choices = chunk.optJSONArray("choices");
+                        if (choices != null && choices.length() > 0) {
+                            JSONObject choice = choices.getJSONObject(0);
+                            JSONObject delta = choice.optJSONObject("delta");
+                            if (delta != null) {
+                                // Try standard content field first, then output_text (reasoning models)
+                                String content = delta.optString("content", null);
+                                if (content == null) {
+                                    content = delta.optString("output_text", null);
+                                }
+                                if (content != null) {
+                                    fullResponse.append(content);
+                                    callback.onToken(content);
+                                }
+                            }
+                        }
+                    } catch (JSONException ignored) {
+                        // Skip malformed SSE chunks
+                    }
+                }
+                rawBody = rawCapture.toString();
+            }
+
+            String result = fullResponse.toString().trim();
+            if (result.isEmpty()) {
+                // Streaming yielded no tokens — try to parse as a non-streaming response
+                // (model may not support streaming and returned a regular JSON body)
+                if (rawBody != null) {
+                    String fallback = tryParseNonStreamingResponse(rawBody.trim());
+                    if (fallback != null && !fallback.isEmpty()) {
+                        callback.onToken(fallback);
+                        callback.onComplete(fallback);
+                        return;
+                    }
+                }
+                // Last resort: fall back to non-streaming API call
+                connection.disconnect();
+                connection = null;
+                String fallbackResponse = sendMessage(messages);
+                callback.onToken(fallbackResponse);
+                callback.onComplete(fallbackResponse);
+            } else {
+                callback.onComplete(result);
+            }
+
+        } catch (JSONException e) {
+            callback.onError("Failed to build request: " + e.getMessage());
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    /**
+     * Attempts to parse a raw response body as a non-streaming chat completion.
+     * Returns the content string, or null if parsing fails.
+     */
+    private String tryParseNonStreamingResponse(String rawBody) {
+        try {
+            // Strip any SSE framing if present
+            String json = rawBody;
+            if (json.startsWith("data:")) {
+                json = json.substring(5).trim();
+            }
+            // Try to find a JSON object in the body
+            int braceStart = json.indexOf('{');
+            if (braceStart < 0) return null;
+            json = json.substring(braceStart);
+
+            JSONObject obj = new JSONObject(json);
+            JSONArray choices = obj.optJSONArray("choices");
+            if (choices == null || choices.length() == 0) return null;
+
+            JSONObject first = choices.getJSONObject(0);
+
+            // Non-streaming format: choices[0].message.content
+            JSONObject message = first.optJSONObject("message");
+            if (message != null) {
+                String content = message.optString("content", null);
+                if (content != null && !content.trim().isEmpty()) {
+                    return content.trim();
+                }
+                // Reasoning models may use output field
+                content = message.optString("output_text", null);
+                if (content != null && !content.trim().isEmpty()) {
+                    return content.trim();
+                }
+            }
+
+            // Responses API format: choices[0].text or output[0].content
+            String text = first.optString("text", null);
+            if (text != null && !text.trim().isEmpty()) {
+                return text.trim();
+            }
+
+            // Try output array (newer API format)
+            JSONArray output = obj.optJSONArray("output");
+            if (output != null) {
+                for (int i = 0; i < output.length(); i++) {
+                    JSONObject item = output.getJSONObject(i);
+                    if ("message".equals(item.optString("type"))) {
+                        JSONArray contentArr = item.optJSONArray("content");
+                        if (contentArr != null) {
+                            for (int j = 0; j < contentArr.length(); j++) {
+                                JSONObject cObj = contentArr.getJSONObject(j);
+                                if ("output_text".equals(cObj.optString("type"))) {
+                                    String t = cObj.optString("text", null);
+                                    if (t != null && !t.trim().isEmpty()) return t.trim();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (JSONException ignored) {
+        }
+        return null;
+    }
+
+    private JSONObject buildRequestBody(List<ChatMessage> messages, boolean stream) throws JSONException {
         JSONArray messagesArray = new JSONArray();
 
-        // System prompt
+        // Developer prompt (GPT-5 series uses "developer" role)
         JSONObject systemMsg = new JSONObject();
-        systemMsg.put("role", "system");
-        systemMsg.put("content", SYSTEM_PROMPT);
+        systemMsg.put("role", "developer");
+        systemMsg.put("content", buildSystemPrompt());
         messagesArray.put(systemMsg);
 
         // Conversation history (last MAX_CONTEXT_MESSAGES)
@@ -115,23 +319,87 @@ public class OpenAIClient {
         JSONObject body = new JSONObject();
         body.put("model", MODEL);
         body.put("messages", messagesArray);
-        body.put("max_completion_tokens", 4096);
+        // GPT-5 Nano is a reasoning model — reasoning tokens consume part of this budget.
+        // 1024 was too low: reasoning used all tokens, leaving nothing for output.
+        body.put("max_completion_tokens", 16384);
+        // Reasoning models forbid sampling params (temperature, top_p).
+        // Use reasoning_effort instead to control reasoning depth.
         body.put("reasoning_effort", "low");
+        if (stream) {
+            body.put("stream", true);
+        }
         return body;
+    }
+
+    private String buildSystemPrompt() {
+        StringBuilder prompt = new StringBuilder(SYSTEM_PROMPT);
+
+        boolean hasContext = false;
+        if (!Double.isNaN(observerLatitude) && !Double.isNaN(observerLongitude)) {
+            hasContext = true;
+        }
+        if (observerTimeMillis > 0) {
+            hasContext = true;
+        }
+
+        if (hasContext) {
+            prompt.append("\n\nCurrent context:");
+            if (!Double.isNaN(observerLatitude) && !Double.isNaN(observerLongitude)) {
+                prompt.append(String.format(Locale.US,
+                        "\n- Observer location: %.4f, %.4f", observerLatitude, observerLongitude));
+            }
+            if (observerTimeMillis > 0) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.US);
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                prompt.append("\n- Current time: ").append(sdf.format(new Date(observerTimeMillis)));
+            }
+            if (!Float.isNaN(pointingRA) && !Float.isNaN(pointingDec)) {
+                prompt.append(String.format(Locale.US,
+                        "\n- Currently viewing: RA=%.2f\u00b0, Dec=%.2f\u00b0", pointingRA, pointingDec));
+            }
+        }
+
+        return prompt.toString();
     }
 
     private String parseResponse(String responseBody) throws JSONException {
         JSONObject json = new JSONObject(responseBody);
-        JSONArray choices = json.getJSONArray("choices");
-        if (choices.length() == 0) {
-            return "No response received from AstroBot.";
+
+        // Standard Chat Completions format: choices[0].message.content
+        JSONArray choices = json.optJSONArray("choices");
+        if (choices != null && choices.length() > 0) {
+            JSONObject message = choices.getJSONObject(0).optJSONObject("message");
+            if (message != null) {
+                String content = message.optString("content", null);
+                if (content != null && !content.trim().isEmpty()) {
+                    return content.trim();
+                }
+            }
         }
-        JSONObject message = choices.getJSONObject(0).getJSONObject("message");
-        String content = message.optString("content", null);
-        if (content == null || content.trim().isEmpty()) {
-            return "AstroBot is thinking but couldn't produce a response. Please try again.";
+
+        // Responses API format: output[].content[].text
+        JSONArray output = json.optJSONArray("output");
+        if (output != null) {
+            for (int i = 0; i < output.length(); i++) {
+                JSONObject item = output.getJSONObject(i);
+                if ("message".equals(item.optString("type"))) {
+                    JSONArray contentArr = item.optJSONArray("content");
+                    if (contentArr != null) {
+                        for (int j = 0; j < contentArr.length(); j++) {
+                            JSONObject cObj = contentArr.getJSONObject(j);
+                            if ("output_text".equals(cObj.optString("type"))) {
+                                String text = cObj.optString("text", null);
+                                if (text != null && !text.trim().isEmpty()) {
+                                    return text.trim();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-        return content.trim();
+
+        return "I'm sorry, I couldn't generate a response. Please try again.";
     }
 
     private String parseErrorMessage(int responseCode, String errorBody) {

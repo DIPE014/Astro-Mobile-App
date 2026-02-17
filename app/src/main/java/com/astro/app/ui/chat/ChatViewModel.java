@@ -31,6 +31,13 @@ public class ChatViewModel extends AndroidViewModel {
     private final List<ChatMessage> messages = new ArrayList<>();
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
+    // Observer context fields
+    private double contextLatitude = Double.NaN;
+    private double contextLongitude = Double.NaN;
+    private long contextTimeMillis = 0;
+    private float contextPointingRA = Float.NaN;
+    private float contextPointingDec = Float.NaN;
+
     public ChatViewModel(@NonNull Application application) {
         super(application);
     }
@@ -44,13 +51,23 @@ public class ChatViewModel extends AndroidViewModel {
     }
 
     /**
-     * Sends a user message and requests a response from OpenAI.
+     * Sets the observer context (location, time, pointing direction) for
+     * inclusion in the system prompt.
+     */
+    public void setContext(double latitude, double longitude, long timeMillis,
+                           float pointingRA, float pointingDec) {
+        this.contextLatitude = latitude;
+        this.contextLongitude = longitude;
+        this.contextTimeMillis = timeMillis;
+        this.contextPointingRA = pointingRA;
+        this.contextPointingDec = pointingDec;
+    }
+
+    /**
+     * Sends a user message and requests a streaming response from OpenAI.
      *
      * <p>If the API key is null or empty, a friendly error message is added
      * instead of making a network call.</p>
-     *
-     * @param userMessage the text the user typed
-     * @param apiKey      the OpenAI API key (may be null)
      */
     public void sendMessage(String userMessage, String apiKey) {
         if (userMessage == null || userMessage.trim().isEmpty()) {
@@ -73,32 +90,48 @@ public class ChatViewModel extends AndroidViewModel {
             return;
         }
 
-        // Call OpenAI on background thread
+        // Add thinking indicator
+        ChatMessage thinkingMsg = ChatMessage.thinking();
+        messages.add(thinkingMsg);
+        messagesLiveData.postValue(new ArrayList<>(messages));
+
         loadingLiveData.postValue(true);
         executor.execute(() -> {
             try {
                 OpenAIClient client = new OpenAIClient(apiKey.trim());
+                client.setObserverContext(contextLatitude, contextLongitude,
+                        contextTimeMillis, contextPointingRA, contextPointingDec);
 
-                // Send only the last MAX_CONTEXT_MESSAGES for context
-                List<ChatMessage> contextMessages;
-                if (messages.size() > MAX_CONTEXT_MESSAGES) {
+                // Build context messages (exclude thinking message)
+                List<ChatMessage> contextMessages = new ArrayList<>();
+                for (ChatMessage msg : messages) {
+                    if (!msg.isThinking()) {
+                        contextMessages.add(msg);
+                    }
+                }
+                if (contextMessages.size() > MAX_CONTEXT_MESSAGES) {
                     contextMessages = new ArrayList<>(
-                            messages.subList(messages.size() - MAX_CONTEXT_MESSAGES, messages.size()));
-                } else {
-                    contextMessages = new ArrayList<>(messages);
+                            contextMessages.subList(contextMessages.size() - MAX_CONTEXT_MESSAGES,
+                                    contextMessages.size()));
                 }
 
+                // Use non-streaming request (GPT-5 Nano streaming is broken —
+                // SSE stream opens but emits no tokens)
                 String response = client.sendMessage(contextMessages);
-                ChatMessage botMsg = new ChatMessage(ChatMessage.ROLE_ASSISTANT, response);
-                messages.add(botMsg);
-                messagesLiveData.postValue(new ArrayList<>(messages));
+                int idx = messages.indexOf(thinkingMsg);
+                if (idx >= 0) {
+                    messages.get(idx).setContent(response);
+                    messagesLiveData.postValue(new ArrayList<>(messages));
+                }
 
             } catch (IOException e) {
-                String errorText = "Sorry, I couldn't connect to the server. Please check your internet connection and try again.";
-                ChatMessage errorMsg = new ChatMessage(ChatMessage.ROLE_ASSISTANT, errorText);
-                messages.add(errorMsg);
-                messagesLiveData.postValue(new ArrayList<>(messages));
-            } finally {
+                // Replace thinking message with error
+                int idx = messages.indexOf(thinkingMsg);
+                if (idx >= 0) {
+                    messages.get(idx).setContent(
+                            "Sorry, I couldn't connect to the server. Please check your internet connection and try again.");
+                    messagesLiveData.postValue(new ArrayList<>(messages));
+                }
                 loadingLiveData.postValue(false);
             }
         });

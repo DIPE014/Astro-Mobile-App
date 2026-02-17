@@ -842,6 +842,18 @@ public class SkyMapActivity extends AppCompatActivity {
         if (fabChat != null) {
             fabChat.setOnClickListener(v -> {
                 ChatBottomSheetFragment chatSheet = new ChatBottomSheetFragment();
+                Bundle chatArgs = new Bundle();
+                chatArgs.putDouble("latitude", currentLatitude);
+                chatArgs.putDouble("longitude", currentLongitude);
+                long timeMs = (timeTravelClock != null)
+                        ? timeTravelClock.getCurrentTimeMillis()
+                        : System.currentTimeMillis();
+                chatArgs.putLong("timeMillis", timeMs);
+                if (skyCanvasView != null) {
+                    chatArgs.putFloat("pointingRA", skyCanvasView.getViewRa());
+                    chatArgs.putFloat("pointingDec", skyCanvasView.getViewDec());
+                }
+                chatSheet.setArguments(chatArgs);
                 chatSheet.show(getSupportFragmentManager(), "chat_bottom_sheet");
             });
         }
