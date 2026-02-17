@@ -115,8 +115,8 @@ public class OpenAIClient {
         JSONObject body = new JSONObject();
         body.put("model", MODEL);
         body.put("messages", messagesArray);
-        body.put("max_completion_tokens", 1024);
-        body.put("temperature", 1);
+        body.put("max_completion_tokens", 4096);
+        body.put("reasoning_effort", "low");
         return body;
     }
 
@@ -127,7 +127,11 @@ public class OpenAIClient {
             return "No response received from AstroBot.";
         }
         JSONObject message = choices.getJSONObject(0).getJSONObject("message");
-        return message.getString("content").trim();
+        String content = message.optString("content", null);
+        if (content == null || content.trim().isEmpty()) {
+            return "AstroBot is thinking but couldn't produce a response. Please try again.";
+        }
+        return content.trim();
     }
 
     private String parseErrorMessage(int responseCode, String errorBody) {
