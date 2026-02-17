@@ -204,9 +204,8 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment {
 
             return securePrefs.getString(KEY_OPENAI_API_KEY, null);
         } catch (GeneralSecurityException | IOException e) {
-            // Fall back to regular SharedPreferences
-            SharedPreferences prefs = context.getSharedPreferences("astro_prefs", Context.MODE_PRIVATE);
-            return prefs.getString(KEY_OPENAI_API_KEY, null);
+            // Do not fall back to unencrypted storage — return null to protect the key
+            return null;
         }
     }
 }

@@ -18,14 +18,14 @@ import java.util.List;
 /**
  * HTTP client for the OpenAI Chat Completions API.
  *
- * <p>Sends conversation history to the gpt-4o-mini model and returns the
+ * <p>Sends conversation history to the GPT-5 Nano model and returns the
  * assistant's response. Includes an astronomy-focused system prompt so the
  * model behaves as "AstroBot".</p>
  */
 public class OpenAIClient {
 
     private static final String API_URL = "https://api.openai.com/v1/chat/completions";
-    private static final String MODEL = "gpt-4o-mini";
+    private static final String MODEL = "gpt-5-nano-2025-08-07";
     private static final int CONNECT_TIMEOUT_MS = 15_000;
     private static final int READ_TIMEOUT_MS = 30_000;
     private static final int MAX_CONTEXT_MESSAGES = 20;
@@ -115,7 +115,7 @@ public class OpenAIClient {
         JSONObject body = new JSONObject();
         body.put("model", MODEL);
         body.put("messages", messagesArray);
-        body.put("max_tokens", 1024);
+        body.put("max_completion_tokens", 1024);
         body.put("temperature", 0.7);
         return body;
     }
