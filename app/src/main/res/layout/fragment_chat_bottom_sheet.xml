@@ -33,6 +33,7 @@
             android:textAppearance="@style/TextAppearance.AstroApp.TitleLarge"
             android:textColor="@color/text_primary" />
 
+        <!-- Close button -->
         <ImageButton
             android:id="@+id/btnCloseChat"
             android:layout_width="48dp"
@@ -40,8 +41,21 @@
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Close"
+            android:contentDescription="@string/cd_chat_close"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="@color/icon_secondary" />
+
+        <!-- Clear chat button (to the left of close) -->
+        <ImageButton
+            android:id="@+id/btnClearChat"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_toStartOf="@id/btnCloseChat"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/cd_chat_clear"
+            android:src="@android:drawable/ic_menu_delete"
+            android:visibility="gone"
             app:tint="@color/icon_secondary" />
 
     </RelativeLayout>
@@ -61,7 +75,7 @@
         android:padding="12dp"
         android:scrollbars="vertical" />
 
-    <!-- Suggestion chips (visible when no messages) -->
+    <!-- Suggestion chips (visible when no messages, populated dynamically) -->
     <HorizontalScrollView
         android:id="@+id/chipScrollView"
         android:layout_width="match_parent"
@@ -78,50 +92,9 @@
             android:layout_height="wrap_content"
             app:singleLine="true"
             app:chipSpacingHorizontal="8dp">
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipSuggestion1"
-                style="@style/Widget.AstroApp.Chip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="What\u0027s visible tonight?" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipSuggestion2"
-                style="@style/Widget.AstroApp.Chip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="How do I read celestial coordinates?" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipSuggestion3"
-                style="@style/Widget.AstroApp.Chip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="What is the Bortle scale?" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipSuggestion4"
-                style="@style/Widget.AstroApp.Chip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tips for photographing the Milky Way" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipSuggestion5"
-                style="@style/Widget.AstroApp.Chip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="What constellation is Betelgeuse in?" />
-
-            <com.google.android.material.chip.Chip
-                android:id="@+id/chipSuggestion6"
-                style="@style/Widget.AstroApp.Chip"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="How does plate solving work?" />
-
+            <!-- Chips are added dynamically from ChatBottomSheetFragment -->
         </com.google.android.material.chip.ChipGroup>
+
     </HorizontalScrollView>
 
     <View
@@ -173,7 +146,7 @@
             android:layout_height="48dp"
             android:layout_marginStart="8dp"
             android:background="@drawable/bg_circle_primary"
-            android:contentDescription="Send"
+            android:contentDescription="@string/cd_chat_send"
             android:src="@android:drawable/ic_menu_send"
             android:scaleType="centerInside"
             android:padding="12dp"

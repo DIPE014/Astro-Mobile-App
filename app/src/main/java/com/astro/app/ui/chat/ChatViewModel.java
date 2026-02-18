@@ -37,6 +37,7 @@ public class ChatViewModel extends AndroidViewModel {
     private long contextTimeMillis = 0;
     private float contextPointingRA = Float.NaN;
     private float contextPointingDec = Float.NaN;
+    private String contextSelectedObject = null;
 
     public ChatViewModel(@NonNull Application application) {
         super(application);
@@ -64,7 +65,14 @@ public class ChatViewModel extends AndroidViewModel {
     }
 
     /**
-     * Sends a user message and requests a streaming response from OpenAI.
+     * Sets the currently selected sky object name to inject into the system prompt.
+     */
+    public void setSelectedObject(String name) {
+        this.contextSelectedObject = name;
+    }
+
+    /**
+     * Sends a user message and requests a response from OpenAI.
      *
      * <p>If the API key is null or empty, a friendly error message is added
      * instead of making a network call.</p>
@@ -96,13 +104,16 @@ public class ChatViewModel extends AndroidViewModel {
         messagesLiveData.postValue(new ArrayList<>(messages));
 
         loadingLiveData.postValue(true);
+
+        final String query = userMessage.trim();
         executor.execute(() -> {
             try {
                 OpenAIClient client = new OpenAIClient(apiKey.trim());
                 client.setObserverContext(contextLatitude, contextLongitude,
                         contextTimeMillis, contextPointingRA, contextPointingDec);
+                client.setSelectedObject(contextSelectedObject);
 
-                // Build context messages (exclude thinking message)
+                // Build context messages (exclude thinking messages)
                 List<ChatMessage> contextMessages = new ArrayList<>();
                 for (ChatMessage msg : messages) {
                     if (!msg.isThinking()) {
@@ -117,24 +128,32 @@ public class ChatViewModel extends AndroidViewModel {
 
                 // Use non-streaming request (GPT-5 Nano streaming is broken —
                 // SSE stream opens but emits no tokens)
-                String response = client.sendMessage(contextMessages);
+                OpenAIClient.BotResponse response = client.sendMessage(contextMessages);
                 int idx = messages.indexOf(thinkingMsg);
                 if (idx >= 0) {
-                    messages.get(idx).setContent(response);
+                    messages.get(idx).setResponse(response.answer, response.followups);
                     messagesLiveData.postValue(new ArrayList<>(messages));
                 }
 
             } catch (IOException e) {
-                // Replace thinking message with error
+                // Replace thinking message with retryable error
                 int idx = messages.indexOf(thinkingMsg);
                 if (idx >= 0) {
-                    messages.get(idx).setContent(
-                            "Sorry, I couldn't connect to the server. Please check your internet connection and try again.");
+                    messages.get(idx).setError(
+                            "Sorry, I couldn't connect to the server. Please check your internet connection and try again.",
+                            query);
                     messagesLiveData.postValue(new ArrayList<>(messages));
                 }
+            } finally {
                 loadingLiveData.postValue(false);
             }
         });
+    }
+
+    /** Clears all messages from the conversation. */
+    public void clearMessages() {
+        messages.clear();
+        messagesLiveData.postValue(new ArrayList<>(messages));
     }
 
     @Override

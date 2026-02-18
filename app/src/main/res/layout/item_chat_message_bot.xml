@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:paddingTop="4dp"
     android:paddingBottom="4dp">
 
+    <!-- Message bubble -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="start"
-        android:maxWidth="280dp"
+        android:maxWidth="300dp"
         android:orientation="vertical"
         android:background="@drawable/bg_chat_bubble_bot"
         android:padding="12dp">
@@ -34,4 +37,28 @@
 
     </LinearLayout>
 
-</FrameLayout>
+    <!-- Retry button (shown only for error messages) -->
+    <TextView
+        android:id="@+id/tvRetry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginStart="2dp"
+        android:text="↩ Retry"
+        android:textColor="@color/tertiary"
+        android:textSize="13sp"
+        android:padding="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:visibility="gone" />
+
+    <!-- Follow-up suggestion chips (shown after non-error bot replies) -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipGroupFollowups"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        app:chipSpacingHorizontal="6dp"
+        app:chipSpacingVertical="4dp"
+        android:visibility="gone" />
+
+</LinearLayout>

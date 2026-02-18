@@ -14,6 +14,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -24,7 +26,8 @@ import java.util.TimeZone;
  *
  * <p>Sends conversation history to the GPT-5 Nano model and returns the
  * assistant's response. Includes an astronomy-focused system prompt so the
- * model behaves as "AstroBot".</p>
+ * model behaves as "AstroBot". Responses are returned as {@link BotResponse}
+ * objects containing the answer text and optional follow-up question suggestions.</p>
  */
 public class OpenAIClient {
 
@@ -42,7 +45,22 @@ public class OpenAIClient {
             "- Understanding plate solving and star detection results\n" +
             "- Interpreting sky brightness/Bortle scale readings\n" +
             "- General astronomy questions\n" +
-            "Keep answers concise and beginner-friendly. Use the user's location and time context when relevant.";
+            "Keep answers concise and beginner-friendly. Use the user's location and time context when relevant.\n\n" +
+            "IMPORTANT: You must ALWAYS respond with a JSON object in exactly this format:\n" +
+            "{\"answer\": \"your response here\", \"followups\": [\"question 1\", \"question 2\", \"question 3\"]}\n" +
+            "- \"answer\": your complete response text\n" +
+            "- \"followups\": 2-3 short follow-up questions relevant to the topic (empty array [] for greetings or very simple replies)";
+
+    /** Parsed API response containing the answer and optional follow-up suggestions. */
+    public static class BotResponse {
+        public final String answer;
+        public final List<String> followups;
+
+        public BotResponse(String answer, List<String> followups) {
+            this.answer = answer;
+            this.followups = followups != null ? followups : Collections.emptyList();
+        }
+    }
 
     private final String apiKey;
 
@@ -52,6 +70,7 @@ public class OpenAIClient {
     private long observerTimeMillis = 0;
     private float pointingRA = Float.NaN;
     private float pointingDec = Float.NaN;
+    private String selectedObjectName = null;
 
     public interface StreamCallback {
         void onToken(String token);
@@ -76,13 +95,20 @@ public class OpenAIClient {
     }
 
     /**
-     * Sends the conversation to OpenAI and returns the assistant's reply.
+     * Sets the currently selected sky object name to include in the system prompt.
+     */
+    public void setSelectedObject(String name) {
+        this.selectedObjectName = name;
+    }
+
+    /**
+     * Sends the conversation to OpenAI and returns the assistant's reply with follow-ups.
      *
      * @param messages the conversation history (last {@value MAX_CONTEXT_MESSAGES} messages are sent)
-     * @return the assistant's response text
+     * @return a {@link BotResponse} with the answer text and follow-up suggestions
      * @throws IOException on network or API errors
      */
-    public String sendMessage(List<ChatMessage> messages) throws IOException {
+    public BotResponse sendMessage(List<ChatMessage> messages) throws IOException {
         HttpURLConnection connection = null;
         try {
             JSONObject requestBody = buildRequestBody(messages, false);
@@ -106,7 +132,8 @@ public class OpenAIClient {
                 String errorBody = readStream(connection.getErrorStream() != null
                         ? new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8))
                         : null);
-                return parseErrorMessage(responseCode, errorBody);
+                String errorText = parseErrorMessage(responseCode, errorBody);
+                return new BotResponse(errorText, Collections.emptyList());
             }
 
             String responseBody = readStream(
@@ -203,7 +230,6 @@ public class OpenAIClient {
             String result = fullResponse.toString().trim();
             if (result.isEmpty()) {
                 // Streaming yielded no tokens — try to parse as a non-streaming response
-                // (model may not support streaming and returned a regular JSON body)
                 if (rawBody != null) {
                     String fallback = tryParseNonStreamingResponse(rawBody.trim());
                     if (fallback != null && !fallback.isEmpty()) {
@@ -215,9 +241,9 @@ public class OpenAIClient {
                 // Last resort: fall back to non-streaming API call
                 connection.disconnect();
                 connection = null;
-                String fallbackResponse = sendMessage(messages);
-                callback.onToken(fallbackResponse);
-                callback.onComplete(fallbackResponse);
+                BotResponse fallbackResponse = sendMessage(messages);
+                callback.onToken(fallbackResponse.answer);
+                callback.onComplete(fallbackResponse.answer);
             } else {
                 callback.onComplete(result);
             }
@@ -260,14 +286,13 @@ public class OpenAIClient {
                 if (content != null && !content.trim().isEmpty()) {
                     return content.trim();
                 }
-                // Reasoning models may use output field
                 content = message.optString("output_text", null);
                 if (content != null && !content.trim().isEmpty()) {
                     return content.trim();
                 }
             }
 
-            // Responses API format: choices[0].text or output[0].content
+            // Responses API format: choices[0].text
             String text = first.optString("text", null);
             if (text != null && !text.trim().isEmpty()) {
                 return text.trim();
@@ -320,11 +345,13 @@ public class OpenAIClient {
         body.put("model", MODEL);
         body.put("messages", messagesArray);
         // GPT-5 Nano is a reasoning model — reasoning tokens consume part of this budget.
-        // 1024 was too low: reasoning used all tokens, leaving nothing for output.
         body.put("max_completion_tokens", 16384);
         // Reasoning models forbid sampling params (temperature, top_p).
-        // Use reasoning_effort instead to control reasoning depth.
         body.put("reasoning_effort", "low");
+        // Request structured JSON output for answer + follow-up suggestions
+        JSONObject responseFormat = new JSONObject();
+        responseFormat.put("type", "json_object");
+        body.put("response_format", responseFormat);
         if (stream) {
             body.put("stream", true);
         }
@@ -339,6 +366,9 @@ public class OpenAIClient {
             hasContext = true;
         }
         if (observerTimeMillis > 0) {
+            hasContext = true;
+        }
+        if (selectedObjectName != null && !selectedObjectName.isEmpty()) {
             hasContext = true;
         }
 
@@ -357,13 +387,23 @@ public class OpenAIClient {
                 prompt.append(String.format(Locale.US,
                         "\n- Currently viewing: RA=%.2f\u00b0, Dec=%.2f\u00b0", pointingRA, pointingDec));
             }
+            if (selectedObjectName != null && !selectedObjectName.isEmpty()) {
+                prompt.append("\n- User has selected: ").append(selectedObjectName);
+            }
         }
 
         return prompt.toString();
     }
 
-    private String parseResponse(String responseBody) throws JSONException {
+    /**
+     * Parses the API response body into a {@link BotResponse}.
+     * Extracts "answer" and "followups" from the model's JSON output.
+     * Falls back gracefully if the model doesn't return valid JSON.
+     */
+    private BotResponse parseResponse(String responseBody) throws JSONException {
         JSONObject json = new JSONObject(responseBody);
+
+        String rawContent = null;
 
         // Standard Chat Completions format: choices[0].message.content
         JSONArray choices = json.optJSONArray("choices");
@@ -372,34 +412,76 @@ public class OpenAIClient {
             if (message != null) {
                 String content = message.optString("content", null);
                 if (content != null && !content.trim().isEmpty()) {
-                    return content.trim();
+                    rawContent = content.trim();
                 }
             }
         }
 
         // Responses API format: output[].content[].text
-        JSONArray output = json.optJSONArray("output");
-        if (output != null) {
-            for (int i = 0; i < output.length(); i++) {
-                JSONObject item = output.getJSONObject(i);
-                if ("message".equals(item.optString("type"))) {
-                    JSONArray contentArr = item.optJSONArray("content");
-                    if (contentArr != null) {
-                        for (int j = 0; j < contentArr.length(); j++) {
-                            JSONObject cObj = contentArr.getJSONObject(j);
-                            if ("output_text".equals(cObj.optString("type"))) {
-                                String text = cObj.optString("text", null);
-                                if (text != null && !text.trim().isEmpty()) {
-                                    return text.trim();
+        if (rawContent == null) {
+            JSONArray output = json.optJSONArray("output");
+            if (output != null) {
+                for (int i = 0; i < output.length(); i++) {
+                    JSONObject item = output.getJSONObject(i);
+                    if ("message".equals(item.optString("type"))) {
+                        JSONArray contentArr = item.optJSONArray("content");
+                        if (contentArr != null) {
+                            for (int j = 0; j < contentArr.length(); j++) {
+                                JSONObject cObj = contentArr.getJSONObject(j);
+                                if ("output_text".equals(cObj.optString("type"))) {
+                                    String text = cObj.optString("text", null);
+                                    if (text != null && !text.trim().isEmpty()) {
+                                        rawContent = text.trim();
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
+                    if (rawContent != null) break;
                 }
             }
         }
 
-        return "I'm sorry, I couldn't generate a response. Please try again.";
+        if (rawContent == null) {
+            return new BotResponse("I'm sorry, I couldn't generate a response. Please try again.",
+                    Collections.emptyList());
+        }
+
+        // Try to parse the model's JSON output for answer + followups
+        return extractBotResponse(rawContent);
+    }
+
+    /**
+     * Attempts to parse model output as {"answer": "...", "followups": [...]}
+     * Falls back to using the raw text as the answer with no followups.
+     */
+    private BotResponse extractBotResponse(String rawContent) {
+        // Find the outermost JSON object in the content
+        int start = rawContent.indexOf('{');
+        int end = rawContent.lastIndexOf('}');
+        if (start >= 0 && end > start) {
+            try {
+                JSONObject parsed = new JSONObject(rawContent.substring(start, end + 1));
+                String answer = parsed.optString("answer", null);
+                if (answer != null && !answer.trim().isEmpty()) {
+                    List<String> followups = new ArrayList<>();
+                    JSONArray followupsArr = parsed.optJSONArray("followups");
+                    if (followupsArr != null) {
+                        for (int i = 0; i < followupsArr.length(); i++) {
+                            String q = followupsArr.optString(i, null);
+                            if (q != null && !q.trim().isEmpty()) {
+                                followups.add(q.trim());
+                            }
+                        }
+                    }
+                    return new BotResponse(answer.trim(), followups);
+                }
+            } catch (JSONException ignored) {
+                // Model didn't return valid JSON — use raw content as answer
+            }
+        }
+        return new BotResponse(rawContent, Collections.emptyList());
     }
 
     private String parseErrorMessage(int responseCode, String errorBody) {

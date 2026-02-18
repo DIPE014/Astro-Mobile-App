@@ -888,6 +888,10 @@ public class SkyMapActivity extends AppCompatActivity {
                     chatArgs.putFloat("pointingRA", skyCanvasView.getViewRa());
                     chatArgs.putFloat("pointingDec", skyCanvasView.getViewDec());
                 }
+                // Inject the currently selected star/object so AstroBot knows what the user is looking at
+                if (selectedStar != null) {
+                    chatArgs.putString("selectedObjectName", selectedStar.getName());
+                }
                 chatSheet.setArguments(chatArgs);
                 chatSheet.show(getSupportFragmentManager(), "chat_bottom_sheet");
             });

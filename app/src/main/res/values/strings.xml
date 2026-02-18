@@ -361,6 +361,8 @@
     <string name="cd_chat_fab">Open AI assistant</string>
     <string name="cd_chat_send">Send message</string>
     <string name="cd_chat_close">Close chat</string>
+    <string name="cd_chat_clear">Clear chat history</string>
+    <string name="chat_retry">↩ Retry</string>
 
     <!-- Settings: API Key -->
     <string name="settings_ai">AI Assistant</string>
