@@ -91,6 +91,10 @@ public class OnboardingActivity extends AppCompatActivity {
                 android.R.drawable.ic_menu_search,
                 R.string.onboarding_search_title,
                 R.string.onboarding_search_description));
+        pages.add(new OnboardingPagerAdapter.OnboardingPage(
+                android.R.drawable.ic_menu_slideshow,
+                R.string.onboarding_sky_quality_title,
+                R.string.onboarding_sky_quality_description));
     }
 
     /**

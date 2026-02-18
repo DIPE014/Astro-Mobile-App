@@ -442,35 +442,6 @@
 
             </LinearLayout>
 
-            <!-- Sky Quality Button -->
-            <LinearLayout
-                android:id="@+id/btnSkyQuality"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="?attr/selectableItemBackground"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:padding="@dimen/padding_extra_small">
-
-                <ImageView
-                    android:id="@+id/ivSkyQuality"
-                    android:layout_width="@dimen/bottom_nav_icon_size"
-                    android:layout_height="@dimen/bottom_nav_icon_size"
-                    android:contentDescription="@string/cd_sky_brightness"
-                    android:src="@android:drawable/ic_menu_slideshow"
-                    app:tint="@color/icon_inactive" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_extra_small"
-                    android:text="@string/sky_brightness_title"
-                    android:textAppearance="@style/TextAppearance.AstroApp.LabelSmall"
-                    android:textColor="@color/text_secondary" />
-
-            </LinearLayout>
-
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>

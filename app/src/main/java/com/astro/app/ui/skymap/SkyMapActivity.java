@@ -63,7 +63,6 @@ import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
 import com.astro.app.ui.starinfo.StarInfoActivity;
 import com.astro.app.ui.chat.ChatBottomSheetFragment;
-import com.astro.app.ui.skybrightness.SkyBrightnessActivity;
 import com.astro.app.search.SearchArrowView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -855,15 +854,6 @@ public class SkyMapActivity extends AppCompatActivity {
                 }
                 chatSheet.setArguments(chatArgs);
                 chatSheet.show(getSupportFragmentManager(), "chat_bottom_sheet");
-            });
-        }
-
-        // Sky Quality button
-        View btnSkyQuality = findViewById(R.id.btnSkyQuality);
-        if (btnSkyQuality != null) {
-            btnSkyQuality.setOnClickListener(v -> {
-                Intent intent = new Intent(this, SkyBrightnessActivity.class);
-                startActivity(intent);
             });
         }
 

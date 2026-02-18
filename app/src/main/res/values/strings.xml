@@ -339,6 +339,8 @@
     <string name="onboarding_drag_zoom_description">Pinch to zoom in/out. Enable drag mode in Settings to manually pan the sky</string>
     <string name="onboarding_search_title">Search</string>
     <string name="onboarding_search_description">Search for any star, constellation, or planet and follow the arrow to find it</string>
+    <string name="onboarding_sky_quality_title">Sky Quality</string>
+    <string name="onboarding_sky_quality_description">After capturing a photo for star detection, tap Sky Quality to see your Bortle class — a measure of how dark your sky is for observing</string>
     <string name="settings_replay_tutorial">Replay Tutorial</string>
     <string name="settings_replay_tutorial_summary">Watch the app introduction again</string>
     <string name="settings_replay_tutorial_toast">Tutorial will show on next app launch</string>
