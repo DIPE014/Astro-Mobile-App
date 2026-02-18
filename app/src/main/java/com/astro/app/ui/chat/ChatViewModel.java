@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.astro.app.R;
 import com.astro.app.data.api.OpenAIClient;
 import com.astro.app.data.model.ChatMessage;
 
@@ -91,7 +92,7 @@ public class ChatViewModel extends AndroidViewModel {
         if (apiKey == null || apiKey.trim().isEmpty()) {
             ChatMessage errorMsg = new ChatMessage(
                     ChatMessage.ROLE_ASSISTANT,
-                    "No API key configured. Please add your OpenAI API key in Settings to use AstroBot."
+                    getApplication().getString(R.string.chat_no_api_key)
             );
             messages.add(errorMsg);
             messagesLiveData.postValue(new ArrayList<>(messages));
@@ -106,6 +107,9 @@ public class ChatViewModel extends AndroidViewModel {
         loadingLiveData.postValue(true);
 
         final String query = userMessage.trim();
+        // Snapshot the conversation context on the calling thread to avoid a data race
+        // between the main thread (add/clear) and the executor thread (iterate).
+        final List<ChatMessage> snapshot = new ArrayList<>(messages);
         executor.execute(() -> {
             try {
                 OpenAIClient client = new OpenAIClient(apiKey.trim());
@@ -113,9 +117,9 @@ public class ChatViewModel extends AndroidViewModel {
                         contextTimeMillis, contextPointingRA, contextPointingDec);
                 client.setSelectedObject(contextSelectedObject);
 
-                // Build context messages (exclude thinking messages)
+                // Build context messages from snapshot (exclude thinking messages)
                 List<ChatMessage> contextMessages = new ArrayList<>();
-                for (ChatMessage msg : messages) {
+                for (ChatMessage msg : snapshot) {
                     if (!msg.isThinking()) {
                         contextMessages.add(msg);
                     }
@@ -140,7 +144,7 @@ public class ChatViewModel extends AndroidViewModel {
                 int idx = messages.indexOf(thinkingMsg);
                 if (idx >= 0) {
                     messages.get(idx).setError(
-                            "Sorry, I couldn't connect to the server. Please check your internet connection and try again.",
+                            getApplication().getString(R.string.chat_error),
                             query);
                     messagesLiveData.postValue(new ArrayList<>(messages));
                 }

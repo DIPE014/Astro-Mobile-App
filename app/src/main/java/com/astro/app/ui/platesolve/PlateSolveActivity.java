@@ -275,11 +275,9 @@ public class PlateSolveActivity extends AppCompatActivity {
         Bitmap bitmapSnapshot = originalBitmap;
         executor.execute(() -> {
             ExifInterface exif = null;
-            try {
-                InputStream is = getContentResolver().openInputStream(uri);
+            try (InputStream is = getContentResolver().openInputStream(uri)) {
                 if (is != null) {
                     exif = new ExifInterface(is);
-                    is.close();
                 }
             } catch (Exception e) {
                 Log.w(TAG, "Could not read EXIF for sky analysis", e);

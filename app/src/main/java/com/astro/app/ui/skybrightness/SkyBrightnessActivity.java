@@ -244,10 +244,10 @@ public class SkyBrightnessActivity extends AppCompatActivity {
             // First pass: get dimensions
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inJustDecodeBounds = true;
-            InputStream is = getContentResolver().openInputStream(uri);
-            if (is == null) return null;
-            BitmapFactory.decodeStream(is, null, opts);
-            is.close();
+            try (InputStream is = getContentResolver().openInputStream(uri)) {
+                if (is == null) return null;
+                BitmapFactory.decodeStream(is, null, opts);
+            }
 
             // Calculate sample size
             int maxDim = Math.max(opts.outWidth, opts.outHeight);
@@ -260,11 +260,10 @@ public class SkyBrightnessActivity extends AppCompatActivity {
             opts = new BitmapFactory.Options();
             opts.inSampleSize = sampleSize;
             opts.inScaled = false;
-            is = getContentResolver().openInputStream(uri);
-            if (is == null) return null;
-            Bitmap bitmap = BitmapFactory.decodeStream(is, null, opts);
-            is.close();
-            return bitmap;
+            try (InputStream is = getContentResolver().openInputStream(uri)) {
+                if (is == null) return null;
+                return BitmapFactory.decodeStream(is, null, opts);
+            }
 
         } catch (Exception e) {
             Log.e(TAG, "Failed to load bitmap", e);
@@ -273,12 +272,9 @@ public class SkyBrightnessActivity extends AppCompatActivity {
     }
 
     private ExifInterface loadExif(@NonNull Uri uri) {
-        try {
-            InputStream is = getContentResolver().openInputStream(uri);
+        try (InputStream is = getContentResolver().openInputStream(uri)) {
             if (is == null) return null;
-            ExifInterface exif = new ExifInterface(is);
-            is.close();
-            return exif;
+            return new ExifInterface(is);
         } catch (Exception e) {
             Log.w(TAG, "Failed to read EXIF", e);
             return null;

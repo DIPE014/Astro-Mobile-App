@@ -132,8 +132,7 @@ public class OpenAIClient {
                 String errorBody = readStream(connection.getErrorStream() != null
                         ? new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8))
                         : null);
-                String errorText = parseErrorMessage(responseCode, errorBody);
-                return new BotResponse(errorText, Collections.emptyList());
+                throw new IOException(parseErrorMessage(responseCode, errorBody));
             }
 
             String responseBody = readStream(
@@ -241,9 +240,13 @@ public class OpenAIClient {
                 // Last resort: fall back to non-streaming API call
                 connection.disconnect();
                 connection = null;
-                BotResponse fallbackResponse = sendMessage(messages);
-                callback.onToken(fallbackResponse.answer);
-                callback.onComplete(fallbackResponse.answer);
+                try {
+                    BotResponse fallbackResponse = sendMessage(messages);
+                    callback.onToken(fallbackResponse.answer);
+                    callback.onComplete(fallbackResponse.answer);
+                } catch (IOException e2) {
+                    callback.onError(e2.getMessage());
+                }
             } else {
                 callback.onComplete(result);
             }
@@ -348,10 +351,14 @@ public class OpenAIClient {
         body.put("max_completion_tokens", 16384);
         // Reasoning models forbid sampling params (temperature, top_p).
         body.put("reasoning_effort", "low");
-        // Request structured JSON output for answer + follow-up suggestions
-        JSONObject responseFormat = new JSONObject();
-        responseFormat.put("type", "json_object");
-        body.put("response_format", responseFormat);
+        // Request structured JSON output for answer + follow-up suggestions.
+        // Do NOT set response_format for streaming: each SSE delta is a raw JSON fragment,
+        // which would expose partial JSON to the UI instead of natural language tokens.
+        if (!stream) {
+            JSONObject responseFormat = new JSONObject();
+            responseFormat.put("type", "json_object");
+            body.put("response_format", responseFormat);
+        }
         if (stream) {
             body.put("stream", true);
         }

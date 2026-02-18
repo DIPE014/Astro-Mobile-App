@@ -222,23 +222,43 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
      * Builds dynamic suggestion chips based on which planets are currently above the
      * horizon, plus the selected sky object (if any) and static astronomy fallbacks.
      *
-     * <p>Chip priority:
-     * <ol>
-     *   <li>Selected object (injected by SkyMapActivity when user tapped an object)</li>
-     *   <li>Planets/Moon visible above 10° altitude right now</li>
-     *   <li>Static astronomy fallback questions</li>
-     * </ol>
-     * </p>
+     * <p>Static chips (selected object + fallbacks) are shown immediately. Planet
+     * visibility is computed on a background thread to avoid blocking the UI, and the
+     * chips are updated once the calculation completes.</p>
      */
     private void setupDynamicChips() {
-        List<String> suggestions = buildSuggestions();
+        Bundle args = getArguments();
+        double lat = (args != null) ? args.getDouble(ARG_LATITUDE, Double.NaN) : Double.NaN;
+        double lon = (args != null) ? args.getDouble(ARG_LONGITUDE, Double.NaN) : Double.NaN;
+        long timeMillis = (args != null) ? args.getLong(ARG_TIME_MILLIS, 0) : 0;
+        String selectedObject = (args != null) ? args.getString(ARG_SELECTED_OBJECT) : null;
 
+        // Show static chips immediately (no blocking work on the UI thread)
+        populateChips(buildStaticSuggestions(selectedObject));
+
+        // Compute planet visibility in background, then update chips
+        if (!Double.isNaN(lat) && !Double.isNaN(lon) && timeMillis > 0) {
+            final double fLat = lat, fLon = lon;
+            final long fTimeMillis = timeMillis;
+            final String fSelectedObject = selectedObject;
+            new Thread(() -> {
+                List<String> full = buildSuggestionsWithPlanets(fSelectedObject, fLat, fLon, fTimeMillis);
+                if (isAdded()) {
+                    requireActivity().runOnUiThread(() -> {
+                        if (isAdded()) populateChips(full);
+                    });
+                }
+            }).start();
+        }
+    }
+
+    /** Populates chipGroupSuggestions with a fresh set of chip views. */
+    private void populateChips(List<String> suggestions) {
         chipGroupSuggestions.removeAllViews();
         for (String text : suggestions) {
             Chip chip = new Chip(requireContext());
             chip.setText(text);
             chip.setCheckable(false);
-            // Use the app's existing chip style attributes
             chip.setChipBackgroundColorResource(R.color.surface_elevated);
             chip.setTextColor(requireContext().getColor(R.color.text_primary));
             chip.setChipStrokeColorResource(R.color.outline_variant);
@@ -249,29 +269,14 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
     }
 
     /**
-     * Returns up to 6 chip labels: selected object first, then visible planets, then
-     * static fallbacks to fill remaining slots.
+     * Returns selected-object chip + static fallbacks, with no ephemeris computation.
+     * Safe to call on the UI thread.
      */
-    private List<String> buildSuggestions() {
+    private List<String> buildStaticSuggestions(String selectedObject) {
         List<String> chips = new ArrayList<>();
-
-        Bundle args = getArguments();
-        double lat = (args != null) ? args.getDouble(ARG_LATITUDE, Double.NaN) : Double.NaN;
-        double lon = (args != null) ? args.getDouble(ARG_LONGITUDE, Double.NaN) : Double.NaN;
-        long timeMillis = (args != null) ? args.getLong(ARG_TIME_MILLIS, 0) : 0;
-        String selectedObject = (args != null) ? args.getString(ARG_SELECTED_OBJECT) : null;
-
-        // 1. Selected object chip — first, most contextually relevant
         if (selectedObject != null && !selectedObject.trim().isEmpty()) {
             chips.add("Tell me about " + selectedObject);
         }
-
-        // 2. Visible planets — computed from live ephemeris
-        if (!Double.isNaN(lat) && !Double.isNaN(lon) && timeMillis > 0) {
-            appendVisiblePlanetChips(chips, lat, lon, timeMillis);
-        }
-
-        // 3. Static fallbacks to fill remaining slots
         String[] fallbacks = {
                 "What's visible tonight?",
                 "Tips for astrophotography",
@@ -284,7 +289,32 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
             if (chips.size() >= 6) break;
             chips.add(fallback);
         }
+        return chips;
+    }
 
+    /**
+     * Returns up to 6 chip labels: selected object first, then visible planets, then
+     * static fallbacks. Calls ephemeris code — must be called off the UI thread.
+     */
+    private List<String> buildSuggestionsWithPlanets(String selectedObject,
+                                                     double lat, double lon, long timeMillis) {
+        List<String> chips = new ArrayList<>();
+        if (selectedObject != null && !selectedObject.trim().isEmpty()) {
+            chips.add("Tell me about " + selectedObject);
+        }
+        appendVisiblePlanetChips(chips, lat, lon, timeMillis);
+        String[] fallbacks = {
+                "What's visible tonight?",
+                "Tips for astrophotography",
+                "What is the Bortle scale?",
+                "How does plate solving work?",
+                "How do I read RA and Dec?",
+                "What's the best telescope for beginners?"
+        };
+        for (String fallback : fallbacks) {
+            if (chips.size() >= 6) break;
+            chips.add(fallback);
+        }
         return chips;
     }
 
