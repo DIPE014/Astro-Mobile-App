@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="@drawable/bg_gradient"
     android:fitsSystemWindows="true">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -144,132 +144,348 @@
                 android:paddingHorizontal="@dimen/screen_padding_horizontal"
                 android:paddingTop="@dimen/padding_large">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/education_family"
-                    android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
-                    android:textColor="@color/text_tertiary" />
 
-                <TextView
-                    android:id="@+id/tvConstellationFamily"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                    android:textColor="@color/text_primary" />
+                    android:orientation="horizontal"
+                    android:baselineAligned="false">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_medium"
-                    android:text="@string/education_best_month"
-                    android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
-                    android:textColor="@color/text_tertiary" />
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="3"
+                        style="@style/Widget.AstroApp.CardView.EducationDetailDialog"
+                        android:layout_margin="@dimen/margin_medium">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                            android:paddingVertical="@dimen/screen_padding_vertical">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:src="@drawable/ic_family"
+                                    android:layout_marginRight="@dimen/margin_extra_small"/>
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/education_family"
+                                    android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                                    android:textColor="@color/text_tertiary" />
+                            </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvConstellationBestMonth"
+                            <TextView
+                                android:id="@+id/tvConstellationFamily"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/margin_extra_small"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                                android:textColor="@color/text_primary" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="4"
+                        style="@style/Widget.AstroApp.CardView.EducationDetailDialog"
+                        android:layout_marginTop="@dimen/margin_medium"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:layout_marginEnd="@dimen/margin_medium"
+                        android:layout_marginStart="@dimen/margin_small">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                            android:paddingVertical="@dimen/screen_padding_vertical">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:src="@drawable/ic_formalized"
+                                    android:layout_marginRight="@dimen/margin_extra_small"/>
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/education_formalized"
+                                    android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                                    android:textColor="@color/text_tertiary" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvConstellationFormalized"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/margin_extra_small"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                                android:textColor="@color/text_primary" />
+                        </LinearLayout>
+                        
+                    </com.google.android.material.card.MaterialCardView>
+                
+                </LinearLayout>
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                    android:textColor="@color/text_primary" />
+                    android:orientation="horizontal"
+                    android:baselineAligned="false">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_medium"
-                    android:text="@string/education_approx_coordinates"
-                    android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
-                    android:textColor="@color/text_tertiary" />
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="3"
+                        style="@style/Widget.AstroApp.CardView.EducationDetailDialog"
+                        android:layout_margin="@dimen/margin_medium">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                            android:paddingVertical="@dimen/screen_padding_vertical">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:src="@drawable/ic_best_month"
+                                    android:layout_marginRight="@dimen/margin_extra_small"/>
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/education_best_month"
+                                    android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                                    android:textColor="@color/text_tertiary" />
+                            </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvConstellationApproxCoordinates"
+                            <TextView
+                                android:id="@+id/tvConstellationBestMonth"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/margin_extra_small"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                                android:textColor="@color/text_primary" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="4"
+                        style="@style/Widget.AstroApp.CardView.EducationDetailDialog"
+                        android:layout_marginTop="@dimen/margin_medium"
+                        android:layout_marginBottom="@dimen/margin_medium"
+                        android:layout_marginEnd="@dimen/margin_medium"
+                        android:layout_marginStart="@dimen/margin_small">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                            android:paddingVertical="@dimen/screen_padding_vertical">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:src="@drawable/ic_approx_coord"
+                                    android:layout_marginRight="@dimen/margin_extra_small"/>
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/education_approx_coordinates"
+                                    android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                                    android:textColor="@color/text_tertiary" />
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tvConstellationApproxCoordinates"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/margin_extra_small"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                                android:textColor="@color/text_primary" />
+                        </LinearLayout>
+                        
+                    </com.google.android.material.card.MaterialCardView>
+                
+                </LinearLayout>
+
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                    android:textColor="@color/text_primary" />
+                    style="@style/Widget.AstroApp.CardView.EducationDetailDialog"
+                    android:layout_margin="@dimen/margin_medium">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_medium"
-                    android:text="@string/education_background_origin"
-                    android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
-                    android:textColor="@color/text_tertiary" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                        android:paddingVertical="@dimen/screen_padding_vertical">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_background_origin"
+                                android:layout_marginRight="@dimen/margin_extra_small"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/education_background_origin"
+                                android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                                android:textColor="@color/text_tertiary" />
+                        </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvConstellationBackgroundOrigin"
+                        <TextView
+                            android:id="@+id/tvConstellationBackgroundOrigin"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_primary" />
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+                
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                    android:textColor="@color/text_primary" />
+                    style="@style/Widget.AstroApp.CardView.EducationDetailDialog"
+                    android:layout_margin="@dimen/margin_medium">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_medium"
-                    android:text="@string/education_asterism"
-                    android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
-                    android:textColor="@color/text_tertiary" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                        android:paddingVertical="@dimen/screen_padding_vertical">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_asterism"
+                                android:layout_marginRight="@dimen/margin_extra_small"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/education_asterism"
+                                android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                                android:textColor="@color/text_tertiary" />
+                        </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvConstellationAsterism"
+                        <TextView
+                            android:id="@+id/tvConstellationAsterism"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_primary" />
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                    android:textColor="@color/text_primary" />
+                    style="@style/Widget.AstroApp.CardView.EducationDetailDialog"
+                    android:layout_margin="@dimen/margin_medium">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_medium"
-                    android:text="@string/education_major_stars"
-                    android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
-                    android:textColor="@color/text_tertiary" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                        android:paddingVertical="@dimen/screen_padding_vertical">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_major_stars"
+                                android:layout_marginRight="@dimen/margin_extra_small"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/education_major_stars"
+                                android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                                android:textColor="@color/text_tertiary" />
+                        </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvConstellationMajorStars"
+                        <TextView
+                            android:id="@+id/tvConstellationMajorStars"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_primary" />
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                    android:textColor="@color/text_primary" />
+                    style="@style/Widget.AstroApp.CardView.EducationDetailDialog"
+                    android:layout_margin="@dimen/margin_medium">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_medium"
-                    android:text="@string/education_formalized"
-                    android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
-                    android:textColor="@color/text_tertiary" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                        android:paddingVertical="@dimen/screen_padding_vertical">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_source"
+                                android:layout_marginRight="@dimen/margin_extra_small"/>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/education_source"
+                                android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                                android:textColor="@color/text_tertiary" />
+                        </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tvConstellationFormalized"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                    android:textColor="@color/text_primary" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_medium"
-                    android:text="@string/education_source"
-                    android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
-                    android:textColor="@color/text_tertiary" />
-
-                <TextView
-                    android:id="@+id/tvConstellationSource"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_small"
-                    android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-                    android:textColor="@color/text_primary" />
+                        <TextView
+                            android:id="@+id/tvConstellationSource"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+                            android:textColor="@color/text_primary" />
+                    </LinearLayout>
+                
+                </com.google.android.material.card.MaterialCardView>
 
             </LinearLayout>
 
