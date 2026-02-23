@@ -244,5 +244,3 @@ Initial working app with real-time AR sky view.
 - Camera preview with sensor-driven AR overlay
 
 ---
-
-*For detailed technical notes on the astrometry.net JNI integration see [CLAUDE.md](CLAUDE.md).*
