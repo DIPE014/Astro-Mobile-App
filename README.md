@@ -2,32 +2,40 @@
 
 An Android augmented reality astronomy app that helps you explore the night sky. Point your phone at the sky and see stars, planets, and constellations overlaid on your camera view in real-time.
 
-## 📢 Latest Release - Week 6: Onboarding, Compass & Bug Fixes (February 15, 2026)
+## 📢 Latest Release — Week 7: AstroBot, Sky Brightness & 3D Rendering (February 23, 2026)
 
-This release focuses on first-time user experience, navigation polish, and critical bug fixes.
+Two major new features plus rendering and code-quality improvements across the board.
 
 **New Features:**
-- 🧭 **3D Rotating Compass** - A smooth, animated compass widget showing cardinal directions relative to your device orientation, always visible on the sky map
-- 📖 **In-App Tooltip Tutorial** - Step-by-step walkthrough on first launch guiding users through constellation toggles, time travel, search, and star detection with highlighted anchor buttons and a scrim overlay
-- 🎓 **Onboarding Walkthrough** - Multi-page onboarding screen with star detection tips and feature overview for new users
+- 🤖 **AstroBot AI Assistant** — ChatGPT-powered astronomy chatbot accessible via a FAB on the sky map. Context-aware: knows your location, time, and what you're looking at. Offers dynamic suggestion chips, follow-up questions, a typing indicator, and a retry button on errors. API key stored with encrypted SharedPreferences.
+- 🌃 **Sky Brightness Meter** — Analyse any photo to estimate your sky's Bortle dark-sky class (1–9). Combines EXIF exposure metadata with pixel luminance statistics. Includes a custom colour-coded Bortle gauge, a result dialog in the Plate Solve screen, and a new onboarding page explaining light pollution.
+- 🔒 **Planet Trajectory Lock** — Long-press a planet to lock its trajectory overlay on screen even while panning away. Covers the full orbital period. An unlock button returns to normal mode.
+- 🧭 **3D Compass Tilt** — Compass now tilts in 3D based on device pitch for a more spatially accurate orientation display.
+- ↕️ **Smooth Zenith Panning** — Eliminated the singularity snap when pointing straight up.
 
-**Bug Fixes:**
-- 🔧 **Manual Drag Mode** - Fixed rendering: all projection calls now respect manual azimuth/altitude so the sky actually moves when dragging
-- 🔧 **Manual Mode Settings Sync** - Fixed stale ViewModel issue where toggling manual scroll OFF in Settings didn't take effect when returning to the sky map
-- 🔧 **Tooltip Highlight** - Fixed PorterDuff.Mode.CLEAR not punching through the scrim (added software layer type)
-- 🔧 **Info Panel Overlap** - Star info panel no longer overlaps with the search/camera FABs
-- 🔧 **Tutorial Persistence** - Tutorial no longer marks itself completed when no tooltips are shown
-- 🔧 **Build System** - Replaced hardcoded Java path with robust cross-platform detection
+**Bug Fixes & Code Quality (PR #17 — 12 issues resolved):**
+- 🔧 Upgraded `security-crypto` to stable `1.1.0` (was alpha)
+- 🔧 API errors now correctly surface as retryable errors in chat (were silently swallowed)
+- 🔧 Fixed streaming fallback routing errors to `onError` callback
+- 🔧 Disabled `response_format: json_object` for streaming to prevent raw JSON fragments in UI
+- 🔧 Planet ephemeris computation moved off the UI thread in chat chips
+- 🔧 Fixed data race on chat message list between main thread and executor
+- 🔧 Replaced hardcoded error strings with `strings.xml` resources
+- 🔧 Fixed three `InputStream` leaks (try-with-resources) across `PlateSolveActivity` and `SkyBrightnessActivity`
+- 🔧 Scoped `FileProvider` external-cache-path from root to `captures/` subdirectory
+- 🔧 Removed machine-specific `org.gradle.java.home` from `gradle.properties`
 
-See [RELEASE_NOTES_WEEK6.md](RELEASE_NOTES_WEEK6.md) for full details.
+See [CHANGELOG.md](CHANGELOG.md) for the full historical changelog.
 
 ---
 
+### Week 6: Onboarding, Compass & Bug Fixes (February 15, 2026)
+
+3D rotating compass, in-app tooltip tutorial (first-launch walkthrough), multi-page onboarding, and six bug fixes for manual drag rendering, settings sync, tooltip highlight, panel overlap, tutorial state, and build configuration.
+
 ### Week 5: Sky Map UX Update (February 10, 2026)
 
-- Pinch-to-Zoom (20°-120° FOV), planet trajectory visualization, Deep Sky Objects (Messier catalog), Tonight's Highlights, enhanced education content for 100 brightest stars, smart selection UI with chips and bottom sheets.
-
-See [RELEASE_NOTES.md](RELEASE_NOTES.md) for Week 5 details.
+Pinch-to-Zoom (20°–120° FOV), planet trajectory visualisation, Deep Sky Objects (Messier catalog), Tonight's Highlights, enhanced education content for the 100 brightest stars, and a smart selection UI with chips and bottom sheets.
 
 ## Features
 
@@ -71,6 +79,19 @@ Point your camera at the sky to see celestial objects rendered in augmented real
 - One-tap view of what's visible right now from your location
 - Shows planets, bright stars, constellations, and deep sky objects above the horizon
 - Tap any highlight to navigate the sky map to that object
+
+### AstroBot AI Assistant
+- Tap the chat FAB on the sky map to open AstroBot
+- Ask anything: identify objects, plan observations, understand plate solving results, learn astronomy concepts
+- Context-aware: the bot knows your GPS location, current time, what you are pointing at, and the selected object
+- Suggestion chips adapt to which planets are currently above your horizon
+- Follow-up questions suggested after every response
+- Requires an OpenAI API key (enter in Settings; stored encrypted on-device)
+
+### Sky Brightness Meter
+- Load a sky photo in the Plate Solve screen and tap Sky Quality
+- Estimates your Bortle dark-sky class (1 = pristine, 9 = inner-city) using EXIF exposure data and pixel luminance analysis
+- Colour-coded Bortle scale gauge with class label and description
 
 ### Additional Features
 - **Night Mode** - Red theme to preserve dark adaptation
@@ -124,6 +145,8 @@ git clone https://github.com/DIPE014/Astro-Mobile-App.git
   - CameraX for camera preview
   - Protocol Buffers for star data
   - Google Play Services for location
+  - androidx.security:security-crypto for encrypted API key storage
+  - OpenAI Chat Completions API (GPT-5 Nano) for AstroBot
 
 ## Credits
 
