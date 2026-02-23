@@ -476,6 +476,21 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:rippleColor="@color/ripple_primary" />
 
+    <!-- Chat FAB (above detect) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabChat"
+        style="@style/Widget.AstroApp.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/fab_margin"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:contentDescription="@string/cd_chat_fab"
+        android:src="@android:drawable/ic_menu_send"
+        app:fabSize="normal"
+        app:layout_constraintBottom_toTopOf="@id/fabDetect"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:rippleColor="@color/ripple_primary" />
+
     <!-- Select FAB (appears when objects are in reticle) -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabSelect"
@@ -587,6 +602,31 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
+
+    <!-- Stop Tracking Button (appears when locked on a planet trajectory) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnUnlockPlanet"
+        style="@style/Widget.AstroApp.Button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_small"
+        android:layout_marginTop="@dimen/margin_extra_small"
+        android:minHeight="@dimen/touch_target_min"
+        android:paddingHorizontal="@dimen/padding_medium"
+        android:paddingVertical="@dimen/padding_small"
+        android:backgroundTint="@color/md_theme_dark_primaryContainer"
+        android:text="Stop Tracking"
+        android:textAllCaps="false"
+        android:textSize="14sp"
+        android:textColor="@color/md_theme_dark_onPrimaryContainer"
+        android:visibility="gone"
+        app:icon="@android:drawable/ic_menu_close_clear_cancel"
+        app:iconPadding="@dimen/padding_extra_small"
+        app:iconSize="18dp"
+        app:iconTint="@color/md_theme_dark_onPrimaryContainer"
+        app:layout_constraintTop_toBottomOf="@id/topControls"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="gone" />
 
     <!-- Show Detail Button (appears for search targets that have education content) -->
     <com.google.android.material.button.MaterialButton

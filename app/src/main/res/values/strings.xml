@@ -339,9 +339,65 @@
     <string name="onboarding_drag_zoom_description">Pinch to zoom in/out. Enable drag mode in Settings to manually pan the sky</string>
     <string name="onboarding_search_title">Search</string>
     <string name="onboarding_search_description">Search for any star, constellation, or planet and follow the arrow to find it</string>
+    <string name="onboarding_sky_quality_title">Sky Quality</string>
+    <string name="onboarding_sky_quality_description">After capturing a photo for star detection, tap Sky Quality to see your Bortle class — a measure of how dark your sky is for observing</string>
     <string name="settings_replay_tutorial">Replay Tutorial</string>
     <string name="settings_replay_tutorial_summary">Watch the app introduction again</string>
     <string name="settings_replay_tutorial_toast">Tutorial will show on next app launch</string>
+
+    <!-- AI Chatbot -->
+    <string name="chat_title">AstroBot</string>
+    <string name="chat_input_hint">Ask AstroBot…</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_no_api_key">Please set your OpenAI API key in Settings first.</string>
+    <string name="chat_thinking">Thinking…</string>
+    <string name="chat_error">Sorry, something went wrong. Please try again.</string>
+    <string name="chat_suggestion_1">What\'s visible tonight?</string>
+    <string name="chat_suggestion_2">How do I read celestial coordinates?</string>
+    <string name="chat_suggestion_3">What is the Bortle scale?</string>
+    <string name="chat_suggestion_4">Tips for photographing the Milky Way</string>
+    <string name="chat_suggestion_5">What constellation is Betelgeuse in?</string>
+    <string name="chat_suggestion_6">How does plate solving work?</string>
+    <string name="cd_chat_fab">Open AI assistant</string>
+    <string name="cd_chat_send">Send message</string>
+    <string name="cd_chat_close">Close chat</string>
+    <string name="cd_chat_clear">Clear chat history</string>
+    <string name="chat_retry">↩ Retry</string>
+
+    <!-- Settings: API Key -->
+    <string name="settings_ai">AI Assistant</string>
+    <string name="settings_api_key">OpenAI API Key</string>
+    <string name="settings_api_key_summary">Required for AstroBot chat feature</string>
+    <string name="settings_api_key_hint">Enter your API key</string>
+    <string name="settings_api_key_saved">API key saved</string>
+    <string name="settings_api_key_cleared">API key cleared</string>
+
+    <!-- Sky Brightness Meter -->
+    <string name="sky_brightness_title">Sky Quality</string>
+    <string name="sky_brightness_take_photo">Take Photo</string>
+    <string name="sky_brightness_pick_gallery">Pick from Gallery</string>
+    <string name="sky_brightness_bortle_class">Bortle Class</string>
+    <string name="sky_brightness_normalized">Normalized Brightness</string>
+    <string name="sky_brightness_median">Median Pixel Value</string>
+    <string name="sky_brightness_exif_info">Camera Settings Used</string>
+    <string name="sky_brightness_no_exif">Camera settings not available. Result is approximate.</string>
+    <string name="sky_brightness_disclaimer">Approximate measurement. Calibrate with an SQM device for accuracy.</string>
+    <string name="sky_brightness_iso">ISO: %1$d</string>
+    <string name="sky_brightness_exposure">Exposure: %1$.3fs</string>
+    <string name="sky_brightness_fnumber">f/%1$.1f</string>
+    <string name="sky_brightness_analyze_error">Failed to analyze image.</string>
+    <string name="cd_sky_brightness">Sky quality meter</string>
+
+    <!-- Bortle Scale Labels -->
+    <string name="bortle_1">Excellent Dark Site</string>
+    <string name="bortle_2">Typical Dark Site</string>
+    <string name="bortle_3">Rural Sky</string>
+    <string name="bortle_4">Rural/Suburban Transition</string>
+    <string name="bortle_5">Suburban Sky</string>
+    <string name="bortle_6">Bright Suburban</string>
+    <string name="bortle_7">Suburban/Urban Transition</string>
+    <string name="bortle_8">City Sky</string>
+    <string name="bortle_9">Inner City</string>
 </resources>
 
 

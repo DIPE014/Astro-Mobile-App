@@ -783,6 +783,79 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- AI Assistant Section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="@dimen/screen_padding_horizontal"
+                android:paddingTop="@dimen/padding_large"
+                android:paddingBottom="@dimen/padding_small"
+                android:text="@string/settings_ai"
+                android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
+                android:textColor="@color/primary" />
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AstroApp.CardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/margin_medium"
+                app:cardCornerRadius="@dimen/card_corner_radius">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="@dimen/padding_medium"
+                    android:paddingVertical="@dimen/padding_medium">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_api_key"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_extra_small"
+                        android:text="@string/settings_api_key_summary"
+                        android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+                        android:textColor="@color/text_secondary" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_medium"
+                        app:endIconMode="password_toggle"
+                        app:boxCornerRadiusBottomEnd="@dimen/button_corner_radius"
+                        app:boxCornerRadiusBottomStart="@dimen/button_corner_radius"
+                        app:boxCornerRadiusTopEnd="@dimen/button_corner_radius"
+                        app:boxCornerRadiusTopStart="@dimen/button_corner_radius">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etApiKey"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/settings_api_key_hint"
+                            android:inputType="textPassword"
+                            android:maxLines="1" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSaveApiKey"
+                        style="@style/Widget.AstroApp.Button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_medium"
+                        android:text="@string/save"
+                        android:textAllCaps="false" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- Replay Tutorial Section -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnReplayTutorial"

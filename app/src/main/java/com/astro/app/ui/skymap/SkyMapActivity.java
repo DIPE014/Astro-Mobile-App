@@ -62,6 +62,7 @@ import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
 import com.astro.app.ui.starinfo.StarInfoActivity;
+import com.astro.app.ui.chat.ChatBottomSheetFragment;
 import com.astro.app.search.SearchArrowView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -154,6 +155,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private MaterialButton btnInfoPanelDetails;
     private GestureDetector infoPanelGestureDetector;
     private MaterialButton btnSearchDetails;
+    private MaterialButton btnUnlockPlanet;
     private FrameLayout loadingOverlay;
     private View gpsIndicator;
     private ImageView ivGpsIcon;
@@ -319,9 +321,10 @@ public class SkyMapActivity extends AppCompatActivity {
                         skyCanvasView.setOrientation(finalAzimuth, finalAltitude);
                     }
 
-                    // Update compass rotation
+                    // Update compass rotation and 3D tilt
                     if (compassView != null) {
                         compassView.setAzimuthRotation(finalAzimuth);
+                        compassView.setPitch(finalAltitude);
                     }
 
                     lastViewAzimuth = finalAzimuth;
@@ -590,6 +593,7 @@ public class SkyMapActivity extends AppCompatActivity {
         loadingOverlay = findViewById(R.id.loadingOverlay);
         btnArToggle = findViewById(R.id.btnArToggle);
         btnSearchDetails = findViewById(R.id.btnSearchDetails);
+        btnUnlockPlanet = findViewById(R.id.btnUnlockPlanet);
 
         // GPS indicator views
         gpsIndicator = findViewById(R.id.gpsIndicator);
@@ -648,6 +652,19 @@ public class SkyMapActivity extends AppCompatActivity {
             skyCanvasView.setHighlightedStar(star);
         });
 
+        // Orbital periods in milliseconds (sidereal, used to span the full orbit)
+        final java.util.Map<String, Long> orbitalPeriodMs = new java.util.HashMap<>();
+        orbitalPeriodMs.put("mercury",    88L * 24 * 3600 * 1000);
+        orbitalPeriodMs.put("venus",     225L * 24 * 3600 * 1000);
+        orbitalPeriodMs.put("mars",      687L * 24 * 3600 * 1000);
+        orbitalPeriodMs.put("jupiter",  (long)(11.86 * 365.25 * 24 * 3600 * 1000));
+        orbitalPeriodMs.put("saturn",   (long)(29.46 * 365.25 * 24 * 3600 * 1000));
+        orbitalPeriodMs.put("uranus",   (long)(84.01 * 365.25 * 24 * 3600 * 1000));
+        orbitalPeriodMs.put("neptune",  (long)(164.8  * 365.25 * 24 * 3600 * 1000));
+        orbitalPeriodMs.put("pluto",    (long)(247.9  * 365.25 * 24 * 3600 * 1000));
+        orbitalPeriodMs.put("moon",      27L * 24 * 3600 * 1000);
+        orbitalPeriodMs.put("sun",      365L * 24 * 3600 * 1000);
+
         skyCanvasView.setOnTrajectoryListener((planetName, x, y) -> {
             if (universe == null) return;
             new Thread(() -> {
@@ -662,19 +679,31 @@ public class SkyMapActivity extends AppCompatActivity {
                     if (body == null) return;
 
                     long now = (timeTravelClock != null) ? timeTravelClock.getCurrentTimeMillis() : System.currentTimeMillis();
-                    long sixMonthsMs = 6L * 30 * 24 * 3600 * 1000;
-                    long step = 2L * 24 * 3600 * 1000; // 2 days
+                    long periodMs = orbitalPeriodMs.containsKey(planetName.toLowerCase())
+                            ? orbitalPeriodMs.get(planetName.toLowerCase())
+                            : 365L * 24 * 3600 * 1000;
+                    long halfPeriod = periodMs / 2;
+                    // Always ~360 steps, minimum 4-hour interval
+                    long step = Math.max(4L * 3600 * 1000, periodMs / 360);
                     List<SkyCanvasView.TrajectoryPoint> points = new ArrayList<>();
-                    for (long t = now - sixMonthsMs; t <= now + sixMonthsMs; t += step) {
+                    for (long t = now - halfPeriod; t <= now + halfPeriod; t += step) {
                         RaDec raDec = universe.getRaDec(body, new Date(t));
                         points.add(new SkyCanvasView.TrajectoryPoint(t, raDec.getRa(), raDec.getDec()));
                     }
-                    runOnUiThread(() -> skyCanvasView.startTrajectory(planetName, points, now));
+                    runOnUiThread(() -> {
+                        skyCanvasView.startTrajectory(planetName, points, now);
+                        skyCanvasView.lockOnPlanet(planetName);
+                        if (btnUnlockPlanet != null) btnUnlockPlanet.setVisibility(View.VISIBLE);
+                    });
                 } catch (Exception e) {
                     Log.e(TAG, "Error computing trajectory: " + e.getMessage());
                 }
             }).start();
         });
+
+        skyCanvasView.setOnTrajectoryDismissedListener(() ->
+                runOnUiThread(() -> { if (btnUnlockPlanet != null) btnUnlockPlanet.setVisibility(View.GONE); })
+        );
 
         // Create a dummy SkyGLSurfaceView for compatibility (won't be displayed)
         // This prevents null pointer exceptions in other parts of the code
@@ -826,12 +855,45 @@ public class SkyMapActivity extends AppCompatActivity {
             fabSearch.setOnClickListener(v -> openSearch());
         }
 
+        // Unlock planet tracking button
+        if (btnUnlockPlanet != null) {
+            btnUnlockPlanet.setOnClickListener(v -> {
+                skyCanvasView.clearTrajectory();
+                btnUnlockPlanet.setVisibility(View.GONE);
+            });
+        }
+
         // Star Detection FAB
         View fabDetect = findViewById(R.id.fabDetect);
         if (fabDetect != null) {
             fabDetect.setOnClickListener(v -> {
                 Intent intent = new Intent(this, PlateSolveActivity.class);
                 startActivity(intent);
+            });
+        }
+
+        // Chat FAB
+        View fabChat = findViewById(R.id.fabChat);
+        if (fabChat != null) {
+            fabChat.setOnClickListener(v -> {
+                ChatBottomSheetFragment chatSheet = new ChatBottomSheetFragment();
+                Bundle chatArgs = new Bundle();
+                chatArgs.putDouble("latitude", currentLatitude);
+                chatArgs.putDouble("longitude", currentLongitude);
+                long timeMs = (timeTravelClock != null)
+                        ? timeTravelClock.getCurrentTimeMillis()
+                        : System.currentTimeMillis();
+                chatArgs.putLong("timeMillis", timeMs);
+                if (skyCanvasView != null) {
+                    chatArgs.putFloat("pointingRA", skyCanvasView.getViewRa());
+                    chatArgs.putFloat("pointingDec", skyCanvasView.getViewDec());
+                }
+                // Inject the currently selected star/object so AstroBot knows what the user is looking at
+                if (selectedStar != null) {
+                    chatArgs.putString("selectedObjectName", selectedStar.getName());
+                }
+                chatSheet.setArguments(chatArgs);
+                chatSheet.show(getSupportFragmentManager(), "chat_bottom_sheet");
             });
         }
 

@@ -2,8 +2,10 @@ package com.astro.app.ui.widgets;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.graphics.Camera;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
@@ -25,10 +27,19 @@ public class CompassView extends View {
     private Paint needlePaint;
     private Paint textPaint;
     private Paint tickPaint;
+    private Paint globeOutlinePaint;   // Globe silhouette ring
+    private Paint globeRingPaint;      // Equatorial ring on globe (inside tilt)
 
     // Current rotation (0-360 degrees, 0 = North)
     private float currentRotation = 0f;
     private float targetRotation = 0f;
+
+    // Current pitch/altitude for 3D tilt (0 = flat/horizon, 90 = zenith)
+    private float currentPitch = 0f;
+
+    // Reusable Camera for 3D tilt transform
+    private final Camera tiltCamera = new Camera();
+    private final Matrix tiltMatrix = new Matrix();
 
     // Smooth rotation animator
     private ValueAnimator rotationAnimator;
@@ -78,6 +89,18 @@ public class CompassView extends View {
         tickPaint.setStrokeCap(Paint.Cap.ROUND);
 
         compassBounds = new RectF();
+
+        // Globe silhouette (outer ring, no tilt applied — always a perfect circle)
+        globeOutlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        globeOutlinePaint.setColor(Color.argb(120, 160, 200, 255));  // Faint blue-white
+        globeOutlinePaint.setStyle(Paint.Style.STROKE);
+        globeOutlinePaint.setStrokeWidth(1.5f * getResources().getDisplayMetrics().density);
+
+        // Equatorial ring drawn inside the tilt (appears as ellipse when device is tilted)
+        globeRingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        globeRingPaint.setColor(Color.argb(70, 160, 200, 255));  // Dimmer blue-white
+        globeRingPaint.setStyle(Paint.Style.STROKE);
+        globeRingPaint.setStrokeWidth(1f * getResources().getDisplayMetrics().density);
     }
 
     @Override
@@ -110,15 +133,40 @@ public class CompassView extends View {
 
         float centerX = width / 2f;
         float centerY = height / 2f;
+        float globeRadius = compassRadius * 1.18f;
 
-        // Draw outer circle
+        // Build 3D tilt matrix.
+        // Altitude semantics: 0 = horizon (device upright), 90 = zenith (device flat).
+        // When device is flat (alt=90) the compass face is viewed top-down → face-on circle → 0° tilt.
+        // When device points at horizon (alt=0) the compass face is edge-on → 90° tilt.
+        // Therefore tilt angle = 90 - altitude.
+        tiltCamera.save();
+        tiltCamera.rotateX(90f - currentPitch);
+        tiltCamera.getMatrix(tiltMatrix);
+        tiltCamera.restore();
+        tiltMatrix.preTranslate(-centerX, -centerY);
+        tiltMatrix.postTranslate(centerX, centerY);
+
+        // --- Globe silhouette (NO tilt — always a perfect circle) ---
+        canvas.drawCircle(centerX, centerY, globeRadius, globeOutlinePaint);
+
+        // --- Everything inside the 3D tilt ---
+        canvas.save();
+        canvas.concat(tiltMatrix);
+
+        // Equatorial ring of the globe (same plane as compass disc, globe radius)
+        RectF globeOval = new RectF(centerX - globeRadius, centerY - globeRadius,
+                                    centerX + globeRadius, centerY + globeRadius);
+        canvas.drawOval(globeOval, globeRingPaint);
+
+        // Compass background disc
         canvas.drawCircle(centerX, centerY, compassRadius, circlePaint);
 
-        // Save canvas state and rotate around center
+        // Compass interior — apply heading rotation on top of the tilt
         canvas.save();
         canvas.rotate(-currentRotation, centerX, centerY);
 
-        // Draw tick marks (every 30 degrees)
+        // Tick marks (every 30 degrees)
         for (int i = 0; i < 12; i++) {
             float angle = i * 30f;
             float startRadius = compassRadius * 0.85f;
@@ -132,26 +180,24 @@ public class CompassView extends View {
             canvas.drawLine(startX, startY, endX, endY, tickPaint);
         }
 
-        // Draw cardinal directions
-        drawCardinalDirection(canvas, centerX, centerY, 0f, "N", true);    // North (red)
-        drawCardinalDirection(canvas, centerX, centerY, 90f, "E", false);  // East
-        drawCardinalDirection(canvas, centerX, centerY, 180f, "S", false); // South
-        drawCardinalDirection(canvas, centerX, centerY, 270f, "W", false); // West
+        // Cardinal directions
+        drawCardinalDirection(canvas, centerX, centerY, 0f, "N", true);
+        drawCardinalDirection(canvas, centerX, centerY, 90f, "E", false);
+        drawCardinalDirection(canvas, centerX, centerY, 180f, "S", false);
+        drawCardinalDirection(canvas, centerX, centerY, 270f, "W", false);
 
-        // Draw north needle (triangle pointing up)
+        // North needle (red triangle)
         Path needlePath = new Path();
         float needleLength = compassRadius * 0.6f;
         float needleWidth = compassRadius * 0.15f;
-
-        needlePath.moveTo(centerX, centerY - needleLength);  // Tip
-        needlePath.lineTo(centerX - needleWidth, centerY);    // Left base
-        needlePath.lineTo(centerX + needleWidth, centerY);    // Right base
+        needlePath.moveTo(centerX, centerY - needleLength);
+        needlePath.lineTo(centerX - needleWidth, centerY);
+        needlePath.lineTo(centerX + needleWidth, centerY);
         needlePath.close();
-
         canvas.drawPath(needlePath, needlePaint);
 
-        // Restore canvas
-        canvas.restore();
+        canvas.restore(); // end heading rotation
+        canvas.restore(); // end 3D tilt
     }
 
     private void drawCardinalDirection(Canvas canvas, float centerX, float centerY,
@@ -219,5 +265,17 @@ public class CompassView extends View {
      */
     public float getAzimuthRotation() {
         return ((currentRotation % 360f) + 360f) % 360f;
+    }
+
+    /**
+     * Set the device pitch/altitude for 3D tilt rendering.
+     * 0 = device flat / pointing at horizon (compass appears as circle),
+     * 90 = device pointing straight up (compass tilts fully away, edge-on).
+     *
+     * @param pitchDegrees Altitude/tilt in degrees (-90 to +90)
+     */
+    public void setPitch(float pitchDegrees) {
+        this.currentPitch = pitchDegrees;
+        invalidate();
     }
 }

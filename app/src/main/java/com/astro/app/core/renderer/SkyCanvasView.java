@@ -92,6 +92,12 @@ public class SkyCanvasView extends View {
     private long lastScrollEndTimeMs = 0L;
     private static final long SCROLL_TAP_COOLDOWN_MS = 300L; // Suppress taps after scroll
 
+    // Manual mode 3D camera basis — avoids gimbal lock at zenith/nadir.
+    // Forward/right/up are always orthonormal; updated by rotation during drag.
+    private final double[] manualViewFwd   = {0, 1, 0}; // looking North at horizon
+    private final double[] manualViewRight = {1, 0, 0}; // East = screen right
+    private final double[] manualViewUp    = {0, 0, 1}; // Sky = screen up
+
     // Gesture detectors
     private GestureDetector gestureDetector;
     private ScaleGestureDetector scaleGestureDetector;
@@ -172,6 +178,10 @@ public class SkyCanvasView extends View {
     private String trajectoryPlanetName = null;
     private List<TrajectoryPoint> trajectoryPoints = null;
     private int trajectoryCurrentIndex = -1;
+    private boolean isLockedOnPlanet = false;
+    private String lockedPlanetName = null;
+    private boolean isDraggingTrajectory = false; // true only while finger is on trajectory line
+    private Runnable trajectoryDismissedListener = null;
     private Paint trajectoryLinePaint;
     private Paint trajectoryDotPaint;
     private Paint trajectoryTimePaint;
@@ -317,7 +327,7 @@ public class SkyCanvasView extends View {
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
                 Log.d(TAG, "onScroll called: manualScrollEnabled=" + manualScrollEnabled + ", isManualMode=" + isManualMode + ", distanceX=" + distanceX + ", distanceY=" + distanceY);
-                if (!manualScrollEnabled || !isManualMode) {
+                if (!manualScrollEnabled || !isManualMode || isDraggingTrajectory) {
                     Log.d(TAG, "onScroll rejected: manual scroll not enabled or not in manual mode");
                     return false;
                 }
@@ -330,18 +340,41 @@ public class SkyCanvasView extends View {
 
                 isCurrentlyScrolling = true;
 
-                // Convert screen drag to sky rotation (smooth, intuitive)
-                float azimuthDelta = distanceX / (Math.min(getWidth(), getHeight()) / fieldOfView);
-                float altitudeDelta = -distanceY / (Math.min(getWidth(), getHeight()) / fieldOfView);
+                float pixPerDeg = Math.min(getWidth(), getHeight()) / fieldOfView;
+                double horizDeg = distanceX / pixPerDeg;   // positive = turn right (clockwise)
+                double vertDeg  = -distanceY / pixPerDeg;  // positive = tilt up
 
-                manualAzimuth += azimuthDelta;
-                manualAltitude += altitudeDelta;
+                // Horizontal yaw: rotate fwd and right around world-up [0,0,1]
+                // (keeps horizon level at all altitudes, including near zenith)
+                final double[] worldUp = {0, 0, 1};
+                rotateVecAroundAxis(manualViewFwd,   worldUp, -horizDeg);
+                rotateVecAroundAxis(manualViewRight, worldUp, -horizDeg);
 
-                // Clamp altitude to valid range
-                manualAltitude = Math.max(-90f, Math.min(90f, manualAltitude));
+                // Vertical pitch: rotate fwd and up around camera's right vector
+                rotateVecAroundAxis(manualViewFwd, manualViewRight, vertDeg);
+                rotateVecAroundAxis(manualViewUp,  manualViewRight, vertDeg);
 
-                // Normalize azimuth to 0-360
-                manualAzimuth = ((manualAzimuth % 360) + 360) % 360;
+                // Re-orthogonalise (Gram-Schmidt, prevents floating-point drift)
+                normalizeVec(manualViewFwd);
+                double dot_fr = manualViewFwd[0]*manualViewRight[0]
+                              + manualViewFwd[1]*manualViewRight[1]
+                              + manualViewFwd[2]*manualViewRight[2];
+                manualViewRight[0] -= dot_fr * manualViewFwd[0];
+                manualViewRight[1] -= dot_fr * manualViewFwd[1];
+                manualViewRight[2] -= dot_fr * manualViewFwd[2];
+                normalizeVec(manualViewRight);
+                // Recompute up = right × fwd
+                manualViewUp[0] = manualViewRight[1]*manualViewFwd[2] - manualViewRight[2]*manualViewFwd[1];
+                manualViewUp[1] = manualViewRight[2]*manualViewFwd[0] - manualViewRight[0]*manualViewFwd[2];
+                manualViewUp[2] = manualViewRight[0]*manualViewFwd[1] - manualViewRight[1]*manualViewFwd[0];
+                normalizeVec(manualViewUp);
+
+                // Derive az/alt for any code that reads them directly
+                double fz = Math.max(-1.0, Math.min(1.0, manualViewFwd[2]));
+                manualAltitude = (float) Math.toDegrees(Math.asin(fz));
+                manualAzimuth  = (float) Math.toDegrees(
+                        Math.atan2(manualViewFwd[0], manualViewFwd[1]));
+                manualAzimuth  = ((manualAzimuth % 360) + 360) % 360;
 
                 invalidate();
                 return true;
@@ -364,11 +397,65 @@ public class SkyCanvasView extends View {
         });
     }
 
+    // ---- 3D camera helpers -------------------------------------------------------
+
+    /** Rodrigues rotation: rotates v around unit axis by angleDeg (in-place). */
+    private static void rotateVecAroundAxis(double[] v, double[] axis, double angleDeg) {
+        double theta = Math.toRadians(angleDeg);
+        double c = Math.cos(theta), s = Math.sin(theta);
+        double dot = axis[0]*v[0] + axis[1]*v[1] + axis[2]*v[2];
+        double cx = axis[1]*v[2] - axis[2]*v[1];
+        double cy = axis[2]*v[0] - axis[0]*v[2];
+        double cz = axis[0]*v[1] - axis[1]*v[0];
+        v[0] = v[0]*c + cx*s + axis[0]*dot*(1-c);
+        v[1] = v[1]*c + cy*s + axis[1]*dot*(1-c);
+        v[2] = v[2]*c + cz*s + axis[2]*dot*(1-c);
+    }
+
+    private static void normalizeVec(double[] v) {
+        double len = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+        if (len > 1e-10) { v[0] /= len; v[1] /= len; v[2] /= len; }
+    }
+
+    /**
+     * Initialises manualViewFwd/Right/Up from the current manualAzimuth/manualAltitude.
+     * Called once when entering manual mode or snapping to a planet.
+     */
+    private void initManualVectorsFromAzAlt() {
+        double altRad = Math.toRadians(manualAltitude);
+        double azRad  = Math.toRadians(manualAzimuth);
+        manualViewFwd[0] = Math.cos(altRad) * Math.sin(azRad); // East component
+        manualViewFwd[1] = Math.cos(altRad) * Math.cos(azRad); // North component
+        manualViewFwd[2] = Math.sin(altRad);                    // Up component
+
+        // right = fwd × worldUp  (worldUp = [0,0,1])
+        manualViewRight[0] = manualViewFwd[1];   // fy
+        manualViewRight[1] = -manualViewFwd[0];  // -fx
+        manualViewRight[2] = 0;
+        double rLen = Math.sqrt(manualViewRight[0]*manualViewRight[0]
+                              + manualViewRight[1]*manualViewRight[1]);
+        if (rLen < 1e-6) {
+            // At zenith / nadir: default right = East
+            manualViewRight[0] = 1; manualViewRight[1] = 0; manualViewRight[2] = 0;
+        } else {
+            manualViewRight[0] /= rLen; manualViewRight[1] /= rLen;
+        }
+
+        // up = right × fwd
+        manualViewUp[0] = manualViewRight[1]*manualViewFwd[2] - manualViewRight[2]*manualViewFwd[1];
+        manualViewUp[1] = manualViewRight[2]*manualViewFwd[0] - manualViewRight[0]*manualViewFwd[2];
+        manualViewUp[2] = manualViewRight[0]*manualViewFwd[1] - manualViewRight[1]*manualViewFwd[0];
+        normalizeVec(manualViewUp);
+    }
+
+    // ------------------------------------------------------------------------------
+
     public void enterManualMode() {
         if (!isManualMode) {
             isManualMode = true;
             manualAzimuth = azimuthOffset;
             manualAltitude = altitudeOffset;
+            initManualVectorsFromAzAlt();
             if (manualModeListener != null) manualModeListener.onManualModeChanged(true);
         }
     }
@@ -1111,35 +1198,26 @@ public class SkyCanvasView extends View {
         // right vector = view x up, then normalize (points East when looking North at horizon)
         // For general case, we use cross product with world up (0,0,1) then adjust
 
-        // Up vector in world coords
-        double worldUpX = 0, worldUpY = 0, worldUpZ = 1;
+        double rightX, rightY, rightZ;
+        double upX, upY, upZ;
 
-        // Right = view cross worldUp (gives us the horizontal right direction in the view plane)
-        double rightX = vy * worldUpZ - vz * worldUpY;
-        double rightY = vz * worldUpX - vx * worldUpZ;
-        double rightZ = vx * worldUpY - vy * worldUpX;
-
-        // Normalize right vector
-        double rightLen = Math.sqrt(rightX * rightX + rightY * rightY + rightZ * rightZ);
-        if (rightLen < 0.0001) {
-            // Looking straight up or down - right is arbitrary, use East
-            rightX = 1; rightY = 0; rightZ = 0;
-            rightLen = 1;
+        if (isManualMode) {
+            // Use the continuously-tracked camera basis — no singularity at zenith/nadir
+            rightX = manualViewRight[0]; rightY = manualViewRight[1]; rightZ = manualViewRight[2];
+            upX    = manualViewUp[0];    upY    = manualViewUp[1];    upZ    = manualViewUp[2];
+        } else {
+            // Sensor mode: derive right from viewDir × worldUp (correct for normal angles)
+            rightX = vy; rightY = -vx; rightZ = 0; // == viewDir × [0,0,1]
+            double rightLen = Math.sqrt(rightX*rightX + rightY*rightY);
+            if (rightLen < 0.0001) { rightX = 1; rightY = 0; rightLen = 1; }
+            rightX /= rightLen; rightY /= rightLen;
+            // up = right × viewDir
+            upX = rightY*vz - rightZ*vy;
+            upY = rightZ*vx - rightX*vz;
+            upZ = rightX*vy - rightY*vx;
+            double upLen = Math.sqrt(upX*upX + upY*upY + upZ*upZ);
+            if (upLen > 1e-10) { upX /= upLen; upY /= upLen; upZ /= upLen; }
         }
-        rightX /= rightLen;
-        rightY /= rightLen;
-        rightZ /= rightLen;
-
-        // Up in view plane = right cross view (perpendicular to both view and right)
-        double upX = rightY * vz - rightZ * vy;
-        double upY = rightZ * vx - rightX * vz;
-        double upZ = rightX * vy - rightY * vx;
-
-        // Normalize up vector
-        double upLen = Math.sqrt(upX * upX + upY * upY + upZ * upZ);
-        upX /= upLen;
-        upY /= upLen;
-        upZ /= upLen;
 
         // Project object onto the view plane using gnomonic projection
         // The object direction relative to view center
@@ -2366,10 +2444,36 @@ public class SkyCanvasView extends View {
         this.trajectoryPlanetName = null;
         this.trajectoryPoints = null;
         this.trajectoryCurrentIndex = -1;
+        isLockedOnPlanet = false;
+        lockedPlanetName = null;
+        isDraggingTrajectory = false;
+        if (trajectoryDismissedListener != null) trajectoryDismissedListener.run();
         invalidate();
     }
 
     public boolean isTrajectoryMode() { return isTrajectoryMode; }
+
+    public void lockOnPlanet(String planetName) {
+        lockedPlanetName = planetName;
+        isLockedOnPlanet = true;
+        if (isManualMode) {
+            // Manual mode: snap view to planet's current position (one-time center)
+            float[] pd = planetData.get(planetName);
+            if (pd != null && pd.length >= 2) {
+                double lst = calculateLocalSiderealTime();
+                double[] altAz = raDecToAltAz(pd[0], pd[1], lst);
+                manualAzimuth = (float) altAz[1];
+                manualAltitude = (float) altAz[0];
+                initManualVectorsFromAzAlt();
+            }
+        }
+        // In sensor/auto mode: do nothing — sky continues tracking device orientation freely
+        invalidate();
+    }
+
+    public void setOnTrajectoryDismissedListener(Runnable listener) {
+        this.trajectoryDismissedListener = listener;
+    }
 
     public static int findClosestTimeIndex(List<TrajectoryPoint> points, long time) {
         if (points == null || points.isEmpty()) return -1;
@@ -2430,22 +2534,38 @@ public class SkyCanvasView extends View {
 
         // Trajectory drag handling
         if (isTrajectoryMode && trajectoryPoints != null && !trajectoryPoints.isEmpty()) {
-            if (event.getAction() == MotionEvent.ACTION_MOVE || event.getAction() == MotionEvent.ACTION_DOWN) {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 float touchX = event.getX();
                 float touchY = event.getY();
                 int closest = findClosestTrajectoryPointOnScreen(touchX, touchY);
+                // Lock sky panning only when finger lands on the trajectory line
+                isDraggingTrajectory = (closest >= 0);
                 if (closest >= 0) {
                     trajectoryCurrentIndex = closest;
                     invalidate();
                 }
                 return true;
             }
+            if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                if (isDraggingTrajectory) {
+                    float touchX = event.getX();
+                    float touchY = event.getY();
+                    int closest = findClosestTrajectoryPointOnScreen(touchX, touchY);
+                    if (closest >= 0) {
+                        trajectoryCurrentIndex = closest;
+                        invalidate();
+                    }
+                    return true;
+                }
+                // Not dragging trajectory — fall through so sky pan works normally
+            }
             if (event.getAction() == MotionEvent.ACTION_UP) {
+                isDraggingTrajectory = false;
                 // Check if tap was far from trajectory - if so, clear it
                 float touchX = event.getX();
                 float touchY = event.getY();
                 int closest = findClosestTrajectoryPointOnScreen(touchX, touchY);
-                if (closest < 0) {
+                if (closest < 0 && !isLockedOnPlanet) {
                     clearTrajectory();
                 }
                 return true;
