@@ -69,13 +69,9 @@
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.AstroApp.BottomSheetDialog</item>
 
         <!-- Shape Appearance -->
-        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.AstroApp.SmallComponent
-        </item>
-        <item name="shapeAppearanceMediumComponent">
-            @style/ShapeAppearance.AstroApp.MediumComponent
-        </item>
-        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.AstroApp.LargeComponent
-        </item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.AstroApp.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.AstroApp.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.AstroApp.LargeComponent</item>
     </style>
 
     <!-- Fullscreen Theme for SkyMapActivity -->
@@ -165,12 +161,8 @@
         <item name="colorPrimary">@color/md_theme_dark_primary</item>
         <item name="colorSurface">@color/dialog_background</item>
         <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
-        <item name="materialAlertDialogTitleTextStyle">
-            @style/TextAppearance.AstroApp.AlertDialog.Title
-        </item>
-        <item name="materialAlertDialogBodyTextStyle">
-            @style/TextAppearance.AstroApp.AlertDialog.Body
-        </item>
+        <item name="materialAlertDialogTitleTextStyle">@style/TextAppearance.AstroApp.AlertDialog.Title</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/TextAppearance.AstroApp.AlertDialog.Body</item>
     </style>
 
     <!-- Time Travel Dialog Theme -->
@@ -204,6 +196,12 @@
         <item name="bottomSheetStyle">@style/Widget.AstroApp.BottomSheet</item>
         <item name="colorSurface">@color/bottom_sheet_background</item>
         <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
+    </style>
+
+    <!-- Education Page Theme-->
+    <style name="Widget.AstroApp.CardView.EducationDetailDialog" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">#73000000</item>
+        <item name="cardCornerRadius">@dimen/corner_radius_small</item>
     </style>
 
     <!-- Widget Styles -->
@@ -245,9 +243,7 @@
         <item name="backgroundTint">@color/surface</item>
         <item name="itemIconTint">@color/icon_primary</item>
         <item name="itemTextColor">@color/text_primary</item>
-        <item name="itemActiveIndicatorStyle">
-            @style/Widget.AstroApp.BottomNavigation.ActiveIndicator
-        </item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.AstroApp.BottomNavigation.ActiveIndicator</item>
     </style>
 
     <style name="Widget.AstroApp.BottomNavigation.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
@@ -407,9 +403,15 @@
         <item name="android:textStyle">italic</item>
     </style>
 
-    <style name="ThemeOverlay.AstroMobileApp.FullscreenContainer" parent="">
-        <item name="fullscreenBackgroundColor">@color/light_blue_600</item>
-        <item name="fullscreenTextColor">@color/light_blue_A200</item>
+    <!-- Star Info Style-->
+    <style name="Widget.AstroApp.FieldCard" parent="Widget.Material3.CardView.Filled">
+        <item name="cardCornerRadius">@dimen/corner_radius_medium</item>
+        <item name="cardElevation">@dimen/elevation_none</item>
+        <item name="cardBackgroundColor">@color/tertiary_variant</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginVertical">@dimen/margin_extra_small</item>
     </style>
+
 
 </resources>

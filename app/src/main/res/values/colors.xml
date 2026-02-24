@@ -155,6 +155,10 @@
     <!-- Time Travel Colors -->
     <color name="time_travel_active">#FF9800</color>
 
+    <!-- Education Page Colors -->
+    <color name="background_grad_bottom">#121639</color>
+    <color name="background_grad_top">#1F2768</color>
+
     <!-- Toggle Button State Colors -->
     <color name="toggle_on">#4CAF50</color>
     <color name="toggle_on_bg">#1A4CAF50</color>

@@ -8,19 +8,15 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.hardware.SensorManager;
 import android.os.Bundle;
-import android.transition.AutoTransition;
 import android.transition.TransitionManager;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,31 +53,27 @@ import com.astro.app.core.renderer.SkyCanvasView;
 import com.astro.app.core.renderer.SkyGLSurfaceView;
 import com.astro.app.core.renderer.SkyRenderer;
 import com.astro.app.core.math.Vector3;
-import com.astro.app.core.highlights.TonightsHighlights;
-import com.astro.app.data.model.ConstellationData;
-import com.astro.app.data.model.MessierObjectData;
 import com.astro.app.data.model.StarData;
 import com.astro.app.data.repository.ConstellationRepository;
-import com.astro.app.data.repository.MessierRepository;
 import com.astro.app.data.repository.StarRepository;
-import com.astro.app.ui.highlights.TonightsHighlightsFragment;
 import com.astro.app.ui.education.EducationDetailActivity;
-import com.astro.app.ui.platesolve.PlateSolveActivity;
 import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
 import com.astro.app.ui.starinfo.StarInfoActivity;
-import com.astro.app.ui.chat.ChatBottomSheetFragment;
 import com.astro.app.search.SearchArrowView;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 
 import javax.inject.Inject;
 
@@ -140,9 +132,6 @@ public class SkyMapActivity extends AppCompatActivity {
     @Inject
     Universe universe;
 
-    @Inject
-    MessierRepository messierRepository;
-
     // Camera components
     private CameraManager cameraManager;
     private CameraPermissionHandler permissionHandler;
@@ -161,17 +150,13 @@ public class SkyMapActivity extends AppCompatActivity {
     private TextView tvInfoPanelMagnitude;
     private TextView tvInfoPanelRA;
     private TextView tvInfoPanelDec;
-    private View infoPanelDivider;
     private View infoPanelQuickInfo;
     private MaterialButton btnInfoPanelDetails;
-    private GestureDetector infoPanelGestureDetector;
     private MaterialButton btnSearchDetails;
-    private MaterialButton btnUnlockPlanet;
     private FrameLayout loadingOverlay;
     private View gpsIndicator;
     private ImageView ivGpsIcon;
     private TextView tvGpsStatus;
-    private com.astro.app.ui.widgets.CompassView compassView;
 
     // Layers
     private StarsLayer starsLayer;
@@ -201,6 +186,12 @@ public class SkyMapActivity extends AppCompatActivity {
     @Nullable
     private Vector3 lastViewUp = null;
 
+    // Reticle selection
+    private ExtendedFloatingActionButton fabSelect;
+    private Handler reticleCheckHandler;
+    private Runnable reticleCheckRunnable;
+    private static final long RETICLE_CHECK_INTERVAL_MS = 500;  // Check every 500ms
+
     // State
     // Default to MAP mode (AR disabled) for better emulator compatibility
     // On devices without camera or on emulator, this ensures stars are visible
@@ -208,14 +199,15 @@ public class SkyMapActivity extends AppCompatActivity {
     private boolean isConstellationsEnabled = true;
     private boolean isGridEnabled = false;
     private boolean isPlanetsEnabled = false;
-    private boolean isDSOEnabled = false;
     @Nullable
     private StarData selectedStar;
+    @Nullable
+    private Toast starToast;
+    @Nullable
+    private ConstellationBoundaryResolver constellationBoundaryResolver;
 
-    //UI usage
-    private BottomSheetBehavior<MaterialCardView> bottomSheetBehavior;
-    private ImageView ivBottomArrow;
-
+    // Manual mode indicator
+    private View manualModeIndicator;
 
     // GPS state
     private boolean isGpsEnabled = false;
@@ -225,7 +217,6 @@ public class SkyMapActivity extends AppCompatActivity {
     private static final float DEFAULT_LONGITUDE = -74.0060f;
 
     private boolean isMenuExpanded = true;
-
 
     // Permission launcher
     private final ActivityResultLauncher<String> cameraPermissionLauncher =
@@ -252,49 +243,7 @@ public class SkyMapActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_sky_map);
 
-        View bottomControls = findViewById(R.id.bottomControls);
-        ImageButton toggleArrow = findViewById(R.id.btnToggleMenu);
-        ConstraintLayout rootLayout = findViewById(R.id.rootLayout);
-        MotionLayout motionLayout = findViewById(R.id.motionLayout);
-        ImageFilterButton fabMain = findViewById(R.id.fabMain);
-
-        toggleArrow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isMenuExpanded = !isMenuExpanded; // Flip the state
-
-                // This line enables a smooth animation for the constraint changes
-                TransitionManager.beginDelayedTransition(rootLayout);
-
-                if (isMenuExpanded) {
-                    // --- APPLY EXPANDED CONSTRAINTS ---
-                    fabMain.animate().alpha(0f).setDuration(200).withEndAction(() -> {
-                        fabMain.setVisibility(View.INVISIBLE);
-                    }).start();
-                    bottomControls.setVisibility(View.VISIBLE);
-                    toggleArrow.setRotation(180f); // Point arrow down
-
-                    ConstraintSet constraintSet = new ConstraintSet();
-                    constraintSet.clone(rootLayout); // Copy current constraints
-
-                    constraintSet.applyTo(rootLayout);
-
-                } else {
-                    fabMain.animate().alpha(1f).setDuration(100).withEndAction(() -> {
-                        fabMain.setVisibility(View.VISIBLE);
-                    }).start();
-                    bottomControls.setVisibility(View.GONE);
-                    toggleArrow.setRotation(0f); // Point arrow up
-
-                    ConstraintSet constraintSet = new ConstraintSet();
-                    constraintSet.clone(rootLayout); // Copy current constraints
-
-                    constraintSet.applyTo(rootLayout);
-                }
-            }
-        });
-
-//        // Diagnostic toast to verify activity is running (Commented out by Iz for new intro splash screen)
+//        // Diagnostic toast to verify activity is running
 //        android.widget.Toast.makeText(this, "SkyMap Started", android.widget.Toast.LENGTH_LONG).show();
 
         // Initialize ViewModels
@@ -303,6 +252,7 @@ public class SkyMapActivity extends AppCompatActivity {
 
         // Inject dependencies
         ((AstroApplication) getApplication()).getAppComponent().inject(this);
+        constellationBoundaryResolver = ConstellationBoundaryResolver.fromAssets(getAssets());
 
         initializeViews();
         initializeManagers();
@@ -317,7 +267,6 @@ public class SkyMapActivity extends AppCompatActivity {
         } else {
             requestPermissions();
         }
-
     }
 
     /**
@@ -380,12 +329,6 @@ public class SkyMapActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (skyCanvasView != null) {
                         skyCanvasView.setOrientation(finalAzimuth, finalAltitude);
-                    }
-
-                    // Update compass rotation and 3D tilt
-                    if (compassView != null) {
-                        compassView.setAzimuthRotation(finalAzimuth);
-                        compassView.setPitch(finalAltitude);
                     }
 
                     lastViewAzimuth = finalAzimuth;
@@ -553,14 +496,6 @@ public class SkyMapActivity extends AppCompatActivity {
             }
         });
 
-        // Observe manual scroll mode setting
-        settingsViewModel.getEnableManualScroll().observe(this, enabled -> {
-            if (enabled != null && skyCanvasView != null) {
-                skyCanvasView.setManualScrollEnabled(enabled);
-                Log.d(TAG, "Manual scroll mode: " + enabled);
-            }
-        });
-
         // Observe ViewModel night mode state
         viewModel.getNightMode().observe(this, this::onNightModeChanged);
 
@@ -648,25 +583,23 @@ public class SkyMapActivity extends AppCompatActivity {
         tvInfoPanelMagnitude = findViewById(R.id.tvInfoPanelMagnitude);
         tvInfoPanelRA = findViewById(R.id.tvInfoPanelRA);
         tvInfoPanelDec = findViewById(R.id.tvInfoPanelDec);
-        infoPanelDivider = findViewById(R.id.infoPanelDivider);
         infoPanelQuickInfo = findViewById(R.id.infoPanelQuickInfo);
         btnInfoPanelDetails = findViewById(R.id.btnInfoPanelDetails);
         loadingOverlay = findViewById(R.id.loadingOverlay);
         btnArToggle = findViewById(R.id.btnArToggle);
         btnSearchDetails = findViewById(R.id.btnSearchDetails);
-        btnUnlockPlanet = findViewById(R.id.btnUnlockPlanet);
 
         // GPS indicator views
         gpsIndicator = findViewById(R.id.gpsIndicator);
         ivGpsIcon = findViewById(R.id.ivGpsIcon);
         tvGpsStatus = findViewById(R.id.tvGpsStatus);
 
-        // Compass view
-        compassView = findViewById(R.id.compassView);
-
         // Search arrow view
         searchArrowView = findViewById(R.id.searchArrow);
         tvSearchTapHint = findViewById(R.id.tvSearchTapHint);
+
+        // Select FAB for reticle selection
+//        fabSelect = findViewById(R.id.fabSelect);
 
         // Create PreviewView programmatically for camera
         cameraPreview = new PreviewView(this);
@@ -686,10 +619,15 @@ public class SkyMapActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT));
         skyCanvasView.setEnabled(true);
         skyCanvasView.setOnManualModeListener(isManual -> {
+            if (btnArToggle != null) {
+                btnArToggle.setIconTint(ColorStateList.valueOf(
+                    ContextCompat.getColor(this, isManual ? R.color.icon_primary : R.color.icon_inactive)));
+            }
             if (isManual) {
-                if (sensorController != null) sensorController.pause();
+                // Show a reset hint at the top of the screen
+                showManualModeIndicator();
             } else {
-                if (sensorController != null) sensorController.resume();
+                hideManualModeIndicator();
             }
         });
         skyCanvasView.setOnSkyTapListener((x, y) -> {
@@ -701,30 +639,20 @@ public class SkyMapActivity extends AppCompatActivity {
 
         Log.d(TAG, "SkyCanvasView created - Canvas2D rendering enabled");
 
+        skyCanvasView.setOnStarSelectedListener(viewModel::selectObject);
+
         skyCanvasView.setOnObjectSelectedListener(obj -> {
             if ("planet".equals(obj.type)) {
                 openEducationDetail(EducationDetailActivity.TYPE_PLANET, obj.name, obj.id);
             } else if ("constellation".equals(obj.type)) {
                 openEducationDetail(EducationDetailActivity.TYPE_CONSTELLATION, obj.name, obj.id);
+            } else if ("star".equals(obj.type)) {
+                StarData star = skyCanvasView.getStarById(obj.id);
+                if (star != null) {
+                    viewModel.selectObject(star);
+                }
             }
         });
-        skyCanvasView.setOnStarSelectedListener(star -> {
-            viewModel.selectObject(star);
-            skyCanvasView.setHighlightedStar(star);
-        });
-
-        // Orbital periods in milliseconds (sidereal, used to span the full orbit)
-        final java.util.Map<String, Long> orbitalPeriodMs = new java.util.HashMap<>();
-        orbitalPeriodMs.put("mercury",    88L * 24 * 3600 * 1000);
-        orbitalPeriodMs.put("venus",     225L * 24 * 3600 * 1000);
-        orbitalPeriodMs.put("mars",      687L * 24 * 3600 * 1000);
-        orbitalPeriodMs.put("jupiter",  (long)(11.86 * 365.25 * 24 * 3600 * 1000));
-        orbitalPeriodMs.put("saturn",   (long)(29.46 * 365.25 * 24 * 3600 * 1000));
-        orbitalPeriodMs.put("uranus",   (long)(84.01 * 365.25 * 24 * 3600 * 1000));
-        orbitalPeriodMs.put("neptune",  (long)(164.8  * 365.25 * 24 * 3600 * 1000));
-        orbitalPeriodMs.put("pluto",    (long)(247.9  * 365.25 * 24 * 3600 * 1000));
-        orbitalPeriodMs.put("moon",      27L * 24 * 3600 * 1000);
-        orbitalPeriodMs.put("sun",      365L * 24 * 3600 * 1000);
 
         skyCanvasView.setOnTrajectoryListener((planetName, x, y) -> {
             if (universe == null) return;
@@ -740,67 +668,68 @@ public class SkyMapActivity extends AppCompatActivity {
                     if (body == null) return;
 
                     long now = (timeTravelClock != null) ? timeTravelClock.getCurrentTimeMillis() : System.currentTimeMillis();
-                    long periodMs = orbitalPeriodMs.containsKey(planetName.toLowerCase())
-                            ? orbitalPeriodMs.get(planetName.toLowerCase())
-                            : 365L * 24 * 3600 * 1000;
-                    long halfPeriod = periodMs / 2;
-                    // Always ~360 steps, minimum 4-hour interval
-                    long step = Math.max(4L * 3600 * 1000, periodMs / 360);
+                    long sixMonthsMs = 6L * 30 * 24 * 3600 * 1000;
+                    long step = 2L * 24 * 3600 * 1000; // 2 days
                     List<SkyCanvasView.TrajectoryPoint> points = new ArrayList<>();
-                    for (long t = now - halfPeriod; t <= now + halfPeriod; t += step) {
+                    for (long t = now - sixMonthsMs; t <= now + sixMonthsMs; t += step) {
                         RaDec raDec = universe.getRaDec(body, new Date(t));
                         points.add(new SkyCanvasView.TrajectoryPoint(t, raDec.getRa(), raDec.getDec()));
                     }
-                    runOnUiThread(() -> {
-                        skyCanvasView.startTrajectory(planetName, points, now);
-                        skyCanvasView.lockOnPlanet(planetName);
-                        if (btnUnlockPlanet != null) btnUnlockPlanet.setVisibility(View.VISIBLE);
-                    });
+                    runOnUiThread(() -> skyCanvasView.startTrajectory(planetName, points, now));
                 } catch (Exception e) {
                     Log.e(TAG, "Error computing trajectory: " + e.getMessage());
                 }
             }).start();
         });
 
-        skyCanvasView.setOnTrajectoryDismissedListener(() ->
-                runOnUiThread(() -> { if (btnUnlockPlanet != null) btnUnlockPlanet.setVisibility(View.GONE); })
-        );
-
         // Create a dummy SkyGLSurfaceView for compatibility (won't be displayed)
         // This prevents null pointer exceptions in other parts of the code
         SkyRenderer renderer = new SkyRenderer();
         skyGLSurfaceView = new SkyGLSurfaceView(this, renderer);
-    }
 
-    private void setupInfoPanelGestures() {
-        infoPanelGestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+        //Drop down controls on SkyMap
+
+        View bottomControls = findViewById(R.id.bottomControls);
+        ImageButton toggleArrow = findViewById(R.id.btnToggleMenu);
+        ConstraintLayout rootLayout = findViewById(R.id.rootLayout);
+        MotionLayout motionLayout = findViewById(R.id.motionLayout);
+        ImageFilterButton fabMain = findViewById(R.id.fabMain);
+
+        toggleArrow.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onDown(MotionEvent e) {
-                return true;
-            }
+            public void onClick(View v) {
+                isMenuExpanded = !isMenuExpanded; // Flip the state
 
-            @Override
-            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                if (selectedStar == null) return false;
-                boolean isGeneratedName = selectedStar.getName() != null &&
-                        selectedStar.getName().startsWith("Star ");
-                if (isGeneratedName) return false;
+                // This line enables a smooth animation for the constraint changes
+                TransitionManager.beginDelayedTransition(rootLayout);
 
-                float dy = e1.getY() - e2.getY();
-                if (dy > 120 && Math.abs(velocityY) > Math.abs(velocityX)) {
-                    openStarDetails(selectedStar);
-                    return true;
+                if (isMenuExpanded) {
+                    // --- APPLY EXPANDED CONSTRAINTS ---
+                    fabMain.animate().alpha(0f).setDuration(200).withEndAction(() -> {
+                        fabMain.setVisibility(View.INVISIBLE);
+                    }).start();
+                    bottomControls.setVisibility(View.VISIBLE);
+                    toggleArrow.setRotation(180f); // Point arrow down
+
+                    ConstraintSet constraintSet = new ConstraintSet();
+                    constraintSet.clone(rootLayout); // Copy current constraints
+
+                    constraintSet.applyTo(rootLayout);
+
+                } else {
+                    fabMain.animate().alpha(1f).setDuration(100).withEndAction(() -> {
+                        fabMain.setVisibility(View.VISIBLE);
+                    }).start();
+                    bottomControls.setVisibility(View.GONE);
+                    toggleArrow.setRotation(0f); // Point arrow up
+
+                    ConstraintSet constraintSet = new ConstraintSet();
+                    constraintSet.clone(rootLayout); // Copy current constraints
+
+                    constraintSet.applyTo(rootLayout);
                 }
-                return false;
             }
         });
-
-        if (infoPanel != null) {
-            infoPanel.setOnTouchListener((v, event) -> {
-                infoPanelGestureDetector.onTouchEvent(event);
-                return true;
-            });
-        }
     }
 
     /**
@@ -848,7 +777,6 @@ public class SkyMapActivity extends AppCompatActivity {
      * Sets up click listeners for UI elements.
      */
     private void setupClickListeners() {
-
         // Back button
         MaterialButton btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) {
@@ -857,7 +785,14 @@ public class SkyMapActivity extends AppCompatActivity {
 
         // AR toggle button
         if (btnArToggle != null) {
-            btnArToggle.setOnClickListener(v -> toggleARMode());
+            btnArToggle.setOnClickListener(v -> {
+                if (skyCanvasView != null && skyCanvasView.isManualMode()) {
+                    skyCanvasView.exitManualMode();
+                    updateARToggleButton();
+                } else {
+                    toggleARMode();
+                }
+            });
         }
 
         // Settings button
@@ -896,18 +831,6 @@ public class SkyMapActivity extends AppCompatActivity {
             btnPlanets.setOnClickListener(v -> togglePlanets());
         }
 
-        // DSO toggle button
-        View btnDSO = findViewById(R.id.btnDSO);
-        if (btnDSO != null) {
-            btnDSO.setOnClickListener(v -> toggleDSO());
-        }
-
-        // Tonight's Highlights button
-        View btnTonight = findViewById(R.id.btnTonight);
-        if (btnTonight != null) {
-            btnTonight.setOnClickListener(v -> showTonightsHighlights());
-        }
-
         // Initialize toggle button visual states
         initializeToggleButtonStates();
 
@@ -917,50 +840,13 @@ public class SkyMapActivity extends AppCompatActivity {
             fabSearch.setOnClickListener(v -> openSearch());
         }
 
-        // Unlock planet tracking button
-        if (btnUnlockPlanet != null) {
-            btnUnlockPlanet.setOnClickListener(v -> {
-                skyCanvasView.clearTrajectory();
-                btnUnlockPlanet.setVisibility(View.GONE);
-            });
-        }
-
-        // Star Detection FAB
-        View fabDetect = findViewById(R.id.fabDetect);
-        if (fabDetect != null) {
-            fabDetect.setOnClickListener(v -> {
-                Intent intent = new Intent(this, PlateSolveActivity.class);
-                startActivity(intent);
-            });
-        }
-
-        // Chat FAB
-        View fabChat = findViewById(R.id.fabChat);
-        if (fabChat != null) {
-            fabChat.setOnClickListener(v -> {
-                ChatBottomSheetFragment chatSheet = new ChatBottomSheetFragment();
-                Bundle chatArgs = new Bundle();
-                chatArgs.putDouble("latitude", currentLatitude);
-                chatArgs.putDouble("longitude", currentLongitude);
-                long timeMs = (timeTravelClock != null)
-                        ? timeTravelClock.getCurrentTimeMillis()
-                        : System.currentTimeMillis();
-                chatArgs.putLong("timeMillis", timeMs);
-                if (skyCanvasView != null) {
-                    chatArgs.putFloat("pointingRA", skyCanvasView.getViewRa());
-                    chatArgs.putFloat("pointingDec", skyCanvasView.getViewDec());
-                }
-                // Inject the currently selected star/object so AstroBot knows what the user is looking at
-                if (selectedStar != null) {
-                    chatArgs.putString("selectedObjectName", selectedStar.getName());
-                }
-                chatSheet.setArguments(chatArgs);
-                chatSheet.show(getSupportFragmentManager(), "chat_bottom_sheet");
-            });
-        }
-
         if (btnSearchDetails != null) {
             btnSearchDetails.setOnClickListener(v -> openSearchTargetEducation());
+        }
+
+        // Select FAB (for reticle selection)
+        if (fabSelect != null) {
+            fabSelect.setOnClickListener(v -> showObjectSelectionDialog());
         }
 
         // Close info panel
@@ -977,8 +863,6 @@ public class SkyMapActivity extends AppCompatActivity {
                 }
             });
         }
-
-        setupInfoPanelGestures();
 
         // Set up tap gesture on sky view
         skyGLSurfaceView.setGestureListener(new SkyGLSurfaceView.SimpleGestureListener() {
@@ -1094,9 +978,6 @@ public class SkyMapActivity extends AppCompatActivity {
         updateARToggleButton();
 
         showLoading(false);
-
-        // Show tooltip tutorial if first time
-        showTooltipTutorialIfNeeded();
     }
 
     /**
@@ -1119,9 +1000,6 @@ public class SkyMapActivity extends AppCompatActivity {
         cameraPreviewContainer.setVisibility(View.GONE);
 
         showLoading(false);
-
-        // Show tooltip tutorial if first time
-        showTooltipTutorialIfNeeded();
     }
 
     /**
@@ -1165,14 +1043,6 @@ public class SkyMapActivity extends AppCompatActivity {
             skyCanvasView.setConstellationData(constellations);
             skyCanvasView.setConstellationsVisible(isConstellationsEnabled);
             Log.d(TAG, "CONSTELLATIONS: Loaded " + constellations.size() + " constellations for canvas");
-        }
-
-        // Load DSO data
-        if (messierRepository != null) {
-            List<MessierObjectData> dsos = messierRepository.getAllObjects();
-            skyCanvasView.setDSOData(dsos);
-            skyCanvasView.setDSOsVisible(isDSOEnabled);
-            Log.d(TAG, "DSO: Loaded " + dsos.size() + " deep sky objects for canvas");
         }
 
         // Set observer location - use current GPS coordinates if available, otherwise default
@@ -1348,7 +1218,11 @@ public class SkyMapActivity extends AppCompatActivity {
      */
     private void updateARToggleButton() {
         if (btnArToggle != null) {
-            if (isARModeEnabled) {
+            boolean isManual = skyCanvasView != null && skyCanvasView.isManualMode();
+            if (isManual) {
+                btnArToggle.setIconResource(android.R.drawable.ic_menu_compass);
+                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
+            } else if (isARModeEnabled) {
                 btnArToggle.setIconResource(android.R.drawable.ic_menu_camera);
                 btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
             } else {
@@ -1356,6 +1230,61 @@ public class SkyMapActivity extends AppCompatActivity {
                 btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_inactive));
             }
         }
+    }
+
+    /**
+     * Shows a semi-transparent banner at the top indicating manual mode is active.
+     * Tapping the banner resets to sensor-driven mode.
+     */
+    private void showManualModeIndicator() {
+        if (manualModeIndicator != null && manualModeIndicator.getParent() != null) return;
+
+        // Create a small indicator bar at top
+        LinearLayout indicator = new LinearLayout(this);
+        indicator.setOrientation(LinearLayout.HORIZONTAL);
+        indicator.setGravity(android.view.Gravity.CENTER);
+        indicator.setBackgroundColor(Color.argb(180, 30, 30, 60));
+        indicator.setPadding(16, 8, 16, 8);
+        indicator.setTag("manual_mode_indicator");
+
+        TextView text = new TextView(this);
+        text.setText("Manual Mode \u2014 Tap to reset");
+        text.setTextColor(Color.WHITE);
+        text.setTextSize(13);
+        indicator.addView(text);
+
+        // Make the whole bar clickable to reset
+        indicator.setOnClickListener(v -> {
+            if (skyCanvasView != null) {
+                skyCanvasView.exitManualMode();
+                updateARToggleButton();
+            }
+        });
+
+        // Add to root layout at the top, below the top controls
+        androidx.constraintlayout.widget.ConstraintLayout rootLayout =
+                (androidx.constraintlayout.widget.ConstraintLayout) skyOverlayContainer.getParent();
+        if (rootLayout != null) {
+            androidx.constraintlayout.widget.ConstraintLayout.LayoutParams params =
+                    new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
+                        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
+                        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTENT);
+            params.topToBottom = R.id.topControls;  // Position below top controls
+            indicator.setLayoutParams(params);
+            rootLayout.addView(indicator);
+        }
+
+        manualModeIndicator = indicator;
+    }
+
+    /**
+     * Hides the manual mode indicator banner.
+     */
+    private void hideManualModeIndicator() {
+        if (manualModeIndicator != null && manualModeIndicator.getParent() != null) {
+            ((ViewGroup) manualModeIndicator.getParent()).removeView(manualModeIndicator);
+        }
+        manualModeIndicator = null;
     }
 
     /**
@@ -1456,11 +1385,6 @@ public class SkyMapActivity extends AppCompatActivity {
         View btnPlanets = findViewById(R.id.btnPlanets);
         ImageView ivPlanets = findViewById(R.id.ivPlanets);
         updateToggleButtonVisual(ivPlanets, btnPlanets, isPlanetsEnabled);
-
-        // DSO toggle
-        View btnDSO = findViewById(R.id.btnDSO);
-        ImageView ivDSO = findViewById(R.id.ivDSO);
-        updateToggleButtonVisual(ivDSO, btnDSO, isDSOEnabled);
     }
 
     /**
@@ -1614,72 +1538,6 @@ public class SkyMapActivity extends AppCompatActivity {
         updateToggleButtonVisual(ivPlanets, btnPlanets, isPlanetsEnabled);
 
         Log.d(TAG, "Planets visibility toggled to: " + isPlanetsEnabled);
-    }
-
-    /**
-     * Toggles visibility of Deep Sky Objects in the sky view.
-     */
-    private void toggleDSO() {
-        isDSOEnabled = !isDSOEnabled;
-
-        if (skyCanvasView != null) {
-            skyCanvasView.setDSOsVisible(isDSOEnabled);
-        }
-
-        View btnDSO = findViewById(R.id.btnDSO);
-        ImageView ivDSO = findViewById(R.id.ivDSO);
-        updateToggleButtonVisual(ivDSO, btnDSO, isDSOEnabled);
-
-        Log.d(TAG, "DSO visibility toggled to: " + isDSOEnabled);
-    }
-
-    /**
-     * Shows the Tonight's Highlights bottom sheet.
-     */
-    private void showTonightsHighlights() {
-        new Thread(() -> {
-            long time = (timeTravelClock != null)
-                    ? timeTravelClock.getCurrentTimeMillis()
-                    : System.currentTimeMillis();
-
-            List<StarData> stars = (starRepository != null)
-                    ? starRepository.getAllStars() : null;
-            List<ConstellationData> constellationList = (constellationRepository != null)
-                    ? constellationRepository.getAllConstellations() : null;
-            List<MessierObjectData> dsos = (messierRepository != null)
-                    ? messierRepository.getAllObjects() : null;
-
-            List<TonightsHighlights.Highlight> highlights =
-                    TonightsHighlights.compute(universe, stars, constellationList, dsos,
-                            currentLatitude, currentLongitude, time);
-
-            runOnUiThread(() -> {
-                TonightsHighlightsFragment fragment = TonightsHighlightsFragment.newInstance();
-                fragment.setHighlights(highlights);
-                fragment.setOnHighlightSelectedListener(highlight -> {
-                    // Navigate to the selected object using search target mechanism
-                    searchTargetName = highlight.name;
-                    searchTargetRa = highlight.ra;
-                    searchTargetDec = highlight.dec;
-                    searchTargetBelowHorizonNotified = false;
-                    searchTargetInViewNotified = false;
-                    setSearchModeActive(true);
-
-                    if (searchArrowView != null) {
-                        searchArrowView.setTarget(searchTargetRa, searchTargetDec,
-                                searchTargetName, null);
-                        searchArrowView.setVisibility(View.VISIBLE);
-                        searchArrowView.setOnClickListener(v -> clearSearchTarget());
-                        updateSearchArrow();
-                    }
-
-                    Toast.makeText(this,
-                            getString(R.string.search_navigating_to, searchTargetName),
-                            Toast.LENGTH_SHORT).show();
-                });
-                fragment.show(getSupportFragmentManager(), "tonights_highlights");
-            });
-        }).start();
     }
 
     /**
@@ -2049,27 +1907,433 @@ public class SkyMapActivity extends AppCompatActivity {
         return new double[]{altitude, azimuth};
     }
 
-    @Nullable
-    private String getConstellationDisplayName(@NonNull String constellationId) {
-        if (constellationRepository != null) {
-            ConstellationData constellation = constellationRepository.getConstellationById(constellationId);
-            if (constellation != null) {
-                return constellation.getName();
-            }
+    // ===================================================================
+    // RETICLE SELECTION METHODS
+    // ===================================================================
+
+    /**
+     * Starts periodic checking for objects in the reticle.
+     * Shows/hides the Select FAB based on whether objects are present.
+     */
+    private void startReticleChecking() {
+        if (reticleCheckHandler == null) {
+            reticleCheckHandler = new Handler(Looper.getMainLooper());
         }
-        String cleaned = constellationId.replace('_', ' ').trim();
-        if (cleaned.isEmpty()) return null;
-        String[] parts = cleaned.split("\\s+");
-        StringBuilder builder = new StringBuilder();
-        for (String part : parts) {
-            if (part.isEmpty()) continue;
-            if (builder.length() > 0) builder.append(" ");
-            builder.append(Character.toUpperCase(part.charAt(0)));
-            if (part.length() > 1) {
-                builder.append(part.substring(1).toLowerCase(Locale.ROOT));
-            }
+        if (reticleCheckRunnable == null) {
+            reticleCheckRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    updateSelectButtonVisibility();
+                    reticleCheckHandler.postDelayed(this, RETICLE_CHECK_INTERVAL_MS);
+                }
+            };
         }
-        return builder.toString();
+        reticleCheckHandler.post(reticleCheckRunnable);
+    }
+
+    /**
+     * Stops periodic checking for objects in the reticle.
+     */
+    private void stopReticleChecking() {
+        if (reticleCheckHandler != null && reticleCheckRunnable != null) {
+            reticleCheckHandler.removeCallbacks(reticleCheckRunnable);
+        }
+    }
+
+    /**
+     * Updates the visibility of the Select FAB based on objects in reticle.
+     */
+    private void updateSelectButtonVisibility() {
+        if (fabSelect == null || skyCanvasView == null) return;
+
+        List<SkyCanvasView.SelectableObject> objects = skyCanvasView.getObjectsInReticle();
+        boolean hasObjects = !objects.isEmpty();
+
+        if (hasObjects && fabSelect.getVisibility() != View.VISIBLE) {
+            if (objects.size() == 1) {
+                fabSelect.setText(objects.get(0).getDisplayName());
+            } else {
+                fabSelect.setText(getString(R.string.select) + " (" + objects.size() + ")");
+            }
+            fabSelect.setVisibility(View.VISIBLE);
+            fabSelect.animate().alpha(1f).setDuration(200).start();
+        } else if (hasObjects) {
+            if (objects.size() == 1) {
+                fabSelect.setText(objects.get(0).getDisplayName());
+            } else {
+                fabSelect.setText(getString(R.string.select) + " (" + objects.size() + ")");
+            }
+        } else if (!hasObjects && fabSelect.getVisibility() == View.VISIBLE) {
+            fabSelect.animate().alpha(0f).setDuration(200).withEndAction(() -> {
+                fabSelect.setVisibility(View.GONE);
+            }).start();
+            skyCanvasView.clearHighlight();
+        }
+    }
+
+    /**
+     * Shows a bottom sheet dialog listing objects in the reticle.
+     */
+    private void showObjectSelectionDialog() {
+        if (skyCanvasView == null) return;
+
+        List<SkyCanvasView.SelectableObject> objects = skyCanvasView.getObjectsInReticle();
+        if (objects.isEmpty()) {
+            Toast.makeText(this, R.string.no_objects_in_reticle, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Case 1: Single object - go directly to details
+        if (objects.size() == 1) {
+            openObjectDetails(objects.get(0));
+            return;
+        }
+
+        // Case 2: 2-4 objects - show compact chip strip
+        if (objects.size() <= 4) {
+            showCompactChipStrip(objects);
+            return;
+        }
+
+        // Case 3: 5+ objects - show compact bottom sheet
+        showCompactBottomSheet(objects);
+    }
+
+    private void showCompactChipStrip(List<SkyCanvasView.SelectableObject> objects) {
+        // Find root ConstraintLayout
+        androidx.constraintlayout.widget.ConstraintLayout rootLayout =
+                (androidx.constraintlayout.widget.ConstraintLayout) skyOverlayContainer.getParent();
+        if (rootLayout == null) return;
+
+        // Find and remove previous strip by tag
+        View previousStrip = rootLayout.findViewWithTag("chip_strip");
+        if (previousStrip != null) {
+            rootLayout.removeView(previousStrip);
+        }
+
+        // Track which object is currently highlighted so second tap opens details
+        final SkyCanvasView.SelectableObject[] selectedChipObject = {null};
+        final MaterialCardView[] selectedChipView = {null};
+        int defaultSurfaceColor = ContextCompat.getColor(this, R.color.surface);
+        // Improvement B: highlight color for selected chip stroke
+        int highlightStrokeColor = ContextCompat.getColor(this, R.color.star_selected);
+
+        // Create horizontal chip container
+        LinearLayout chipStrip = new LinearLayout(this);
+        chipStrip.setTag("chip_strip");
+        chipStrip.setOrientation(LinearLayout.HORIZONTAL);
+        chipStrip.setGravity(android.view.Gravity.CENTER);
+        chipStrip.setPadding(
+                (int) getResources().getDimension(R.dimen.padding_small),
+                (int) getResources().getDimension(R.dimen.padding_small),
+                (int) getResources().getDimension(R.dimen.padding_small),
+                (int) getResources().getDimension(R.dimen.padding_small));
+        // Issue 3: Use lighter semi-transparent background so starmap stays visible
+        chipStrip.setBackgroundColor(Color.argb(160, 20, 20, 40));
+
+        for (SkyCanvasView.SelectableObject obj : objects) {
+            // Create chip card
+            MaterialCardView chip = new MaterialCardView(this);
+            LinearLayout.LayoutParams chipParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            chipParams.setMargins(
+                    (int) getResources().getDimension(R.dimen.margin_extra_small), 0,
+                    (int) getResources().getDimension(R.dimen.margin_extra_small), 0);
+            chip.setLayoutParams(chipParams);
+            chip.setCardBackgroundColor(defaultSurfaceColor);
+            chip.setCardElevation(getResources().getDimension(R.dimen.elevation_small));
+            chip.setRadius(getResources().getDimension(R.dimen.corner_radius_medium));
+            chip.setContentPadding(
+                    (int) getResources().getDimension(R.dimen.padding_small),
+                    (int) getResources().getDimension(R.dimen.padding_extra_small),
+                    (int) getResources().getDimension(R.dimen.padding_small),
+                    (int) getResources().getDimension(R.dimen.padding_extra_small));
+            // Improvement B: default no stroke
+            chip.setStrokeWidth(0);
+
+            // Chip content: icon + name
+            LinearLayout chipContent = new LinearLayout(this);
+            chipContent.setOrientation(LinearLayout.HORIZONTAL);
+            chipContent.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+            ImageView icon = new ImageView(this);
+            int iconRes = obj.type.equals("planet") ?
+                    android.R.drawable.presence_online :
+                    obj.type.equals("constellation") ?
+                            android.R.drawable.ic_menu_myplaces :
+                            android.R.drawable.btn_star_big_on;
+            icon.setImageResource(iconRes);
+            icon.setColorFilter(ContextCompat.getColor(this,
+                    obj.type.equals("planet") ? R.color.planet_color : R.color.star_color));
+            LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
+                    (int) getResources().getDimension(R.dimen.icon_size_small),
+                    (int) getResources().getDimension(R.dimen.icon_size_small));
+            iconParams.rightMargin = (int) getResources().getDimension(R.dimen.margin_extra_small);
+            icon.setLayoutParams(iconParams);
+            chipContent.addView(icon);
+
+            TextView nameText = new TextView(this);
+            nameText.setText(obj.getDisplayName());
+            nameText.setTextSize(13);
+            nameText.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            nameText.setMaxLines(1);
+            chipContent.addView(nameText);
+
+            chip.addView(chipContent);
+
+            // Issue 1: Restore highlight-then-detail flow for chips
+            // First tap = highlight object on sky map + visually mark chip as selected
+            // Second tap on same chip = dismiss strip and open details
+            // Tapping a different chip = switch highlight to that object
+            chip.setOnClickListener(v -> {
+                if (selectedChipObject[0] == obj) {
+                    // Second tap on same chip: dismiss and open details
+                    rootLayout.removeView(chipStrip);
+                    openObjectDetails(obj);
+                } else {
+                    // First tap (or different chip): highlight the object
+                    // Improvement B: Reset previous chip's visual state
+                    if (selectedChipView[0] != null) {
+                        selectedChipView[0].setStrokeWidth(0);
+                    }
+                    selectedChipObject[0] = obj;
+                    selectedChipView[0] = chip;
+
+                    // Improvement B: Mark this chip as selected with a stroke
+                    chip.setStrokeWidth((int) getResources().getDimension(R.dimen.divider_height) * 2);
+                    chip.setStrokeColor(ColorStateList.valueOf(highlightStrokeColor));
+
+                    // Highlight the object on the sky map
+                    if (obj.type.equals("planet")) {
+                        skyCanvasView.setHighlightedPlanet(obj.name);
+                    } else if (obj.type.equals("constellation")) {
+                        skyCanvasView.clearHighlight();
+                    } else {
+                        StarData star = skyCanvasView.getStarById(obj.id);
+                        if (star != null) {
+                            skyCanvasView.setHighlightedStar(star);
+                        }
+                    }
+                    Toast.makeText(SkyMapActivity.this,
+                            getString(R.string.object_highlighted, obj.getDisplayName()),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            chipStrip.addView(chip);
+        }
+
+        // Position above bottom controls
+        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams params =
+                new androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(
+                        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT,
+                        androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.WRAP_CONTENT);
+        params.bottomToTop = R.id.bottomControls;
+        chipStrip.setLayoutParams(params);
+
+        // Add to parent (which is a ConstraintLayout)
+        rootLayout.addView(chipStrip);
+
+        // Auto-dismiss after 8 seconds (longer to allow highlight-then-detail flow)
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (chipStrip.getParent() != null) {
+                rootLayout.removeView(chipStrip);
+                if (skyCanvasView != null) {
+                    skyCanvasView.clearHighlight();
+                }
+            }
+        }, 8000);
+    }
+
+    private void showCompactBottomSheet(List<SkyCanvasView.SelectableObject> objects) {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+
+        // Issue 1: Track currently selected/highlighted object for the detail button
+        final SkyCanvasView.SelectableObject[] selectedObject = {null};
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(
+                (int) getResources().getDimension(R.dimen.padding_small),
+                (int) getResources().getDimension(R.dimen.padding_small),
+                (int) getResources().getDimension(R.dimen.padding_small),
+                (int) getResources().getDimension(R.dimen.padding_small));
+        layout.setBackgroundColor(ContextCompat.getColor(this, R.color.surface));
+
+        // Title
+        TextView title = new TextView(this);
+        title.setText(R.string.objects_in_reticle);
+        title.setTextSize(18);
+        title.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+        title.setPadding(
+                (int) getResources().getDimension(R.dimen.padding_small), 0, 0,
+                (int) getResources().getDimension(R.dimen.padding_small));
+        layout.addView(title);
+
+        // Issue 2: Limit ScrollView height to approximately 3 items (56dp each ~ 220dp total with title)
+        int maxListHeightPx = (int) (220 * getResources().getDisplayMetrics().density);
+
+        // Scrollable list
+        ScrollView scrollView = new ScrollView(this);
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        scrollView.setLayoutParams(scrollParams);
+        // Issue 2: Cap the scroll view so only ~3 items are visible at a time
+        scrollView.post(() -> {
+            if (scrollView.getHeight() > maxListHeightPx) {
+                LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) scrollView.getLayoutParams();
+                lp.height = maxListHeightPx;
+                scrollView.setLayoutParams(lp);
+            }
+        });
+
+        LinearLayout listLayout = new LinearLayout(this);
+        listLayout.setOrientation(LinearLayout.VERTICAL);
+
+        // Improvement A: Create the "View Details" button (initially hidden until an object is highlighted)
+        MaterialButton detailButton = new MaterialButton(this);
+        detailButton.setText(R.string.confirm_selection);
+        detailButton.setVisibility(View.GONE);
+
+        for (SkyCanvasView.SelectableObject obj : objects) {
+            LinearLayout itemLayout = new LinearLayout(this);
+            itemLayout.setOrientation(LinearLayout.HORIZONTAL);
+            itemLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            itemLayout.setPadding(
+                    (int) getResources().getDimension(R.dimen.padding_small),
+                    (int) getResources().getDimension(R.dimen.padding_small),
+                    (int) getResources().getDimension(R.dimen.padding_small),
+                    (int) getResources().getDimension(R.dimen.padding_small));
+            itemLayout.setBackgroundResource(android.R.drawable.list_selector_background);
+
+            // Icon
+            ImageView icon = new ImageView(this);
+            int iconRes = obj.type.equals("planet") ?
+                    android.R.drawable.presence_online :
+                    obj.type.equals("constellation") ?
+                            android.R.drawable.ic_menu_myplaces :
+                            android.R.drawable.btn_star_big_on;
+            icon.setImageResource(iconRes);
+            icon.setColorFilter(ContextCompat.getColor(this,
+                    obj.type.equals("planet") ? R.color.planet_color : R.color.star_color));
+            LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(
+                    (int) getResources().getDimension(R.dimen.icon_size_small),
+                    (int) getResources().getDimension(R.dimen.icon_size_small));
+            iconParams.rightMargin = (int) getResources().getDimension(R.dimen.margin_small);
+            icon.setLayoutParams(iconParams);
+            itemLayout.addView(icon);
+
+            // Info
+            LinearLayout infoLayout = new LinearLayout(this);
+            infoLayout.setOrientation(LinearLayout.VERTICAL);
+            infoLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+            TextView nameText = new TextView(this);
+            nameText.setText(obj.getDisplayName());
+            nameText.setTextSize(14);
+            nameText.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+            infoLayout.addView(nameText);
+
+            TextView typeText = new TextView(this);
+            String typeString;
+            if (obj.type.equals("planet")) {
+                typeString = getString(R.string.object_planet);
+            } else if (obj.type.equals("constellation")) {
+                typeString = getString(R.string.object_constellation);
+            } else {
+                typeString = getString(R.string.object_star);
+                typeString += " (mag " + String.format("%.1f", obj.magnitude) + ")";
+            }
+            typeText.setText(typeString);
+            typeText.setTextSize(11);
+            typeText.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+            infoLayout.addView(typeText);
+
+            itemLayout.addView(infoLayout);
+
+            // Issue 1: Restore highlight-then-detail flow
+            // First tap highlights the object on the sky map
+            itemLayout.setOnClickListener(v -> {
+                selectedObject[0] = obj;
+                if (obj.type.equals("planet")) {
+                    skyCanvasView.setHighlightedPlanet(obj.name);
+                } else if (obj.type.equals("constellation")) {
+                    skyCanvasView.clearHighlight();
+                } else {
+                    StarData star = skyCanvasView.getStarById(obj.id);
+                    if (star != null) {
+                        skyCanvasView.setHighlightedStar(star);
+                    }
+                }
+                Toast.makeText(this, getString(R.string.object_highlighted, obj.getDisplayName()),
+                        Toast.LENGTH_SHORT).show();
+                // Improvement A: Show the "View Details" button now that an object is selected
+                detailButton.setVisibility(View.VISIBLE);
+            });
+            // Issue 1: Long-press opens details directly as a shortcut
+            itemLayout.setOnLongClickListener(v -> {
+                dialog.dismiss();
+                openObjectDetails(obj);
+                return true;
+            });
+
+            listLayout.addView(itemLayout);
+
+            // Add divider
+            View divider = new View(this);
+            divider.setBackgroundColor(ContextCompat.getColor(this, R.color.divider));
+            LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    (int) getResources().getDimension(R.dimen.divider_height));
+            listLayout.addView(divider, dividerParams);
+        }
+
+        scrollView.addView(listLayout);
+        layout.addView(scrollView);
+
+        // Improvement A: "View Details" button at the bottom of the sheet
+        // Opens details for the currently highlighted/selected object
+        detailButton.setOnClickListener(v -> {
+            if (selectedObject[0] != null) {
+                dialog.dismiss();
+                openObjectDetails(selectedObject[0]);
+            }
+        });
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnParams.topMargin = (int) getResources().getDimension(R.dimen.margin_small);
+        detailButton.setLayoutParams(btnParams);
+        layout.addView(detailButton);
+
+        dialog.setContentView(layout);
+
+        // Issue 2: Set peek height to ~3 items + title (~220dp) instead of 40% of screen
+        dialog.setOnShowListener(d -> {
+            BottomSheetDialog bsd = (BottomSheetDialog) d;
+            View bottomSheet = bsd.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet != null) {
+                com.google.android.material.bottomsheet.BottomSheetBehavior<View> behavior =
+                        com.google.android.material.bottomsheet.BottomSheetBehavior.from(bottomSheet);
+                int peekHeightPx = (int) (220 * getResources().getDisplayMetrics().density);
+                behavior.setPeekHeight(peekHeightPx);
+                // Issue 2: Start collapsed so only ~3 items show initially
+                behavior.setState(com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED);
+            }
+        });
+
+        dialog.setOnDismissListener(d -> {
+            if (skyCanvasView != null) {
+                skyCanvasView.clearHighlight();
+            }
+        });
+        dialog.show();
+
+        // Issue 3: Remove background dim to keep starmap visible
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setDimAmount(0f);
+        }
     }
 
     /**
@@ -2157,41 +2421,29 @@ public class SkyMapActivity extends AppCompatActivity {
     private void showStarInfo(@NonNull StarData star) {
         selectedStar = star;
 
-        boolean isGeneratedName = star.getName() != null && star.getName().startsWith("Star ");
-        String constellationLabel = getString(R.string.unknown);
-        if (star.getConstellationId() != null && !star.getConstellationId().isEmpty()) {
-            String displayName = getConstellationDisplayName(star.getConstellationId());
-            if (displayName != null && !displayName.isEmpty()) {
-                constellationLabel = displayName;
-            }
+        // Only show fallback toast for stars outside the top-100 set.
+        if (skyCanvasView != null && skyCanvasView.isTopStar(star.getId())) {
+            return;
         }
 
-        if (isGeneratedName) {
-            tvInfoPanelName.setText(getString(R.string.star_belongs_constellation, constellationLabel));
-            tvInfoPanelType.setVisibility(View.GONE);
-            infoPanelDivider.setVisibility(View.VISIBLE);
-            infoPanelQuickInfo.setVisibility(View.VISIBLE);
-            if (btnInfoPanelDetails != null) {
-                btnInfoPanelDetails.setVisibility(View.GONE);
-            }
-            tvInfoPanelMagnitude.setText(String.format("%.2f", star.getMagnitude()));
-            tvInfoPanelRA.setText(formatRA(star.getRa()));
-            tvInfoPanelDec.setText(formatDec(star.getDec()));
-        } else {
-            tvInfoPanelName.setText(star.getName());
-            tvInfoPanelType.setText(getString(R.string.star_type_format, constellationLabel));
-            tvInfoPanelType.setVisibility(View.VISIBLE);
-            infoPanelDivider.setVisibility(View.VISIBLE);
-            infoPanelQuickInfo.setVisibility(View.VISIBLE);
-            if (btnInfoPanelDetails != null) {
-                btnInfoPanelDetails.setVisibility(View.VISIBLE);
-            }
-            tvInfoPanelMagnitude.setText(String.format("%.2f", star.getMagnitude()));
-            tvInfoPanelRA.setText(formatRA(star.getRa()));
-            tvInfoPanelDec.setText(formatDec(star.getDec()));
+        // Per current UX requirement: star tap shows toast only (no info panel).
+        if (infoPanel != null) {
+            infoPanel.setVisibility(View.GONE);
         }
+        if (starToast != null) {
+            starToast.cancel();
+        }
+        starToast = Toast.makeText(this,
+                getString(R.string.star_in_constellation_format, resolveConstellationName(star)),
+                Toast.LENGTH_SHORT);
+        starToast.show();
 
-        infoPanel.setVisibility(View.VISIBLE);
+        // Shorter than default Toast.LENGTH_SHORT.
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (starToast != null) {
+                starToast.cancel();
+            }
+        }, 700);
     }
 
     /**
@@ -2215,6 +2467,39 @@ public class SkyMapActivity extends AppCompatActivity {
         intent.putExtra(StarInfoActivity.EXTRA_STAR_DEC, star.getDec());
         intent.putExtra(StarInfoActivity.EXTRA_STAR_MAGNITUDE, star.getMagnitude());
         startActivity(intent);
+    }
+
+    @NonNull
+    private String resolveConstellationName(@NonNull StarData star) {
+        String constellationId = star.getConstellationId();
+        if (constellationId == null || constellationId.trim().isEmpty()) {
+            if (constellationBoundaryResolver != null) {
+                String name = constellationBoundaryResolver.findConstellationName(star.getRa(), star.getDec());
+                if (name != null && !name.trim().isEmpty()) {
+                    return name;
+                }
+            }
+            return getString(R.string.unknown);
+        }
+        if (constellationRepository != null) {
+            try {
+                com.astro.app.data.model.ConstellationData constellation =
+                        constellationRepository.getConstellationById(constellationId);
+                if (constellation != null && constellation.getName() != null
+                        && !constellation.getName().trim().isEmpty()) {
+                    return constellation.getName();
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Failed to resolve constellation: " + constellationId, e);
+            }
+        }
+        if (constellationBoundaryResolver != null) {
+            String name = constellationBoundaryResolver.findConstellationName(star.getRa(), star.getDec());
+            if (name != null && !name.trim().isEmpty()) {
+                return name;
+            }
+        }
+        return constellationId;
     }
 
     private void openEducationDetail(@NonNull String type, @NonNull String name, @Nullable String id) {
@@ -2299,17 +2584,6 @@ public class SkyMapActivity extends AppCompatActivity {
             sensorController.start();
         }
 
-        // Re-read manual scroll preference (may have changed in SettingsActivity)
-        android.content.SharedPreferences prefs = getSharedPreferences(SettingsViewModel.PREFS_NAME, MODE_PRIVATE);
-        boolean manualScrollEnabled = prefs.getBoolean(SettingsViewModel.KEY_ENABLE_MANUAL_SCROLL, false);
-        if (skyCanvasView != null) {
-            skyCanvasView.setManualScrollEnabled(manualScrollEnabled);
-        }
-        // If manual mode is active, pause sensors (they were just started above)
-        if (manualScrollEnabled && sensorController != null) {
-            sensorController.pause();
-        }
-
         // Start GPS location updates if permission is granted
         if (locationController != null && hasLocationPermission()) {
             locationController.start();
@@ -2321,6 +2595,8 @@ public class SkyMapActivity extends AppCompatActivity {
             startCameraPreview();
         }
 
+        // Start checking for objects in reticle
+        startReticleChecking();
     }
 
     /**
@@ -2346,101 +2622,13 @@ public class SkyMapActivity extends AppCompatActivity {
             locationController.stop();
         }
 
+        // Stop checking for objects in reticle
+        stopReticleChecking();
 
         // Stop camera
         if (cameraManager != null) {
             cameraManager.stopCamera();
         }
-    }
-
-    /**
-     * Show the interactive tooltip tutorial on first launch.
-     */
-    private void showTooltipTutorialIfNeeded() {
-        // Check if user has already completed the tutorial
-        if (com.astro.app.ui.onboarding.TooltipManager.hasCompletedTutorial(this)) {
-            return;
-        }
-
-        // Post to ensure all views are laid out
-        findViewById(android.R.id.content).post(() -> {
-            // Find anchor views for tooltips
-            View btnConstellations = findViewById(R.id.btnConstellations);
-            View btnTimeTravel = findViewById(R.id.btnTimeTravel);
-            View fabSearch = findViewById(R.id.fabSearch);
-            View fabDetect = findViewById(R.id.fabDetect);
-
-            // Build tooltip sequence (6 tooltips)
-            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
-                new com.astro.app.ui.onboarding.TooltipManager(this);
-
-            // Tooltip 1: Welcome (center)
-            tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                null,
-                "Welcome to Astro! Point your phone at the sky to see constellations, planets, and stars in real-time.",
-                com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
-                false
-            ));
-
-            // Tooltip 2: Drag to explore (center)
-            tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                null,
-                "Enable Manual Scroll in Settings to freely explore the sky by dragging. Pinch to zoom in/out.",
-                com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
-                false
-            ));
-
-            // Tooltip 3: Constellations toggle (highlight)
-            if (btnConstellations != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    btnConstellations,
-                    "Toggle constellation lines and labels here.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
-                    true
-                ));
-            }
-
-            // Tooltip 4: Time Travel (highlight)
-            if (btnTimeTravel != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    btnTimeTravel,
-                    "Use Time Travel to see how the sky looked in the past or will look in the future.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
-                    true
-                ));
-            }
-
-            // Tooltip 5: Search (highlight)
-            if (fabSearch != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    fabSearch,
-                    "Search for any celestial object. An arrow will guide you to point your phone at it.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
-                    true
-                ));
-            }
-
-            // Tooltip 6: Star Detection (highlight)
-            if (fabDetect != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    fabDetect,
-                    "Take a photo to detect constellations using advanced plate-solving algorithms.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
-                    true
-                ));
-            }
-
-            // Start the tutorial
-            tooltipManager.start();
-        });
-    }
-
-    /**
-     * Replay the tooltip tutorial (called from Settings).
-     */
-    public void replayTooltipTutorial() {
-        com.astro.app.ui.onboarding.TooltipManager.resetTutorial(this);
-        showTooltipTutorialIfNeeded();
     }
 
     @Override
@@ -2453,6 +2641,3 @@ public class SkyMapActivity extends AppCompatActivity {
         }
     }
 }
-
-
-
