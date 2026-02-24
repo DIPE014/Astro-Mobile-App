@@ -711,10 +711,6 @@ public class SkyMapActivity extends AppCompatActivity {
                     bottomControls.setVisibility(View.VISIBLE);
                     toggleArrow.setRotation(180f); // Point arrow down
 
-                    ConstraintSet constraintSet = new ConstraintSet();
-                    constraintSet.clone(rootLayout); // Copy current constraints
-
-                    constraintSet.applyTo(rootLayout);
 
                 } else {
                     fabMain.animate().alpha(1f).setDuration(100).withEndAction(() -> {
@@ -723,10 +719,6 @@ public class SkyMapActivity extends AppCompatActivity {
                     bottomControls.setVisibility(View.GONE);
                     toggleArrow.setRotation(0f); // Point arrow up
 
-                    ConstraintSet constraintSet = new ConstraintSet();
-                    constraintSet.clone(rootLayout); // Copy current constraints
-
-                    constraintSet.applyTo(rootLayout);
                 }
             }
         });
