@@ -3,10 +3,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_dark"
-    tools:context=".ui.SkyMapActivity">
+    tools:context=".ui.skymap.SkyMapActivity">
 
     <!-- Camera Preview Layer -->
     <FrameLayout
@@ -119,7 +120,7 @@
         app:cardCornerRadius="@dimen/card_corner_radius"
         app:cardElevation="@dimen/elevation_medium"
         app:layout_constraintBottom_toTopOf="@id/bottomControls"
-        app:layout_constraintEnd_toStartOf="@id/fabSearch"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible">
 
@@ -278,11 +279,23 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <ImageButton
+        android:id="@+id/btnToggleMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/arrow_up_float"
+        app:layout_constraintBottom_toTopOf="@id/bottomControls"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+    </ImageButton>
+
     <!-- Bottom Control Bar -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/bottomControls"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         app:cardBackgroundColor="@color/overlay_dark"
         app:cardCornerRadius="0dp"
         app:cardElevation="@dimen/elevation_none"
@@ -446,67 +459,91 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Search FAB -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabSearch"
-        style="@style/Widget.AstroApp.FloatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/fab_margin"
-        android:layout_marginBottom="@dimen/margin_medium"
-        android:contentDescription="@string/cd_search_icon"
-        android:src="@android:drawable/ic_menu_search"
-        app:fabSize="normal"
-        app:layout_constraintBottom_toTopOf="@id/bottomControls"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:rippleColor="@color/ripple_primary" />
+<!--    &lt;!&ndash; Select FAB (appears when objects are in reticle) &ndash;&gt;-->
+<!--    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton-->
+<!--        android:id="@+id/fabSelect"-->
+<!--        style="@style/Widget.AstroApp.FloatingActionButton"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginBottom="@dimen/margin_medium"-->
+<!--        android:contentDescription="@string/cd_select_button"-->
+<!--        android:text="@string/select"-->
+<!--        android:visibility="gone"-->
+<!--        app:icon="@android:drawable/ic_menu_view"-->
+<!--        app:layout_constraintBottom_toTopOf="@id/bottomControls"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:rippleColor="@color/ripple_primary"-->
+<!--        tools:visibility="visible" />-->
 
-    <!-- Star Detection FAB (camera icon, above search) -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabDetect"
-        style="@style/Widget.AstroApp.FloatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/fab_margin"
-        android:layout_marginBottom="@dimen/margin_medium"
-        android:contentDescription="Detect constellations from photo"
-        android:src="@android:drawable/ic_menu_camera"
-        app:fabSize="normal"
-        app:layout_constraintBottom_toTopOf="@id/fabSearch"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:rippleColor="@color/ripple_primary" />
+    <androidx.constraintlayout.motion.widget.MotionLayout
+        android:id="@+id/motionLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layoutDescription="@xml/fab_menu_scene">
 
-    <!-- Chat FAB (above detect) -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabChat"
-        style="@style/Widget.AstroApp.FloatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/fab_margin"
-        android:layout_marginBottom="@dimen/margin_medium"
-        android:contentDescription="@string/cd_chat_fab"
-        android:src="@android:drawable/ic_menu_send"
-        app:fabSize="normal"
-        app:layout_constraintBottom_toTopOf="@id/fabDetect"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:rippleColor="@color/ripple_primary" />
+        <androidx.constraintlayout.utils.widget.ImageFilterView
+            android:id="@+id/background"
+            android:layout_width="500dp"
+            android:layout_height="500dp"
+            android:background="#3700B3"
+            app:layout_constraintBottom_toBottomOf="@+id/fabMain"
+            app:layout_constraintEnd_toEndOf="@+id/fabMain"
+            app:layout_constraintStart_toStartOf="@+id/fabMain"
+            app:layout_constraintTop_toTopOf="@+id/fabMain"
+            app:roundPercent="1" />
 
-    <!-- Select FAB (appears when objects are in reticle) -->
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fabSelect"
-        style="@style/Widget.AstroApp.FloatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/margin_medium"
-        android:contentDescription="@string/cd_select_button"
-        android:text="@string/select"
-        android:visibility="gone"
-        app:icon="@android:drawable/ic_menu_view"
-        app:layout_constraintBottom_toTopOf="@id/bottomControls"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:rippleColor="@color/ripple_primary"
-        tools:visibility="visible" />
+        <Button
+            android:id="@+id/fabSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#0000"
+            android:drawableTop="@android:drawable/ic_menu_search"
+            android:text="Search"
+            android:textAllCaps="false"
+            app:layout_constraintCircle="@id/background"
+            app:layout_constraintCircleAngle="270"
+            app:layout_constraintCircleRadius="180dp" />
+
+        <Button
+            android:id="@+id/fabDetect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#0000"
+            android:drawableTop="@android:drawable/ic_menu_camera"
+            android:text="Detect"
+            android:textAllCaps="false"
+            app:layout_constraintCircle="@id/background"
+            app:layout_constraintCircleAngle="330"
+            app:layout_constraintCircleRadius="200dp" />
+
+        <Button
+            android:id="@+id/fabChat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#0000"
+            android:drawableTop="@android:drawable/ic_menu_send"
+            android:text="ChatBot"
+            android:textAllCaps="false"
+            app:layout_constraintCircle="@id/background"
+            app:layout_constraintCircleAngle="300"
+            app:layout_constraintCircleRadius="200dp" />
+
+        <androidx.constraintlayout.utils.widget.ImageFilterButton
+            android:id="@+id/fabMain"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="200dp"
+            android:rotation="0"
+            android:scaleX="2"
+            android:scaleY="2"
+            android:src="@android:drawable/ic_menu_more"
+            android:backgroundTint="#3700B3"
+            android:background="@drawable/bg_circle_primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+    </androidx.constraintlayout.motion.widget.MotionLayout>
 
     <!-- GPS Status Indicator -->
     <LinearLayout

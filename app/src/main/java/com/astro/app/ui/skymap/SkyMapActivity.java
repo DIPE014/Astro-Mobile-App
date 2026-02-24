@@ -8,14 +8,19 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.transition.AutoTransition;
+import android.transition.TransitionManager;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +30,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.view.PreviewView;
+import androidx.constraintlayout.motion.widget.MotionLayout;
+import androidx.constraintlayout.utils.widget.ImageFilterButton;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
@@ -64,8 +73,10 @@ import com.astro.app.ui.settings.SettingsViewModel;
 import com.astro.app.ui.starinfo.StarInfoActivity;
 import com.astro.app.ui.chat.ChatBottomSheetFragment;
 import com.astro.app.search.SearchArrowView;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -201,6 +212,10 @@ public class SkyMapActivity extends AppCompatActivity {
     @Nullable
     private StarData selectedStar;
 
+    //UI usage
+    private BottomSheetBehavior<MaterialCardView> bottomSheetBehavior;
+    private ImageView ivBottomArrow;
+
 
     // GPS state
     private boolean isGpsEnabled = false;
@@ -208,6 +223,9 @@ public class SkyMapActivity extends AppCompatActivity {
     private float currentLongitude = -74.0060f;
     private static final float DEFAULT_LATITUDE = 40.7128f;
     private static final float DEFAULT_LONGITUDE = -74.0060f;
+
+    private boolean isMenuExpanded = true;
+
 
     // Permission launcher
     private final ActivityResultLauncher<String> cameraPermissionLauncher =
@@ -234,8 +252,50 @@ public class SkyMapActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_sky_map);
 
-        // Diagnostic toast to verify activity is running
-        android.widget.Toast.makeText(this, "SkyMap Started", android.widget.Toast.LENGTH_LONG).show();
+        View bottomControls = findViewById(R.id.bottomControls);
+        ImageButton toggleArrow = findViewById(R.id.btnToggleMenu);
+        ConstraintLayout rootLayout = findViewById(R.id.rootLayout);
+        MotionLayout motionLayout = findViewById(R.id.motionLayout);
+        ImageFilterButton fabMain = findViewById(R.id.fabMain);
+
+        toggleArrow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isMenuExpanded = !isMenuExpanded; // Flip the state
+
+                // This line enables a smooth animation for the constraint changes
+                TransitionManager.beginDelayedTransition(rootLayout);
+
+                if (isMenuExpanded) {
+                    // --- APPLY EXPANDED CONSTRAINTS ---
+                    fabMain.animate().alpha(0f).setDuration(200).withEndAction(() -> {
+                        fabMain.setVisibility(View.INVISIBLE);
+                    }).start();
+                    bottomControls.setVisibility(View.VISIBLE);
+                    toggleArrow.setRotation(180f); // Point arrow down
+
+                    ConstraintSet constraintSet = new ConstraintSet();
+                    constraintSet.clone(rootLayout); // Copy current constraints
+
+                    constraintSet.applyTo(rootLayout);
+
+                } else {
+                    fabMain.animate().alpha(1f).setDuration(100).withEndAction(() -> {
+                        fabMain.setVisibility(View.VISIBLE);
+                    }).start();
+                    bottomControls.setVisibility(View.GONE);
+                    toggleArrow.setRotation(0f); // Point arrow up
+
+                    ConstraintSet constraintSet = new ConstraintSet();
+                    constraintSet.clone(rootLayout); // Copy current constraints
+
+                    constraintSet.applyTo(rootLayout);
+                }
+            }
+        });
+
+//        // Diagnostic toast to verify activity is running (Commented out by Iz for new intro splash screen)
+//        android.widget.Toast.makeText(this, "SkyMap Started", android.widget.Toast.LENGTH_LONG).show();
 
         // Initialize ViewModels
         viewModel = new ViewModelProvider(this).get(SkyMapViewModel.class);
@@ -257,6 +317,7 @@ public class SkyMapActivity extends AppCompatActivity {
         } else {
             requestPermissions();
         }
+
     }
 
     /**
@@ -787,6 +848,7 @@ public class SkyMapActivity extends AppCompatActivity {
      * Sets up click listeners for UI elements.
      */
     private void setupClickListeners() {
+
         // Back button
         MaterialButton btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) {
@@ -2391,5 +2453,6 @@ public class SkyMapActivity extends AppCompatActivity {
         }
     }
 }
+
 
 

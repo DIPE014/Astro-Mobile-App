@@ -69,9 +69,13 @@
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.AstroApp.BottomSheetDialog</item>
 
         <!-- Shape Appearance -->
-        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.AstroApp.SmallComponent</item>
-        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.AstroApp.MediumComponent</item>
-        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.AstroApp.LargeComponent</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.AstroApp.SmallComponent
+        </item>
+        <item name="shapeAppearanceMediumComponent">
+            @style/ShapeAppearance.AstroApp.MediumComponent
+        </item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.AstroApp.LargeComponent
+        </item>
     </style>
 
     <!-- Fullscreen Theme for SkyMapActivity -->
@@ -161,8 +165,12 @@
         <item name="colorPrimary">@color/md_theme_dark_primary</item>
         <item name="colorSurface">@color/dialog_background</item>
         <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
-        <item name="materialAlertDialogTitleTextStyle">@style/TextAppearance.AstroApp.AlertDialog.Title</item>
-        <item name="materialAlertDialogBodyTextStyle">@style/TextAppearance.AstroApp.AlertDialog.Body</item>
+        <item name="materialAlertDialogTitleTextStyle">
+            @style/TextAppearance.AstroApp.AlertDialog.Title
+        </item>
+        <item name="materialAlertDialogBodyTextStyle">
+            @style/TextAppearance.AstroApp.AlertDialog.Body
+        </item>
     </style>
 
     <!-- Time Travel Dialog Theme -->
@@ -237,7 +245,9 @@
         <item name="backgroundTint">@color/surface</item>
         <item name="itemIconTint">@color/icon_primary</item>
         <item name="itemTextColor">@color/text_primary</item>
-        <item name="itemActiveIndicatorStyle">@style/Widget.AstroApp.BottomNavigation.ActiveIndicator</item>
+        <item name="itemActiveIndicatorStyle">
+            @style/Widget.AstroApp.BottomNavigation.ActiveIndicator
+        </item>
     </style>
 
     <style name="Widget.AstroApp.BottomNavigation.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
@@ -395,6 +405,11 @@
         <item name="android:textColor">@color/constellation_name</item>
         <item name="android:textSize">@dimen/text_size_constellation_label</item>
         <item name="android:textStyle">italic</item>
+    </style>
+
+    <style name="ThemeOverlay.AstroMobileApp.FullscreenContainer" parent="">
+        <item name="fullscreenBackgroundColor">@color/light_blue_600</item>
+        <item name="fullscreenTextColor">@color/light_blue_A200</item>
     </style>
 
 </resources>
