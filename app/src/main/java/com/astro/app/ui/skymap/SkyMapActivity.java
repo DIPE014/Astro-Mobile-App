@@ -192,6 +192,9 @@ public class SkyMapActivity extends AppCompatActivity {
     private Runnable reticleCheckRunnable;
     private static final long RETICLE_CHECK_INTERVAL_MS = 500;  // Check every 500ms
 
+    // Chip-strip auto-dismiss handler (stored to allow cancellation in onDestroy)
+    private final Handler chipStripHandler = new Handler(Looper.getMainLooper());
+
     // State
     // Default to MAP mode (AR disabled) for better emulator compatibility
     // On devices without camera or on emulator, this ensures stars are visible
@@ -216,7 +219,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private static final float DEFAULT_LATITUDE = 40.7128f;
     private static final float DEFAULT_LONGITUDE = -74.0060f;
 
-    private boolean isMenuExpanded = true;
+    private boolean isMenuExpanded = false;
 
     // Permission launcher
     private final ActivityResultLauncher<String> cameraPermissionLauncher =
@@ -599,7 +602,7 @@ public class SkyMapActivity extends AppCompatActivity {
         tvSearchTapHint = findViewById(R.id.tvSearchTapHint);
 
         // Select FAB for reticle selection
-//        fabSelect = findViewById(R.id.fabSelect);
+        fabSelect = findViewById(R.id.fabSelect);
 
         // Create PreviewView programmatically for camera
         cameraPreview = new PreviewView(this);
@@ -2127,7 +2130,7 @@ public class SkyMapActivity extends AppCompatActivity {
         rootLayout.addView(chipStrip);
 
         // Auto-dismiss after 8 seconds (longer to allow highlight-then-detail flow)
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+        chipStripHandler.postDelayed(() -> {
             if (chipStrip.getParent() != null) {
                 rootLayout.removeView(chipStrip);
                 if (skyCanvasView != null) {
@@ -2631,5 +2634,8 @@ public class SkyMapActivity extends AppCompatActivity {
         if (cameraManager != null) {
             cameraManager.release();
         }
+
+        // Cancel any pending chip-strip auto-dismiss callbacks to prevent memory leaks
+        chipStripHandler.removeCallbacksAndMessages(null);
     }
 }

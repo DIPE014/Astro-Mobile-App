@@ -112,5 +112,5 @@ dependencies {
 
     //UI
     implementation 'com.github.bumptech.glide:glide:5.0.5'
-    kapt 'com.github.bumptech.glide:glide:5.0.5'
+    kapt 'com.github.bumptech.glide:compiler:5.0.5'
 }

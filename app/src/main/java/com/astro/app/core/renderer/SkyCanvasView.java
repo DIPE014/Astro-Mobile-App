@@ -2512,11 +2512,13 @@ public class SkyCanvasView extends View {
             float[] screenPos = projectToScreen(starAlt, starAz,
                     altitudeOffset, azimuthOffset,
                     centerX, centerY, pixelsPerDegree);
-            float x = screenPos[0];
-            float y = screenPos[1];
-            float dist = (float) Math.sqrt(Math.pow(touchX - x, 2) + Math.pow(touchY - y, 2));
-            if (dist <= maxDistance) {
-                return highlightedStar;
+            if (screenPos[2] >= 0.5f) {
+                float x = screenPos[0];
+                float y = screenPos[1];
+                float dist = (float) Math.sqrt(Math.pow(touchX - x, 2) + Math.pow(touchY - y, 2));
+                if (dist <= maxDistance) {
+                    return highlightedStar;
+                }
             }
         }
 

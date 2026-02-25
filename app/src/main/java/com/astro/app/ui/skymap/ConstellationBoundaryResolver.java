@@ -185,6 +185,12 @@ public final class ConstellationBoundaryResolver {
                 points.add(new Point(raDeg, decDeg));
             }
             if (points.size() < 3) continue;
+            // Ensure ring is closed for stable point-in-polygon behavior.
+            Point first = points.get(0);
+            Point last = points.get(points.size() - 1);
+            if (Math.abs(first.raDeg - last.raDeg) > 1e-6 || Math.abs(first.decDeg - last.decDeg) > 1e-6) {
+                points.add(new Point(first.raDeg, first.decDeg));
+            }
 
             String name = resolveName(rawCode, codeToName);
             result.add(new BoundaryPolygon(rawCode, name, points));
@@ -316,7 +322,7 @@ public final class ConstellationBoundaryResolver {
             double yj = pj.decDeg;
 
             boolean intersects = ((yi > y) != (yj > y))
-                    && (x < (xj - xi) * (y - yi) / ((yj - yi) + 1e-12) + xi);
+                    && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
             if (intersects) {
                 inside = !inside;
             }

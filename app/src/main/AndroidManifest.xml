@@ -30,7 +30,9 @@
 
 <!--        Added new splash screen by Iz; can remove comment if used-->
         <activity android:name=".IntroSplashActivity"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AstroApp.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

@@ -459,22 +459,22 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-<!--    &lt;!&ndash; Select FAB (appears when objects are in reticle) &ndash;&gt;-->
-<!--    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton-->
-<!--        android:id="@+id/fabSelect"-->
-<!--        style="@style/Widget.AstroApp.FloatingActionButton"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginBottom="@dimen/margin_medium"-->
-<!--        android:contentDescription="@string/cd_select_button"-->
-<!--        android:text="@string/select"-->
-<!--        android:visibility="gone"-->
-<!--        app:icon="@android:drawable/ic_menu_view"-->
-<!--        app:layout_constraintBottom_toTopOf="@id/bottomControls"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:rippleColor="@color/ripple_primary"-->
-<!--        tools:visibility="visible" />-->
+    <!-- Select FAB (appears when objects are in reticle) -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabSelect"
+        style="@style/Widget.AstroApp.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:contentDescription="@string/cd_select_button"
+        android:text="@string/select"
+        android:visibility="gone"
+        app:icon="@android:drawable/ic_menu_view"
+        app:layout_constraintBottom_toTopOf="@id/bottomControls"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:rippleColor="@color/ripple_primary"
+        tools:visibility="visible" />
 
     <androidx.constraintlayout.motion.widget.MotionLayout
         android:id="@+id/motionLayout"
