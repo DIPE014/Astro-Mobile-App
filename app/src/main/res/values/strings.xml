@@ -402,6 +402,16 @@
     <string name="title_activity_intro_splash">IntroSplashActivity</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <!-- FAB menu labels and content descriptions -->
+    <string name="fab_search">Search</string>
+    <string name="fab_detect">Detect</string>
+    <string name="fab_chatbot">ChatBot</string>
+    <string name="cd_toggle_menu">Toggle menu</string>
+    <string name="cd_fab_main">Open actions menu</string>
+    <string name="cd_fab_search">Search sky objects</string>
+    <string name="cd_fab_detect">Detect stars in camera view</string>
+    <string name="cd_fab_chatbot">Open AstroBot chat</string>
 </resources>
 
 

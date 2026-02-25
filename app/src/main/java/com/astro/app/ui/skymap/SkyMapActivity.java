@@ -190,7 +190,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private ExtendedFloatingActionButton fabSelect;
     private Handler reticleCheckHandler;
     private Runnable reticleCheckRunnable;
-    private static final long RETICLE_CHECK_INTERVAL_MS = 500;  // Check every 500ms
+    private static final long RETICLE_CHECK_INTERVAL_MS = 1000;  // Check every 1000ms to reduce UI-thread load
 
     // Chip-strip auto-dismiss handler (stored to allow cancellation in onDestroy)
     private final Handler chipStripHandler = new Handler(Looper.getMainLooper());
@@ -706,6 +706,9 @@ public class SkyMapActivity extends AppCompatActivity {
                 // This line enables a smooth animation for the constraint changes
                 TransitionManager.beginDelayedTransition(rootLayout);
 
+                // Cancel any in-progress animation before starting a new one to avoid race conditions.
+                fabMain.animate().cancel();
+
                 if (isMenuExpanded) {
                     // --- APPLY EXPANDED CONSTRAINTS ---
                     fabMain.animate().alpha(0f).setDuration(200).withEndAction(() -> {
@@ -713,15 +716,12 @@ public class SkyMapActivity extends AppCompatActivity {
                     }).start();
                     bottomControls.setVisibility(View.VISIBLE);
                     toggleArrow.setRotation(180f); // Point arrow down
-
-
                 } else {
                     fabMain.animate().alpha(1f).setDuration(100).withEndAction(() -> {
                         fabMain.setVisibility(View.VISIBLE);
                     }).start();
                     bottomControls.setVisibility(View.GONE);
                     toggleArrow.setRotation(0f); // Point arrow up
-
                 }
             }
         });
@@ -2433,12 +2433,10 @@ public class SkyMapActivity extends AppCompatActivity {
                 Toast.LENGTH_SHORT);
         starToast.show();
 
-        // Shorter than default Toast.LENGTH_SHORT.
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (starToast != null) {
-                starToast.cancel();
-            }
-        }, 700);
+        // Capture local reference so this callback only cancels its own toast,
+        // not a newer one created by a rapid subsequent tap.
+        final Toast toastToCancel = starToast;
+        new Handler(Looper.getMainLooper()).postDelayed(() -> toastToCancel.cancel(), 700);
     }
 
     /**

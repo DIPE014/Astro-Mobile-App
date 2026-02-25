@@ -8,13 +8,13 @@
     <uses-permission android:name="android.permission.INTERNET" /> <!-- Hardware features -->
     <uses-feature
         android:name="android.hardware.camera"
-        android:required="true" />
+        android:required="false" />
     <uses-feature
         android:name="android.hardware.sensor.accelerometer"
-        android:required="true" />
+        android:required="false" />
     <uses-feature
         android:name="android.hardware.sensor.compass"
-        android:required="true" />
+        android:required="false" />
     <uses-feature
         android:name="android.hardware.location.gps"
         android:required="false" />

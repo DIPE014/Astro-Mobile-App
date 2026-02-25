@@ -283,12 +283,11 @@
         android:id="@+id/btnToggleMenu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:contentDescription="@string/cd_toggle_menu"
         android:src="@android:drawable/arrow_up_float"
         app:layout_constraintBottom_toTopOf="@id/bottomControls"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-    </ImageButton>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Bottom Control Bar -->
     <com.google.android.material.card.MaterialCardView
@@ -498,8 +497,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#0000"
+            android:contentDescription="@string/cd_fab_search"
             android:drawableTop="@android:drawable/ic_menu_search"
-            android:text="Search"
+            android:text="@string/fab_search"
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="270"
@@ -510,8 +510,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#0000"
+            android:contentDescription="@string/cd_fab_detect"
             android:drawableTop="@android:drawable/ic_menu_camera"
-            android:text="Detect"
+            android:text="@string/fab_detect"
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="330"
@@ -522,8 +523,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#0000"
+            android:contentDescription="@string/cd_fab_chatbot"
             android:drawableTop="@android:drawable/ic_menu_send"
-            android:text="ChatBot"
+            android:text="@string/fab_chatbot"
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="300"
@@ -535,6 +537,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="15dp"
             android:layout_marginBottom="200dp"
+            android:contentDescription="@string/cd_fab_main"
             android:rotation="0"
             android:scaleX="2"
             android:scaleY="2"
