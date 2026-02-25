@@ -1,85 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootSplash"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    tools:context=".MainActivity">
+    android:background="#000000">
 
-    <ImageView
-        android:id="@+id/introScreen"
+    <!-- ── Animated star field + mountain scene ─────────────────────── -->
+    <com.astro.app.StarFieldView
+        android:id="@+id/starFieldView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:src="@drawable/intro_star"
-        android:scaleType="centerCrop"/>
+        android:layout_height="match_parent" />
 
-    <!-- Settings Icon Button - Top Right -->
-
-    <!-- Centered Content Container -->
+    <!-- ── UI overlay ───────────────────────────────────────────────── -->
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/centerContent"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.4">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <!-- App Logo Container -->
-        <FrameLayout
-            android:id="@+id/logoContainer"
-            android:layout_width="@dimen/image_thumbnail_large"
-            android:layout_height="@dimen/image_thumbnail_large"
-            android:background="@drawable/circle_primary_container"
+        <!-- Logo + app name + tagline  (sits in the upper sky, ~30% down) -->
+        <LinearLayout
+            android:id="@+id/centerContent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:alpha="0"
+            android:gravity="center"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@id/btnStart"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.42"
+            app:layout_constraintVertical_chainStyle="packed">
 
-            <!-- Star Icon Placeholder -->
-            <ImageView
-                android:id="@+id/ivAppLogo"
-                android:layout_width="@dimen/icon_size_huge"
-                android:layout_height="@dimen/icon_size_huge"
+            <!-- Glowing logo ring -->
+            <FrameLayout
+                android:layout_width="100dp"
+                android:layout_height="100dp"
                 android:layout_gravity="center"
-                android:contentDescription="@string/app_name"
-                android:src="@android:drawable/btn_star_big_on"
-                app:tint="@color/star_highlight" />
+                android:background="@drawable/circle_primary_container">
 
-        </FrameLayout>
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/app_name"
+                    android:src="@android:drawable/btn_star_big_on"
+                    app:tint="@color/star_highlight" />
+            </FrameLayout>
 
+            <!-- App name -->
+            <TextView
+                android:id="@+id/tvAppName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:fontFamily="@font/exo_extrabolditalic"
+                android:letterSpacing="0.22"
+                android:text="@string/app_name"
+                android:textColor="@color/text_primary"
+                android:textSize="40sp" />
 
-        <!-- App Name -->
-        <TextView
-            android:id="@+id/tvAppName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_large"
-            android:fontFamily="@font/exo_extrabolditalic"
-            android:letterSpacing="0.15"
-            android:text="@string/app_name"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_size_display_medium"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/logoContainer" />
+            <!-- Tagline -->
+            <TextView
+                android:id="@+id/tvTagline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/exo_bold"
+                android:letterSpacing="0.10"
+                android:text="@string/sky_map_point_device"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp" />
 
-        <!-- Tagline -->
-        <TextView
-            android:id="@+id/tvTagline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_small"
+        </LinearLayout>
+
+        <!--
+             Button sits above the mountain silhouettes.
+             Mountains cover ~bottom 24 % of screen → marginBottom ~215 dp keeps
+             the button clearly in the sky on any phone taller than 640 dp.
+        -->
+        <Button
+            android:id="@+id/btnStart"
+            android:layout_width="230dp"
+            android:layout_height="50dp"
+            android:alpha="0"
+            android:background="@drawable/btn_start_bg"
             android:fontFamily="@font/exo_bold"
-            android:text="@string/sky_map_point_device"
-            android:textColor="@color/text_secondary"
-            android:textSize="@dimen/text_size_body"
+            android:letterSpacing="0.22"
+            android:text="@string/btn_explore"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp"
+            android:layout_marginBottom="210dp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvAppName" />
+            app:layout_constraintStart_toStartOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- ── Black overlay — fades in during warp transition ──────────── -->
+    <View
+        android:id="@+id/blackOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:background="#000000"
+        android:clickable="false" />
+
+</FrameLayout>

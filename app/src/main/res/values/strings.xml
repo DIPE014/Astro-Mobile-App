@@ -403,6 +403,9 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
 
+    <!-- Intro splash -->
+    <string name="btn_explore">EXPLORE THE UNIVERSE</string>
+
     <!-- FAB menu labels and content descriptions -->
     <string name="fab_search">Search</string>
     <string name="fab_detect">Detect</string>
