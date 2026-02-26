@@ -182,6 +182,7 @@
     <string name="ar_mode_off">AR mode disabled</string>
     <string name="camera_error">Camera error: %1$s</string>
     <string name="star_type_format">Star - %1$s</string>
+    <string name="star_in_constellation_format">Star in %1$s</string>
     <string name="star_details_coming_soon">Details for %1$s coming soon</string>
     <string name="unknown">Unknown</string>
 
@@ -398,6 +399,19 @@
     <string name="bortle_7">Suburban/Urban Transition</string>
     <string name="bortle_8">City Sky</string>
     <string name="bortle_9">Inner City</string>
+    <string name="title_activity_intro_splash">IntroSplashActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <!-- FAB menu labels and content descriptions -->
+    <string name="fab_search">Search</string>
+    <string name="fab_detect">Detect</string>
+    <string name="fab_chatbot">ChatBot</string>
+    <string name="cd_toggle_menu">Toggle menu</string>
+    <string name="cd_fab_main">Open actions menu</string>
+    <string name="cd_fab_search">Search sky objects</string>
+    <string name="cd_fab_detect">Detect stars in camera view</string>
+    <string name="cd_fab_chatbot">Open AstroBot chat</string>
 </resources>
 
 

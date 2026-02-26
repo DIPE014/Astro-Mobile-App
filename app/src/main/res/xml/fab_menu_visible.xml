@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:motion="http://schemas.android.com/apk/res-auto">
+
+<ConstraintSet android:id="@+id/menu_visible">
+    <Constraint android:id="@+id/fabMain"
+        android:alpha="0"
+        android:visibility="invisible"
+        motion:layout_constraintBottom_toBottomOf="parent"
+        motion:layout_constraintEnd_toEndOf="parent" />
+
+    <Constraint android:id="@+id/fabSearch" android:alpha="0" android:visibility="invisible" />
+    <Constraint android:id="@+id/fabDetect" android:alpha="0" android:visibility="invisible" />
+    <Constraint android:id="@+id/fabChat" android:alpha="0" android:visibility="invisible" />
+</ConstraintSet>
+
+<Transition
+motion:constraintSetStart="@id/start"
+motion:constraintSetEnd="@+id/menu_visible"
+motion:duration="300" />
+
+</MotionScene>

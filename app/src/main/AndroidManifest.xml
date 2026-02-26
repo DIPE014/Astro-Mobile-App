@@ -5,13 +5,19 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- Hardware features -->
-    <uses-feature android:name="android.hardware.camera" android:required="true" />
-    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true" />
-    <uses-feature android:name="android.hardware.sensor.compass" android:required="true" />
-    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- Hardware features -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.sensor.accelerometer"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.sensor.compass"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.location.gps"
+        android:required="false" />
 
     <application
         android:name=".AstroApplication"
@@ -22,54 +28,61 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AstroApp">
 
-        <activity
-            android:name=".MainActivity"
+<!--        Added new splash screen by Iz; can remove comment if used-->
+        <activity android:name=".IntroSplashActivity"
             android:exported="true"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AstroApp.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+
+<!--        THIS IS THE ORIGINAL INTRO SCREEN WITH SKYMAP BUTTON (Commented out by Iz for new intro splash screen; can remove comment if used)-->
+<!--        <activity-->
+<!--            android:name=".MainActivity"-->
+<!--            android:exported="true"-->
+<!--            android:screenOrientation="portrait">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+<!--        </activity>-->
+
         <activity
             android:name=".ui.skymap.SkyMapActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AstroApp.Fullscreen" />
-
         <activity
             android:name=".ui.starinfo.StarInfoActivity"
             android:exported="false"
             android:theme="@style/Theme.AstroApp" />
-
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.AstroApp" />
-
         <activity
             android:name=".ui.search.SearchActivity"
             android:exported="false"
             android:theme="@style/Theme.AstroApp"
             android:windowSoftInputMode="adjustResize" />
-
         <activity
             android:name=".ui.education.EducationDetailActivity"
             android:exported="false"
             android:theme="@style/Theme.AstroApp" />
-
         <activity
             android:name=".ui.platesolve.PlateSolveActivity"
             android:exported="false"
             android:theme="@style/Theme.AstroApp" />
-
         <activity
             android:name=".ui.onboarding.OnboardingActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AstroApp" />
-
         <activity
             android:name=".ui.skybrightness.SkyBrightnessActivity"
             android:exported="false"
@@ -84,7 +97,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-
     </application>
 
 </manifest>

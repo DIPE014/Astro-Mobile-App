@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".MainActivity">
+
+    <ImageView
+        android:id="@+id/introScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/intro_star"
+        android:scaleType="centerCrop"/>
+
+    <!-- Settings Icon Button - Top Right -->
+
+    <!-- Centered Content Container -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/centerContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.4">
+
+        <!-- App Logo Container -->
+        <FrameLayout
+            android:id="@+id/logoContainer"
+            android:layout_width="@dimen/image_thumbnail_large"
+            android:layout_height="@dimen/image_thumbnail_large"
+            android:background="@drawable/circle_primary_container"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <!-- Star Icon Placeholder -->
+            <ImageView
+                android:id="@+id/ivAppLogo"
+                android:layout_width="@dimen/icon_size_huge"
+                android:layout_height="@dimen/icon_size_huge"
+                android:layout_gravity="center"
+                android:contentDescription="@string/app_name"
+                android:src="@android:drawable/btn_star_big_on"
+                app:tint="@color/star_highlight" />
+
+        </FrameLayout>
+
+
+        <!-- App Name -->
+        <TextView
+            android:id="@+id/tvAppName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_large"
+            android:fontFamily="@font/exo_extrabolditalic"
+            android:letterSpacing="0.15"
+            android:text="@string/app_name"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_size_display_medium"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/logoContainer" />
+
+        <!-- Tagline -->
+        <TextView
+            android:id="@+id/tvTagline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:fontFamily="@font/exo_bold"
+            android:text="@string/sky_map_point_device"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_size_body"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvAppName" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
