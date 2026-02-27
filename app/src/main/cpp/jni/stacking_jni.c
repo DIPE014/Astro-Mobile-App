@@ -20,8 +20,8 @@
 // Configuration constants
 #define MAX_TRIANGLES_PER_STAR 10  // C(5,2) = 10 triangles from 5 nearest neighbors
 #define NUM_NEIGHBORS 5            // Use 5 nearest neighbors per star
-#define TRIANGLE_RATIO_TOLERANCE 0.05  // Match tolerance for side ratios
-#define RANSAC_ITERATIONS 100      // Number of RANSAC iterations
+#define TRIANGLE_RATIO_TOLERANCE 0.01  // Match tolerance for side ratios (tight: rotation is isometric)
+#define RANSAC_ITERATIONS 500      // Number of RANSAC iterations
 #define RANSAC_INLIER_THRESHOLD 3.0  // 3 pixels reprojection error threshold
 #define MAX_STACKING_STARS 50      // Use top 50 brightest stars for alignment
 
@@ -167,23 +167,41 @@ static triangle_t* form_triangles(float* stars, int num_stars, int* out_num_tria
                 int idx_a = neighbors[a].idx;
                 int idx_b = neighbors[b].idx;
 
-                // Compute side lengths
-                float s0 = sqrtf(dist2(xi, yi, stars[idx_a * 3], stars[idx_a * 3 + 1]));
-                float s1 = sqrtf(dist2(xi, yi, stars[idx_b * 3], stars[idx_b * 3 + 1]));
-                float s2 = sqrtf(dist2(stars[idx_a * 3], stars[idx_a * 3 + 1],
+                // Compute side lengths.
+                // Each side is "opposite" one vertex:
+                //   sa = dist(i, idx_a)  → opposite idx_b
+                //   sb = dist(i, idx_b)  → opposite idx_a
+                //   sc = dist(idx_a, idx_b) → opposite i
+                float sa = sqrtf(dist2(xi, yi, stars[idx_a * 3], stars[idx_a * 3 + 1]));
+                float sb = sqrtf(dist2(xi, yi, stars[idx_b * 3], stars[idx_b * 3 + 1]));
+                float sc = sqrtf(dist2(stars[idx_a * 3], stars[idx_a * 3 + 1],
                                       stars[idx_b * 3], stars[idx_b * 3 + 1]));
 
-                // Sort sides
-                sort3(&s0, &s1, &s2);
+                if (sa < 1e-6f || sb < 1e-6f || sc < 1e-6f) continue;  // Degenerate
 
-                if (s0 < 1e-6) continue;  // Degenerate triangle
+                // Sort (side, opposite_vertex) pairs by side length so that
+                // star_indices[k] is always the vertex opposite the k-th shortest side.
+                // This canonical ordering ensures that when two triangles match by
+                // ratio, their star_indices[k] arrays are truly corresponding stars.
+                float sides[3] = { sa, sb, sc };
+                int   verts[3] = { idx_b, idx_a, i };  // opposite to sa, sb, sc
+                // Insertion sort (3 elements)
+                for (int p = 1; p < 3; p++) {
+                    float ks = sides[p]; int kv = verts[p];
+                    int q = p - 1;
+                    while (q >= 0 && sides[q] > ks) {
+                        sides[q+1] = sides[q]; verts[q+1] = verts[q]; q--;
+                    }
+                    sides[q+1] = ks; verts[q+1] = kv;
+                }
+                // sides[0] ≤ sides[1] ≤ sides[2]; verts[k] opposite sides[k]
 
                 // Compute scale-invariant ratios
-                triangles[tri_idx].ratio1 = s1 / s0;
-                triangles[tri_idx].ratio2 = s2 / s0;
-                triangles[tri_idx].star_indices[0] = i;
-                triangles[tri_idx].star_indices[1] = idx_a;
-                triangles[tri_idx].star_indices[2] = idx_b;
+                triangles[tri_idx].ratio1 = sides[1] / sides[0];
+                triangles[tri_idx].ratio2 = sides[2] / sides[0];
+                triangles[tri_idx].star_indices[0] = verts[0];
+                triangles[tri_idx].star_indices[1] = verts[1];
+                triangles[tri_idx].star_indices[2] = verts[2];
                 tri_idx++;
             }
         }
@@ -215,6 +233,7 @@ static correspondence_t* match_triangles(
     }
 
     int corr_idx = 0;
+    int total_tri_matches = 0;  // diagnostic: total triangle pairs that match by ratio
 
     for (int i = 0; i < num_new_tri; i++) {
         for (int j = 0; j < num_ref_tri; j++) {
@@ -222,6 +241,7 @@ static correspondence_t* match_triangles(
             if (fabsf(new_tri[i].ratio1 - ref_tri[j].ratio1) < TRIANGLE_RATIO_TOLERANCE &&
                 fabsf(new_tri[i].ratio2 - ref_tri[j].ratio2) < TRIANGLE_RATIO_TOLERANCE)
             {
+                total_tri_matches++;
                 // Triangle match found - add 3 star correspondences
                 for (int k = 0; k < 3; k++) {
                     if (corr_idx >= max_corr) break;
@@ -240,7 +260,8 @@ static correspondence_t* match_triangles(
     }
 
     *out_num_correspondences = corr_idx;
-    LOGI("Found %d star correspondences from triangle matching", corr_idx);
+    LOGI("Found %d star correspondences from %d triangle matches (cap=%d)",
+         corr_idx, total_tri_matches, max_corr);
     return corr;
 }
 
