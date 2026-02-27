@@ -98,6 +98,7 @@
     <color name="text_hint">#666666</color>
     <color name="text_link">#BB86FC</color>
     <color name="text_error">#CF6679</color>
+    <color name="text_on_light">#1C1B1F</color>
 
     <!-- Error/Warning/Success Colors -->
     <color name="error">#CF6679</color>
@@ -189,6 +190,25 @@
     <color name="md_theme_dark_inverseOnSurface">#1C1B1F</color>
     <color name="md_theme_dark_inversePrimary">#6750A4</color>
     <color name="md_theme_dark_surfaceTint">#BB86FC</color>
+
+    <!-- Bortle Scale Colors -->
+    <color name="bortle_1">#1B5E20</color>
+    <color name="bortle_2">#2E7D32</color>
+    <color name="bortle_3">#4CAF50</color>
+    <color name="bortle_4">#CDDC39</color>
+    <color name="bortle_5">#FFEB3B</color>
+    <color name="bortle_6">#FFC107</color>
+    <color name="bortle_7">#FF9800</color>
+    <color name="bortle_8">#F44336</color>
+    <color name="bortle_9">#B71C1C</color>
+    <color name="bortle_good">#4CAF50</color>
+    <color name="bortle_moderate">#FFEB3B</color>
+    <color name="bortle_poor">#FF9800</color>
+    <color name="bortle_bad">#F44336</color>
+
+    <!-- Chat Colors -->
+    <color name="chat_user_bubble">#3700B3</color>
+    <color name="chat_bot_bubble">#1F1F1F</color>
 
     <!-- Transparent Colors -->
     <color name="transparent">#00000000</color>

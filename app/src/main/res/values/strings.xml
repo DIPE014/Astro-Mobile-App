@@ -138,6 +138,8 @@
     <string name="settings_star_labels_summary">Show names on bright stars</string>
     <string name="settings_magnitude_limit">Magnitude Limit</string>
     <string name="settings_magnitude_limit_summary">Show stars up to magnitude %1$s</string>
+    <string name="settings_manual_scroll">Manual Scroll Mode</string>
+    <string name="settings_manual_scroll_summary">Enable drag mode — disables sensor tracking. Drag to pan, pinch to zoom.</string>
     <string name="settings_location_auto">Auto-detect Location</string>
     <string name="settings_location_auto_summary">Use GPS to determine your location</string>
     <string name="settings_location_manual">Set Location Manually</string>
@@ -286,6 +288,20 @@
     <string name="cd_select_button">Select objects in reticle</string>
     <string name="cd_reticle">Selection reticle</string>
     <string name="object_highlighted">%1$s highlighted</string>
+    <string name="star_belongs_constellation">Star in %1$s</string>
+
+    <!-- DSO Layer -->
+    <string name="show_dso">Deep Sky</string>
+    <string name="cd_dso_toggle">Toggle deep sky objects</string>
+
+    <!-- Tonight\'s Highlights -->
+    <string name="tonights_sky">Tonight\'s Sky</string>
+    <string name="tonights_planets">Planets</string>
+    <string name="tonights_bright_stars">Bright Stars</string>
+    <string name="tonights_constellations">Constellations</string>
+    <string name="tonights_deep_sky">Deep Sky</string>
+    <string name="tonights_no_objects">No objects visible right now</string>
+    <string name="tonights_altitude">Alt %1$.0f\u00b0</string>
 
     <!-- Empty States -->
     <string name="empty_favorites">No favorites yet</string>
@@ -299,4 +315,97 @@
     <string name="finish">Finish</string>
     <string name="processing_frame">Processing frame…</string>
     <string name="cd_stacked_preview">Stacked image preview</string>
+
+    <!-- Plate Solve Tips -->
+    <string name="plate_solve_tips_title">Tips for Best Results</string>
+    <string name="plate_solve_tip_dark_sky_title">Find a clear, dark sky</string>
+    <string name="plate_solve_tip_dark_sky_desc">Go to an area away from city lights. The darker the sky, the better the detection results.</string>
+    <string name="plate_solve_tip_obstructions_title">Minimize obstructions</string>
+    <string name="plate_solve_tip_obstructions_desc">Try to avoid trees, buildings, or mountains in your photo. Aim for as much open sky as possible.</string>
+    <string name="plate_solve_tip_visible_stars_title">Stars visible to naked eye</string>
+    <string name="plate_solve_tip_visible_stars_desc">Make sure you can see at least a few bright stars with your bare eyes before taking the photo.</string>
+    <string name="plate_solve_tip_steady_title">Hold your phone steady</string>
+    <string name="plate_solve_tip_steady_desc">Keep your phone as still as possible to avoid blurry stars. Lean against something for stability.</string>
+    <string name="plate_solve_tip_bright_lights_title">Avoid bright lights</string>
+    <string name="plate_solve_tip_bright_lights_desc">Streetlights, the moon, or other bright lights in the frame can wash out faint stars.</string>
+    <string name="plate_solve_tips_dont_show_again">Don\'t show again</string>
+    <string name="plate_solve_tips_got_it">Got it</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_done">Done</string>
+    <string name="onboarding_welcome_title">sEEEstar</string>
+    <string name="onboarding_welcome_description">Your personal guide to the night sky</string>
+    <string name="onboarding_sky_map_title">Sky Map</string>
+    <string name="onboarding_sky_map_description">Point your device at the sky to see stars, constellations, and planets in real time</string>
+    <string name="onboarding_controls_title">Controls</string>
+    <string name="onboarding_controls_description">Toggle constellations, grid, planets, deep sky objects, and time travel from the bottom bar</string>
+    <string name="onboarding_star_detection_title">Star Detection</string>
+    <string name="onboarding_star_detection_description">Take a photo of the night sky and we\'ll identify the constellations for you</string>
+    <string name="onboarding_drag_zoom_title">Drag &amp; Zoom</string>
+    <string name="onboarding_drag_zoom_description">Pinch to zoom in/out. Enable drag mode in Settings to manually pan the sky</string>
+    <string name="onboarding_search_title">Search</string>
+    <string name="onboarding_search_description">Search for any star, constellation, or planet and follow the arrow to find it</string>
+    <string name="onboarding_sky_quality_title">Sky Quality</string>
+    <string name="onboarding_sky_quality_description">After capturing a photo for star detection, tap Sky Quality to see your Bortle class — a measure of how dark your sky is for observing</string>
+    <string name="settings_replay_tutorial">Replay Tutorial</string>
+    <string name="settings_replay_tutorial_summary">Watch the app introduction again</string>
+    <string name="settings_replay_tutorial_toast">Tutorial will show on next app launch</string>
+
+    <!-- AI Chatbot -->
+    <string name="chat_title">AstroBot</string>
+    <string name="chat_input_hint">Ask AstroBot…</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_no_api_key">Please set your OpenAI API key in Settings first.</string>
+    <string name="chat_thinking">Thinking…</string>
+    <string name="chat_error">Sorry, something went wrong. Please try again.</string>
+    <string name="chat_suggestion_1">What\'s visible tonight?</string>
+    <string name="chat_suggestion_2">How do I read celestial coordinates?</string>
+    <string name="chat_suggestion_3">What is the Bortle scale?</string>
+    <string name="chat_suggestion_4">Tips for photographing the Milky Way</string>
+    <string name="chat_suggestion_5">What constellation is Betelgeuse in?</string>
+    <string name="chat_suggestion_6">How does plate solving work?</string>
+    <string name="cd_chat_fab">Open AI assistant</string>
+    <string name="cd_chat_send">Send message</string>
+    <string name="cd_chat_close">Close chat</string>
+    <string name="cd_chat_clear">Clear chat history</string>
+    <string name="chat_retry">↩ Retry</string>
+
+    <!-- Settings: API Key -->
+    <string name="settings_ai">AI Assistant</string>
+    <string name="settings_api_key">OpenAI API Key</string>
+    <string name="settings_api_key_summary">Required for AstroBot chat feature</string>
+    <string name="settings_api_key_hint">Enter your API key</string>
+    <string name="settings_api_key_saved">API key saved</string>
+    <string name="settings_api_key_cleared">API key cleared</string>
+
+    <!-- Sky Brightness Meter -->
+    <string name="sky_brightness_title">Sky Quality</string>
+    <string name="sky_brightness_take_photo">Take Photo</string>
+    <string name="sky_brightness_pick_gallery">Pick from Gallery</string>
+    <string name="sky_brightness_bortle_class">Bortle Class</string>
+    <string name="sky_brightness_normalized">Normalized Brightness</string>
+    <string name="sky_brightness_median">Median Pixel Value</string>
+    <string name="sky_brightness_exif_info">Camera Settings Used</string>
+    <string name="sky_brightness_no_exif">Camera settings not available. Result is approximate.</string>
+    <string name="sky_brightness_disclaimer">Approximate measurement. Calibrate with an SQM device for accuracy.</string>
+    <string name="sky_brightness_iso">ISO: %1$d</string>
+    <string name="sky_brightness_exposure">Exposure: %1$.3fs</string>
+    <string name="sky_brightness_fnumber">f/%1$.1f</string>
+    <string name="sky_brightness_analyze_error">Failed to analyze image.</string>
+    <string name="cd_sky_brightness">Sky quality meter</string>
+
+    <!-- Bortle Scale Labels -->
+    <string name="bortle_1">Excellent Dark Site</string>
+    <string name="bortle_2">Typical Dark Site</string>
+    <string name="bortle_3">Rural Sky</string>
+    <string name="bortle_4">Rural/Suburban Transition</string>
+    <string name="bortle_5">Suburban Sky</string>
+    <string name="bortle_6">Bright Suburban</string>
+    <string name="bortle_7">Suburban/Urban Transition</string>
+    <string name="bortle_8">City Sky</string>
+    <string name="bortle_9">Inner City</string>
 </resources>
+
+

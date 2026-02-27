@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -63,6 +64,12 @@ public class StarInfoActivity extends AppCompatActivity {
     private TextView tvSpectralType;
     private TextView tvDistance;
     private TextView tvConstellation;
+    private TextView tvApparentMagnitude;
+    private TextView tvAbsoluteMagnitude;
+    private TextView tvTemperature;
+    private TextView tvRadius;
+    private TextView tvMass;
+    private TextView tvLuminosity;
     private View cardEducation;
     private TextView tvEducationDisplayName;
     private TextView tvEducationConstellation;
@@ -102,6 +109,12 @@ public class StarInfoActivity extends AppCompatActivity {
         tvSpectralType = findViewById(R.id.tvSpectralType);
         tvDistance = findViewById(R.id.tvDistance);
         tvConstellation = findViewById(R.id.tvConstellation);
+        tvApparentMagnitude = findViewById(R.id.tvApparentMagnitude);
+        tvAbsoluteMagnitude = findViewById(R.id.tvAbsoluteMagnitude);
+        tvTemperature = findViewById(R.id.tvTemperature);
+        tvRadius = findViewById(R.id.tvRadius);
+        tvMass = findViewById(R.id.tvMass);
+        tvLuminosity = findViewById(R.id.tvLuminosity);
         cardEducation = findViewById(R.id.cardEducation);
         tvEducationDisplayName = findViewById(R.id.tvEducationDisplayName);
         tvEducationConstellation = findViewById(R.id.tvEducationConstellation);
@@ -243,7 +256,7 @@ public class StarInfoActivity extends AppCompatActivity {
         if (tvEducationConstellation != null) {
             tvEducationConstellation.setText(educationStar.getConstellation());
         }
-        if (tvConstellation != null) {
+        if (tvConstellation != null && !educationStar.getConstellation().isEmpty()) {
             tvConstellation.setText(educationStar.getConstellation());
         }
         if (tvEducationFunFact != null) {
@@ -251,6 +264,39 @@ public class StarInfoActivity extends AppCompatActivity {
         }
         if (tvEducationHistory != null) {
             tvEducationHistory.setText(educationStar.getHistory());
+        }
+
+        applyEducationFields(educationStar);
+    }
+
+    private void applyEducationFields(@NonNull StarInfoViewModel.EducationStar educationStar) {
+        String distance = educationStar.getDistance();
+        String apparentMagnitude = educationStar.getApparentMagnitude();
+        String absoluteMagnitude = educationStar.getAbsoluteMagnitude();
+        String temperature = educationStar.getTemperature();
+        String radius = educationStar.getRadius();
+        String mass = educationStar.getMass();
+        String luminosity = educationStar.getLuminosity();
+
+        if (distance != null && !distance.trim().isEmpty()) {
+            setTextIfAvailable(tvDistance, distance);
+        }
+        setTextIfAvailable(tvApparentMagnitude, apparentMagnitude);
+        setTextIfAvailable(tvAbsoluteMagnitude, absoluteMagnitude);
+        setTextIfAvailable(tvTemperature, temperature);
+        setTextIfAvailable(tvRadius, radius);
+        setTextIfAvailable(tvMass, mass);
+        setTextIfAvailable(tvLuminosity, luminosity);
+
+        // Keep magnitude from star data; do not override with education content.
+    }
+
+    private void setTextIfAvailable(@Nullable TextView view, @Nullable String value) {
+        if (view == null) return;
+        if (value == null || value.trim().isEmpty()) {
+            view.setText("-");
+        } else {
+            view.setText(value);
         }
     }
 }

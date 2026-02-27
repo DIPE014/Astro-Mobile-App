@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Hardware features -->
     <uses-feature android:name="android.hardware.camera" android:required="true" />
@@ -67,6 +68,17 @@
             android:name=".ui.stacking.ImageStackingActivity"
             android:exported="false"
             android:screenOrientation="portrait"
+            android:theme="@style/Theme.AstroApp" />
+
+        <activity
+            android:name=".ui.onboarding.OnboardingActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AstroApp" />
+
+        <activity
+            android:name=".ui.skybrightness.SkyBrightnessActivity"
+            android:exported="false"
             android:theme="@style/Theme.AstroApp" />
 
         <provider

@@ -2,12 +2,15 @@ package com.astro.app.ui.platesolve;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -19,14 +22,18 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.astro.app.R;
+import com.astro.app.data.model.SkyBrightnessResult;
 import com.astro.app.native_.AstrometryNative;
 import com.astro.app.native_.ConstellationOverlay;
 import com.astro.app.native_.NativePlateSolver;
+import com.astro.app.ui.skybrightness.BortleScaleView;
+import com.astro.app.ui.skybrightness.SkyBrightnessAnalyzer;
 
 import java.io.File;
 import java.io.InputStream;
@@ -39,6 +46,8 @@ import java.util.concurrent.Executors;
  */
 public class PlateSolveActivity extends AppCompatActivity {
     private static final String TAG = "PlateSolveActivity";
+    private static final String PREFS_NAME = "astro_settings";
+    private static final String KEY_HAS_SEEN_TIPS = "has_seen_plate_solve_tips";
 
     private ImageView imageView;
     private TextView tvStatus;
@@ -53,6 +62,8 @@ public class PlateSolveActivity extends AppCompatActivity {
     private ConstellationOverlay constellationOverlay;
     private ExecutorService executor;
     private Uri cameraPhotoUri;
+    private SkyBrightnessResult skyResult;
+    private Button btnSkyQuality;
 
     // Gallery picker
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
@@ -92,10 +103,25 @@ public class PlateSolveActivity extends AppCompatActivity {
         btnCapture = findViewById(R.id.btnCapture);
         progressBar = findViewById(R.id.progressBar);
         cbShowStars = findViewById(R.id.cbShowStars);
+        btnSkyQuality = findViewById(R.id.btnSkyQuality);
+        if (btnSkyQuality != null) {
+            btnSkyQuality.setOnClickListener(v -> showSkyBrightnessDialog());
+        }
 
         ImageButton btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
+        }
+
+        ImageButton btnInfo = findViewById(R.id.btnInfo);
+        if (btnInfo != null) {
+            btnInfo.setOnClickListener(v -> showTipsDialog());
+        }
+
+        // Show tips dialog on first launch
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        if (!prefs.getBoolean(KEY_HAS_SEEN_TIPS, false)) {
+            showTipsDialog();
         }
 
         executor = Executors.newSingleThreadExecutor();
@@ -160,11 +186,16 @@ public class PlateSolveActivity extends AppCompatActivity {
             if (originalBitmap != null) {
                 imageView.setImageBitmap(originalBitmap);
                 overlayBitmap = null;
+                skyResult = null;
                 if (cbShowStars != null) {
                     cbShowStars.setChecked(false);
                     cbShowStars.setEnabled(false);
                     cbShowStars.setVisibility(View.GONE);
                 }
+                if (btnSkyQuality != null) {
+                    btnSkyQuality.setVisibility(View.GONE);
+                }
+                analyzeSkyBrightness(uri);
                 solvePlate();
             }
         } catch (Exception e) {
@@ -238,5 +269,82 @@ public class PlateSolveActivity extends AppCompatActivity {
         progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
         btnPickImage.setEnabled(!loading);
         btnCapture.setEnabled(!loading);
+    }
+
+    private void analyzeSkyBrightness(Uri uri) {
+        Bitmap bitmapSnapshot = originalBitmap;
+        executor.execute(() -> {
+            ExifInterface exif = null;
+            try (InputStream is = getContentResolver().openInputStream(uri)) {
+                if (is != null) {
+                    exif = new ExifInterface(is);
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Could not read EXIF for sky analysis", e);
+            }
+            SkyBrightnessResult result = SkyBrightnessAnalyzer.analyze(bitmapSnapshot, exif);
+            skyResult = result;
+            runOnUiThread(() -> {
+                if (btnSkyQuality != null) {
+                    btnSkyQuality.setVisibility(View.VISIBLE);
+                }
+            });
+        });
+    }
+
+    private void showSkyBrightnessDialog() {
+        if (skyResult == null) return;
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_sky_brightness, null);
+
+        TextView tvBortleNumber = dialogView.findViewById(R.id.tvBortleNumber);
+        TextView tvBortleLabel = dialogView.findViewById(R.id.tvBortleLabel);
+        TextView tvDescription = dialogView.findViewById(R.id.tvDescription);
+        BortleScaleView bortleGauge = dialogView.findViewById(R.id.bortleGauge);
+        ImageButton btnClose = dialogView.findViewById(R.id.btnClose);
+
+        int bortle = skyResult.getBortleClass();
+        tvBortleNumber.setText(String.valueOf(bortle));
+        tvBortleNumber.setTextColor(bortleColor(bortle));
+        tvBortleLabel.setText(skyResult.getLabel());
+        tvDescription.setText(skyResult.getDescription());
+        bortleGauge.setBortleClass(bortle);
+
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_AstroApp_AlertDialog)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
+    }
+
+    private static int bortleColor(int bortle) {
+        if (bortle <= 3) return 0xFF4CAF50;
+        if (bortle <= 5) return 0xFFFFEB3B;
+        if (bortle <= 7) return 0xFFFF9800;
+        return 0xFFF44336;
+    }
+
+    private void showTipsDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_plate_solve_tips, null);
+
+        CheckBox cbDontShowAgain = dialogView.findViewById(R.id.cbDontShowAgain);
+        com.google.android.material.button.MaterialButton btnGotIt = dialogView.findViewById(R.id.btnGotIt);
+
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_AstroApp_AlertDialog)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        btnGotIt.setOnClickListener(v -> {
+            if (cbDontShowAgain.isChecked()) {
+                SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+                prefs.edit().putBoolean(KEY_HAS_SEEN_TIPS, true).apply();
+            }
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 }

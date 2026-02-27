@@ -28,9 +28,14 @@
 | `ui/settings/` | App settings |
 | `core/control/` | AstronomerModel, sensors, location, time |
 | `core/math/` | Vector3, Matrix3x3, coordinate math |
+| `core/highlights/` | Tonight's sky computation (TonightsHighlights) |
 | `core/layers/` | Stars, planets, constellations, grid layers |
-| `core/renderer/` | SkyCanvasView, OpenGL rendering |
-| `data/` | Repositories, protobuf parsing |
+| `core/renderer/` | SkyCanvasView (zoom, pan, DSO, trajectory rendering) |
+| `data/model/` | StarData, ConstellationData, MessierObjectData |
+| `data/repository/` | Star, Constellation, Messier, Education repositories |
+| `data/parser/` | Protobuf parsing |
+| `ui/highlights/` | Tonight's Highlights bottom sheet |
+| `ui/education/` | Educational detail views |
 | `search/` | Search index, arrow view |
 | `common/model/` | Shared data models |
 
@@ -51,6 +56,25 @@
 │ Star Binary  │───>│ StarRepository  │───> Stars Layer
 │   Files      │    │ (Data Loading)  │
 └──────────────┘    └─────────────────┘
+
+┌──────────────┐    ┌──────────────────┐
+│ messier.bin  │───>│MessierRepository │───> DSO Layer
+└──────────────┘    └──────────────────┘
+
+┌──────────────┐    ┌──────────────────┐
+│ JSON Assets  │───>│EducationRepo    │───> Education Detail
+│ (education)  │    │(Boundary Resolve)│
+└──────────────┘    └──────────────────┘
+```
+
+## User Interaction Flow
+
+```
+Pinch Gesture ──> ScaleGestureDetector ──> FOV change (20°-120°)
+Drag Gesture  ──> GestureDetector ──────> Manual pan mode
+Long-press    ──> Planet hit-test ──────> Trajectory overlay (±30 days)
+Reticle Tap   ──> getObjectsInReticle() ─> Chip strip / Bottom sheet
+Tonight Btn   ──> TonightsHighlights ───> Bottom sheet → Navigate
 ```
 
 ## Coordinate Transformation
@@ -72,3 +96,16 @@ Uses Dagger 2 for dependency injection:
 - `AppComponent` - Application-level dependencies
 - `AppModule` - Provides singletons (repositories, controllers)
 - Components injected into Activities via `AstroApplication`
+
+### Provided Dependencies (AppModule)
+
+| Dependency | Implementation |
+|-----------|----------------|
+| `StarRepository` | `StarRepositoryImpl` (protobuf) |
+| `ConstellationRepository` | `ConstellationRepositoryImpl` (protobuf) |
+| `MessierRepository` | `MessierRepositoryImpl` (protobuf) |
+| `Universe` | Solar system calculations |
+| `TimeTravelClock` | Time control |
+| `SensorController` | Device sensors |
+| `LocationController` | GPS location |
+| `AstronomerModel` | Coordinate transforms |

@@ -70,6 +70,17 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
+        <Button
+            android:id="@+id/btnSkyQuality"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="Sky Quality"
+            android:textAllCaps="false"
+            android:textSize="13sp"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone" />
+
         <CheckBox
             android:id="@+id/cbShowStars"
             android:layout_width="wrap_content"
@@ -92,6 +103,18 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Back"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:padding="12dp" />
+
+    <!-- Info/tips button top-right -->
+    <ImageButton
+        android:id="@+id/btnInfo"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Photo tips"
+        android:src="@android:drawable/ic_menu_info_details"
         android:padding="12dp" />
 
 </FrameLayout>

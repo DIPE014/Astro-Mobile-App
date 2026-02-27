@@ -1,14 +1,21 @@
 package com.astro.app.ui.settings;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
 
 import com.astro.app.R;
+import com.astro.app.ui.onboarding.OnboardingActivity;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.textfield.TextInputEditText;
 
 /**
  * Activity for managing application settings.
@@ -40,6 +47,7 @@ public class SettingsActivity extends AppCompatActivity {
     private MaterialSwitch switchStarLabels;
     private MaterialSwitch switchConstellationLines;
     private MaterialSwitch switchConstellationNames;
+    private MaterialSwitch switchManualScroll;
 
     // Prevent recursive updates
     private boolean isUpdatingUI = false;
@@ -72,6 +80,7 @@ public class SettingsActivity extends AppCompatActivity {
         switchStarLabels = findViewById(R.id.switchStarLabels);
         switchConstellationLines = findViewById(R.id.switchConstellationLines);
         switchConstellationNames = findViewById(R.id.switchConstellationNames);
+        switchManualScroll = findViewById(R.id.switchManualScroll);
 
         // Configure Slider ranges (Sliders are configured via XML, but we can adjust programmatically if needed)
         if (sliderBrightness != null) {
@@ -150,6 +159,73 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
         }
+
+        // Manual Scroll Switch
+        if (switchManualScroll != null) {
+            switchManualScroll.setOnCheckedChangeListener((button, isChecked) -> {
+                if (!isUpdatingUI) {
+                    viewModel.setEnableManualScroll(isChecked);
+                }
+            });
+        }
+
+        // Replay Tutorial Button
+        MaterialButton btnReplayTutorial = findViewById(R.id.btnReplayTutorial);
+        if (btnReplayTutorial != null) {
+            btnReplayTutorial.setOnClickListener(v -> {
+                SharedPreferences prefs = getSharedPreferences(
+                        SettingsViewModel.PREFS_NAME, MODE_PRIVATE);
+                prefs.edit().putBoolean(
+                        OnboardingActivity.KEY_HAS_COMPLETED_ONBOARDING, false).apply();
+                Toast.makeText(this, R.string.settings_replay_tutorial_toast,
+                        Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        // API Key Save Button
+        TextInputEditText etApiKey = findViewById(R.id.etApiKey);
+        MaterialButton btnSaveApiKey = findViewById(R.id.btnSaveApiKey);
+        if (btnSaveApiKey != null && etApiKey != null) {
+            // Load existing key
+            try {
+                MasterKey masterKey = new MasterKey.Builder(this)
+                        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                        .build();
+                SharedPreferences encryptedPrefs = EncryptedSharedPreferences.create(
+                        this,
+                        "astro_secure_prefs",
+                        masterKey,
+                        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM);
+                String existingKey = encryptedPrefs.getString("openai_api_key", "");
+                if (!existingKey.isEmpty()) {
+                    etApiKey.setText(existingKey);
+                }
+            } catch (Exception e) {
+                // Ignore load failure
+            }
+
+            btnSaveApiKey.setOnClickListener(v -> {
+                String apiKey = etApiKey.getText() != null ? etApiKey.getText().toString().trim() : "";
+                try {
+                    MasterKey masterKey = new MasterKey.Builder(this)
+                            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                            .build();
+                    SharedPreferences encryptedPrefs = EncryptedSharedPreferences.create(
+                            this,
+                            "astro_secure_prefs",
+                            masterKey,
+                            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM);
+                    encryptedPrefs.edit().putString("openai_api_key", apiKey).apply();
+                    Toast.makeText(this,
+                            apiKey.isEmpty() ? R.string.settings_api_key_cleared : R.string.settings_api_key_saved,
+                            Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(this, R.string.error_generic, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     /**
@@ -213,6 +289,15 @@ public class SettingsActivity extends AppCompatActivity {
             isUpdatingUI = true;
             if (switchConstellationNames != null && show != null) {
                 switchConstellationNames.setChecked(show);
+            }
+            isUpdatingUI = false;
+        });
+
+        // Manual Scroll Mode
+        viewModel.getEnableManualScroll().observe(this, enabled -> {
+            isUpdatingUI = true;
+            if (switchManualScroll != null && enabled != null) {
+                switchManualScroll.setChecked(enabled);
             }
             isUpdatingUI = false;
         });
