@@ -204,7 +204,9 @@ static correspondence_t* match_triangles(
     int* out_num_correspondences)
 {
     // Brute force matching (fast for ~500 triangles each)
-    int max_corr = num_ref_tri * num_new_tri;  // Overestimate
+    // Each matching triangle pair produces 3 correspondences; cap for memory safety
+    int max_corr = num_ref_tri * num_new_tri * 3;
+    if (max_corr > 10000) max_corr = 10000;
     correspondence_t* corr = (correspondence_t*)malloc(max_corr * sizeof(correspondence_t));
     if (!corr) {
         LOGE("Failed to allocate correspondences");
@@ -487,6 +489,8 @@ static void warp_and_accumulate(stacking_context_t* ctx, unsigned char* image,
 // JNI ENTRY POINTS
 // ============================================================================
 
+#ifndef STACKING_TESTING  /* Skip JNI entry points when unit-testing static functions */
+
 JNIEXPORT jlong JNICALL
 Java_com_astro_app_native_1_StackingNative_initStackingNative(
     JNIEnv *env,
@@ -628,6 +632,7 @@ Java_com_astro_app_native_1_StackingNative_addFrameNative(
 
     if (!new_tri || num_new_tri == 0) {
         LOGE("Failed to form new frame triangles");
+        if (new_tri) free(new_tri);
         (*env)->ReleaseByteArrayElements(env, imageData, pixels, JNI_ABORT);
         (*env)->ReleaseFloatArrayElements(env, stars, stars_arr, JNI_ABORT);
         if (ref_stars_arr) (*env)->ReleaseFloatArrayElements(env, refStars, ref_stars_arr, JNI_ABORT);
@@ -777,3 +782,5 @@ Java_com_astro_app_native_1_StackingNative_releaseNative(
 
     LOGI("Stacking context released");
 }
+
+#endif /* STACKING_TESTING */
