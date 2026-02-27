@@ -3,8 +3,6 @@ package com.astro.app.ui.stacking;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.Image;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
@@ -283,15 +281,8 @@ public class ImageStackingActivity extends AppCompatActivity {
     private void updateUI() {
         int frameCount = stackingManager.getFrameCount();
         tvFrameCount.setText(frameCount + " / " + targetFrames + " frames");
-
-        // Update preview thumbnail
-        if (frameCount > 0) {
-            Bitmap stacked = stackingManager.getResult();
-            if (stacked != null) {
-                ivStackedPreview.setImageBitmap(stacked);
-                ivStackedPreview.setVisibility(View.VISIBLE);
-            }
-        }
+        // Preview is not updated per-frame to avoid OOM (getResult allocates ~11MB bitmap).
+        // The stacked result is only retrieved once in finishStacking().
     }
 
     private void finishStacking() {
@@ -317,19 +308,21 @@ public class ImageStackingActivity extends AppCompatActivity {
 
     private Bitmap imageProxyToBitmap(ImageProxy image) {
         try {
-            // With JPEG output format configured above, this works correctly
-            ImageProxy.PlaneProxy[] planes = image.getPlanes();
-            ByteBuffer buffer = planes[0].getBuffer();
-            byte[] bytes = new byte[buffer.remaining()];
-            buffer.get(bytes);
-
-            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-            if (bitmap == null) {
-                Log.e(TAG, "Failed to decode ImageProxy to Bitmap");
+            int w = image.getWidth(), h = image.getHeight();
+            ByteBuffer yBuffer = image.getPlanes()[0].getBuffer();
+            int rowStride = image.getPlanes()[0].getRowStride();
+            int[] argb = new int[w * h];
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    int luma = yBuffer.get(y * rowStride + x) & 0xFF;
+                    argb[y * w + x] = 0xFF000000 | (luma << 16) | (luma << 8) | luma;
+                }
             }
-            return bitmap;
+            Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            bmp.setPixels(argb, 0, w, 0, 0, w, h);
+            return bmp;
         } catch (Exception e) {
-            Log.e(TAG, "Error converting ImageProxy to Bitmap", e);
+            Log.e(TAG, "imageProxyToBitmap error", e);
             return null;
         }
     }
