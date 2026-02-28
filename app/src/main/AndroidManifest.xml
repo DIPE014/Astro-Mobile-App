@@ -65,6 +65,12 @@
             android:theme="@style/Theme.AstroApp" />
 
         <activity
+            android:name=".ui.stacking.ImageStackingActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AstroApp" />
+
+        <activity
             android:name=".ui.onboarding.OnboardingActivity"
             android:exported="false"
             android:screenOrientation="portrait"
