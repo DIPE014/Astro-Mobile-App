@@ -3,6 +3,7 @@
  *
  * Tests that stacking 10 frames (1 reference + 9 rotated+translated+noisy variants)
  * improves SNR by >= 2x compared to a single noisy frame.
+ * Runs over all 57 images in the dataset directory.
  *
  * Compile (MUST run from the jni/ directory so "gsl/..." includes resolve):
  *
@@ -202,8 +203,8 @@ static float* detect_stars_simple(const unsigned char* img, int w, int h,
 
 /* =========================================================================
  * measure_snr — compute SNR for an image given:
- *   bg_roi: rows [0..199], cols [0..199] → background std
- *   star_roi: 20x20 patch centred on (star_cx, star_cy) → peak pixel value
+ *   bg_roi: rows [0..199], cols [0..199] -> background std
+ *   star_roi: 20x20 patch centred on (star_cx, star_cy) -> peak pixel value
  * Returns SNR = peak / background_std (returns 0.0 on degenerate input).
  * ========================================================================= */
 static float measure_snr(const unsigned char* img, int w, int h,
@@ -247,440 +248,502 @@ static float measure_snr(const unsigned char* img, int w, int h,
 }
 
 /* =========================================================================
+ * Dataset image list
+ * ========================================================================= */
+#define DATASET_DIR "/mnt/d/Download/DIP/dataset/raw/Dataset/"
+#define TOTAL_IMAGES 57
+
+static const char* IMAGE_NAMES[TOTAL_IMAGES] = {
+    "IMG001.jpg", "IMG002.jpg", "IMG003.jpg", "IMG004.jpg", "IMG005.jpg",
+    "IMG006.jpg", "IMG007.jpg", "IMG008.jpg", "IMG009.jpg", "IMG010.JPG",
+    "IMG011.JPG", "IMG012.JPG", "IMG013.jpg", "IMG014.JPG", "IMG015.JPG",
+    "IMG016.jpg", "IMG017.jpg", "IMG018.JPG", "IMG019.JPG", "IMG020.JPG",
+    "IMG021.jpg", "IMG022.jpg", "IMG023.jpg", "IMG024.jpg", "IMG025.jpg",
+    "IMG026.jpg", "IMG027.jpg", "IMG028.jpg", "IMG029.jpg", "IMG030.jpg",
+    "IMG031.jpg", "IMG032.jpg", "IMG033.jpg", "IMG034.jpg", "IMG035.jpg",
+    "IMG036.jpg", "IMG037.jpg", "IMG038.jpg", "IMG039.jpg", "IMG040.jpg",
+    "IMG041.jpg", "IMG042.jpg", "IMG043.jpg", "IMG044.jpg", "IMG045.jpg",
+    "IMG046.jpg", "IMG047.jpg", "IMG048.jpg", "IMG049.jpg", "IMG050.jpg",
+    "IMG051.jpg", "IMG052.jpg", "IMG053.jpg", "IMG054.jpg", "IMG055.jpg",
+    "IMG056.jpg", "IMG057.jpg"
+};
+
+/* =========================================================================
  * Main test
  * ========================================================================= */
 int main(void) {
-    printf("=== Stacking SNR Test ===\n");
+    printf("=== Stacking SNR Test (57 images) ===\n\n");
 
     /* Install GSL error handler before any RANSAC calls */
     gsl_set_error_handler(silent_gsl_error);
 
-    /* ------------------------------------------------------------------
-     * Step 1: Load IMG001.jpg and convert to grayscale with 2x downsample
-     * ------------------------------------------------------------------ */
-    const char* img_path = "/mnt/d/Download/DIP/dataset/raw/Dataset/IMG001.jpg";
-    int src_w, src_h, channels;
+    /* Aggregate tracking */
+    int n_processed    = 0;
+    int n_skipped      = 0;
+    int total_frames   = 0;   /* sum of frames_stacked-1 (variants only) across processed images */
+    double sum_snr_improvement = 0.0;
+    double min_snr_improvement = 1e30;
+    double max_snr_improvement = -1e30;
+    int    min_snr_idx         = -1;
+    int    max_snr_idx         = -1;
+    int    n_passing_snr       = 0;  /* images with improvement >= 2.0x */
 
-    printf("Loading: %s\n", img_path);
-    unsigned char* img_rgb = stbi_load(img_path, &src_w, &src_h, &channels, 0);
-    if (!img_rgb) {
-        fprintf(stderr, "ERROR: Failed to load %s: %s\n", img_path, stbi_failure_reason());
-        return 1;
-    }
-    printf("Loaded: %dx%d, %d channels\n", src_w, src_h, channels);
+    for (int img_idx = 0; img_idx < TOTAL_IMAGES; img_idx++) {
+        const char* img_name = IMAGE_NAMES[img_idx];
 
-    /* Convert to grayscale at full resolution first */
-    long src_npix = (long)src_w * src_h;
-    unsigned char* src_gray = (unsigned char*)malloc((size_t)src_npix);
-    if (!src_gray) {
-        fprintf(stderr, "ERROR: OOM for source grayscale\n");
-        stbi_image_free(img_rgb);
-        return 1;
-    }
-    for (long i = 0; i < src_npix; i++) {
-        if (channels >= 3) {
-            int r = img_rgb[i * channels + 0];
-            int g = img_rgb[i * channels + 1];
-            int b = img_rgb[i * channels + 2];
-            src_gray[i] = (unsigned char)((r * 77 + g * 150 + b * 29) >> 8);
-        } else {
-            src_gray[i] = img_rgb[i * channels];
+        /* Build full path */
+        char img_path[512];
+        snprintf(img_path, sizeof(img_path), "%s%s", DATASET_DIR, img_name);
+
+        /* ------------------------------------------------------------------
+         * Step 1: Load image and convert to grayscale with 2x downsample
+         * ------------------------------------------------------------------ */
+        int src_w, src_h, channels;
+        unsigned char* img_rgb = stbi_load(img_path, &src_w, &src_h, &channels, 0);
+        if (!img_rgb) {
+            printf("[%s] SKIP: failed to load (%s)\n", img_name, stbi_failure_reason());
+            n_skipped++;
+            continue;
         }
-    }
-    stbi_image_free(img_rgb);
 
-    /* 2x downsample: average 2x2 blocks */
-    int w = src_w / 2;
-    int h = src_h / 2;
-    long npix = (long)w * h;
-    unsigned char* ref_gray = (unsigned char*)malloc((size_t)npix);
-    if (!ref_gray) {
-        fprintf(stderr, "ERROR: OOM for downsampled buffer\n");
-        free(src_gray);
-        return 1;
-    }
-    for (int y = 0; y < h; y++) {
-        for (int x = 0; x < w; x++) {
-            int sx = x * 2, sy = y * 2;
-            int v  = (int)src_gray[sy * src_w + sx]
-                   + (int)src_gray[sy * src_w + sx + 1]
-                   + (int)src_gray[(sy + 1) * src_w + sx]
-                   + (int)src_gray[(sy + 1) * src_w + sx + 1];
-            ref_gray[y * w + x] = (unsigned char)(v / 4);
+        /* Convert to grayscale at full resolution */
+        long src_npix = (long)src_w * src_h;
+        unsigned char* src_gray = (unsigned char*)malloc((size_t)src_npix);
+        if (!src_gray) {
+            printf("[%s] SKIP: OOM for grayscale buffer\n", img_name);
+            stbi_image_free(img_rgb);
+            n_skipped++;
+            continue;
         }
-    }
-    free(src_gray);
-
-    printf("Image: IMG001.jpg, %dx%d grayscale (2x downsample)\n", w, h);
-
-    /* ------------------------------------------------------------------
-     * Step 2: Detect reference stars
-     * ------------------------------------------------------------------ */
-    int num_ref_stars = 0;
-    float* ref_stars = detect_stars_simple(ref_gray, w, h, &num_ref_stars);
-    if (!ref_stars || num_ref_stars < 3) {
-        fprintf(stderr, "ERROR: Not enough reference stars (%d)\n", num_ref_stars);
-        if (ref_stars) free(ref_stars);
-        free(ref_gray);
-        return 1;
-    }
-    printf("Reference stars: %d (after 60px separation filter)\n", num_ref_stars);
-
-    /* Form reference triangles */
-    int num_ref_tri = 0;
-    triangle_t* ref_tri = form_triangles(ref_stars, num_ref_stars, &num_ref_tri);
-    if (!ref_tri || num_ref_tri == 0) {
-        fprintf(stderr, "ERROR: Failed to form reference triangles\n");
-        if (ref_tri) free(ref_tri);
-        free(ref_stars);
-        free(ref_gray);
-        return 1;
-    }
-    printf("Reference triangles: %d\n\n", num_ref_tri);
-
-    /* ------------------------------------------------------------------
-     * Step 3: Generate 9 rotation+translation+noise variants
-     * ------------------------------------------------------------------ */
-    srand(42);
-    float angles[9], txs[9], tys[9];
-    for (int i = 0; i < 9; i++) {
-        angles[i] = (float)(rand() % 600 - 300) / 100.0f;  /* -3.0 to +3.0 degrees */
-        txs[i]    = (float)(rand() % 60 - 30);               /* -30 to +30 px */
-        tys[i]    = (float)(rand() % 60 - 30);
-    }
-
-    /* Allocate 9 variant images */
-    unsigned char** variants = (unsigned char**)malloc(9 * sizeof(unsigned char*));
-    if (!variants) {
-        fprintf(stderr, "ERROR: OOM for variant array\n");
-        free(ref_tri); free(ref_stars); free(ref_gray);
-        return 1;
-    }
-    for (int i = 0; i < 9; i++) {
-        variants[i] = (unsigned char*)malloc((size_t)npix);
-        if (!variants[i]) {
-            fprintf(stderr, "ERROR: OOM for variant %d\n", i);
-            for (int j = 0; j < i; j++) free(variants[j]);
-            free(variants);
-            free(ref_tri); free(ref_stars); free(ref_gray);
-            return 1;
-        }
-    }
-
-    float cx = (float)w * 0.5f;
-    float cy = (float)h * 0.5f;
-
-    for (int i = 0; i < 9; i++) {
-        float angle_rad = angles[i] * (float)M_PI / 180.0f;
-        float cos_a = cosf(angle_rad);
-        float sin_a = sinf(angle_rad);
-
-        unsigned char* dst = variants[i];
-
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                /*
-                 * Forward transform: dst = R*(src-c)+c + (tx,ty)
-                 * Inverse (src from dst): dx = x-cx-tx, dy = y-cy-ty
-                 *   src_x = cos_a*dx + sin_a*dy + cx  (rotate back)
-                 *   src_y = -sin_a*dx + cos_a*dy + cy
-                 */
-                float dx = (float)x - cx - txs[i];
-                float dy = (float)y - cy - tys[i];
-                float src_x = cos_a * dx + sin_a * dy + cx;
-                float src_y = -sin_a * dx + cos_a * dy + cy;
-
-                float bilinear_val = bilinear_float(ref_gray, w, h, src_x, src_y);
-
-                /* Box-Muller Gaussian noise σ=10 (reduced from 20 for reliable detection) */
-                float u1 = ((float)rand() + 1.0f) / ((float)RAND_MAX + 2.0f);
-                float u2 = (float)rand() / ((float)RAND_MAX + 1.0f);
-                float noise = sqrtf(-2.0f * logf(u1)) * cosf(2.0f * (float)M_PI * u2) * 10.0f;
-
-                float val = bilinear_val + noise;
-                if (val < 0.0f)   val = 0.0f;
-                if (val > 255.0f) val = 255.0f;
-                dst[y * w + x] = (unsigned char)val;
+        for (long i = 0; i < src_npix; i++) {
+            if (channels >= 3) {
+                int r = img_rgb[i * channels + 0];
+                int g = img_rgb[i * channels + 1];
+                int b = img_rgb[i * channels + 2];
+                src_gray[i] = (unsigned char)((r * 77 + g * 150 + b * 29) >> 8);
+            } else {
+                src_gray[i] = img_rgb[i * channels];
             }
         }
-    }
+        stbi_image_free(img_rgb);
 
-    /* ------------------------------------------------------------------
-     * Step 4: Stack all frames
-     * ------------------------------------------------------------------ */
-
-    /* Allocate blurred buffer for star detection on variants */
-    unsigned char* blurred = (unsigned char*)malloc((size_t)npix);
-    if (!blurred) {
-        fprintf(stderr, "ERROR: OOM for blurred buffer\n");
-        for (int i = 0; i < 9; i++) free(variants[i]);
-        free(variants);
-        free(ref_tri); free(ref_stars); free(ref_gray);
-        return 1;
-    }
-
-    /* Initialize accumulator with reference frame (identity, no alignment) */
-    float* sum_buf   = (float*)calloc((size_t)npix, sizeof(float));
-    int*   count_buf = (int*)calloc((size_t)npix, sizeof(int));
-    if (!sum_buf || !count_buf) {
-        fprintf(stderr, "ERROR: OOM for accumulator\n");
-        free(blurred);
-        free(sum_buf); free(count_buf);
-        for (int i = 0; i < 9; i++) free(variants[i]);
-        free(variants);
-        free(ref_tri); free(ref_stars); free(ref_gray);
-        return 1;
-    }
-    for (long i = 0; i < npix; i++) {
-        sum_buf[i]   = (float)ref_gray[i];
-        count_buf[i] = 1;
-    }
-    int frames_stacked = 1;  /* reference frame already counted */
-
-    int all_frame_pass = 1;
-
-    for (int fi = 0; fi < 9; fi++) {
-        float angle_rad = angles[fi] * (float)M_PI / 180.0f;
-        float cos_a     = cosf(angle_rad);
-        float sin_a     = sinf(angle_rad);
-
-        /*
-         * Apply 3x3 box blur to variant before star detection.
-         * This smooths noise so star peaks remain detectable and consistent
-         * with the reference. Warping still uses the original noisy variant.
-         */
-        box_blur_3x3(variants[fi], blurred, w, h);
-
-        /* Detect stars on blurred variant (not original) */
-        int num_new_stars = 0;
-        float* new_stars = detect_stars_simple(blurred, w, h, &num_new_stars);
-        if (!new_stars || num_new_stars < 3) {
-            printf("Frame %d: expected rot=%.2fdeg tx=%.0f ty=%.0f"
-                   " | SKIP (not enough stars: %d)\n",
-                   fi + 1, angles[fi], txs[fi], tys[fi], num_new_stars);
-            if (new_stars) free(new_stars);
-            all_frame_pass = 0;
+        /* 2x downsample: average 2x2 blocks */
+        int w = src_w / 2;
+        int h = src_h / 2;
+        long npix = (long)w * h;
+        unsigned char* ref_gray = (unsigned char*)malloc((size_t)npix);
+        if (!ref_gray) {
+            printf("[%s] SKIP: OOM for downsampled buffer\n", img_name);
+            free(src_gray);
+            n_skipped++;
             continue;
         }
-
-        /* Form triangles for new frame */
-        int num_new_tri = 0;
-        int use_stars = (num_new_stars < MAX_STACKING_STARS) ? num_new_stars : MAX_STACKING_STARS;
-        triangle_t* new_tri = form_triangles(new_stars, use_stars, &num_new_tri);
-        if (!new_tri || num_new_tri == 0) {
-            printf("Frame %d: expected rot=%.2fdeg tx=%.0f ty=%.0f"
-                   " | SKIP (no triangles formed)\n",
-                   fi + 1, angles[fi], txs[fi], tys[fi]);
-            if (new_tri) free(new_tri);
-            free(new_stars);
-            all_frame_pass = 0;
-            continue;
-        }
-
-        /* Match triangles */
-        int num_corr = 0;
-        correspondence_t* corr = match_triangles(
-            ref_tri, num_ref_tri, ref_stars,
-            new_tri, num_new_tri, new_stars,
-            &num_corr);
-        free(new_tri);
-
-        if (!corr || num_corr < 3) {
-            printf("Frame %d: expected rot=%.2fdeg tx=%.0f ty=%.0f"
-                   " | SKIP (too few correspondences: %d)\n",
-                   fi + 1, angles[fi], txs[fi], tys[fi], num_corr);
-            if (corr) free(corr);
-            free(new_stars);
-            all_frame_pass = 0;
-            continue;
-        }
-
-        /* RANSAC */
-        affine_t aff;
-        int inliers = 0;
-        double rms = 0.0;
-        int ransac_ok = ransac_affine(corr, num_corr, &aff, &inliers, &rms);
-        free(corr);
-        free(new_stars);
-
-        if (!ransac_ok) {
-            printf("Frame %d: expected rot=%.2fdeg tx=%.0f ty=%.0f"
-                   " | SKIP (RANSAC failed)\n",
-                   fi + 1, angles[fi], txs[fi], tys[fi]);
-            all_frame_pass = 0;
-            continue;
-        }
-
-        /*
-         * Post-RANSAC rotation validity check.
-         * A pure rotation+translation affine has det(R) = 1.
-         * Reject degenerate/shear transforms where det deviates by more than 0.3.
-         */
-        double det = aff.a * aff.d - aff.b * aff.c;
-        if (fabs(det - 1.0) > 0.3) {
-            printf("Frame %d: expected rot=%.2fdeg tx=%.0f ty=%.0f"
-                   " | SKIP: non-rigid affine (det=%.3f)\n",
-                   fi + 1, angles[fi], txs[fi], tys[fi], det);
-            all_frame_pass = 0;
-            continue;
-        }
-
-        /* ------------------------------------------------------------------
-         * Alignment error: evaluate at 5 test points.
-         * Ground-truth forward transform takes a ref point to a new-frame point:
-         *   new = R(angle) * (ref - center) + center + (tx, ty)
-         * The recovered affine maps new → ref.
-         * Error = RMS of (aff(new_pt) - ref_pt) over 5 test points.
-         * Alignment check: rotation recovered vs expected.
-         * ------------------------------------------------------------------ */
-        float test_pts[5][2] = {
-            {100.0f,         100.0f},
-            {(float)w * 0.75f, 100.0f},
-            {100.0f,          (float)h * 0.75f},
-            {(float)w * 0.5f,  (float)h * 0.5f},
-            {(float)w * 0.25f, (float)h * 0.75f}
-        };
-
-        float align_err_sum = 0.0f;
-        for (int tp = 0; tp < 5; tp++) {
-            float rx = test_pts[tp][0];
-            float ry = test_pts[tp][1];
-
-            /* Ground-truth: rotate ref point around centre then translate */
-            float dx = rx - cx;
-            float dy = ry - cy;
-            float nx = cx + (dx * cos_a - dy * sin_a) + txs[fi];
-            float ny = cy + (dx * sin_a + dy * cos_a) + tys[fi];
-
-            /* Apply recovered affine new→ref */
-            float rx_rec, ry_rec;
-            apply_affine(&aff, nx, ny, &rx_rec, &ry_rec);
-
-            float edx = rx_rec - rx;
-            float edy = ry_rec - ry;
-            align_err_sum += edx * edx + edy * edy;
-        }
-        float align_err = sqrtf(align_err_sum / 5.0f);
-
-        /* Alignment PASS threshold: 5.0px (relaxed from 1.5px) */
-        int aligned_ok = (align_err < 5.0f);
-        if (!aligned_ok) all_frame_pass = 0;
-
-        printf("Frame %d: expected rot=%.2fdeg tx=%.0f ty=%.0f"
-               " | recovered a=%.3f b=%.3f tx=%.1f ty=%.1f det=%.3f"
-               " | align_err=%.2fpx [%s]\n",
-               fi + 1, angles[fi], txs[fi], tys[fi],
-               (float)aff.a, (float)aff.b, (float)aff.tx, (float)aff.ty,
-               det,
-               align_err,
-               aligned_ok ? "PASS" : "FAIL");
-
-        /* ------------------------------------------------------------------
-         * Warp and accumulate using the recovered affine (inverse map).
-         * aff maps new→ref; we need inv(aff) to map ref→new for sampling.
-         * Warp uses original noisy variant (not blurred) for correct pixel values.
-         * ------------------------------------------------------------------ */
-        affine_t inv;
-        if (!invert_affine(&aff, &inv)) {
-            printf("  NOTE: affine inversion failed for frame %d, skipping warp\n", fi + 1);
-            all_frame_pass = 0;
-            continue;
-        }
-
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                float sx, sy;
-                apply_affine(&inv, (float)x, (float)y, &sx, &sy);
-                if (sx >= 0.0f && sy >= 0.0f && sx < (float)(w - 1) && sy < (float)(h - 1)) {
-                    /* Warp from original noisy variant, not blurred */
-                    sum_buf[y * w + x]   += bilinear_float(variants[fi], w, h, sx, sy);
-                    count_buf[y * w + x]++;
+                int sx = x * 2, sy = y * 2;
+                int v  = (int)src_gray[sy * src_w + sx]
+                       + (int)src_gray[sy * src_w + sx + 1]
+                       + (int)src_gray[(sy + 1) * src_w + sx]
+                       + (int)src_gray[(sy + 1) * src_w + sx + 1];
+                ref_gray[y * w + x] = (unsigned char)(v / 4);
+            }
+        }
+        free(src_gray);
+
+        /* ------------------------------------------------------------------
+         * Step 2: Detect reference stars
+         * ------------------------------------------------------------------ */
+        int num_ref_stars = 0;
+        float* ref_stars = detect_stars_simple(ref_gray, w, h, &num_ref_stars);
+        if (!ref_stars || num_ref_stars < 3) {
+            printf("[%s] SKIP: too few stars (%d)\n", img_name, num_ref_stars);
+            if (ref_stars) free(ref_stars);
+            free(ref_gray);
+            n_skipped++;
+            continue;
+        }
+
+        /* Form reference triangles */
+        int num_ref_tri = 0;
+        triangle_t* ref_tri = form_triangles(ref_stars, num_ref_stars, &num_ref_tri);
+        if (!ref_tri || num_ref_tri == 0) {
+            printf("[%s] SKIP: no triangles\n", img_name);
+            if (ref_tri) free(ref_tri);
+            free(ref_stars);
+            free(ref_gray);
+            n_skipped++;
+            continue;
+        }
+
+        /* ------------------------------------------------------------------
+         * Step 3: Generate 9 rotation+translation+noise variants
+         * Each image gets its own reproducible seed based on index.
+         * ------------------------------------------------------------------ */
+        srand(42 + img_idx);
+        float angles[9], txs[9], tys[9];
+        for (int i = 0; i < 9; i++) {
+            angles[i] = (float)(rand() % 600 - 300) / 100.0f;  /* -3.0 to +3.0 degrees */
+            txs[i]    = (float)(rand() % 60 - 30);               /* -30 to +30 px */
+            tys[i]    = (float)(rand() % 60 - 30);
+        }
+
+        /* Allocate 9 variant images */
+        unsigned char** variants = (unsigned char**)malloc(9 * sizeof(unsigned char*));
+        if (!variants) {
+            printf("[%s] SKIP: OOM for variant array\n", img_name);
+            free(ref_tri); free(ref_stars); free(ref_gray);
+            n_skipped++;
+            continue;
+        }
+        int variants_ok = 1;
+        for (int i = 0; i < 9; i++) {
+            variants[i] = (unsigned char*)malloc((size_t)npix);
+            if (!variants[i]) {
+                printf("[%s] SKIP: OOM for variant %d\n", img_name, i);
+                for (int j = 0; j < i; j++) free(variants[j]);
+                free(variants);
+                free(ref_tri); free(ref_stars); free(ref_gray);
+                variants_ok = 0;
+                break;
+            }
+        }
+        if (!variants_ok) {
+            n_skipped++;
+            continue;
+        }
+
+        float cx = (float)w * 0.5f;
+        float cy = (float)h * 0.5f;
+
+        /* Seed rand again for pixel noise (after angles/txs/tys are set) */
+        /* Use a separate sequence: re-seed with img_idx+1000 for noise */
+        srand(1000 + img_idx);
+
+        for (int i = 0; i < 9; i++) {
+            float angle_rad = angles[i] * (float)M_PI / 180.0f;
+            float cos_a = cosf(angle_rad);
+            float sin_a = sinf(angle_rad);
+
+            unsigned char* dst = variants[i];
+
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    float dx = (float)x - cx - txs[i];
+                    float dy = (float)y - cy - tys[i];
+                    float src_x = cos_a * dx + sin_a * dy + cx;
+                    float src_y = -sin_a * dx + cos_a * dy + cy;
+
+                    float bilinear_val = bilinear_float(ref_gray, w, h, src_x, src_y);
+
+                    /* Box-Muller Gaussian noise sigma=10 */
+                    float u1 = ((float)rand() + 1.0f) / ((float)RAND_MAX + 2.0f);
+                    float u2 = (float)rand() / ((float)RAND_MAX + 1.0f);
+                    float noise = sqrtf(-2.0f * logf(u1)) * cosf(2.0f * (float)M_PI * u2) * 10.0f;
+
+                    float val = bilinear_val + noise;
+                    if (val < 0.0f)   val = 0.0f;
+                    if (val > 255.0f) val = 255.0f;
+                    dst[y * w + x] = (unsigned char)val;
                 }
             }
         }
-        frames_stacked++;
-    }
 
-    free(blurred);
+        /* ------------------------------------------------------------------
+         * Step 4: Stack all frames
+         * ------------------------------------------------------------------ */
+        unsigned char* blurred = (unsigned char*)malloc((size_t)npix);
+        if (!blurred) {
+            printf("[%s] SKIP: OOM for blurred buffer\n", img_name);
+            for (int i = 0; i < 9; i++) free(variants[i]);
+            free(variants);
+            free(ref_tri); free(ref_stars); free(ref_gray);
+            n_skipped++;
+            continue;
+        }
 
-    printf("\nFrames successfully stacked: %d/9\n\n", frames_stacked - 1);
+        /* Initialize accumulator with reference frame */
+        float* sum_buf   = (float*)calloc((size_t)npix, sizeof(float));
+        int*   count_buf = (int*)calloc((size_t)npix, sizeof(int));
+        if (!sum_buf || !count_buf) {
+            printf("[%s] SKIP: OOM for accumulator\n", img_name);
+            free(blurred);
+            if (sum_buf)   free(sum_buf);
+            if (count_buf) free(count_buf);
+            for (int i = 0; i < 9; i++) free(variants[i]);
+            free(variants);
+            free(ref_tri); free(ref_stars); free(ref_gray);
+            n_skipped++;
+            continue;
+        }
+        for (long i = 0; i < npix; i++) {
+            sum_buf[i]   = (float)ref_gray[i];
+            count_buf[i] = 1;
+        }
+        int frames_stacked = 1;  /* reference frame already counted */
 
-    /* ------------------------------------------------------------------
-     * Step 5: Compute final stacked image
-     * ------------------------------------------------------------------ */
-    unsigned char* stacked = (unsigned char*)malloc((size_t)npix);
-    if (!stacked) {
-        fprintf(stderr, "ERROR: OOM for stacked output\n");
-        free(sum_buf); free(count_buf);
+        for (int fi = 0; fi < 9; fi++) {
+            float angle_rad = angles[fi] * (float)M_PI / 180.0f;
+            float cos_a     = cosf(angle_rad);
+            float sin_a     = sinf(angle_rad);
+
+            box_blur_3x3(variants[fi], blurred, w, h);
+
+            int num_new_stars = 0;
+            float* new_stars = detect_stars_simple(blurred, w, h, &num_new_stars);
+            if (!new_stars || num_new_stars < 3) {
+                if (img_idx == 0) {
+                    printf("Frame %d: expected rot=%.2fdeg tx=%.0f ty=%.0f"
+                           " | SKIP (not enough stars: %d)\n",
+                           fi + 1, angles[fi], txs[fi], tys[fi], num_new_stars);
+                }
+                if (new_stars) free(new_stars);
+                continue;
+            }
+
+            int num_new_tri = 0;
+            int use_stars = (num_new_stars < MAX_STACKING_STARS) ? num_new_stars : MAX_STACKING_STARS;
+            triangle_t* new_tri = form_triangles(new_stars, use_stars, &num_new_tri);
+            if (!new_tri || num_new_tri == 0) {
+                if (img_idx == 0) {
+                    printf("Frame %d: expected rot=%.2fdeg tx=%.0f ty=%.0f"
+                           " | SKIP (no triangles formed)\n",
+                           fi + 1, angles[fi], txs[fi], tys[fi]);
+                }
+                if (new_tri) free(new_tri);
+                free(new_stars);
+                continue;
+            }
+
+            int num_corr = 0;
+            correspondence_t* corr = match_triangles(
+                ref_tri, num_ref_tri, ref_stars,
+                new_tri, num_new_tri, new_stars,
+                &num_corr);
+            free(new_tri);
+
+            if (!corr || num_corr < 3) {
+                if (img_idx == 0) {
+                    printf("Frame %d: expected rot=%.2fdeg tx=%.0f ty=%.0f"
+                           " | SKIP (too few correspondences: %d)\n",
+                           fi + 1, angles[fi], txs[fi], tys[fi], num_corr);
+                }
+                if (corr) free(corr);
+                free(new_stars);
+                continue;
+            }
+
+            affine_t aff;
+            int inliers = 0;
+            double rms = 0.0;
+            int ransac_ok = ransac_affine(corr, num_corr, &aff, &inliers, &rms);
+            free(corr);
+            free(new_stars);
+
+            if (!ransac_ok) {
+                if (img_idx == 0) {
+                    printf("Frame %d: expected rot=%.2fdeg tx=%.0f ty=%.0f"
+                           " | SKIP (RANSAC failed)\n",
+                           fi + 1, angles[fi], txs[fi], tys[fi]);
+                }
+                continue;
+            }
+
+            double det = aff.a * aff.d - aff.b * aff.c;
+            if (fabs(det - 1.0) > 0.3) {
+                if (img_idx == 0) {
+                    printf("Frame %d: expected rot=%.2fdeg tx=%.0f ty=%.0f"
+                           " | SKIP: non-rigid affine (det=%.3f)\n",
+                           fi + 1, angles[fi], txs[fi], tys[fi], det);
+                }
+                continue;
+            }
+
+            /* Alignment error check and verbose output (first image only) */
+            if (img_idx == 0) {
+                float test_pts[5][2] = {
+                    {100.0f,           100.0f},
+                    {(float)w * 0.75f, 100.0f},
+                    {100.0f,           (float)h * 0.75f},
+                    {(float)w * 0.5f,  (float)h * 0.5f},
+                    {(float)w * 0.25f, (float)h * 0.75f}
+                };
+
+                float align_err_sum = 0.0f;
+                for (int tp = 0; tp < 5; tp++) {
+                    float rx = test_pts[tp][0];
+                    float ry = test_pts[tp][1];
+
+                    float dx = rx - cx;
+                    float dy = ry - cy;
+                    float nx = cx + (dx * cos_a - dy * sin_a) + txs[fi];
+                    float ny = cy + (dx * sin_a + dy * cos_a) + tys[fi];
+
+                    float rx_rec, ry_rec;
+                    apply_affine(&aff, nx, ny, &rx_rec, &ry_rec);
+
+                    float edx = rx_rec - rx;
+                    float edy = ry_rec - ry;
+                    align_err_sum += edx * edx + edy * edy;
+                }
+                float align_err = sqrtf(align_err_sum / 5.0f);
+                int aligned_ok = (align_err < 5.0f);
+
+                printf("Frame %d: expected rot=%.2fdeg tx=%.0f ty=%.0f"
+                       " | recovered a=%.3f b=%.3f tx=%.1f ty=%.1f det=%.3f"
+                       " | align_err=%.2fpx [%s]\n",
+                       fi + 1, angles[fi], txs[fi], tys[fi],
+                       (float)aff.a, (float)aff.b, (float)aff.tx, (float)aff.ty,
+                       det,
+                       align_err,
+                       aligned_ok ? "PASS" : "FAIL");
+            }
+
+            /* Warp and accumulate */
+            affine_t inv;
+            if (!invert_affine(&aff, &inv)) {
+                if (img_idx == 0) {
+                    printf("  NOTE: affine inversion failed for frame %d, skipping warp\n", fi + 1);
+                }
+                continue;
+            }
+
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    float sx, sy;
+                    apply_affine(&inv, (float)x, (float)y, &sx, &sy);
+                    if (sx >= 0.0f && sy >= 0.0f && sx < (float)(w - 1) && sy < (float)(h - 1)) {
+                        sum_buf[y * w + x]   += bilinear_float(variants[fi], w, h, sx, sy);
+                        count_buf[y * w + x]++;
+                    }
+                }
+            }
+            frames_stacked++;
+        }
+
+        free(blurred);
+
+        if (img_idx == 0) {
+            printf("\nFrames successfully stacked: %d/9\n\n", frames_stacked - 1);
+        }
+
+        /* ------------------------------------------------------------------
+         * Step 5: Compute final stacked image
+         * ------------------------------------------------------------------ */
+        unsigned char* stacked = (unsigned char*)malloc((size_t)npix);
+        if (!stacked) {
+            printf("[%s] SKIP: OOM for stacked output\n", img_name);
+            free(sum_buf); free(count_buf);
+            for (int i = 0; i < 9; i++) free(variants[i]);
+            free(variants);
+            free(ref_tri); free(ref_stars); free(ref_gray);
+            n_skipped++;
+            continue;
+        }
+        for (long i = 0; i < npix; i++) {
+            float avg = (count_buf[i] > 0) ? sum_buf[i] / (float)count_buf[i] : 0.0f;
+            if (avg < 0.0f)   avg = 0.0f;
+            if (avg > 255.0f) avg = 255.0f;
+            stacked[i] = (unsigned char)avg;
+        }
+
+        /* ------------------------------------------------------------------
+         * SNR measurement
+         * ------------------------------------------------------------------ */
+        int star_cx = (int)ref_stars[0];
+        int star_cy = (int)ref_stars[1];
+
+        float snr_before = measure_snr(variants[0], w, h, star_cx, star_cy);
+        float snr_after  = measure_snr(stacked,      w, h, star_cx, star_cy);
+        float snr_improvement = (snr_before > 0.0f) ? snr_after / snr_before : 0.0f;
+
+        int frames_aligned = frames_stacked - 1;  /* exclude reference */
+        int pass_snr   = (snr_improvement >= 2.0f);
+        int pass_frame = (frames_aligned >= 8);
+
+        /* Per-image one-liner */
+        printf("[%s %dx%d] ref_stars=%d frames=%d/9 snr=%.1f->%.1f (%.2fx) %s\n",
+               img_name, w, h,
+               num_ref_stars,
+               frames_aligned,
+               snr_before, snr_after, snr_improvement,
+               (pass_snr && pass_frame) ? "PASS" : "FAIL");
+
+        /* For first image: also print verbose SNR info and save PGMs */
+        if (img_idx == 0) {
+            printf("\nStar peak location: (%d, %d)\n", star_cx, star_cy);
+            printf("SNR before (single noisy frame): %.1f\n", snr_before);
+            printf("SNR after  (10-frame stack):     %.1f\n", snr_after);
+            printf("Improvement: %.2fx [%s]\n\n",
+                   snr_improvement,
+                   pass_snr ? "PASS" : "FAIL");
+
+            /* Save PGMs only for first image */
+            save_pgm("/mnt/d/Download/DIP/frame_000.pgm", ref_gray, w, h);
+            char pgm_path[128];
+            for (int i = 0; i < 9; i++) {
+                snprintf(pgm_path, sizeof(pgm_path), "/mnt/d/Download/DIP/frame_%03d.pgm", i + 1);
+                save_pgm(pgm_path, variants[i], w, h);
+            }
+            save_pgm("/mnt/d/Download/DIP/stacked_output.pgm", stacked, w, h);
+            printf("PGM files saved: frame_000..009.pgm, stacked_output.pgm\n\n");
+        }
+
+        /* Aggregate tracking */
+        n_processed++;
+        total_frames += frames_aligned;
+        sum_snr_improvement += snr_improvement;
+        if (snr_improvement < min_snr_improvement) {
+            min_snr_improvement = snr_improvement;
+            min_snr_idx = img_idx;
+        }
+        if (snr_improvement > max_snr_improvement) {
+            max_snr_improvement = snr_improvement;
+            max_snr_idx = img_idx;
+        }
+        if (pass_snr) n_passing_snr++;
+
+        /* Cleanup per-image allocations */
+        free(stacked);
+        free(sum_buf);
+        free(count_buf);
         for (int i = 0; i < 9; i++) free(variants[i]);
         free(variants);
-        free(ref_tri); free(ref_stars); free(ref_gray);
+        free(ref_tri);
+        free(ref_stars);
+        free(ref_gray);
+    }
+
+    /* ------------------------------------------------------------------
+     * Aggregate summary
+     * ------------------------------------------------------------------ */
+    printf("\n=== AGGREGATE RESULTS (%d / %d images processed) ===\n",
+           n_processed, TOTAL_IMAGES);
+    printf("Images skipped (load/star detection failure): %d\n", n_skipped);
+
+    if (n_processed > 0) {
+        double avg_frames = (double)total_frames / (double)n_processed;
+        double avg_snr    = sum_snr_improvement / (double)n_processed;
+
+        printf("Avg frames stacked per image:  %.1f / 9\n", avg_frames);
+        printf("Avg SNR improvement:           %.2fx\n", avg_snr);
+        printf("Min SNR improvement:           %.2fx  (%s)\n",
+               min_snr_improvement,
+               min_snr_idx >= 0 ? IMAGE_NAMES[min_snr_idx] : "N/A");
+        printf("Max SNR improvement:           %.2fx  (%s)\n",
+               max_snr_improvement,
+               max_snr_idx >= 0 ? IMAGE_NAMES[max_snr_idx] : "N/A");
+        printf("Images passing SNR >= 2.0x:    %d / %d\n", n_passing_snr, n_processed);
+
+        int pass_avg_snr    = (avg_snr >= 2.0);
+        int pass_avg_frames = (avg_frames >= 7.0);
+        int overall_pass    = pass_avg_snr && pass_avg_frames;
+
+        printf("=== OVERALL: %s ===\n", overall_pass ? "PASS" : "FAIL");
+
+        return overall_pass ? 0 : 1;
+    } else {
+        printf("No images processed.\n");
+        printf("=== OVERALL: FAIL ===\n");
         return 1;
     }
-    for (long i = 0; i < npix; i++) {
-        float avg = (count_buf[i] > 0) ? sum_buf[i] / (float)count_buf[i] : 0.0f;
-        if (avg < 0.0f)   avg = 0.0f;
-        if (avg > 255.0f) avg = 255.0f;
-        stacked[i] = (unsigned char)avg;
-    }
-
-    /* ------------------------------------------------------------------
-     * SNR measurement
-     * ------------------------------------------------------------------ */
-
-    /* Brightest reference star is at index 0 (detect_stars_simple sorts by flux desc) */
-    int star_cx = (int)ref_stars[0];
-    int star_cy = (int)ref_stars[1];
-
-    float snr_before = measure_snr(variants[0], w, h, star_cx, star_cy);
-    float snr_after  = measure_snr(stacked,      w, h, star_cx, star_cy);
-    float snr_improvement = (snr_before > 0.0f) ? snr_after / snr_before : 0.0f;
-
-    printf("Star peak location: (%d, %d)\n", star_cx, star_cy);
-    printf("SNR before (single noisy frame): %.1f\n", snr_before);
-    printf("SNR after  (10-frame stack):     %.1f\n", snr_after);
-    printf("Improvement: %.2fx [%s]\n",
-           snr_improvement,
-           snr_improvement >= 2.0f ? "PASS" : "FAIL");
-
-    /* ------------------------------------------------------------------
-     * Step 6: Save PGM files
-     * ------------------------------------------------------------------ */
-    save_pgm("/mnt/d/Download/DIP/frame_000.pgm", ref_gray, w, h);
-    char pgm_path[128];
-    for (int i = 0; i < 9; i++) {
-        snprintf(pgm_path, sizeof(pgm_path), "/mnt/d/Download/DIP/frame_%03d.pgm", i + 1);
-        save_pgm(pgm_path, variants[i], w, h);
-    }
-    save_pgm("/mnt/d/Download/DIP/stacked_output.pgm", stacked, w, h);
-    printf("\nPGM files saved: frame_000..009.pgm, stacked_output.pgm\n");
-
-    /* ------------------------------------------------------------------
-     * Step 7: Final report and pass/fail
-     * ------------------------------------------------------------------ */
-    int frames_aligned = frames_stacked - 1;  /* exclude reference */
-    int pass_frames    = (frames_aligned >= 8);
-    int pass_snr       = (snr_improvement >= 2.0f);
-    int overall_pass   = pass_frames && pass_snr;
-
-    printf("\n=== RESULTS ===\n");
-    printf("Frames successfully stacked: %d/9 [%s]\n",
-           frames_aligned, pass_frames ? "PASS" : "FAIL");
-    printf("SNR improvement: %.2fx [%s]\n",
-           snr_improvement, pass_snr ? "PASS" : "FAIL");
-    printf("=== %s ===\n", overall_pass ? "PASS" : "FAIL");
-
-    /* ------------------------------------------------------------------
-     * Cleanup
-     * ------------------------------------------------------------------ */
-    free(stacked);
-    free(sum_buf);
-    free(count_buf);
-    for (int i = 0; i < 9; i++) free(variants[i]);
-    free(variants);
-    free(ref_tri);
-    free(ref_stars);
-    free(ref_gray);
-
-    return overall_pass ? 0 : 1;
 }
