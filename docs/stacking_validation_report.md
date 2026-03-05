@@ -11,258 +11,250 @@
 | Metric | Result |
 |--------|--------|
 | Images tested | 57 |
-| Images processed | 55 (2 skipped: too few stars) |
-| **Average SNR improvement** | **6.23×** |
-| Theoretical maximum (√10 frames) | 3.16× |
-| Min SNR improvement | 0.69× (IMG048) |
-| Max SNR improvement | 24.86× (IMG002) |
-| Images with ≥ 2.0× improvement | 43 / 55 (78%) |
-| Average variants successfully aligned | 3.5 / 9 per image |
+| Images processed | 48 (9 skipped: too few stars) |
+| **Avg SNR improvement (all images)** | **1.73×** |
+| Avg SNR improvement (fully-aligned images, 9/9) | **2.76×** |
+| Theoretical maximum (√10 independent frames) | 3.16× |
+| Min SNR improvement | 0.86× (IMG013) |
+| Max SNR improvement | 3.75× (IMG010) |
+| Images passing SNR ≥ 2.0× | 13 / 48 (27%) |
+| Avg variants successfully aligned | 7.0 / 9 per image |
 
-**Yes, stacking genuinely improves SNR.** The average 6.23× improvement substantially exceeds
-the theoretical √10 ≈ 3.16× bound for independent noise averaging. This headroom exists because
-additive Gaussian noise (σ=10) on a clean signal is very well-behaved — the stacked mean closely
-recovers the noiseless reference while noise cancels.
+**Does stacking work?** Yes — when alignment succeeds. Images with all 9 variants
+aligned achieve **2.4×–3.7× SNR improvement**, matching the theoretical √10 ≈ 3.16×
+prediction. The overall average (1.73×) is pulled down by images where alignment
+fails due to too few well-separated stars.
 
 ---
 
-## Frame Count
+## Frame Count and Noise Model
 
-Each test run stacks **10 frames** per image:
+Each test run stacks **10 frames** per image. Crucially, **all 10 frames are noisy** —
+there is no privileged clean reference. This matches real astrophotography where every
+exposure has shot noise.
 
-| Frame | Source | Noise | Transform |
-|-------|--------|-------|-----------|
-| Frame 0 (reference) | Original image (clean) | None | Identity |
-| Frames 1–9 | Synthetically generated variants | Gaussian σ=10 | Rotation ±3° + translation ±30px |
+| Frame | Transform | Noise |
+|-------|-----------|-------|
+| Frame 0 (alignment reference) | Identity (rot=0°, tx=0, ty=0) | Gaussian σ=10 |
+| Frame 1 | Random rot ±3°, tx/ty ±30px | Gaussian σ=10 |
+| Frame 2 | Random rot ±3°, tx/ty ±30px | Gaussian σ=10 |
+| … | … | … |
+| Frame 9 | Random rot ±3°, tx/ty ±30px | Gaussian σ=10 |
 
-The 9 variants are aligned to Frame 0 and accumulated together with it.
-Theoretical SNR improvement = √10 ≈ 3.16×. In practice we achieve 6.23× average
-because the clean reference contributes a noise-free baseline signal.
+Frame 0 is used as the coordinate reference for alignment (the other frames are warped
+to match it), but it is equally noisy. SNR improvement comes entirely from averaging
+independent noise across all 10 frames — no frame has an unfair advantage.
+
+**Theoretical improvement:** For N independent frames with equal Gaussian noise σ,
+mean-stacking reduces noise by √N. With 10 frames: √10 ≈ **3.16×**.
 
 ---
 
 ## How Variants Are Created
 
-For each test image, 9 synthetic variants are generated in C from the clean reference:
-
-### Step 1 — Load and prepare the reference
-```
-IMG001.jpg (JPEG, RGB)
-    → stbi_load()                        [3-channel RGB, e.g. 1908×4032]
-    → grayscale: Y = (77R + 150G + 29B) >> 8   [ITU-R BT.601 integer]
-    → 2× downsample: average 2×2 blocks  [e.g. 954×2016]
-    = ref_gray[]                          [clean reference, uint8]
-```
-
-### Step 2 — Generate variant i (i = 1..9)
+### Step 1 — Load and prepare the clean source
 
 ```
-For each output pixel (x, y):
+IMGxxx.jpg  (JPEG, RGB, e.g. 1908×4032)
+    → stbi_load()
+    → grayscale: Y = (77R + 150G + 29B) >> 8      [ITU-R BT.601 integer coefficients]
+    → 2× downsample: average 2×2 pixel blocks      [e.g. → 954×2016]
+    = ref_gray[]    (clean, uint8 — used only as warp source, never stacked directly)
+```
 
-  1. Pick random transform (generated once per image with srand(42 + img_index)):
-       angle_i = rand in [-3.0°, +3.0°]     (uniform, 0.01° resolution)
-       tx_i    = rand in [-30, +30] pixels   (uniform integer)
-       ty_i    = rand in [-30, +30] pixels
+### Step 2 — Generate Frame 0 (noisy reference)
 
-  2. Inverse-map: find source pixel in ref_gray
-       cx = W/2,  cy = H/2          (rotate around image center)
-       dx = x - cx - tx_i
-       dy = y - cy - ty_i
-       src_x =  cos(angle_i)*dx + sin(angle_i)*dy + cx
-       src_y = -sin(angle_i)*dx + cos(angle_i)*dy + cy
+Frame 0 has identity transform (no rotation, no translation) but has independent
+Gaussian noise added:
 
-  3. Bilinear sample ref_gray at (src_x, src_y)
-       → 0 if out of bounds (black border)
+```c
+for each pixel i:
+    u1 = uniform(0,1),  u2 = uniform(0,1)          // Box-Muller inputs
+    noise = sqrt(-2·ln(u1)) · cos(2π·u2) · σ       // σ = 10
+    frame0[i] = clamp(ref_gray[i] + noise, 0, 255)
+```
 
-  4. Add Box-Muller Gaussian noise:
-       u1 = uniform(0,1),  u2 = uniform(0,1)
-       noise = sqrt(-2*ln(u1)) * cos(2π*u2) * σ    where σ=10
-       pixel = clamp(sampled_value + noise, 0, 255)
+Frame 0 is accumulated into the stack first (as the reference, no alignment step needed).
 
-  → variant_i[]   [noisy+rotated, uint8]
+### Step 3 — Generate Frames 1–9 (noisy + transformed variants)
+
+For each variant i = 1..9, pick a random rigid transform (reproducible via `srand(42 + image_index)`):
+
+```
+angle_i  =  uniform(-3.0°, +3.0°)     // random rotation
+tx_i     =  uniform(-30, +30) px      // random horizontal shift
+ty_i     =  uniform(-30, +30) px      // random vertical shift
+```
+
+Then for each output pixel (x, y), inverse-map to find the source pixel in `ref_gray`:
+
+```c
+cx = W/2,  cy = H/2                      // rotate around image center
+dx = x - cx - tx_i
+dy = y - cy - ty_i
+src_x =  cos(angle_i)·dx + sin(angle_i)·dy + cx   // inverse rotation
+src_y = -sin(angle_i)·dx + cos(angle_i)·dy + cy
+
+val = bilinear_sample(ref_gray, src_x, src_y)      // 0 if out of bounds
+noise = gaussian(σ=10)                              // independent per pixel
+variant_i[x,y] = clamp(val + noise, 0, 255)
 ```
 
 ### Visual illustration (exaggerated)
 
 ```
-ref_gray (clean)           variant_1                variant_7
-┌─────────────────┐        ┌─────────────────┐      ┌─────────────────┐
-│  *    *         │        │      *    *     │      │*    *           │
-│        *   *   │  rot    │  *         *   │  rot │          *   * │
-│   **       *   │ +noise  │    **      *   │+noise│   **       *   │
-│       *        │ ─────►  │        *       │──────│       *        │
-│  *         *   │        │  *         *   │      │  *         *   │
-└─────────────────┘        └─────────────────┘      └─────────────────┘
-  angle=0° tx=0 ty=0        angle=0.66° tx=-30 ty=11  angle=1.98° tx=9 ty=-3
-```
-
-### Step 3 — Stack
-
-```
-Accumulate 10 frames into a float buffer:
-
-  sum[x,y] = ref_gray[x,y]              (frame 0, identity, no alignment needed)
-
-  For each variant i = 1..9:
-    detect stars in blur(variant_i)      (3×3 box blur before detection only)
-    form triangle asterisms
-    match triangles → correspondences
-    RANSAC affine estimation             (500 iterations, 3px inlier threshold)
-    validate: |det(affine) - 1| < 0.3   (must be rotation-like)
-    warp variant_i → reference frame     (inverse bilinear)
-    sum[x,y] += warped_pixel[x,y]
-    count[x,y]++
-
-  stacked[x,y] = sum[x,y] / count[x,y]  (mean, uint8 clamp)
+ref_gray (clean,          frame0                  variant_3               variant_7
+never stacked)            (noisy, identity)        (noisy + rotated)       (noisy + rotated)
+┌──────────────┐          ┌──────────────┐         ┌──────────────┐        ┌──────────────┐
+│  *    *      │          │ .* .  *  .   │  rot    │  . * .  .*   │  rot   │ *.. .   *    │
+│      *   *   │ + noise  │    .*  . *   │ +noise  │    . * .  *  │+noise  │   ..*  . *   │
+│  **      *   │ ──────►  │ .** .  . *   │ ──────► │ .* * .  . *. │──────► │  .**     *   │
+│      *       │          │    . *  .    │         │  .  . *.     │        │      *.      │
+└──────────────┘          └──────────────┘         └──────────────┘        └──────────────┘
+                          (alignment ref)           (aligned back           (aligned back
+                                                     to frame0)              to frame0)
+                          ◄─────────────────── all 10 accumulated ──────────────────────►
+                                                stacked result: noise cancels, signal adds
 ```
 
 ---
 
-## Stacking Pipeline Detail
+## Stacking Pipeline
 
-### Star Detection
-- Compute per-image mean μ and standard deviation σ
-- Threshold = max(μ + 3σ, 50)
-- Find local maxima in 5×5 window above threshold
-- Sort by brightness (flux) descending
-- Apply 60px minimum separation filter (keep brightest, discard any within 60px)
-- Keep top 50 stars
+### Per-frame alignment (frames 1–9 only; frame 0 needs no alignment)
 
-### Triangle Matching
-- For each star, find its 5 nearest neighbours
-- Form triangles from each (star, neighbour_a, neighbour_b) triple
-- Compute scale-invariant side-length ratios: ratio1 = s1/s0, ratio2 = s2/s0 (sorted sides)
-- Match ratios between reference and variant triangles within tolerance 0.01
-- Output: list of (ref_star_xy, variant_star_xy) point correspondences
+1. **Pre-blur:** 3×3 box blur on the noisy variant (suppresses noise-induced centroid error)
+2. **Star detection:** local-max threshold = max(μ + 3σ, 50), 5×5 window, 60px min separation, top 50 stars
+3. **Triangle matching:** form triangle asterisms from nearest-neighbour pairs; match scale-invariant side-length ratios (tolerance 0.01) between frame 0 and current variant
+4. **RANSAC affine:** 500 iterations, 3px inlier threshold; solve 6-parameter affine per 3-point sample
+5. **Rotation validation:** reject if |det(affine) − 1| > 0.3 (non-rigid transforms discarded)
+6. **Warp:** inverse bilinear mapping of variant onto frame 0 coordinate system
+7. **Accumulate:** add warped pixels to float sum buffer, increment per-pixel count
 
-### RANSAC Affine
-- Repeat 500 times: pick 3 random correspondences, solve 6×6 linear system for affine (a,b,c,d,tx,ty)
-- Count inliers: correspondences where reprojection error < 3px
-- Keep best (most inliers); refit on all inliers
-- Post-validate: det(affine_2×2) = a·d − b·c must be in [0.7, 1.3] (rotation constraint)
+### Final stacked image
 
-### SNR Measurement
-- **Background ROI:** top-left 200×200 patch (sky, away from bright objects)
-- **Background std σ_bg:** standard deviation of all pixels in ROI
-- **Star peak:** max pixel in 20×20 patch centred on brightest detected star
+```
+stacked[x,y] = sum[x,y] / count[x,y]    (mean over all contributing frames)
+```
+
+### SNR measurement
+
+- **SNR before:** measured on Frame 0 (one noisy frame, same σ as all others)
+- **Background σ_bg:** std of pixels in top-left 200×200 patch (sky background)
+- **Star peak:** max pixel in 20×20 patch around brightest detected star
 - **SNR = star_peak / σ_bg**
-- **Improvement = SNR(stacked) / SNR(single noisy variant)**
+- **Improvement = SNR(stacked) / SNR(frame 0)**
 
 ---
 
 ## Per-Image Results
 
-### Large Images (≥1MP) — Strong Performance
+### Fully-aligned images (9/9 variants) — approaches theoretical √10
 
-| Image | Size (half-res) | Ref Stars | Variants Aligned | SNR Before | SNR After | Improvement |
-|-------|-----------------|-----------|------------------|------------|-----------|-------------|
-| IMG001 | 954×2016 | 50 | 9/9 | 6.1 | 55.0 | **8.99×** |
-| IMG002 | 1126×2000 | 49 | 9/9 | 4.7 | 115.8 | **24.86×** |
-| IMG003 | 2000×1126 | 50 | 9/9 | 5.5 | 75.6 | **13.71×** |
-| IMG005 | 2000×1126 | 24 | 9/9 | 3.8 | 25.3 | **6.66×** |
-| IMG006 | 1126×2000 | 40 | 9/9 | 5.2 | 90.9 | **17.43×** |
-| IMG007 | 1126×2000 | 50 | 9/9 | 5.6 | 92.1 | **16.41×** |
-| IMG009 | 2736×1824 | 50 | 9/9 | 4.7 | 48.5 | **10.39×** |
-| IMG010 | 2736×1824 | 38 | 8/9 | 21.0 | 159.9 | **7.62×** |
-| IMG020 | 2016×1512 | 50 | 9/9 | 7.8 | 32.7 | **4.17×** |
-| IMG022 | 2016×1512 | 50 | 9/9 | 6.8 | 141.3 | **20.89×** |
-| IMG023 | 1512×2016 | 50 | 8/9 | 7.8 | 27.8 | **3.59×** |
-| IMG031 | 720×960 | 50 | 9/9 | 4.7 | 35.2 | **7.52×** |
-| IMG033 | 720×960 | 50 | 9/9 | 8.4 | 29.3 | **3.47×** |
-| IMG039 | 720×960 | 50 | 9/9 | 7.9 | 33.2 | **4.22×** |
-| IMG040 | 720×960 | 45 | 9/9 | 6.9 | 31.1 | **4.52×** |
-| IMG042 | 1512×2016 | 50 | 9/9 | 8.0 | 41.6 | **5.21×** |
+| Image | Size | Variants | SNR Before | SNR After | Improvement | vs √10 |
+|-------|------|----------|------------|-----------|-------------|--------|
+| IMG001 | 954×2016 | 9/9 | 23.2 | 55.5 | **2.39×** | 76% |
+| IMG002 | 1126×2000 | 9/9 | 39.2 | 114.7 | **2.93×** | 93% |
+| IMG003 | 2000×1126 | 9/9 | 26.4 | 76.0 | **2.87×** | 91% |
+| IMG006 | 1126×2000 | 9/9 | 30.0 | 86.5 | **2.88×** | 91% |
+| IMG007 | 1126×2000 | 9/9 | 29.5 | 72.5 | **2.46×** | 78% |
+| IMG009 | 2736×1824 | 9/9 | 22.4 | 58.8 | **2.62×** | 83% |
+| IMG010 | 2736×1824 | 9/9 | 44.4 | 166.3 | **3.75×** | 119% |
+| IMG012 | 2736×1824 | 9/9 | 38.8 | 84.7 | **2.18×** | 69% |
+| IMG015 | 960×640 | 9/9 | 26.6 | 66.4 | **2.50×** | 79% |
+| IMG022 | 2016×1512 | 9/9 | 33.5 | 125.1 | **3.74×** | 118% |
+| IMG025 | 1724×2296 | 9/9 | 20.8 | 43.3 | **2.08×** | 66% |
+| IMG042 | 1512×2016 | 9/9 | 24.4 | 57.1 | **2.34×** | 74% |
 
-### Skipped (Insufficient Stars for Triangle Matching)
+**Average for fully-aligned: 2.76× (87% of theoretical √10 = 3.16×)**
 
-| Image | Stars Detected | Reason |
-|-------|---------------|--------|
-| IMG017 | 2 | Below 3-star minimum after 60px separation filter |
-| IMG049 | 0 | No stars detected (overexposed or blank frame) |
+The gap from 100% is expected — imperfect alignment (1–4px error) slightly blurs the
+stacked signal, reducing the measured peak value.
 
-### Low Variant Alignment Rate (0–3 / 9)
+### Skipped (insufficient stars for triangle matching)
 
-Many 720×960 images have 30–50 detected stars but 0 variants successfully aligned.
-Examples: IMG026, IMG028, IMG032, IMG034, IMG036–038, IMG046, IMG051–057.
+| Image | Reason |
+|-------|--------|
+| IMG011 | 0 stars detected |
+| IMG026 | 0 stars detected |
+| IMG028 | 2 stars (below 3-star minimum) |
+| IMG032 | 0 stars detected |
+| IMG049 | 0 stars detected |
+| IMG050 | 0 stars detected |
+| IMG053 | 2 stars |
+| IMG054 | 0 stars detected |
+| IMG055 | 0 stars detected |
 
-Note: these images still show SNR values in the output, but since 0 variants aligned,
-the "stacked" result is just the clean reference frame alone — the SNR improvement
-reflects measurement noise, not real stacking benefit.
+### Poor alignment (0–2 / 9 variants aligned)
 
----
-
-## Alignment Verification (IMG001.jpg — Full Detail)
-
-The reference image IMG001 (Orion field) with all 9 variants showing recovered vs expected transform:
-
-```
-Frame 1: expected rot= 0.66° tx=-30 ty= 11 | recovered a=1.001 b= 0.012 det=1.000 | align_err=1.50px ✓
-Frame 2: expected rot= 1.41° tx= 22 ty= 28 | recovered a=0.998 b= 0.027 det=0.997 | align_err=3.11px ✓
-Frame 3: expected rot= 1.21° tx=-30 ty=  5 | recovered a=0.997 b= 0.020 det=0.997 | align_err=0.65px ✓
-Frame 4: expected rot=-1.57° tx= 24 ty= -7 | recovered a=0.999 b=-0.027 det=0.996 | align_err=1.92px ✓
-Frame 5: expected rot=-1.83° tx= -6 ty=  6 | recovered a=0.997 b=-0.032 det=0.997 | align_err=0.69px ✓
-Frame 6: expected rot= 0.62° tx= 22 ty= 18 | recovered a=1.002 b= 0.009 det=1.003 | align_err=2.15px ✓
-Frame 7: expected rot= 1.98° tx=  9 ty= -3 | recovered a=0.998 b= 0.034 det=0.996 | align_err=2.69px ✓
-Frame 8: expected rot= 2.52° tx= -1 ty=  3 | recovered a=0.995 b= 0.044 det=0.995 | align_err=1.79px ✓
-Frame 9: expected rot= 0.27° tx= 29 ty=-21 | recovered a=0.996 b= 0.008 det=0.996 | align_err=3.76px ✓
-
-All 9/9 variants aligned. SNR: 6.1 → 55.0 (8.99×, 10 frames total)
-```
-
-All recovered affines are valid rotation matrices (det ≈ 1.0, a ≈ d, b ≈ −c).
-Alignment errors are 0.65–3.76px — sub-pixel to low-pixel accuracy.
+Images with very few detected stars (3–9 after separation filter) frequently get 0
+variants aligned. Stacked result = frame 0 only → SNR improvement ≈ 1.0×.
+Examples: IMG013 (10 stars, 2/9), IMG014 (9 stars, 0/9), IMG017 (6 stars, 0/9).
 
 ---
 
-## Analysis: Why Alignment Fails on Small Images
+## Alignment Verification (IMG001 — Full Detail)
 
-### Root Cause: Triangle Ratio Collision
+```
+Frame 1: rot= 0.66° tx=-30 ty= 11 | a=0.997 b= 0.012 det=0.997 | err=1.78px ✓
+Frame 2: rot= 1.41° tx= 22 ty= 28 | a=1.000 b= 0.025 det=0.999 | err=1.45px ✓
+Frame 3: rot= 1.21° tx=-30 ty=  5 | a=0.999 b= 0.021 det=0.999 | err=0.78px ✓
+Frame 4: rot=-1.57° tx= 24 ty= -7 | a=0.997 b=-0.026 det=0.996 | err=1.91px ✓
+Frame 5: rot=-1.83° tx= -6 ty=  6 | a=0.999 b=-0.032 det=0.998 | err=1.76px ✓
+Frame 6: rot= 0.62° tx= 22 ty= 18 | a=0.999 b= 0.012 det=0.998 | err=1.75px ✓
+Frame 7: rot= 1.98° tx=  9 ty= -3 | a=0.998 b= 0.035 det=0.998 | err=1.16px ✓
+Frame 8: rot= 2.52° tx= -1 ty=  3 | a=0.998 b= 0.044 det=0.998 | err=1.40px ✓
+Frame 9: rot= 0.27° tx= 29 ty=-21 | a=0.999 b= 0.006 det=0.998 | err=2.11px ✓
 
-The triangle matching is scale-invariant (ratio of side lengths), which makes it
-rotation- and translation-invariant. But it depends on having enough geometrically
-distinct triangles to avoid false matches.
+9/9 aligned. SNR: 23.2 → 55.5 (2.39×, 10 noisy frames)
+```
 
-At small image sizes (e.g. 720×960 → 360×480 after 2× downsample):
+All recovered affines are valid rotation matrices (det ≈ 1.0). Alignment errors are
+0.78–2.11px — sub-pixel to 2-pixel accuracy despite σ=10 noise on the reference.
 
-1. The 60px minimum-separation filter leaves only ~8–15 usable stars on a 360×480 canvas
-2. Fewer stars → fewer distinct triangle shapes → higher false-match probability
-3. False matches flood RANSAC correspondences
-4. RANSAC finds spurious consensus (non-rigid affines); the `|det−1| > 0.3` check
-   rejects these, giving 0 successfully aligned variants
+---
 
-### Why Large Images Succeed
+## Analysis
 
-Large images (>500px half-res width) fit 30–50 well-separated stars spanning the full
-field. Triangle shapes are geometrically diverse, false-match rate is low, and RANSAC
-reliably recovers the correct rotation + translation.
+### Why average (1.73×) is below theoretical (3.16×)
+
+The overall average is dragged down by two categories:
+
+1. **Zero-alignment images** (0/9 variants aligned): only 1 frame in stack → improvement ≈ 1.0×.
+   These images have too few well-separated stars for reliable triangle matching.
+
+2. **Low-star images** with partial alignment (2–7/9): √(1+k) improvement where k < 9.
+   E.g. 2/9 aligned → 3 total frames → theoretical √3 ≈ 1.73×.
+
+For images where alignment fully works (9/9), the algorithm achieves **87% of √10**
+— a genuine and meaningful SNR improvement.
+
+### Why some results exceed √10
+
+IMG010 (3.75×) and IMG022 (3.74×) exceed √10. This happens when the star peak is
+in a region with especially low noise in the stacked result (the 20×20 patch may hit
+a particularly bright, well-aligned star whose peak sharpens after averaging).
+
+### Root cause of alignment failure on small / sparse-star images
+
+- **60px minimum separation filter** on small images (e.g. 360×480 half-res) leaves
+  only 3–10 usable stars — below the ~15 needed for reliable triangle ratio diversity
+- **Noisier reference:** frame 0 is now noisy too, so star centroid detection on frame 0
+  has ~1px uncertainty, narrowing the effective ratio match window
+- **Solution:** adaptive `min_sep = 0.06 × min(W,H)` and using simplexy (full
+  pipeline already integrated for plate solving) instead of simple threshold detection
 
 ---
 
 ## Conclusions
 
-### Does stacking work?
-
-**Yes — conclusively on large images.** On images with ≥40 well-spread stars:
-- All 9 variants aligned in every case (9/9)
-- Alignment accuracy: 1–4px (sub-pixel to low-pixel)
-- SNR improvement: 3.5× – 25× (average ~10× for large images)
-- Exceeds theoretical √10 ≈ 3.16× because the clean reference frame anchors the stack
-
-### Limitations of the Current Implementation
-
-| Limitation | Impact |
-|-----------|--------|
-| 60px separation filter is too aggressive for small images | Only 8–15 usable stars → poor triangle diversity → alignment fails |
-| Simple threshold star detector (not simplexy) | Inconsistent detections in low-SNR or noisy images |
-| Triangle ratio tolerance (0.01) fixed regardless of image scale | May miss correct matches when star centroids shift >1% of separation |
-| RANSAC iterations fixed at 500 | May be insufficient when false-match rate is high |
-
-### Recommended Improvements
-
-1. **Adaptive separation filter:** `min_sep = max(30, 0.06 * min(W, H))` — scales with image size
-2. **Use simplexy for star detection** (already integrated for plate solving) — gives more accurate, consistent centroids
-3. **Scale RANSAC iterations** with estimated false-match rate: more iterations when fewer stars
-4. **Post-stack quality check:** cross-correlate stacked result with reference to detect bad alignment
+| Finding | Detail |
+|---------|--------|
+| Stacking works on large images | 2.4×–3.7× improvement, 87% of √10 theoretical |
+| All-noisy model is realistic | SNR_before now ~20–40 (real single-exposure SNR) vs ~5 with artificial clean reference |
+| Alignment accuracy | 0.78–2.11px for IMG001 (all 9/9 frames) |
+| Bottleneck | Star detection quality on small / low-star images |
+| Overall pass rate | 13/48 (27%) — gated by alignment, not by stacking math |
 
 ---
 
@@ -271,11 +263,11 @@ reliably recovers the correct rotation + translation.
 | File | Description |
 |------|-------------|
 | `test_stacking_snr.c` | Test source (repo root) |
-| `frame_000.pgm` | Clean reference frame (IMG001, 954×2016 grayscale) |
+| `frame_000.pgm` | Noisy Frame 0 — alignment reference (IMG001, σ=10) |
 | `frame_001.pgm` – `frame_009.pgm` | 9 noisy+rotated variants of IMG001 |
 | `stacked_output.pgm` | 10-frame stacked result (IMG001) |
 
-PGM files are written to `/mnt/d/Download/DIP/` for IMG001 only (not committed — binary).
+PGM files written to `/mnt/d/Download/DIP/` for IMG001 only (not committed — binary).
 
 ### Compile Command
 ```bash
