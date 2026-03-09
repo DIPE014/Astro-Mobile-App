@@ -1,8 +1,12 @@
 package com.astro.app.ui.stacking;
 
 import android.Manifest;
+import android.content.ClipData;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
@@ -12,6 +16,10 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -49,6 +57,7 @@ public class ImageStackingActivity extends AppCompatActivity {
     private MaterialButton btnCapture;
     private MaterialButton btnFinish;
     private MaterialButton btnBack;
+    private MaterialButton btnPickImages;
     private TextView tvFrameCount;
     private TextView tvStatus;
     private ImageView ivStackedPreview;
@@ -65,6 +74,14 @@ public class ImageStackingActivity extends AppCompatActivity {
     private boolean sessionStarted = false;
     private int targetFrames = 10;  // Default target
     private volatile boolean isDestroyed = false;
+
+    // Gallery picker
+    private final ActivityResultLauncher<Intent> pickImagesLauncher =
+        registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                handlePickedImages(result.getData());
+            }
+        });
 
     // Permission
     private final ActivityResultLauncher<String> cameraPermissionLauncher =
@@ -105,6 +122,7 @@ public class ImageStackingActivity extends AppCompatActivity {
         btnCapture = findViewById(R.id.btnCapture);
         btnFinish = findViewById(R.id.btnFinish);
         btnBack = findViewById(R.id.btnBack);
+        btnPickImages = findViewById(R.id.btnPickImages);
         tvFrameCount = findViewById(R.id.tvFrameCount);
         tvStatus = findViewById(R.id.tvStatus);
         ivStackedPreview = findViewById(R.id.ivStackedPreview);
@@ -177,6 +195,78 @@ public class ImageStackingActivity extends AppCompatActivity {
         btnCapture.setOnClickListener(v -> captureFrame());
 
         btnFinish.setOnClickListener(v -> finishStacking());
+
+        btnPickImages.setOnClickListener(v -> openGalleryPicker());
+    }
+
+    private void openGalleryPicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        pickImagesLauncher.launch(Intent.createChooser(intent, "Select up to 10 images"));
+    }
+
+    private void handlePickedImages(Intent data) {
+        List<Uri> uris = new ArrayList<>();
+
+        if (data.getClipData() != null) {
+            // Multiple images selected
+            ClipData clip = data.getClipData();
+            int count = Math.min(clip.getItemCount(), targetFrames);
+            for (int i = 0; i < count; i++) {
+                uris.add(clip.getItemAt(i).getUri());
+            }
+        } else if (data.getData() != null) {
+            // Single image selected
+            uris.add(data.getData());
+        }
+
+        if (uris.isEmpty()) return;
+
+        // Disable buttons during processing
+        btnPickImages.setEnabled(false);
+        btnCapture.setEnabled(false);
+        showLoading(true);
+        tvStatus.setText("Processing " + uris.size() + " images...");
+
+        // Process on background thread
+        final List<Uri> finalUris = uris;
+        cameraExecutor.execute(() -> {
+            for (int i = 0; i < finalUris.size(); i++) {
+                if (isDestroyed) break;
+                Uri uri = finalUris.get(i);
+                final int index = i;
+                try {
+                    Bitmap bitmap = loadBitmapFromUri(uri);
+                    if (bitmap == null) continue;
+
+                    runOnUiThread(() -> tvStatus.setText("Stacking image " + (index + 1) + " / " + finalUris.size() + "..."));
+                    processFrame(bitmap);
+
+                    // Small sleep to allow UI update between frames
+                    Thread.sleep(50);
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to load image " + i, e);
+                }
+            }
+            runOnUiThread(() -> {
+                btnPickImages.setEnabled(true);
+                showLoading(false);
+            });
+        });
+    }
+
+    private Bitmap loadBitmapFromUri(Uri uri) {
+        try {
+            InputStream inputStream = getContentResolver().openInputStream(uri);
+            if (inputStream == null) return null;
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            inputStream.close();
+            return bitmap;
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to decode bitmap from URI", e);
+            return null;
+        }
     }
 
     private void captureFrame() {
