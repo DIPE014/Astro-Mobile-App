@@ -62,7 +62,7 @@ In practice we achieve 2.53× average noise reduction (80% of theoretical) due t
 
 The clean image is used **only as a warp source** — it is never directly stacked.
 
-```
+```text
 IMGxxx.jpg  (JPEG, RGB, e.g. 1908×4032)
     → stbi_load()
     → grayscale: Y = (77R + 150G + 29B) >> 8      [ITU-R BT.601 integer]
@@ -91,7 +91,7 @@ Frame 0 is the alignment reference. Its star catalog is detected from the **clea
 For each variant i = 1..9, sample a random rigid transform once per image
 (reproducible via `srand(42 + image_index)`):
 
-```
+```text
 angle_i = uniform(-3.0°, +3.0°)      // handheld rotation between shots
 tx_i    = uniform(-30, +30) px       // horizontal drift
 ty_i    = uniform(-30, +30) px       // vertical drift
@@ -113,7 +113,7 @@ variant_i[x, y] = clamp(val + noise,  0, 255)
 
 ### Visual illustration
 
-```
+```text
 ref_gray (clean, warp source)
     │
     ├─── + noise(σ=20) ──────────────────────► frame0  (noisy, identity)       ─┐
@@ -149,7 +149,7 @@ ref_gray (clean, warp source)
 7. **Accumulate:** add warped pixels to float sum, increment per-pixel count
 
 ### Final stacked image
-```
+```text
 stacked[x, y] = sum[x, y] / count[x, y]      (per-pixel mean over all frames)
 ```
 
@@ -193,7 +193,7 @@ image's natural background variation. It should approach √10 ≈ 3.16× for 10
 
 ### Alignment verification — IMG001 (full per-frame detail)
 
-```
+```text
 Frame 1: rot= 0.66° tx=-30 ty= 11 | a=0.999 b= 0.010 det=0.998 | err=1.69px ✓
 Frame 2: rot= 1.41° tx= 22 ty= 28 | SKIP: non-rigid affine (det=-0.128)
 Frame 3: rot= 1.21° tx=-30 ty=  5 | a=0.999 b= 0.021 det=0.999 | err=0.61px ✓
@@ -224,7 +224,7 @@ std_red=3.31× but SNR=1.80×). This happens when:
 The **std reduction** is the cleaner metric — it measures exactly how much the added
 Gaussian noise was reduced. A value close to √10 means the stacking is working optimally.
 
-```
+```text
 Theoretical:  std_reduction = √(frames_stacked) ≈ √10 = 3.16×
 Observed avg: 2.53×  (80% of theoretical — realistic for imperfect alignment)
 ```

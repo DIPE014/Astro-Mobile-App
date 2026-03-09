@@ -22,7 +22,8 @@
  *       "$APP/astrometry/gsl-an/libgsl-an.a" \
  *       -lm -lpthread
  *
- *   cd /mnt/d/Download/DIP && ./test_stacking_snr
+ *   DATASET_ROOT=/path/to/dataset OUTPUT_DIR=/path/to/output ./test_stacking_snr
+ * (defaults to /mnt/d/Download/DIP/dataset/raw/Dataset and /mnt/d/Download/DIP)
  */
 
 #include <stdio.h>
@@ -142,22 +143,33 @@ static float* detect_stars_simple(const unsigned char* img, int w, int h,
     int nraw = 0;
 
     /* Find local maxima in 5x5 windows above threshold */
-    for (int y = 3; y < h - 3 && nraw < max_raw; y++) {
-        for (int x = 3; x < w - 3 && nraw < max_raw; x++) {
-            float v = (float)img[y * w + x];
+    for (int y = 3; y < h - 3; y++) {
+        for (int x = 3; x < w - 3; x++) {
+            float v = img[y * w + x];
             if (v < threshold) continue;
+            /* local max check in 5x5 window */
             int is_max = 1;
-            for (int dy = -2; dy <= 2 && is_max; dy++) {
-                for (int dx = -2; dx <= 2 && is_max; dx++) {
-                    if (dx == 0 && dy == 0) continue;
-                    if ((float)img[(y + dy) * w + (x + dx)] > v) is_max = 0;
+            for (int dy = -2; dy <= 2 && is_max; dy++)
+                for (int dx = -2; dx <= 2 && is_max; dx++)
+                    if ((dx||dy) && img[(y+dy)*w+(x+dx)] > v) is_max = 0;
+            if (!is_max) continue;
+
+            if (nraw < max_raw) {
+                raw[nraw].x = (float)x;
+                raw[nraw].y = (float)y;
+                raw[nraw].flux = v;
+                nraw++;
+            } else {
+                /* Replace dimmest if this is brighter */
+                int min_idx = 0;
+                for (int k = 1; k < max_raw; k++)
+                    if (raw[k].flux < raw[min_idx].flux) min_idx = k;
+                if (v > raw[min_idx].flux) {
+                    raw[min_idx].x = (float)x;
+                    raw[min_idx].y = (float)y;
+                    raw[min_idx].flux = v;
                 }
             }
-            if (!is_max) continue;
-            raw[nraw].x    = (float)x;
-            raw[nraw].y    = (float)y;
-            raw[nraw].flux = v;
-            nraw++;
         }
     }
 
@@ -251,9 +263,16 @@ static float measure_snr(const unsigned char* img, int w, int h,
 }
 
 /* =========================================================================
+ * RANSAC quality gate thresholds
+ * ========================================================================= */
+/* MIN_INLIERS: minimum inlier count for a valid affine (3 = minimum to solve).
+ * RMS from ransac_affine is over ALL correspondences including outliers, so it
+ * is not useful as a threshold — the det check below guards rigidity instead. */
+#define MIN_INLIERS 3
+
+/* =========================================================================
  * Dataset image list
  * ========================================================================= */
-#define DATASET_DIR "/mnt/d/Download/DIP/dataset/raw/Dataset/"
 #define TOTAL_IMAGES 57
 
 static const char* IMAGE_NAMES[TOTAL_IMAGES] = {
@@ -277,6 +296,11 @@ static const char* IMAGE_NAMES[TOTAL_IMAGES] = {
 int main(void) {
     printf("=== Stacking SNR Test (57 images) ===\n\n");
 
+    const char* dataset_root = getenv("DATASET_ROOT");
+    if (!dataset_root) dataset_root = "/mnt/d/Download/DIP/dataset/raw/Dataset";
+    const char* output_dir = getenv("OUTPUT_DIR");
+    if (!output_dir) output_dir = "/mnt/d/Download/DIP";
+
     /* Install GSL error handler before any RANSAC calls */
     gsl_set_error_handler(silent_gsl_error);
 
@@ -297,7 +321,7 @@ int main(void) {
 
         /* Build full path */
         char img_path[512];
-        snprintf(img_path, sizeof(img_path), "%s%s", DATASET_DIR, img_name);
+        snprintf(img_path, sizeof(img_path), "%s/%s", dataset_root, img_name);
 
         /* ------------------------------------------------------------------
          * Step 1: Load image and convert to grayscale with 2x downsample
@@ -388,6 +412,9 @@ int main(void) {
             n_skipped++;
             continue;
         }
+        /* NOTE: Reference star catalog is detected from the clean source (ref_gray),
+         * not the noisy frame0. This gives the alignment an optimistic anchor —
+         * results represent an upper bound on real-world alignment accuracy. */
         box_blur_3x3(ref_gray, ref_blurred, w, h);
 
         float ref_min_sep = fmaxf(20.0f, 0.05f * (float)(w < h ? w : h));
@@ -590,6 +617,12 @@ int main(void) {
                 continue;
             }
 
+            if (inliers < MIN_INLIERS) {
+                if (img_idx == 0)
+                    printf("  Frame %d: SKIP: too few inliers (%d < %d)\n", fi+1, inliers, MIN_INLIERS);
+                continue;
+            }
+
             double det = aff.a * aff.d - aff.b * aff.c;
             if (fabs(det - 1.0) > 0.3) {
                 if (img_idx == 0) {
@@ -724,13 +757,15 @@ int main(void) {
                    pass_snr ? "PASS" : "FAIL");
 
             /* Save PGMs only for first image */
-            save_pgm("/mnt/d/Download/DIP/frame_000.pgm", frame0, w, h);
-            char pgm_path[128];
+            char pgm_path[512];
+            snprintf(pgm_path, sizeof(pgm_path), "%s/frame_000.pgm", output_dir);
+            save_pgm(pgm_path, frame0, w, h);
             for (int i = 0; i < 9; i++) {
-                snprintf(pgm_path, sizeof(pgm_path), "/mnt/d/Download/DIP/frame_%03d.pgm", i + 1);
+                snprintf(pgm_path, sizeof(pgm_path), "%s/frame_%03d.pgm", output_dir, i + 1);
                 save_pgm(pgm_path, variants[i], w, h);
             }
-            save_pgm("/mnt/d/Download/DIP/stacked_output.pgm", stacked, w, h);
+            snprintf(pgm_path, sizeof(pgm_path), "%s/stacked_output.pgm", output_dir);
+            save_pgm(pgm_path, stacked, w, h);
             printf("PGM files saved: frame_000..009.pgm, stacked_output.pgm\n\n");
         }
 
