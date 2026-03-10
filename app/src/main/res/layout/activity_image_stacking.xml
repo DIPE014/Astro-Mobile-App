@@ -50,11 +50,11 @@
         android:id="@+id/stackingToggleRow"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/overlay_dark"
+        android:background="#CC1A3A5C"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="8dp"
+        android:paddingVertical="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topControls">
@@ -63,9 +63,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Stacking Mode (10 frames)"
+            android:text="⭐ Stacking Mode (combine 10 frames)"
             android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-            android:textColor="@color/text_primary" />
+            android:textColor="#FFFFFF" />
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchStacking"
