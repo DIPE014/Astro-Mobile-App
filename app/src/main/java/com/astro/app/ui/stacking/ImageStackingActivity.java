@@ -37,6 +37,7 @@ import com.astro.app.R;
 import com.astro.app.native_.ImageStackingManager;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.nio.ByteBuffer;
@@ -48,6 +49,10 @@ import java.util.concurrent.TimeUnit;
  * Activity for image stacking feature.
  * Captures multiple frames from camera, aligns them using triangle asterism matching,
  * and averages pixel values to improve SNR and reveal fainter stars.
+ *
+ * Two modes:
+ *  - Normal mode (toggle OFF): single capture or single image pick, immediate result.
+ *  - Stacking mode (toggle ON): up to 10 frames, Finish button stacks them.
  */
 public class ImageStackingActivity extends AppCompatActivity {
     private static final String TAG = "ImageStackingActivity";
@@ -63,6 +68,7 @@ public class ImageStackingActivity extends AppCompatActivity {
     private ImageView ivStackedPreview;
     private CircularProgressIndicator progressIndicator;
     private View loadingOverlay;
+    private SwitchMaterial switchStacking;
 
     // CameraX
     private ProcessCameraProvider cameraProvider;
@@ -128,12 +134,17 @@ public class ImageStackingActivity extends AppCompatActivity {
         ivStackedPreview = findViewById(R.id.ivStackedPreview);
         progressIndicator = findViewById(R.id.progressIndicator);
         loadingOverlay = findViewById(R.id.loadingOverlay);
+        switchStacking = findViewById(R.id.switchStacking);
 
-        // Initial state
+        // Initial state — camera not ready yet
         btnCapture.setEnabled(false);
+        btnFinish.setVisibility(View.VISIBLE);
         btnFinish.setEnabled(false);
         tvFrameCount.setText("0 / " + targetFrames + " frames");
         tvStatus.setText("Initializing camera...");
+
+        // Apply initial mode UI
+        updateModeUI();
     }
 
     private void checkCameraPermission() {
@@ -181,9 +192,9 @@ public class ImageStackingActivity extends AppCompatActivity {
             cameraProvider.unbindAll();
             cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
 
-            // Enable capture button
+            // Enable capture button and refresh mode-aware UI
             btnCapture.setEnabled(true);
-            tvStatus.setText("Tap Capture to start stacking");
+            updateModeUI();
         } catch (Exception e) {
             Log.e(TAG, "Camera binding failed", e);
         }
@@ -197,22 +208,62 @@ public class ImageStackingActivity extends AppCompatActivity {
         btnFinish.setOnClickListener(v -> finishStacking());
 
         btnPickImages.setOnClickListener(v -> openGalleryPicker());
+
+        switchStacking.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Reset session when toggling mode
+            sessionStarted = false;
+            stackingManager.release();
+            stackingManager = new ImageStackingManager();
+            updateModeUI();
+        });
+    }
+
+    /**
+     * Updates button labels, visibility, and status text to reflect the current mode
+     * (normal single-capture vs. multi-frame stacking).
+     * Safe to call at any time; preserves btnCapture enabled state.
+     */
+    private void updateModeUI() {
+        boolean stacking = switchStacking.isChecked();
+        if (stacking) {
+            btnCapture.setText("Capture Frame");
+            btnPickImages.setText("Pick Images (\u226410)");
+            tvFrameCount.setVisibility(View.VISIBLE);
+            btnFinish.setVisibility(View.VISIBLE);
+            tvStatus.setText("Stacking ON \u2014 tap Capture up to 10\u00d7, or pick from gallery, then Finish.");
+        } else {
+            btnCapture.setText("Capture");
+            btnPickImages.setText("Pick Image");
+            tvFrameCount.setVisibility(View.GONE);
+            btnFinish.setVisibility(View.GONE);
+            tvStatus.setText("Tap Capture or pick an image.");
+        }
+        btnFinish.setEnabled(false);
+        tvFrameCount.setText("0 / " + targetFrames + " frames");
     }
 
     private void openGalleryPicker() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        boolean stacking = switchStacking.isChecked();
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("image/*");
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        pickImagesLauncher.launch(Intent.createChooser(intent, "Select up to 10 images"));
+        if (stacking) {
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        }
+        pickImagesLauncher.launch(Intent.createChooser(intent,
+            stacking ? "Select up to 10 images" : "Select image"));
     }
 
     private void handlePickedImages(Intent data) {
         List<Uri> uris = new ArrayList<>();
 
+        boolean stacking = switchStacking.isChecked();
+        int limit = stacking ? targetFrames : 1;
+
         if (data.getClipData() != null) {
             // Multiple images selected
             ClipData clip = data.getClipData();
-            int count = Math.min(clip.getItemCount(), targetFrames);
+            int count = Math.min(clip.getItemCount(), limit);
             for (int i = 0; i < count; i++) {
                 uris.add(clip.getItemAt(i).getUri());
             }
@@ -227,7 +278,7 @@ public class ImageStackingActivity extends AppCompatActivity {
         btnPickImages.setEnabled(false);
         btnCapture.setEnabled(false);
         showLoading(true);
-        tvStatus.setText("Processing " + uris.size() + " images...");
+        tvStatus.setText("Processing " + uris.size() + " image" + (uris.size() > 1 ? "s" : "") + "...");
 
         // Process on background thread
         final List<Uri> finalUris = uris;
@@ -240,7 +291,9 @@ public class ImageStackingActivity extends AppCompatActivity {
                     Bitmap bitmap = loadBitmapFromUri(uri);
                     if (bitmap == null) continue;
 
-                    runOnUiThread(() -> tvStatus.setText("Stacking image " + (index + 1) + " / " + finalUris.size() + "..."));
+                    if (finalUris.size() > 1) {
+                        runOnUiThread(() -> tvStatus.setText("Stacking image " + (index + 1) + " / " + finalUris.size() + "..."));
+                    }
                     processFrame(bitmap);
 
                     // Small sleep to allow UI update between frames
@@ -252,6 +305,17 @@ public class ImageStackingActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 btnPickImages.setEnabled(true);
                 showLoading(false);
+                int frameCount = stackingManager.getFrameCount();
+                if (stacking) {
+                    updateUI();
+                    btnCapture.setEnabled(frameCount < targetFrames);
+                } else {
+                    // Normal mode: single frame processed — auto-finish
+                    btnCapture.setEnabled(true);
+                    if (frameCount > 0) {
+                        finishStacking();
+                    }
+                }
             });
         });
     }
@@ -283,7 +347,19 @@ public class ImageStackingActivity extends AppCompatActivity {
                 imageProxy.close();
 
                 if (bitmap != null) {
-                    processFrame(bitmap);
+                    if (switchStacking.isChecked()) {
+                        // Stacking mode: accumulate frame, update counter
+                        processFrame(bitmap);
+                    } else {
+                        // Normal mode: single capture — process then immediately finish
+                        processFrame(bitmap);
+                        runOnUiThread(() -> {
+                            showLoading(false);
+                            btnCapture.setEnabled(true);
+                            Toast.makeText(ImageStackingActivity.this,
+                                "Image captured (1 frame)", Toast.LENGTH_SHORT).show();
+                        });
+                    }
                 } else {
                     runOnUiThread(() -> {
                         showLoading(false);
@@ -326,9 +402,12 @@ public class ImageStackingActivity extends AppCompatActivity {
                 showLoading(false);
 
                 if (finalSuccess) {
-                    updateUI();
-                    btnCapture.setEnabled(stackingManager.getFrameCount() < targetFrames);
-                    btnFinish.setEnabled(true);
+                    if (switchStacking.isChecked()) {
+                        updateUI();
+                    } else {
+                        // Normal mode: single frame done — auto-finish
+                        finishStacking();
+                    }
                 } else {
                     btnCapture.setEnabled(true);
                     Toast.makeText(ImageStackingActivity.this,
@@ -371,8 +450,16 @@ public class ImageStackingActivity extends AppCompatActivity {
     private void updateUI() {
         int frameCount = stackingManager.getFrameCount();
         tvFrameCount.setText(frameCount + " / " + targetFrames + " frames");
-        // Preview is not updated per-frame to avoid OOM (getResult allocates ~11MB bitmap).
-        // The stacked result is only retrieved once in finishStacking().
+        if (switchStacking.isChecked()) {
+            if (frameCount < targetFrames) {
+                tvStatus.setText("Frame " + frameCount + " added. Capture more or tap Finish.");
+            } else {
+                tvStatus.setText(targetFrames + " frames \u2014 tap Finish to stack.");
+            }
+            btnFinish.setText("Finish & Stack (" + frameCount + " frames)");
+            btnFinish.setEnabled(frameCount >= 2);
+            btnCapture.setEnabled(frameCount < targetFrames);
+        }
     }
 
     private void finishStacking() {

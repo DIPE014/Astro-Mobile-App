@@ -8,16 +8,6 @@
     android:background="@color/background_dark"
     tools:context=".ui.stacking.ImageStackingActivity">
 
-    <!-- Camera Preview -->
-    <androidx.camera.view.PreviewView
-        android:id="@+id/cameraPreview"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/statusCard"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <!-- Top Control Bar -->
     <LinearLayout
         android:id="@+id/topControls"
@@ -54,6 +44,45 @@
             android:layout_width="48dp"
             android:layout_height="48dp" />
     </LinearLayout>
+
+    <!-- Stacking Mode Toggle Row -->
+    <LinearLayout
+        android:id="@+id/stackingToggleRow"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/overlay_dark"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topControls">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Stacking Mode (10 frames)"
+            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+            android:textColor="@color/text_primary" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchStacking"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="false" />
+    </LinearLayout>
+
+    <!-- Camera Preview -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/cameraPreview"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/statusCard"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stackingToggleRow" />
 
     <!-- Status Card -->
     <com.google.android.material.card.MaterialCardView
@@ -117,44 +146,52 @@
         android:layout_height="wrap_content"
         android:background="@color/overlay_dark"
         android:gravity="center"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCapture"
-            style="@style/Widget.Material3.Button"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="4dp"
-            android:text="@string/capture_frame"
-            app:icon="@android:drawable/ic_menu_camera"
-            app:iconGravity="textStart" />
+        <!-- Row 1: Capture + Pick Images -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPickImages"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_weight="1"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
-            android:text="Pick Images"
-            app:icon="@android:drawable/ic_menu_gallery"
-            app:iconGravity="textStart" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCapture"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="@string/capture_frame"
+                app:icon="@android:drawable/ic_menu_camera"
+                app:iconGravity="textStart" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPickImages"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="Pick from Gallery"
+                app:icon="@android:drawable/ic_menu_gallery"
+                app:iconGravity="textStart" />
+        </LinearLayout>
+
+        <!-- Row 2: Finish (visibility managed by Java) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFinish"
             style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_weight="1"
-            android:layout_marginStart="4dp"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="8dp"
             android:text="@string/finish"
+            android:visibility="gone"
             app:icon="@android:drawable/ic_menu_save"
             app:iconGravity="textStart" />
     </LinearLayout>
