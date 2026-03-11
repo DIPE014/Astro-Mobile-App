@@ -57,9 +57,10 @@ import com.astro.app.data.repository.MessierRepository;
 import com.astro.app.data.repository.StarRepository;
 import com.astro.app.ui.highlights.TonightsHighlightsFragment;
 import com.astro.app.ui.education.EducationDetailActivity;
-import com.astro.app.ui.platesolve.PlateSolveActivity;
+
 import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
+import com.astro.app.ui.platesolve.PlateSolveActivity;
 import com.astro.app.ui.stacking.ImageStackingActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
 import com.astro.app.ui.starinfo.StarInfoActivity;

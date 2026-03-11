@@ -1,103 +1,159 @@
 package com.astro.app.ui.stacking;
 
 import android.Manifest;
-import android.content.ClipData;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.Size;
-import android.view.Surface;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.CameraSelector;
-import androidx.camera.core.ImageCapture;
-import androidx.camera.core.ImageCaptureException;
-import androidx.camera.core.ImageProxy;
-import androidx.camera.core.Preview;
-import androidx.camera.lifecycle.ProcessCameraProvider;
-import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.astro.app.R;
+import com.astro.app.data.model.SkyBrightnessResult;
+import com.astro.app.native_.AstrometryNative;
+import com.astro.app.native_.ConstellationOverlay;
 import com.astro.app.native_.ImageStackingManager;
+import com.astro.app.native_.NativePlateSolver;
+import com.astro.app.ui.skybrightness.BortleScaleView;
+import com.astro.app.ui.skybrightness.SkyBrightnessAnalyzer;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.switchmaterial.SwitchMaterial;
-import com.google.common.util.concurrent.ListenableFuture;
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Activity for image stacking feature.
- * Captures multiple frames from camera, aligns them using triangle asterism matching,
- * and averages pixel values to improve SNR and reveal fainter stars.
+ * Unified camera activity for plate solving and optional image stacking.
  *
  * Two modes:
- *  - Normal mode (toggle OFF): single capture or single image pick, immediate result.
- *  - Stacking mode (toggle ON): up to 10 frames, Finish button stacks them.
+ *  - Stacking OFF (default): Capture or pick 1 image, plate solve it, show result
+ *    with constellation overlay and sky quality analysis.
+ *  - Stacking ON: Capture/pick up to 10 frames, stack them, plate solve the
+ *    stacked result, show result with constellation overlay and sky quality.
  */
 public class ImageStackingActivity extends AppCompatActivity {
     private static final String TAG = "ImageStackingActivity";
+    private static final int MAX_FRAMES = 10;
 
-    // Views
-    private PreviewView cameraPreview;
+    // ---- Capture mode views ----
+    private View topControls;
+    private View stackingToggleRow;
+    private MaterialCardView statusCard;
+    private View bottomControls;
+    private View loadingOverlay;
+    private CircularProgressIndicator progressIndicator;
+
     private MaterialButton btnCapture;
     private MaterialButton btnFinish;
     private MaterialButton btnBack;
     private MaterialButton btnPickImages;
     private TextView tvFrameCount;
     private TextView tvStatus;
-    private ImageView ivStackedPreview;
-    private CircularProgressIndicator progressIndicator;
-    private View loadingOverlay;
     private SwitchMaterial switchStacking;
 
-    // CameraX
-    private ProcessCameraProvider cameraProvider;
-    private ImageCapture imageCapture;
-    private ExecutorService cameraExecutor;
+    // ---- Collection ----
+    private final List<Uri> collectedUris = new ArrayList<>();
+    private ThumbnailAdapter thumbnailAdapter;
+    private RecyclerView thumbnailGrid;
 
-    // Stacking
+    // ---- Result mode views ----
+    private View resultContainer;
+    private View resultBottomBar;
+    private ImageView resultImageView;
+    private ProgressBar resultProgressBar;
+    private TextView resultStatus;
+    private MaterialButton btnNewScan;
+    private Button btnSkyQuality;
+    private CheckBox cbConstellations;
+
+    // ---- Background executor ----
+    private ExecutorService backgroundExecutor;
+
+    // ---- Stacking ----
     private ImageStackingManager stackingManager;
-    private boolean sessionStarted = false;
-    private int targetFrames = 10;  // Default target
     private volatile boolean isDestroyed = false;
 
-    // Gallery picker
-    private final ActivityResultLauncher<Intent> pickImagesLauncher =
-        registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                handlePickedImages(result.getData());
+    // ---- Plate solving ----
+    private NativePlateSolver solver;
+    private ConstellationOverlay constellationOverlay;
+
+    // ---- Result state ----
+    private Bitmap capturedBitmap;    // single-frame color bitmap (stacking OFF)
+    private Bitmap originalBitmap;    // bitmap shown in result view (before overlay)
+    private Bitmap overlayBitmap;     // bitmap with constellation overlay drawn
+    private SkyBrightnessResult skyResult;
+    private boolean inResultMode = false;
+
+    // ---- Camera (native app via TakePicture contract) ----
+    private Uri pendingCameraUri;
+
+    // ---- Camera launcher ----
+    private final ActivityResultLauncher<Uri> cameraLauncher =
+        registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
+            if (success && pendingCameraUri != null) {
+                addCollectedImage(pendingCameraUri);
             }
         });
 
-    // Permission
+    // ---- Camera permission ----
     private final ActivityResultLauncher<String> cameraPermissionLauncher =
-        registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-            if (isGranted) {
-                startCamera();
+        registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+            if (granted) {
+                launchNativeCamera();
             } else {
-                Toast.makeText(this, "Camera permission required for stacking",
-                    Toast.LENGTH_LONG).show();
-                finish();
+                Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    // ---- Photo Picker - multi-select (stacking ON) ----
+    private final ActivityResultLauncher<PickVisualMediaRequest> galleryMultiLauncher =
+        registerForActivityResult(new ActivityResultContracts.PickMultipleVisualMedia(MAX_FRAMES), uris -> {
+            if (uris != null) {
+                for (Uri uri : uris) {
+                    if (collectedUris.size() < MAX_FRAMES) {
+                        addCollectedImage(uri);
+                    }
+                }
+            }
+        });
+
+    // ---- Photo Picker - single-select (stacking OFF) ----
+    private final ActivityResultLauncher<PickVisualMediaRequest> gallerySingleLauncher =
+        registerForActivityResult(new ActivityResultContracts.PickVisualMedia(), uri -> {
+            if (uri != null) {
+                collectedUris.clear();
+                thumbnailAdapter.notifyDataSetChanged();
+                addCollectedImage(uri);
             }
         });
 
@@ -106,131 +162,113 @@ public class ImageStackingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_stacking);
 
-        // Keep screen on during stacking
+        // Keep screen on
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        // Initialize views
         initializeViews();
 
         // Initialize managers
         stackingManager = new ImageStackingManager();
-        cameraExecutor = Executors.newSingleThreadExecutor();
+        backgroundExecutor = Executors.newSingleThreadExecutor();
 
-        // Setup listeners
+        // Initialize plate solver and constellation overlay
+        solver = new NativePlateSolver(this);
+        constellationOverlay = new ConstellationOverlay();
+        constellationOverlay.loadConstellations(this);
+
+        if (AstrometryNative.isLibraryLoaded()) {
+            try {
+                solver.loadIndexesFromAssets("indexes");
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to load index files: " + e.getMessage());
+            }
+        }
+
         setupClickListeners();
-
-        // Check permission and start camera
-        checkCameraPermission();
     }
 
     private void initializeViews() {
-        cameraPreview = findViewById(R.id.cameraPreview);
+        // Capture mode views
+        topControls = findViewById(R.id.topControls);
+        stackingToggleRow = findViewById(R.id.stackingToggleRow);
+        statusCard = findViewById(R.id.statusCard);
+        bottomControls = findViewById(R.id.bottomControls);
+        loadingOverlay = findViewById(R.id.loadingOverlay);
+        progressIndicator = findViewById(R.id.progressIndicator);
+
         btnCapture = findViewById(R.id.btnCapture);
         btnFinish = findViewById(R.id.btnFinish);
         btnBack = findViewById(R.id.btnBack);
         btnPickImages = findViewById(R.id.btnPickImages);
         tvFrameCount = findViewById(R.id.tvFrameCount);
         tvStatus = findViewById(R.id.tvStatus);
-        ivStackedPreview = findViewById(R.id.ivStackedPreview);
-        progressIndicator = findViewById(R.id.progressIndicator);
-        loadingOverlay = findViewById(R.id.loadingOverlay);
         switchStacking = findViewById(R.id.switchStacking);
 
-        // Initial state — camera not ready yet
-        btnCapture.setEnabled(false);
+        // Thumbnail grid
+        thumbnailGrid = findViewById(R.id.thumbnailGrid);
+        thumbnailAdapter = new ThumbnailAdapter();
+        thumbnailGrid.setLayoutManager(new GridLayoutManager(this, 3));
+        thumbnailGrid.setAdapter(thumbnailAdapter);
+
+        // Result mode views
+        resultContainer = findViewById(R.id.resultContainer);
+        resultBottomBar = findViewById(R.id.resultBottomBar);
+        resultImageView = findViewById(R.id.resultImageView);
+        resultProgressBar = findViewById(R.id.resultProgressBar);
+        resultStatus = findViewById(R.id.resultStatus);
+        btnNewScan = findViewById(R.id.btnNewScan);
+        btnSkyQuality = findViewById(R.id.btnSkyQuality);
+        cbConstellations = findViewById(R.id.cbConstellations);
+
+        // Initial state
+        btnCapture.setEnabled(true);
         btnFinish.setVisibility(View.VISIBLE);
         btnFinish.setEnabled(false);
-        tvFrameCount.setText("0 / " + targetFrames + " frames");
-        tvStatus.setText("Initializing camera...");
+        tvFrameCount.setText("0 / 1 frames");
+        tvStatus.setText("Tap Capture or pick an image.");
 
-        // Apply initial mode UI
         updateModeUI();
-    }
-
-    private void checkCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-                == PackageManager.PERMISSION_GRANTED) {
-            startCamera();
-        } else {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
-        }
-    }
-
-    private void startCamera() {
-        ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
-                ProcessCameraProvider.getInstance(this);
-
-        cameraProviderFuture.addListener(() -> {
-            try {
-                cameraProvider = cameraProviderFuture.get();
-                bindCameraUseCases();
-            } catch (Exception e) {
-                Log.e(TAG, "Camera initialization failed", e);
-                Toast.makeText(this, "Failed to initialize camera", Toast.LENGTH_SHORT).show();
-            }
-        }, ContextCompat.getMainExecutor(this));
-    }
-
-    private void bindCameraUseCases() {
-        // Preview use case
-        Preview preview = new Preview.Builder().build();
-        preview.setSurfaceProvider(cameraPreview.getSurfaceProvider());
-
-        // ImageCapture use case
-        imageCapture = new ImageCapture.Builder()
-                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                .setTargetRotation(Surface.ROTATION_0)
-                .setTargetResolution(new Size(1920, 1440))  // Fixed resolution to prevent mismatches
-                .build();
-
-        // Bind to lifecycle
-        CameraSelector cameraSelector = new CameraSelector.Builder()
-                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-                .build();
-
-        try {
-            cameraProvider.unbindAll();
-            cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
-
-            // Enable capture button and refresh mode-aware UI
-            btnCapture.setEnabled(true);
-            updateModeUI();
-        } catch (Exception e) {
-            Log.e(TAG, "Camera binding failed", e);
-        }
     }
 
     private void setupClickListeners() {
         btnBack.setOnClickListener(v -> finish());
-
         btnCapture.setOnClickListener(v -> captureFrame());
-
         btnFinish.setOnClickListener(v -> finishStacking());
-
         btnPickImages.setOnClickListener(v -> openGalleryPicker());
 
         switchStacking.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            // Reset session when toggling mode
-            sessionStarted = false;
-            stackingManager.release();
-            stackingManager = new ImageStackingManager();
+            resetSession();
             updateModeUI();
+        });
+
+        // Result mode listeners
+        btnNewScan.setOnClickListener(v -> showCaptureMode());
+
+        btnSkyQuality.setOnClickListener(v -> showSkyBrightnessDialog());
+
+        cbConstellations.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (resultImageView == null || originalBitmap == null) return;
+            if (isChecked && overlayBitmap != null) {
+                resultImageView.setImageBitmap(overlayBitmap);
+            } else {
+                resultImageView.setImageBitmap(originalBitmap);
+            }
         });
     }
 
-    /**
-     * Updates button labels, visibility, and status text to reflect the current mode
-     * (normal single-capture vs. multi-frame stacking).
-     * Safe to call at any time; preserves btnCapture enabled state.
-     */
+    // =========================================================================
+    // Mode UI
+    // =========================================================================
+
     private void updateModeUI() {
         boolean stacking = switchStacking.isChecked();
         if (stacking) {
-            btnCapture.setText("Capture Frame");
-            btnPickImages.setText("Pick Images (\u226410)");
+            btnCapture.setText("Take Photo");
+            btnPickImages.setText("Pick from Gallery");
             tvFrameCount.setVisibility(View.VISIBLE);
             btnFinish.setVisibility(View.VISIBLE);
-            tvStatus.setText("Stacking ON \u2014 tap Capture up to 10\u00d7, or pick from gallery, then Finish.");
+            btnFinish.setText("Stack & Solve");
+            tvStatus.setText("Stacking ON \u2014 capture up to 10 frames, then Stack & Solve.");
         } else {
             btnCapture.setText("Capture");
             btnPickImages.setText("Pick Image");
@@ -239,92 +277,139 @@ public class ImageStackingActivity extends AppCompatActivity {
             tvStatus.setText("Tap Capture or pick an image.");
         }
         btnFinish.setEnabled(false);
-        tvFrameCount.setText("0 / " + targetFrames + " frames");
+        tvFrameCount.setText("0 / " + (stacking ? MAX_FRAMES : 1) + " frames");
     }
+
+    private void showResultMode(Bitmap bitmap) {
+        inResultMode = true;
+
+        // Hide capture views
+        topControls.setVisibility(View.GONE);
+        stackingToggleRow.setVisibility(View.GONE);
+        thumbnailGrid.setVisibility(View.GONE);
+        statusCard.setVisibility(View.GONE);
+        bottomControls.setVisibility(View.GONE);
+
+        // Show result views
+        resultContainer.setVisibility(View.VISIBLE);
+        resultBottomBar.setVisibility(View.VISIBLE);
+
+        // Reset result state
+        overlayBitmap = null;
+        skyResult = null;
+        cbConstellations.setVisibility(View.GONE);
+        cbConstellations.setEnabled(false);
+        cbConstellations.setChecked(false);
+        btnSkyQuality.setVisibility(View.GONE);
+
+        originalBitmap = bitmap;
+        resultImageView.setImageBitmap(bitmap);
+    }
+
+    private void showCaptureMode() {
+        inResultMode = false;
+
+        // Show capture views
+        topControls.setVisibility(View.VISIBLE);
+        stackingToggleRow.setVisibility(View.VISIBLE);
+        thumbnailGrid.setVisibility(View.VISIBLE);
+        statusCard.setVisibility(View.VISIBLE);
+        bottomControls.setVisibility(View.VISIBLE);
+
+        // Hide result views
+        resultContainer.setVisibility(View.GONE);
+        resultBottomBar.setVisibility(View.GONE);
+
+        // Reset state
+        resetSession();
+        updateModeUI();
+
+        // Clear bitmaps to free memory
+        originalBitmap = null;
+        overlayBitmap = null;
+        capturedBitmap = null;
+        skyResult = null;
+    }
+
+    private void resetSession() {
+        capturedBitmap = null;
+        collectedUris.clear();
+        if (thumbnailAdapter != null) thumbnailAdapter.notifyDataSetChanged();
+        stackingManager.release();
+        stackingManager = new ImageStackingManager();
+    }
+
+    // =========================================================================
+    // Collection management
+    // =========================================================================
+
+    private void addCollectedImage(Uri uri) {
+        if (collectedUris.size() >= MAX_FRAMES) {
+            Toast.makeText(this, "Maximum " + MAX_FRAMES + " images", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        collectedUris.add(uri);
+        thumbnailAdapter.notifyItemInserted(collectedUris.size() - 1);
+        updateCollectionUI();
+
+        // If stacking OFF, auto-trigger processing
+        if (!switchStacking.isChecked()) {
+            processAllImages();
+        }
+    }
+
+    private void removeCollectedImage(int position) {
+        if (position < 0 || position >= collectedUris.size()) return;
+        collectedUris.remove(position);
+        thumbnailAdapter.notifyItemRemoved(position);
+        thumbnailAdapter.notifyItemRangeChanged(position, collectedUris.size() - position);
+        updateCollectionUI();
+    }
+
+    private void updateCollectionUI() {
+        int count = collectedUris.size();
+        boolean stacking = switchStacking.isChecked();
+        tvFrameCount.setText(count + " / " + (stacking ? MAX_FRAMES : 1) + " frames");
+
+        if (stacking) {
+            btnCapture.setEnabled(count < MAX_FRAMES);
+            btnPickImages.setEnabled(count < MAX_FRAMES);
+            btnFinish.setEnabled(count >= 1);
+            btnFinish.setText("Stack & Solve (" + count + " frame" + (count == 1 ? "" : "s") + ")");
+            if (count == 0) {
+                tvStatus.setText("Stacking ON \u2014 capture up to 10 frames, then Stack & Solve.");
+            } else {
+                tvStatus.setText(count + " image(s) collected. Add more or tap Stack & Solve.");
+            }
+        } else {
+            btnCapture.setEnabled(count == 0);
+            btnPickImages.setEnabled(count == 0);
+            tvStatus.setText(count == 0 ? "Tap Capture or pick an image." : "Processing...");
+        }
+    }
+
+    // =========================================================================
+    // Gallery picker
+    // =========================================================================
 
     private void openGalleryPicker() {
-        boolean stacking = switchStacking.isChecked();
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("image/*");
-        if (stacking) {
-            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        PickVisualMediaRequest request = new PickVisualMediaRequest.Builder()
+                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
+                .build();
+        if (switchStacking.isChecked()) {
+            galleryMultiLauncher.launch(request);
+        } else {
+            gallerySingleLauncher.launch(request);
         }
-        pickImagesLauncher.launch(Intent.createChooser(intent,
-            stacking ? "Select up to 10 images" : "Select image"));
-    }
-
-    private void handlePickedImages(Intent data) {
-        List<Uri> uris = new ArrayList<>();
-
-        boolean stacking = switchStacking.isChecked();
-        int limit = stacking ? targetFrames : 1;
-
-        if (data.getClipData() != null) {
-            // Multiple images selected
-            ClipData clip = data.getClipData();
-            int count = Math.min(clip.getItemCount(), limit);
-            for (int i = 0; i < count; i++) {
-                uris.add(clip.getItemAt(i).getUri());
-            }
-        } else if (data.getData() != null) {
-            // Single image selected
-            uris.add(data.getData());
-        }
-
-        if (uris.isEmpty()) return;
-
-        // Disable buttons during processing
-        btnPickImages.setEnabled(false);
-        btnCapture.setEnabled(false);
-        showLoading(true);
-        tvStatus.setText("Processing " + uris.size() + " image" + (uris.size() > 1 ? "s" : "") + "...");
-
-        // Process on background thread
-        final List<Uri> finalUris = uris;
-        cameraExecutor.execute(() -> {
-            for (int i = 0; i < finalUris.size(); i++) {
-                if (isDestroyed) break;
-                Uri uri = finalUris.get(i);
-                final int index = i;
-                try {
-                    Bitmap bitmap = loadBitmapFromUri(uri);
-                    if (bitmap == null) continue;
-
-                    if (finalUris.size() > 1) {
-                        runOnUiThread(() -> tvStatus.setText("Stacking image " + (index + 1) + " / " + finalUris.size() + "..."));
-                    }
-                    processFrame(bitmap);
-
-                    // Small sleep to allow UI update between frames
-                    Thread.sleep(50);
-                } catch (Exception e) {
-                    Log.e(TAG, "Failed to load image " + i, e);
-                }
-            }
-            runOnUiThread(() -> {
-                btnPickImages.setEnabled(true);
-                showLoading(false);
-                int frameCount = stackingManager.getFrameCount();
-                if (stacking) {
-                    updateUI();
-                    btnCapture.setEnabled(frameCount < targetFrames);
-                } else {
-                    // Normal mode: single frame processed — auto-finish
-                    btnCapture.setEnabled(true);
-                    if (frameCount > 0) {
-                        finishStacking();
-                    }
-                }
-            });
-        });
     }
 
     private Bitmap loadBitmapFromUri(Uri uri) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
             if (inputStream == null) return null;
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inScaled = false;
+            Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, opts);
             inputStream.close();
             return bitmap;
         } catch (Exception e) {
@@ -333,88 +418,121 @@ public class ImageStackingActivity extends AppCompatActivity {
         }
     }
 
+    // =========================================================================
+    // Camera capture
+    // =========================================================================
+
     private void captureFrame() {
-        if (imageCapture == null || isDestroyed) return;
-
-        // Show processing
-        showLoading(true);
-        btnCapture.setEnabled(false);
-
-        imageCapture.takePicture(cameraExecutor, new ImageCapture.OnImageCapturedCallback() {
-            @Override
-            public void onCaptureSuccess(ImageProxy imageProxy) {
-                Bitmap bitmap = imageProxyToBitmap(imageProxy);
-                imageProxy.close();
-
-                if (bitmap != null) {
-                    if (switchStacking.isChecked()) {
-                        // Stacking mode: accumulate frame, update counter
-                        processFrame(bitmap);
-                    } else {
-                        // Normal mode: single capture — process then immediately finish
-                        processFrame(bitmap);
-                        runOnUiThread(() -> {
-                            showLoading(false);
-                            btnCapture.setEnabled(true);
-                            Toast.makeText(ImageStackingActivity.this,
-                                "Image captured (1 frame)", Toast.LENGTH_SHORT).show();
-                        });
-                    }
-                } else {
-                    runOnUiThread(() -> {
-                        showLoading(false);
-                        btnCapture.setEnabled(true);
-                        Toast.makeText(ImageStackingActivity.this,
-                            "Failed to process image", Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
-
-            @Override
-            public void onError(ImageCaptureException exception) {
-                Log.e(TAG, "Capture failed", exception);
-                runOnUiThread(() -> {
-                    showLoading(false);
-                    btnCapture.setEnabled(true);
-                    Toast.makeText(ImageStackingActivity.this,
-                        "Capture failed", Toast.LENGTH_SHORT).show();
-                });
-            }
-        });
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+        } else {
+            launchNativeCamera();
+        }
     }
 
-    private void processFrame(Bitmap bitmap) {
-        // Process on background thread
-        cameraExecutor.execute(() -> {
-            boolean success;
+    private void launchNativeCamera() {
+        File photoFile = new File(getCacheDir(), "stack_capture_" + System.currentTimeMillis() + ".jpg");
+        pendingCameraUri = FileProvider.getUriForFile(this,
+                getPackageName() + ".fileprovider", photoFile);
+        cameraLauncher.launch(pendingCameraUri);
+    }
 
-            if (!sessionStarted) {
-                // First frame - start session
-                success = stackingManager.startSession(bitmap, createCallback());
-                sessionStarted = success;
-            } else {
-                // Subsequent frames
-                success = stackingManager.addFrame(bitmap);
+    // =========================================================================
+    // Batch processing
+    // =========================================================================
+
+    private void processAllImages() {
+        if (collectedUris.isEmpty()) {
+            Toast.makeText(this, "No images to process", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        showLoading(true);
+        btnCapture.setEnabled(false);
+        btnPickImages.setEnabled(false);
+        btnFinish.setEnabled(false);
+        switchStacking.setEnabled(false);
+        tvStatus.setText("Processing " + collectedUris.size() + " image(s)...");
+
+        final List<Uri> uris = new ArrayList<>(collectedUris);
+        final boolean stacking = switchStacking.isChecked();
+
+        backgroundExecutor.execute(() -> {
+            Bitmap resultBitmap = null;
+            try {
+                if (stacking && uris.size() > 1) {
+                    resultBitmap = stackAllFrames(uris);
+                } else {
+                    resultBitmap = loadBitmapFromUri(uris.get(0));
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Processing failed", e);
             }
 
-            final boolean finalSuccess = success;
+            final Bitmap finalResult = resultBitmap;
             runOnUiThread(() -> {
+                if (isDestroyed) return;
                 showLoading(false);
-
-                if (finalSuccess) {
-                    if (switchStacking.isChecked()) {
-                        updateUI();
-                    } else {
-                        // Normal mode: single frame done — auto-finish
-                        finishStacking();
-                    }
+                switchStacking.setEnabled(true);
+                if (finalResult != null) {
+                    showResultMode(finalResult);
+                    solvePlate(finalResult);
+                    analyzeSkyBrightness(finalResult);
                 } else {
+                    Toast.makeText(ImageStackingActivity.this, "Processing failed", Toast.LENGTH_SHORT).show();
                     btnCapture.setEnabled(true);
-                    Toast.makeText(ImageStackingActivity.this,
-                        "Failed to stack frame", Toast.LENGTH_SHORT).show();
+                    btnPickImages.setEnabled(true);
+                    if (stacking) btnFinish.setEnabled(!collectedUris.isEmpty());
                 }
             });
         });
+    }
+
+    private Bitmap stackAllFrames(List<Uri> uris) {
+        int targetW = 0, targetH = 0;
+        boolean sessionOk = false;
+
+        for (int i = 0; i < uris.size(); i++) {
+            if (isDestroyed) return null;
+
+            final int idx = i;
+            runOnUiThread(() -> tvStatus.setText("Processing frame " + (idx + 1) + " / " + uris.size() + "..."));
+
+            Bitmap bitmap = loadBitmapFromUri(uris.get(i));
+            if (bitmap == null) {
+                Log.w(TAG, "Failed to load frame " + i);
+                continue;
+            }
+
+            // Scale to match first frame if dimensions differ
+            if (targetW == 0) {
+                targetW = bitmap.getWidth();
+                targetH = bitmap.getHeight();
+            } else if (bitmap.getWidth() != targetW || bitmap.getHeight() != targetH) {
+                Bitmap scaled = Bitmap.createScaledBitmap(bitmap, targetW, targetH, true);
+                bitmap.recycle();
+                bitmap = scaled;
+            }
+
+            boolean ok;
+            if (!sessionOk) {
+                ok = stackingManager.startSession(bitmap, createCallback());
+                sessionOk = ok;
+            } else {
+                ok = stackingManager.addFrame(bitmap);
+            }
+            bitmap.recycle();
+
+            if (!ok) {
+                Log.w(TAG, "Stacking failed for frame " + i);
+            }
+        }
+
+        if (sessionOk && stackingManager.getFrameCount() > 0) {
+            return stackingManager.getResult();
+        }
+        return null;
     }
 
     private ImageStackingManager.StackingCallback createCallback() {
@@ -422,6 +540,7 @@ public class ImageStackingActivity extends AppCompatActivity {
             @Override
             public void onFrameStacked(int frameNumber, int totalFrames, int inliers, double rmsError) {
                 runOnUiThread(() -> {
+                    if (isDestroyed) return;
                     Log.i(TAG, String.format("Frame %d stacked: %d inliers, RMS=%.2f px",
                         frameNumber, inliers, rmsError));
                     tvStatus.setText(String.format("Aligned: %d stars, RMS: %.1f px",
@@ -432,6 +551,7 @@ public class ImageStackingActivity extends AppCompatActivity {
             @Override
             public void onAlignmentFailed(int frameNumber, String reason) {
                 runOnUiThread(() -> {
+                    if (isDestroyed) return;
                     Log.w(TAG, "Frame " + frameNumber + " alignment failed: " + reason);
                     tvStatus.setText("Alignment failed: " + reason);
                 });
@@ -440,6 +560,7 @@ public class ImageStackingActivity extends AppCompatActivity {
             @Override
             public void onStarDetectionFailed(int frameNumber, int starCount) {
                 runOnUiThread(() -> {
+                    if (isDestroyed) return;
                     Log.w(TAG, "Frame " + frameNumber + " star detection failed: " + starCount);
                     tvStatus.setText("Too few stars detected: " + starCount);
                 });
@@ -447,83 +568,245 @@ public class ImageStackingActivity extends AppCompatActivity {
         };
     }
 
-    private void updateUI() {
-        int frameCount = stackingManager.getFrameCount();
-        tvFrameCount.setText(frameCount + " / " + targetFrames + " frames");
-        if (switchStacking.isChecked()) {
-            if (frameCount < targetFrames) {
-                tvStatus.setText("Frame " + frameCount + " added. Capture more or tap Finish.");
-            } else {
-                tvStatus.setText(targetFrames + " frames \u2014 tap Finish to stack.");
-            }
-            btnFinish.setText("Finish & Stack (" + frameCount + " frames)");
-            btnFinish.setEnabled(frameCount >= 2);
-            btnCapture.setEnabled(frameCount < targetFrames);
-        }
-    }
+    // =========================================================================
+    // Finish: get result bitmap, switch to result mode, plate solve
+    // =========================================================================
 
     private void finishStacking() {
-        // Get final result
-        Bitmap result = stackingManager.getResult();
-
-        if (result != null) {
-            // TODO: Save to gallery or pass back to caller
-            Toast.makeText(this, "Stacking complete: " +
-                stackingManager.getFrameCount() + " frames", Toast.LENGTH_LONG).show();
-
-            // For now, just finish
-            finish();
-        } else {
-            Toast.makeText(this, "No stacked result available", Toast.LENGTH_SHORT).show();
-        }
+        processAllImages();
     }
+
+    // =========================================================================
+    // Plate solving
+    // =========================================================================
+
+    private void solvePlate(Bitmap bitmap) {
+        if (resultProgressBar == null || resultStatus == null || solver == null) return;
+        if (backgroundExecutor.isShutdown()) return;
+
+        resultProgressBar.setVisibility(View.VISIBLE);
+        resultStatus.setVisibility(View.VISIBLE);
+        resultStatus.setText("Detecting constellations...");
+
+        backgroundExecutor.execute(() -> {
+            try {
+                solver.solve(bitmap, new NativePlateSolver.SolveCallback() {
+                    @Override
+                    public void onProgress(String message) {
+                        runOnUiThread(() -> {
+                            if (resultStatus != null) resultStatus.setText(message);
+                        });
+                    }
+
+                    @Override
+                    public void onSuccess(AstrometryNative.SolveResult result) {
+                        try {
+                            overlayBitmap = constellationOverlay.drawOverlay(originalBitmap, result);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to draw overlay", e);
+                        }
+                        runOnUiThread(() -> {
+                            if (isDestroyed) return;
+                            resultProgressBar.setVisibility(View.GONE);
+                            resultStatus.setVisibility(View.GONE);
+                            if (overlayBitmap != null) {
+                                resultImageView.setImageBitmap(overlayBitmap);
+                                cbConstellations.setVisibility(View.VISIBLE);
+                                cbConstellations.setEnabled(true);
+                                cbConstellations.setChecked(true);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        runOnUiThread(() -> {
+                            if (isDestroyed) return;
+                            resultProgressBar.setVisibility(View.GONE);
+                            resultStatus.setText("Could not identify star field");
+                        });
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Plate solve crashed", e);
+                runOnUiThread(() -> {
+                    if (isDestroyed) return;
+                    resultProgressBar.setVisibility(View.GONE);
+                    resultStatus.setText("Plate solve failed");
+                });
+            }
+        });
+    }
+
+    // =========================================================================
+    // Sky brightness analysis
+    // =========================================================================
+
+    private void analyzeSkyBrightness(Bitmap bitmap) {
+        if (backgroundExecutor.isShutdown()) return;
+        backgroundExecutor.execute(() -> {
+            SkyBrightnessResult result = SkyBrightnessAnalyzer.analyze(bitmap, null);
+            skyResult = result;
+            runOnUiThread(() -> {
+                if (isDestroyed) return;
+                if (btnSkyQuality != null) {
+                    btnSkyQuality.setVisibility(View.VISIBLE);
+                }
+            });
+        });
+    }
+
+    private void showSkyBrightnessDialog() {
+        if (skyResult == null) return;
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_sky_brightness, null);
+
+        TextView tvBortleNumber = dialogView.findViewById(R.id.tvBortleNumber);
+        TextView tvBortleLabel = dialogView.findViewById(R.id.tvBortleLabel);
+        TextView tvDescription = dialogView.findViewById(R.id.tvDescription);
+        BortleScaleView bortleGauge = dialogView.findViewById(R.id.bortleGauge);
+        ImageButton btnClose = dialogView.findViewById(R.id.btnClose);
+
+        int bortle = skyResult.getBortleClass();
+        tvBortleNumber.setText(String.valueOf(bortle));
+        tvBortleNumber.setTextColor(bortleColor(bortle));
+        tvBortleLabel.setText(skyResult.getLabel());
+        tvDescription.setText(skyResult.getDescription());
+        bortleGauge.setBortleClass(bortle);
+
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_AstroApp_AlertDialog)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
+    }
+
+    private static int bortleColor(int bortle) {
+        if (bortle <= 3) return 0xFF4CAF50;
+        if (bortle <= 5) return 0xFFFFEB3B;
+        if (bortle <= 7) return 0xFFFF9800;
+        return 0xFFF44336;
+    }
+
+    // =========================================================================
+    // Helpers
+    // =========================================================================
 
     private void showLoading(boolean show) {
         loadingOverlay.setVisibility(show ? View.VISIBLE : View.GONE);
         progressIndicator.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
-    private Bitmap imageProxyToBitmap(ImageProxy image) {
-        try {
-            int w = image.getWidth(), h = image.getHeight();
-            ByteBuffer yBuffer = image.getPlanes()[0].getBuffer();
-            int rowStride = image.getPlanes()[0].getRowStride();
-            int[] argb = new int[w * h];
-            for (int y = 0; y < h; y++) {
-                for (int x = 0; x < w; x++) {
-                    int luma = yBuffer.get(y * rowStride + x) & 0xFF;
-                    argb[y * w + x] = 0xFF000000 | (luma << 16) | (luma << 8) | luma;
-                }
-            }
-            Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-            bmp.setPixels(argb, 0, w, 0, 0, w, h);
-            return bmp;
-        } catch (Exception e) {
-            Log.e(TAG, "imageProxyToBitmap error", e);
-            return null;
+    // =========================================================================
+    // Back button
+    // =========================================================================
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void onBackPressed() {
+        if (inResultMode) {
+            showCaptureMode();
+        } else {
+            super.onBackPressed();
         }
     }
+
+    // =========================================================================
+    // Thumbnail adapter
+    // =========================================================================
+
+    private class ThumbnailAdapter extends RecyclerView.Adapter<ThumbnailAdapter.ViewHolder> {
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            ImageView ivThumbnail;
+            ImageButton btnRemove;
+            TextView tvFrameNumber;
+
+            ViewHolder(View itemView) {
+                super(itemView);
+                ivThumbnail = itemView.findViewById(R.id.ivThumbnail);
+                btnRemove = itemView.findViewById(R.id.btnRemove);
+                tvFrameNumber = itemView.findViewById(R.id.tvFrameNumber);
+            }
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_stacking_thumbnail, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Uri uri = collectedUris.get(position);
+            holder.tvFrameNumber.setText(String.valueOf(position + 1));
+
+            // Load thumbnail efficiently
+            try {
+                InputStream is = getContentResolver().openInputStream(uri);
+                if (is != null) {
+                    BitmapFactory.Options opts = new BitmapFactory.Options();
+                    opts.inJustDecodeBounds = true;
+                    BitmapFactory.decodeStream(is, null, opts);
+                    is.close();
+
+                    int scale = Math.max(opts.outWidth, opts.outHeight) / 200;
+                    if (scale < 1) scale = 1;
+
+                    BitmapFactory.Options opts2 = new BitmapFactory.Options();
+                    opts2.inSampleSize = scale;
+                    InputStream is2 = getContentResolver().openInputStream(uri);
+                    if (is2 != null) {
+                        Bitmap thumb = BitmapFactory.decodeStream(is2, null, opts2);
+                        is2.close();
+                        holder.ivThumbnail.setImageBitmap(thumb);
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to load thumbnail", e);
+                holder.ivThumbnail.setImageResource(android.R.drawable.ic_menu_gallery);
+            }
+
+            holder.btnRemove.setOnClickListener(v -> {
+                @SuppressWarnings("deprecation")
+                int pos = holder.getAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION) {
+                    removeCollectedImage(pos);
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return collectedUris.size();
+        }
+    }
+
+    // =========================================================================
+    // Lifecycle
+    // =========================================================================
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         isDestroyed = true;
 
-        // Shutdown camera executor and wait for pending tasks
-        if (cameraExecutor != null) {
-            cameraExecutor.shutdownNow();  // Interrupt running tasks
+        if (backgroundExecutor != null) {
+            backgroundExecutor.shutdownNow();
             try {
-                // Wait up to 2 seconds for tasks to complete
-                if (!cameraExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
-                    Log.w(TAG, "Camera executor did not terminate in time");
+                if (!backgroundExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+                    Log.w(TAG, "Background executor did not terminate in time");
                 }
             } catch (InterruptedException e) {
                 Log.w(TAG, "Interrupted while waiting for executor shutdown", e);
-                Thread.currentThread().interrupt();  // Restore interrupted status
+                Thread.currentThread().interrupt();
             }
         }
 
-        // Now safe to release native resources
         if (stackingManager != null) {
             stackingManager.release();
         }
