@@ -404,14 +404,11 @@ public class ImageStackingActivity extends AppCompatActivity {
     }
 
     private Bitmap loadBitmapFromUri(Uri uri) {
-        try {
-            InputStream inputStream = getContentResolver().openInputStream(uri);
+        try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
             if (inputStream == null) return null;
             BitmapFactory.Options opts = new BitmapFactory.Options();
             opts.inScaled = false;
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream, null, opts);
-            inputStream.close();
-            return bitmap;
+            return BitmapFactory.decodeStream(inputStream, null, opts);
         } catch (Exception e) {
             Log.e(TAG, "Failed to decode bitmap from URI", e);
             return null;
@@ -745,24 +742,23 @@ public class ImageStackingActivity extends AppCompatActivity {
             Uri uri = collectedUris.get(position);
             holder.tvFrameNumber.setText(String.valueOf(position + 1));
 
-            // Load thumbnail efficiently
+            // Load thumbnail efficiently with proper stream management
             try {
-                InputStream is = getContentResolver().openInputStream(uri);
-                if (is != null) {
-                    BitmapFactory.Options opts = new BitmapFactory.Options();
-                    opts.inJustDecodeBounds = true;
-                    BitmapFactory.decodeStream(is, null, opts);
-                    is.close();
-
-                    int scale = Math.max(opts.outWidth, opts.outHeight) / 200;
-                    if (scale < 1) scale = 1;
-
-                    BitmapFactory.Options opts2 = new BitmapFactory.Options();
-                    opts2.inSampleSize = scale;
-                    InputStream is2 = getContentResolver().openInputStream(uri);
+                int scale = 1;
+                try (InputStream is = getContentResolver().openInputStream(uri)) {
+                    if (is != null) {
+                        BitmapFactory.Options opts = new BitmapFactory.Options();
+                        opts.inJustDecodeBounds = true;
+                        BitmapFactory.decodeStream(is, null, opts);
+                        scale = Math.max(opts.outWidth, opts.outHeight) / 200;
+                        if (scale < 1) scale = 1;
+                    }
+                }
+                try (InputStream is2 = getContentResolver().openInputStream(uri)) {
                     if (is2 != null) {
+                        BitmapFactory.Options opts2 = new BitmapFactory.Options();
+                        opts2.inSampleSize = scale;
                         Bitmap thumb = BitmapFactory.decodeStream(is2, null, opts2);
-                        is2.close();
                         holder.ivThumbnail.setImageBitmap(thumb);
                     }
                 }
