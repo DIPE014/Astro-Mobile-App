@@ -411,23 +411,30 @@ public class ImageStackingActivity extends AppCompatActivity {
         }
     }
 
-    private Bitmap loadBitmapFromUri(Uri uri) {
+    /**
+     * Load a bitmap from URI with optional max dimension clamping.
+     * @param uri        image URI
+     * @param maxDimension  max width/height (0 = no limit, full resolution)
+     */
+    private Bitmap loadBitmapFromUri(Uri uri, int maxDimension) {
         try {
-            // First pass: decode bounds only to determine dimensions
             int sampleSize = 1;
-            try (InputStream boundsStream = getContentResolver().openInputStream(uri)) {
-                if (boundsStream == null) return null;
-                BitmapFactory.Options boundsOpts = new BitmapFactory.Options();
-                boundsOpts.inJustDecodeBounds = true;
-                BitmapFactory.decodeStream(boundsStream, null, boundsOpts);
+            if (maxDimension > 0) {
+                // First pass: decode bounds only to determine dimensions
+                try (InputStream boundsStream = getContentResolver().openInputStream(uri)) {
+                    if (boundsStream == null) return null;
+                    BitmapFactory.Options boundsOpts = new BitmapFactory.Options();
+                    boundsOpts.inJustDecodeBounds = true;
+                    BitmapFactory.decodeStream(boundsStream, null, boundsOpts);
 
-                int maxDim = Math.max(boundsOpts.outWidth, boundsOpts.outHeight);
-                while (maxDim / sampleSize > MAX_PROCESSING_DIMENSION) {
-                    sampleSize *= 2;
+                    int maxDim = Math.max(boundsOpts.outWidth, boundsOpts.outHeight);
+                    while (maxDim / sampleSize > maxDimension) {
+                        sampleSize *= 2;
+                    }
                 }
             }
 
-            // Second pass: decode at reduced resolution
+            // Decode at target resolution
             try (InputStream imageStream = getContentResolver().openInputStream(uri)) {
                 if (imageStream == null) return null;
                 BitmapFactory.Options opts = new BitmapFactory.Options();
@@ -439,6 +446,10 @@ public class ImageStackingActivity extends AppCompatActivity {
             Log.e(TAG, "Failed to decode bitmap from URI", e);
             return null;
         }
+    }
+
+    private Bitmap loadBitmapFromUri(Uri uri) {
+        return loadBitmapFromUri(uri, 0);
     }
 
     // =========================================================================
@@ -529,7 +540,7 @@ public class ImageStackingActivity extends AppCompatActivity {
             final int idx = i;
             runOnUiThread(() -> tvStatus.setText("Processing frame " + (idx + 1) + " / " + uris.size() + "..."));
 
-            Bitmap bitmap = loadBitmapFromUri(uris.get(i));
+            Bitmap bitmap = loadBitmapFromUri(uris.get(i), MAX_PROCESSING_DIMENSION);
             if (bitmap == null) {
                 Log.w(TAG, "Failed to load frame " + i);
                 continue;
