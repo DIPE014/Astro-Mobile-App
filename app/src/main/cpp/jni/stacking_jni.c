@@ -12,6 +12,7 @@
 #include "gsl/gsl_vector.h"
 #include "gsl/gsl_linalg.h"
 #include "gsl/gsl_blas.h"
+#include "gsl/gsl_errno.h"
 
 #define LOG_TAG "StackingNative"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
@@ -271,13 +272,23 @@ static correspondence_t* match_triangles(
 
 // Solve affine transform from 3 correspondences using GSL
 static int solve_affine_3pt(correspondence_t* corr, affine_t* aff) {
-    // System: [x'] = [a b tx] [x]
-    //         [y']   [c d ty] [y]
-    //                         [1]
-    // For 3 points, we get 6 equations:
-    // x0' = a*x0 + b*y0 + tx
-    // y0' = c*x0 + d*y0 + ty
-    // ... (same for points 1, 2)
+    // Check for degenerate (collinear) points before invoking GSL.
+    // Cross product of vectors (p1-p0) x (p2-p0) must be non-zero.
+    float dx1 = corr[1].new_x - corr[0].new_x;
+    float dy1 = corr[1].new_y - corr[0].new_y;
+    float dx2 = corr[2].new_x - corr[0].new_x;
+    float dy2 = corr[2].new_y - corr[0].new_y;
+    float cross_new = fabsf(dx1 * dy2 - dy1 * dx2);
+
+    float rx1 = corr[1].ref_x - corr[0].ref_x;
+    float ry1 = corr[1].ref_y - corr[0].ref_y;
+    float rx2 = corr[2].ref_x - corr[0].ref_x;
+    float ry2 = corr[2].ref_y - corr[0].ref_y;
+    float cross_ref = fabsf(rx1 * ry2 - ry1 * rx2);
+
+    if (cross_new < 1.0f || cross_ref < 1.0f) {
+        return 0;  // Nearly collinear points, skip
+    }
 
     gsl_matrix* A = gsl_matrix_alloc(6, 6);
     gsl_vector* b = gsl_vector_alloc(6);
@@ -521,6 +532,10 @@ Java_com_astro_app_native_1_StackingNative_initStackingNative(
     jboolean isColor)
 {
     LOGI("initStackingNative: %dx%d, color=%d", width, height, isColor);
+
+    // Disable GSL's default error handler which calls abort().
+    // Without this, singular matrices in RANSAC crash the entire app.
+    gsl_set_error_handler_off();
 
     if (width <= 0 || height <= 0) {
         LOGE("Invalid dimensions: %dx%d", width, height);
