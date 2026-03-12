@@ -172,6 +172,7 @@ target_link_libraries(solver anutil libkd qfits_an gsl_an)
 # Main JNI library
 add_library(astrometry_native SHARED
     jni/astrometry_jni.c
+    jni/stacking_jni.c
 )
 
 target_link_libraries(astrometry_native

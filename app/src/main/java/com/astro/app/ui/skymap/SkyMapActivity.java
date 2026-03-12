@@ -9,11 +9,11 @@ import android.graphics.drawable.GradientDrawable;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -45,6 +45,7 @@ import com.astro.app.core.layers.GridLayer;
 import com.astro.app.core.layers.StarsLayer;
 import com.astro.app.core.math.LatLong;
 import com.astro.app.core.renderer.SkyCanvasView;
+import com.astro.app.ui.stacking.ImageStackingActivity;
 import com.astro.app.core.renderer.SkyGLSurfaceView;
 import com.astro.app.core.renderer.SkyRenderer;
 import com.astro.app.core.math.Vector3;
@@ -201,7 +202,6 @@ public class SkyMapActivity extends AppCompatActivity {
     @Nullable
     private StarData selectedStar;
 
-
     // GPS state
     private boolean isGpsEnabled = false;
     private float currentLatitude = 40.7128f;  // Default: New York
@@ -233,9 +233,6 @@ public class SkyMapActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.activity_sky_map);
-
-        // Diagnostic toast to verify activity is running
-        android.widget.Toast.makeText(this, "SkyMap Started", android.widget.Toast.LENGTH_LONG).show();
 
         // Initialize ViewModels
         viewModel = new ViewModelProvider(this).get(SkyMapViewModel.class);
@@ -625,6 +622,10 @@ public class SkyMapActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT));
         skyCanvasView.setEnabled(true);
         skyCanvasView.setOnManualModeListener(isManual -> {
+            if (btnArToggle != null) {
+                btnArToggle.setIconTint(ColorStateList.valueOf(
+                    ContextCompat.getColor(this, isManual ? R.color.icon_primary : R.color.icon_inactive)));
+            }
             if (isManual) {
                 if (sensorController != null) sensorController.pause();
             } else {
@@ -645,6 +646,11 @@ public class SkyMapActivity extends AppCompatActivity {
                 openEducationDetail(EducationDetailActivity.TYPE_PLANET, obj.name, obj.id);
             } else if ("constellation".equals(obj.type)) {
                 openEducationDetail(EducationDetailActivity.TYPE_CONSTELLATION, obj.name, obj.id);
+            } else if ("star".equals(obj.type)) {
+                StarData star = skyCanvasView.getStarById(obj.id);
+                if (star != null) {
+                    viewModel.selectObject(star);
+                }
             }
         });
         skyCanvasView.setOnStarSelectedListener(star -> {
@@ -709,6 +715,7 @@ public class SkyMapActivity extends AppCompatActivity {
         // This prevents null pointer exceptions in other parts of the code
         SkyRenderer renderer = new SkyRenderer();
         skyGLSurfaceView = new SkyGLSurfaceView(this, renderer);
+
     }
 
     private void setupInfoPanelGestures() {
@@ -795,7 +802,14 @@ public class SkyMapActivity extends AppCompatActivity {
 
         // AR toggle button
         if (btnArToggle != null) {
-            btnArToggle.setOnClickListener(v -> toggleARMode());
+            btnArToggle.setOnClickListener(v -> {
+                if (skyCanvasView != null && skyCanvasView.isManualMode()) {
+                    skyCanvasView.exitManualMode();
+                    updateARToggleButton();
+                } else {
+                    toggleARMode();
+                }
+            });
         }
 
         // Settings button
@@ -913,6 +927,15 @@ public class SkyMapActivity extends AppCompatActivity {
                 if (selectedStar != null) {
                     openStarDetails(selectedStar);
                 }
+            });
+        }
+
+        // Image Stacking FAB
+        View fabStack = findViewById(R.id.fabStack);
+        if (fabStack != null) {
+            fabStack.setOnClickListener(v -> {
+                Intent intent = new Intent(SkyMapActivity.this, ImageStackingActivity.class);
+                startActivity(intent);
             });
         }
 
@@ -1286,7 +1309,11 @@ public class SkyMapActivity extends AppCompatActivity {
      */
     private void updateARToggleButton() {
         if (btnArToggle != null) {
-            if (isARModeEnabled) {
+            boolean isManual = skyCanvasView != null && skyCanvasView.isManualMode();
+            if (isManual) {
+                btnArToggle.setIconResource(android.R.drawable.ic_menu_compass);
+                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
+            } else if (isARModeEnabled) {
                 btnArToggle.setIconResource(android.R.drawable.ic_menu_camera);
                 btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
             } else {
@@ -2031,6 +2058,8 @@ public class SkyMapActivity extends AppCompatActivity {
                 intent.putExtra(StarInfoActivity.EXTRA_STAR_DEC, star.getDec());
                 intent.putExtra(StarInfoActivity.EXTRA_STAR_MAGNITUDE, star.getMagnitude());
                 startActivity(intent);
+            } else {
+                Log.w(TAG, "Star not found for id: " + obj.id);
             }
         }
         // Clear highlight after opening details
@@ -2136,7 +2165,9 @@ public class SkyMapActivity extends AppCompatActivity {
      * Hides the info panel.
      */
     private void hideInfoPanel() {
-        infoPanel.setVisibility(View.GONE);
+        if (infoPanel != null) {
+            infoPanel.setVisibility(View.GONE);
+        }
         selectedStar = null;
     }
 
@@ -2304,65 +2335,109 @@ public class SkyMapActivity extends AppCompatActivity {
         findViewById(android.R.id.content).post(() -> {
             // Find anchor views for tooltips
             View btnConstellations = findViewById(R.id.btnConstellations);
+            View btnGrid = findViewById(R.id.btnGrid);
             View btnTimeTravel = findViewById(R.id.btnTimeTravel);
+            View btnPlanets = findViewById(R.id.btnPlanets);
+            View btnDSO = findViewById(R.id.btnDSO);
             View fabSearch = findViewById(R.id.fabSearch);
             View fabDetect = findViewById(R.id.fabDetect);
+            View fabMain = findViewById(R.id.fabMain);
 
-            // Build tooltip sequence (6 tooltips)
+            // Build tooltip sequence (10 tooltips)
             com.astro.app.ui.onboarding.TooltipManager tooltipManager =
                 new com.astro.app.ui.onboarding.TooltipManager(this);
 
             // Tooltip 1: Welcome (center)
             tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                 null,
-                "Welcome to Astro! Point your phone at the sky to see constellations, planets, and stars in real-time.",
+                "Welcome! Point your phone at the sky. Stars, constellations, and planets will appear in real-time.",
                 com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
                 false
             ));
 
-            // Tooltip 2: Drag to explore (center)
+            // Tooltip 2: Drag & zoom (center)
             tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                 null,
-                "Enable Manual Scroll in Settings to freely explore the sky by dragging. Pinch to zoom in/out.",
+                "Drag with one finger to pan the sky manually. Pinch with two fingers to zoom in and out.",
                 com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
                 false
             ));
 
-            // Tooltip 3: Constellations toggle (highlight)
+            // Tooltip 3: Constellations toggle
             if (btnConstellations != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     btnConstellations,
-                    "Toggle constellation lines and labels here.",
+                    "Toggle constellation lines and names. Tap to show or hide them.",
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
                     true
                 ));
             }
 
-            // Tooltip 4: Time Travel (highlight)
+            // Tooltip 4: Grid toggle
+            if (btnGrid != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnGrid,
+                    "Toggle the coordinate grid overlay \u2014 shows RA/Dec lines on the sky.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    true
+                ));
+            }
+
+            // Tooltip 5: Time Travel
             if (btnTimeTravel != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     btnTimeTravel,
-                    "Use Time Travel to see how the sky looked in the past or will look in the future.",
+                    "Time Travel \u2014 slide to any date to see past or future skies.",
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
                     true
                 ));
             }
 
-            // Tooltip 5: Search (highlight)
+            // Tooltip 6: Planets
+            if (btnPlanets != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnPlanets,
+                    "Toggle planet labels. Long-press a planet to see its trajectory path.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    true
+                ));
+            }
+
+            // Tooltip 7: DSO
+            if (btnDSO != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnDSO,
+                    "Toggle Deep Sky Objects \u2014 galaxies, nebulae, and star clusters from the Messier catalog.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    true
+                ));
+            }
+
+            // Tooltip 8: Search FAB
             if (fabSearch != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     fabSearch,
-                    "Search for any celestial object. An arrow will guide you to point your phone at it.",
+                    "Search for any star, constellation, or planet. An arrow guides you to it.",
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
                     true
                 ));
             }
 
-            // Tooltip 6: Star Detection (highlight)
+            // Tooltip 9: Detect FAB
             if (fabDetect != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     fabDetect,
-                    "Take a photo to detect constellations using advanced plate-solving algorithms.",
+                    "Take a photo to identify constellations using star pattern matching (plate solving).",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
+                    true
+                ));
+            }
+
+            // Tooltip 10: Main FAB menu
+            if (fabMain != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    fabMain,
+                    "This menu also has Chat (AI assistant) and Stack (image stacking) \u2014 tap to explore!",
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
                     true
                 ));

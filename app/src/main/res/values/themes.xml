@@ -198,6 +198,12 @@
         <item name="colorOnSurface">@color/md_theme_dark_onSurface</item>
     </style>
 
+    <!-- Education Page Theme-->
+    <style name="Widget.AstroApp.CardView.EducationDetailDialog" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">#73000000</item>
+        <item name="cardCornerRadius">@dimen/corner_radius_small</item>
+    </style>
+
     <!-- Widget Styles -->
     <style name="Widget.AstroApp.Button" parent="Widget.Material3.Button">
         <item name="backgroundTint">@color/button_primary</item>
@@ -396,5 +402,16 @@
         <item name="android:textSize">@dimen/text_size_constellation_label</item>
         <item name="android:textStyle">italic</item>
     </style>
+
+    <!-- Star Info Style-->
+    <style name="Widget.AstroApp.FieldCard" parent="Widget.Material3.CardView.Filled">
+        <item name="cardCornerRadius">@dimen/corner_radius_medium</item>
+        <item name="cardElevation">@dimen/elevation_none</item>
+        <item name="cardBackgroundColor">@color/tertiary_variant</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginVertical">@dimen/margin_extra_small</item>
+    </style>
+
 
 </resources>

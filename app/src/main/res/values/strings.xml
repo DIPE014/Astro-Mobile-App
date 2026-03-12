@@ -182,6 +182,7 @@
     <string name="ar_mode_off">AR mode disabled</string>
     <string name="camera_error">Camera error: %1$s</string>
     <string name="star_type_format">Star - %1$s</string>
+    <string name="star_in_constellation_format">Star in %1$s</string>
     <string name="star_details_coming_soon">Details for %1$s coming soon</string>
     <string name="unknown">Unknown</string>
 
@@ -327,18 +328,30 @@
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_done">Done</string>
-    <string name="onboarding_welcome_title">sEEEstar</string>
-    <string name="onboarding_welcome_description">Your personal guide to the night sky</string>
-    <string name="onboarding_sky_map_title">Sky Map</string>
-    <string name="onboarding_sky_map_description">Point your device at the sky to see stars, constellations, and planets in real time</string>
-    <string name="onboarding_controls_title">Controls</string>
-    <string name="onboarding_controls_description">Toggle constellations, grid, planets, deep sky objects, and time travel from the bottom bar</string>
-    <string name="onboarding_star_detection_title">Star Detection</string>
-    <string name="onboarding_star_detection_description">Take a photo of the night sky and we\'ll identify the constellations for you</string>
-    <string name="onboarding_drag_zoom_title">Drag &amp; Zoom</string>
-    <string name="onboarding_drag_zoom_description">Pinch to zoom in/out. Enable drag mode in Settings to manually pan the sky</string>
-    <string name="onboarding_search_title">Search</string>
-    <string name="onboarding_search_description">Search for any star, constellation, or planet and follow the arrow to find it</string>
+    <string name="onboarding_welcome_title">Welcome to sEEEstar</string>
+    <string name="onboarding_welcome_description">Your personal astronomy companion. Point your phone at the sky to identify stars, constellations, planets, and deep sky objects in real-time using augmented reality.</string>
+    <string name="onboarding_sky_map_title">Real-Time Sky Map</string>
+    <string name="onboarding_sky_map_description">The sky map uses your phone\'s sensors to show you exactly what\'s above you. Move your phone around to explore — stars, constellation lines, and planet labels update in real-time as you point at different parts of the sky.</string>
+    <string name="onboarding_controls_title">Constellations &amp; Grid</string>
+    <string name="onboarding_controls_description">Use the bottom bar to toggle constellation lines and labels on/off. Enable the coordinate grid to see Right Ascension and Declination lines overlaid on the sky, helping you navigate like a pro.</string>
+    <string name="onboarding_time_travel_title">Time Travel</string>
+    <string name="onboarding_time_travel_description">Tap the clock icon to travel through time. Slide to any date and time to see how the sky looked in the past or will look in the future. Great for planning observation sessions or seeing historical sky events.</string>
+    <string name="onboarding_planets_title">Planets &amp; Deep Sky Objects</string>
+    <string name="onboarding_planets_description">Toggle planet labels and deep sky objects (DSOs) like galaxies, nebulae, and star clusters. Long-press a planet to see its trajectory across the sky — lock onto it to track its path.</string>
+    <string name="onboarding_drag_zoom_title">Pinch &amp; Drag</string>
+    <string name="onboarding_drag_zoom_description">Pinch with two fingers to zoom in for close-ups of star clusters or zoom out for a wide-field view. Enable Manual Scroll in Settings to freely drag and explore the sky without moving your phone.</string>
+    <string name="onboarding_tap_identify_title">Tap to Identify</string>
+    <string name="onboarding_tap_identify_description">Tap any star or planet on the map to see its details — name, magnitude, constellation, and coordinates. The info panel slides up with all the essential data about the object you tapped.</string>
+    <string name="onboarding_search_title">Search &amp; Navigate</string>
+    <string name="onboarding_search_description">Tap the Search button in the menu to find any celestial object by name. An arrow will guide you to point your phone in the right direction until the object appears on screen.</string>
+    <string name="onboarding_star_detection_title">Star Detection (Plate Solving)</string>
+    <string name="onboarding_star_detection_description">Tap Detect in the menu to take a photo of the night sky. Our astrometry engine analyzes the star patterns and identifies exactly which part of the sky you photographed — matching real astronomical databases.</string>
+    <string name="onboarding_stacking_title">Image Stacking</string>
+    <string name="onboarding_stacking_description">Tap Stack in the menu to combine multiple photos of the same sky region. Stacking aligns and averages the frames, revealing fainter stars and nebulae invisible in a single exposure.</string>
+    <string name="onboarding_chat_title">AI Sky Assistant</string>
+    <string name="onboarding_chat_description">Tap Chat to ask our AI assistant anything about astronomy. Get help identifying objects, understanding celestial events, or learning about what you\'re observing.</string>
+    <string name="onboarding_start_exploring_title">Start Exploring!</string>
+    <string name="onboarding_start_exploring_description">You\'re ready to explore the universe. Head outside on a clear night, point your phone up, and discover what\'s above you. Swipe left for tips, or tap Done to begin.</string>
     <string name="onboarding_sky_quality_title">Sky Quality</string>
     <string name="onboarding_sky_quality_description">After capturing a photo for star detection, tap Sky Quality to see your Bortle class — a measure of how dark your sky is for observing</string>
     <string name="settings_replay_tutorial">Replay Tutorial</string>
@@ -398,6 +411,27 @@
     <string name="bortle_7">Suburban/Urban Transition</string>
     <string name="bortle_8">City Sky</string>
     <string name="bortle_9">Inner City</string>
+    <string name="title_activity_intro_splash">IntroSplashActivity</string>
+    <string name="tap_to_explore">Tap anywhere to explore</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <!-- FAB menu labels and content descriptions -->
+    <string name="fab_search">Search</string>
+    <string name="fab_detect">Detect</string>
+    <string name="fab_chatbot">ChatBot</string>
+    <string name="cd_fab_main">Open actions menu</string>
+    <string name="cd_fab_search">Search sky objects</string>
+    <string name="cd_fab_detect">Detect stars in camera view</string>
+    <string name="cd_fab_chatbot">Open AstroBot chat</string>
+    <string name="fab_stack">Stack</string>
+    <string name="cd_fab_stack">Image Stacking</string>
+
+    <!-- Image Stacking -->
+    <string name="image_stacking">Image Stacking</string>
+    <string name="capture_frame">Capture Frame</string>
+    <string name="processing_frame">Processing frame…</string>
+    <string name="finish">Finish</string>
 </resources>
 
 
