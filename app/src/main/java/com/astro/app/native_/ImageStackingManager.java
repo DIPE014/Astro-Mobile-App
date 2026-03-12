@@ -101,7 +101,16 @@ public class ImageStackingManager {
         }
 
         // Detect stars
-        float[] stars = AstrometryNative.detectStarsNative(grayData, w, h, PLIM, DPSF, DOWNSAMPLE);
+        float[] stars;
+        try {
+            stars = AstrometryNative.detectStarsNative(grayData, w, h, PLIM, DPSF, DOWNSAMPLE);
+        } catch (Exception | Error e) {
+            Log.e(TAG, "startSession failed: star detection crashed", e);
+            if (callback != null) {
+                callback.onStarDetectionFailed(1, 0);
+            }
+            return false;
+        }
         if (stars == null) {
             Log.e(TAG, "startSession failed: star detection returned null");
             if (callback != null) {
@@ -122,14 +131,27 @@ public class ImageStackingManager {
         Log.i(TAG, "Reference frame: " + w + "x" + h + ", " + starCount + " stars detected");
 
         // Initialize native stacking context (grayscale only)
-        long handle = StackingNative.initStacking(w, h, false);
+        long handle;
+        try {
+            handle = StackingNative.initStacking(w, h, false);
+        } catch (Exception | Error e) {
+            Log.e(TAG, "startSession failed: native initialization crashed", e);
+            return false;
+        }
         if (handle == 0) {
             Log.e(TAG, "startSession failed: native initialization failed");
             return false;
         }
 
         // Add first frame (null refStars for reference frame)
-        StackingNative.AlignmentResult result = StackingNative.addFrame(handle, grayData, stars, null);
+        StackingNative.AlignmentResult result;
+        try {
+            result = StackingNative.addFrame(handle, grayData, stars, null);
+        } catch (Exception | Error e) {
+            Log.e(TAG, "startSession failed: native addFrame crashed", e);
+            StackingNative.release(handle);
+            return false;
+        }
         if (result == null || !result.success) {
             Log.e(TAG, "startSession failed: could not add reference frame");
             StackingNative.release(handle);
@@ -190,7 +212,16 @@ public class ImageStackingManager {
         }
 
         // Detect stars
-        float[] stars = AstrometryNative.detectStarsNative(grayData, w, h, PLIM, DPSF, DOWNSAMPLE);
+        float[] stars;
+        try {
+            stars = AstrometryNative.detectStarsNative(grayData, w, h, PLIM, DPSF, DOWNSAMPLE);
+        } catch (Exception | Error e) {
+            Log.e(TAG, "addFrame failed: star detection crashed", e);
+            if (callback != null) {
+                callback.onStarDetectionFailed(nextFrameNumber, 0);
+            }
+            return false;
+        }
         if (stars == null) {
             Log.e(TAG, "addFrame failed: star detection returned null");
             if (callback != null) {
@@ -209,7 +240,16 @@ public class ImageStackingManager {
         }
 
         // Align and stack
-        StackingNative.AlignmentResult result = StackingNative.addFrame(nativeHandle, grayData, stars, referenceStars);
+        StackingNative.AlignmentResult result;
+        try {
+            result = StackingNative.addFrame(nativeHandle, grayData, stars, referenceStars);
+        } catch (Exception | Error e) {
+            Log.e(TAG, "addFrame failed: native addFrame crashed", e);
+            if (callback != null) {
+                callback.onAlignmentFailed(nextFrameNumber, "Native call failed");
+            }
+            return false;
+        }
         if (result == null) {
             Log.e(TAG, "addFrame failed: native addFrame returned null");
             if (callback != null) {
@@ -257,7 +297,13 @@ public class ImageStackingManager {
         }
 
         // Get stacked data from native
-        byte[] result = StackingNative.getStackedImage(nativeHandle);
+        byte[] result;
+        try {
+            result = StackingNative.getStackedImage(nativeHandle);
+        } catch (Exception | Error e) {
+            Log.e(TAG, "getResult failed: native getStackedImage crashed", e);
+            return null;
+        }
         if (result == null) {
             Log.e(TAG, "getResult failed: native getStackedImage returned null");
             return null;
@@ -304,7 +350,11 @@ public class ImageStackingManager {
      */
     public void release() {
         if (nativeHandle != 0) {
-            StackingNative.release(nativeHandle);
+            try {
+                StackingNative.release(nativeHandle);
+            } catch (Exception | Error e) {
+                Log.e(TAG, "release failed: native release crashed", e);
+            }
             Log.i(TAG, "Released stacking session (" + frameCount + " frames)");
         }
 

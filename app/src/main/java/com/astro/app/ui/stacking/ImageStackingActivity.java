@@ -64,6 +64,7 @@ import java.util.concurrent.TimeUnit;
 public class ImageStackingActivity extends AppCompatActivity {
     private static final String TAG = "ImageStackingActivity";
     private static final int MAX_FRAMES = 10;
+    private static final int MAX_PROCESSING_DIMENSION = 1920;
 
     // ---- Capture mode views ----
     private View topControls;
@@ -102,6 +103,7 @@ public class ImageStackingActivity extends AppCompatActivity {
     // ---- Stacking ----
     private ImageStackingManager stackingManager;
     private volatile boolean isDestroyed = false;
+    private volatile boolean isCancelled = false;
 
     // ---- Plate solving ----
     private NativePlateSolver solver;
@@ -239,6 +241,12 @@ public class ImageStackingActivity extends AppCompatActivity {
         switchStacking.setOnCheckedChangeListener((buttonView, isChecked) -> {
             resetSession();
             updateModeUI();
+        });
+
+        // Cancel stacking by tapping the loading overlay
+        loadingOverlay.setOnClickListener(v -> {
+            isCancelled = true;
+            tvStatus.setText("Cancelling...");
         });
 
         // Result mode listeners
@@ -404,11 +412,29 @@ public class ImageStackingActivity extends AppCompatActivity {
     }
 
     private Bitmap loadBitmapFromUri(Uri uri) {
-        try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
-            if (inputStream == null) return null;
-            BitmapFactory.Options opts = new BitmapFactory.Options();
-            opts.inScaled = false;
-            return BitmapFactory.decodeStream(inputStream, null, opts);
+        try {
+            // First pass: decode bounds only to determine dimensions
+            int sampleSize = 1;
+            try (InputStream boundsStream = getContentResolver().openInputStream(uri)) {
+                if (boundsStream == null) return null;
+                BitmapFactory.Options boundsOpts = new BitmapFactory.Options();
+                boundsOpts.inJustDecodeBounds = true;
+                BitmapFactory.decodeStream(boundsStream, null, boundsOpts);
+
+                int maxDim = Math.max(boundsOpts.outWidth, boundsOpts.outHeight);
+                while (maxDim / sampleSize > MAX_PROCESSING_DIMENSION) {
+                    sampleSize *= 2;
+                }
+            }
+
+            // Second pass: decode at reduced resolution
+            try (InputStream imageStream = getContentResolver().openInputStream(uri)) {
+                if (imageStream == null) return null;
+                BitmapFactory.Options opts = new BitmapFactory.Options();
+                opts.inScaled = false;
+                opts.inSampleSize = sampleSize;
+                return BitmapFactory.decodeStream(imageStream, null, opts);
+            }
         } catch (Exception e) {
             Log.e(TAG, "Failed to decode bitmap from URI", e);
             return null;
@@ -489,9 +515,16 @@ public class ImageStackingActivity extends AppCompatActivity {
     private Bitmap stackAllFrames(List<Uri> uris) {
         int targetW = 0, targetH = 0;
         boolean sessionOk = false;
+        isCancelled = false;
 
         for (int i = 0; i < uris.size(); i++) {
-            if (isDestroyed) return null;
+            if (isDestroyed || isCancelled) {
+                if (isCancelled) {
+                    stackingManager.release();
+                    runOnUiThread(() -> tvStatus.setText("Stacking cancelled."));
+                }
+                return null;
+            }
 
             final int idx = i;
             runOnUiThread(() -> tvStatus.setText("Processing frame " + (idx + 1) + " / " + uris.size() + "..."));
@@ -520,6 +553,8 @@ public class ImageStackingActivity extends AppCompatActivity {
                 ok = stackingManager.addFrame(bitmap);
             }
             bitmap.recycle();
+            bitmap = null;
+            System.gc(); // Hint to reclaim bitmap memory before next frame
 
             if (!ok) {
                 Log.w(TAG, "Stacking failed for frame " + i);
@@ -527,7 +562,9 @@ public class ImageStackingActivity extends AppCompatActivity {
         }
 
         if (sessionOk && stackingManager.getFrameCount() > 0) {
-            return stackingManager.getResult();
+            Bitmap result = stackingManager.getResult();
+            stackingManager.release(); // Free native accumulator memory promptly
+            return result;
         }
         return null;
     }
