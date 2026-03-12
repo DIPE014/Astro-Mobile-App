@@ -40,6 +40,15 @@
             motion:layout_constraintCircleRadius="0dp"
             motion:motionStagger="1" />
         <Constraint
+            android:id="@+id/fabStack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
+            motion:layout_constraintCircle="@id/background"
+            motion:layout_constraintCircleAngle="240"
+            motion:layout_constraintCircleRadius="0dp"
+            motion:motionStagger="1" />
+        <Constraint
             android:id="@+id/background"
             android:layout_width="10dp"
             android:layout_height="10dp"
@@ -92,6 +101,14 @@
             android:layout_height="wrap_content"
             motion:layout_constraintCircle="@id/background"
             motion:layout_constraintCircleAngle="310"
+            motion:layout_constraintCircleRadius="85dp"
+            motion:motionStagger="1" />
+        <Constraint
+            android:id="@+id/fabStack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            motion:layout_constraintCircle="@id/background"
+            motion:layout_constraintCircleAngle="200"
             motion:layout_constraintCircleRadius="85dp"
             motion:motionStagger="1" />
         <Constraint

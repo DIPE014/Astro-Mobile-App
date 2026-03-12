@@ -10,6 +10,8 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.transition.TransitionManager;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -53,14 +55,21 @@ import com.astro.app.core.renderer.SkyCanvasView;
 import com.astro.app.core.renderer.SkyGLSurfaceView;
 import com.astro.app.core.renderer.SkyRenderer;
 import com.astro.app.core.math.Vector3;
+import com.astro.app.core.highlights.TonightsHighlights;
+import com.astro.app.data.model.ConstellationData;
+import com.astro.app.data.model.MessierObjectData;
 import com.astro.app.data.model.StarData;
 import com.astro.app.data.repository.ConstellationRepository;
+import com.astro.app.data.repository.MessierRepository;
 import com.astro.app.data.repository.StarRepository;
+import com.astro.app.ui.highlights.TonightsHighlightsFragment;
 import com.astro.app.ui.education.EducationDetailActivity;
+import com.astro.app.ui.platesolve.PlateSolveActivity;
 import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
 import com.astro.app.ui.starinfo.StarInfoActivity;
+import com.astro.app.ui.chat.ChatBottomSheetFragment;
 import com.astro.app.search.SearchArrowView;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
@@ -70,6 +79,7 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.LinearLayout;
@@ -132,6 +142,9 @@ public class SkyMapActivity extends AppCompatActivity {
     @Inject
     Universe universe;
 
+    @Inject
+    MessierRepository messierRepository;
+
     // Camera components
     private CameraManager cameraManager;
     private CameraPermissionHandler permissionHandler;
@@ -150,13 +163,17 @@ public class SkyMapActivity extends AppCompatActivity {
     private TextView tvInfoPanelMagnitude;
     private TextView tvInfoPanelRA;
     private TextView tvInfoPanelDec;
+    private View infoPanelDivider;
     private View infoPanelQuickInfo;
     private MaterialButton btnInfoPanelDetails;
+    private GestureDetector infoPanelGestureDetector;
     private MaterialButton btnSearchDetails;
+    private MaterialButton btnUnlockPlanet;
     private FrameLayout loadingOverlay;
     private View gpsIndicator;
     private ImageView ivGpsIcon;
     private TextView tvGpsStatus;
+    private com.astro.app.ui.widgets.CompassView compassView;
 
     // Layers
     private StarsLayer starsLayer;
@@ -202,6 +219,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private boolean isConstellationsEnabled = true;
     private boolean isGridEnabled = false;
     private boolean isPlanetsEnabled = false;
+    private boolean isDSOEnabled = false;
     @Nullable
     private StarData selectedStar;
     @Nullable
@@ -332,6 +350,12 @@ public class SkyMapActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (skyCanvasView != null) {
                         skyCanvasView.setOrientation(finalAzimuth, finalAltitude);
+                    }
+
+                    // Update compass rotation and 3D tilt
+                    if (compassView != null) {
+                        compassView.setAzimuthRotation(finalAzimuth);
+                        compassView.setPitch(finalAltitude);
                     }
 
                     lastViewAzimuth = finalAzimuth;
@@ -499,6 +523,14 @@ public class SkyMapActivity extends AppCompatActivity {
             }
         });
 
+        // Observe manual scroll mode setting
+        settingsViewModel.getEnableManualScroll().observe(this, enabled -> {
+            if (enabled != null && skyCanvasView != null) {
+                skyCanvasView.setManualScrollEnabled(enabled);
+                Log.d(TAG, "Manual scroll mode: " + enabled);
+            }
+        });
+
         // Observe ViewModel night mode state
         viewModel.getNightMode().observe(this, this::onNightModeChanged);
 
@@ -586,16 +618,21 @@ public class SkyMapActivity extends AppCompatActivity {
         tvInfoPanelMagnitude = findViewById(R.id.tvInfoPanelMagnitude);
         tvInfoPanelRA = findViewById(R.id.tvInfoPanelRA);
         tvInfoPanelDec = findViewById(R.id.tvInfoPanelDec);
+        infoPanelDivider = findViewById(R.id.infoPanelDivider);
         infoPanelQuickInfo = findViewById(R.id.infoPanelQuickInfo);
         btnInfoPanelDetails = findViewById(R.id.btnInfoPanelDetails);
         loadingOverlay = findViewById(R.id.loadingOverlay);
         btnArToggle = findViewById(R.id.btnArToggle);
         btnSearchDetails = findViewById(R.id.btnSearchDetails);
+        btnUnlockPlanet = findViewById(R.id.btnUnlockPlanet);
 
         // GPS indicator views
         gpsIndicator = findViewById(R.id.gpsIndicator);
         ivGpsIcon = findViewById(R.id.ivGpsIcon);
         tvGpsStatus = findViewById(R.id.tvGpsStatus);
+
+        // Compass view
+        compassView = findViewById(R.id.compassView);
 
         // Search arrow view
         searchArrowView = findViewById(R.id.searchArrow);
@@ -642,8 +679,6 @@ public class SkyMapActivity extends AppCompatActivity {
 
         Log.d(TAG, "SkyCanvasView created - Canvas2D rendering enabled");
 
-        skyCanvasView.setOnStarSelectedListener(viewModel::selectObject);
-
         skyCanvasView.setOnObjectSelectedListener(obj -> {
             if ("planet".equals(obj.type)) {
                 openEducationDetail(EducationDetailActivity.TYPE_PLANET, obj.name, obj.id);
@@ -656,6 +691,23 @@ public class SkyMapActivity extends AppCompatActivity {
                 }
             }
         });
+        skyCanvasView.setOnStarSelectedListener(star -> {
+            viewModel.selectObject(star);
+            skyCanvasView.setHighlightedStar(star);
+        });
+
+        // Orbital periods in milliseconds (sidereal, used to span the full orbit)
+        final java.util.Map<String, Long> orbitalPeriodMs = new java.util.HashMap<>();
+        orbitalPeriodMs.put("mercury",    88L * 24 * 3600 * 1000);
+        orbitalPeriodMs.put("venus",     225L * 24 * 3600 * 1000);
+        orbitalPeriodMs.put("mars",      687L * 24 * 3600 * 1000);
+        orbitalPeriodMs.put("jupiter",  (long)(11.86 * 365.25 * 24 * 3600 * 1000));
+        orbitalPeriodMs.put("saturn",   (long)(29.46 * 365.25 * 24 * 3600 * 1000));
+        orbitalPeriodMs.put("uranus",   (long)(84.01 * 365.25 * 24 * 3600 * 1000));
+        orbitalPeriodMs.put("neptune",  (long)(164.8  * 365.25 * 24 * 3600 * 1000));
+        orbitalPeriodMs.put("pluto",    (long)(247.9  * 365.25 * 24 * 3600 * 1000));
+        orbitalPeriodMs.put("moon",      27L * 24 * 3600 * 1000);
+        orbitalPeriodMs.put("sun",      365L * 24 * 3600 * 1000);
 
         skyCanvasView.setOnTrajectoryListener((planetName, x, y) -> {
             if (universe == null) return;
@@ -671,19 +723,31 @@ public class SkyMapActivity extends AppCompatActivity {
                     if (body == null) return;
 
                     long now = (timeTravelClock != null) ? timeTravelClock.getCurrentTimeMillis() : System.currentTimeMillis();
-                    long sixMonthsMs = 6L * 30 * 24 * 3600 * 1000;
-                    long step = 2L * 24 * 3600 * 1000; // 2 days
+                    long periodMs = orbitalPeriodMs.containsKey(planetName.toLowerCase())
+                            ? orbitalPeriodMs.get(planetName.toLowerCase())
+                            : 365L * 24 * 3600 * 1000;
+                    long halfPeriod = periodMs / 2;
+                    // Always ~360 steps, minimum 4-hour interval
+                    long step = Math.max(4L * 3600 * 1000, periodMs / 360);
                     List<SkyCanvasView.TrajectoryPoint> points = new ArrayList<>();
-                    for (long t = now - sixMonthsMs; t <= now + sixMonthsMs; t += step) {
+                    for (long t = now - halfPeriod; t <= now + halfPeriod; t += step) {
                         RaDec raDec = universe.getRaDec(body, new Date(t));
                         points.add(new SkyCanvasView.TrajectoryPoint(t, raDec.getRa(), raDec.getDec()));
                     }
-                    runOnUiThread(() -> skyCanvasView.startTrajectory(planetName, points, now));
+                    runOnUiThread(() -> {
+                        skyCanvasView.startTrajectory(planetName, points, now);
+                        skyCanvasView.lockOnPlanet(planetName);
+                        if (btnUnlockPlanet != null) btnUnlockPlanet.setVisibility(View.VISIBLE);
+                    });
                 } catch (Exception e) {
                     Log.e(TAG, "Error computing trajectory: " + e.getMessage());
                 }
             }).start();
         });
+
+        skyCanvasView.setOnTrajectoryDismissedListener(() ->
+                runOnUiThread(() -> { if (btnUnlockPlanet != null) btnUnlockPlanet.setVisibility(View.GONE); })
+        );
 
         // Create a dummy SkyGLSurfaceView for compatibility (won't be displayed)
         // This prevents null pointer exceptions in other parts of the code
@@ -725,6 +789,37 @@ public class SkyMapActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void setupInfoPanelGestures() {
+        infoPanelGestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDown(MotionEvent e) {
+                return true;
+            }
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                if (selectedStar == null) return false;
+                boolean isGeneratedName = selectedStar.getName() != null &&
+                        selectedStar.getName().startsWith("Star ");
+                if (isGeneratedName) return false;
+
+                float dy = e1.getY() - e2.getY();
+                if (dy > 120 && Math.abs(velocityY) > Math.abs(velocityX)) {
+                    openStarDetails(selectedStar);
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        if (infoPanel != null) {
+            infoPanel.setOnTouchListener((v, event) -> {
+                infoPanelGestureDetector.onTouchEvent(event);
+                return true;
+            });
+        }
     }
 
     /**
@@ -826,6 +921,18 @@ public class SkyMapActivity extends AppCompatActivity {
             btnPlanets.setOnClickListener(v -> togglePlanets());
         }
 
+        // DSO toggle button
+        View btnDSO = findViewById(R.id.btnDSO);
+        if (btnDSO != null) {
+            btnDSO.setOnClickListener(v -> toggleDSO());
+        }
+
+        // Tonight's Highlights button
+        View btnTonight = findViewById(R.id.btnTonight);
+        if (btnTonight != null) {
+            btnTonight.setOnClickListener(v -> showTonightsHighlights());
+        }
+
         // Initialize toggle button visual states
         initializeToggleButtonStates();
 
@@ -833,6 +940,48 @@ public class SkyMapActivity extends AppCompatActivity {
         View fabSearch = findViewById(R.id.fabSearch);
         if (fabSearch != null) {
             fabSearch.setOnClickListener(v -> openSearch());
+        }
+
+        // Unlock planet tracking button
+        if (btnUnlockPlanet != null) {
+            btnUnlockPlanet.setOnClickListener(v -> {
+                skyCanvasView.clearTrajectory();
+                btnUnlockPlanet.setVisibility(View.GONE);
+            });
+        }
+
+        // Star Detection FAB
+        View fabDetect = findViewById(R.id.fabDetect);
+        if (fabDetect != null) {
+            fabDetect.setOnClickListener(v -> {
+                Intent intent = new Intent(this, PlateSolveActivity.class);
+                startActivity(intent);
+            });
+        }
+
+        // Chat FAB
+        View fabChat = findViewById(R.id.fabChat);
+        if (fabChat != null) {
+            fabChat.setOnClickListener(v -> {
+                ChatBottomSheetFragment chatSheet = new ChatBottomSheetFragment();
+                Bundle chatArgs = new Bundle();
+                chatArgs.putDouble("latitude", currentLatitude);
+                chatArgs.putDouble("longitude", currentLongitude);
+                long timeMs = (timeTravelClock != null)
+                        ? timeTravelClock.getCurrentTimeMillis()
+                        : System.currentTimeMillis();
+                chatArgs.putLong("timeMillis", timeMs);
+                if (skyCanvasView != null) {
+                    chatArgs.putFloat("pointingRA", skyCanvasView.getViewRa());
+                    chatArgs.putFloat("pointingDec", skyCanvasView.getViewDec());
+                }
+                // Inject the currently selected star/object so AstroBot knows what the user is looking at
+                if (selectedStar != null) {
+                    chatArgs.putString("selectedObjectName", selectedStar.getName());
+                }
+                chatSheet.setArguments(chatArgs);
+                chatSheet.show(getSupportFragmentManager(), "chat_bottom_sheet");
+            });
         }
 
         if (btnSearchDetails != null) {
@@ -858,6 +1007,8 @@ public class SkyMapActivity extends AppCompatActivity {
                 }
             });
         }
+
+        setupInfoPanelGestures();
 
         // Set up tap gesture on sky view
         skyGLSurfaceView.setGestureListener(new SkyGLSurfaceView.SimpleGestureListener() {
@@ -973,6 +1124,9 @@ public class SkyMapActivity extends AppCompatActivity {
         updateARToggleButton();
 
         showLoading(false);
+
+        // Show tooltip tutorial if first time
+        showTooltipTutorialIfNeeded();
     }
 
     /**
@@ -995,6 +1149,9 @@ public class SkyMapActivity extends AppCompatActivity {
         cameraPreviewContainer.setVisibility(View.GONE);
 
         showLoading(false);
+
+        // Show tooltip tutorial if first time
+        showTooltipTutorialIfNeeded();
     }
 
     /**
@@ -1038,6 +1195,14 @@ public class SkyMapActivity extends AppCompatActivity {
             skyCanvasView.setConstellationData(constellations);
             skyCanvasView.setConstellationsVisible(isConstellationsEnabled);
             Log.d(TAG, "CONSTELLATIONS: Loaded " + constellations.size() + " constellations for canvas");
+        }
+
+        // Load DSO data
+        if (messierRepository != null) {
+            List<MessierObjectData> dsos = messierRepository.getAllObjects();
+            skyCanvasView.setDSOData(dsos);
+            skyCanvasView.setDSOsVisible(isDSOEnabled);
+            Log.d(TAG, "DSO: Loaded " + dsos.size() + " deep sky objects for canvas");
         }
 
         // Set observer location - use current GPS coordinates if available, otherwise default
@@ -1380,6 +1545,11 @@ public class SkyMapActivity extends AppCompatActivity {
         View btnPlanets = findViewById(R.id.btnPlanets);
         ImageView ivPlanets = findViewById(R.id.ivPlanets);
         updateToggleButtonVisual(ivPlanets, btnPlanets, isPlanetsEnabled);
+
+        // DSO toggle
+        View btnDSO = findViewById(R.id.btnDSO);
+        ImageView ivDSO = findViewById(R.id.ivDSO);
+        updateToggleButtonVisual(ivDSO, btnDSO, isDSOEnabled);
     }
 
     /**
@@ -1533,6 +1703,72 @@ public class SkyMapActivity extends AppCompatActivity {
         updateToggleButtonVisual(ivPlanets, btnPlanets, isPlanetsEnabled);
 
         Log.d(TAG, "Planets visibility toggled to: " + isPlanetsEnabled);
+    }
+
+    /**
+     * Toggles visibility of Deep Sky Objects in the sky view.
+     */
+    private void toggleDSO() {
+        isDSOEnabled = !isDSOEnabled;
+
+        if (skyCanvasView != null) {
+            skyCanvasView.setDSOsVisible(isDSOEnabled);
+        }
+
+        View btnDSO = findViewById(R.id.btnDSO);
+        ImageView ivDSO = findViewById(R.id.ivDSO);
+        updateToggleButtonVisual(ivDSO, btnDSO, isDSOEnabled);
+
+        Log.d(TAG, "DSO visibility toggled to: " + isDSOEnabled);
+    }
+
+    /**
+     * Shows the Tonight's Highlights bottom sheet.
+     */
+    private void showTonightsHighlights() {
+        new Thread(() -> {
+            long time = (timeTravelClock != null)
+                    ? timeTravelClock.getCurrentTimeMillis()
+                    : System.currentTimeMillis();
+
+            List<StarData> stars = (starRepository != null)
+                    ? starRepository.getAllStars() : null;
+            List<ConstellationData> constellationList = (constellationRepository != null)
+                    ? constellationRepository.getAllConstellations() : null;
+            List<MessierObjectData> dsos = (messierRepository != null)
+                    ? messierRepository.getAllObjects() : null;
+
+            List<TonightsHighlights.Highlight> highlights =
+                    TonightsHighlights.compute(universe, stars, constellationList, dsos,
+                            currentLatitude, currentLongitude, time);
+
+            runOnUiThread(() -> {
+                TonightsHighlightsFragment fragment = TonightsHighlightsFragment.newInstance();
+                fragment.setHighlights(highlights);
+                fragment.setOnHighlightSelectedListener(highlight -> {
+                    // Navigate to the selected object using search target mechanism
+                    searchTargetName = highlight.name;
+                    searchTargetRa = highlight.ra;
+                    searchTargetDec = highlight.dec;
+                    searchTargetBelowHorizonNotified = false;
+                    searchTargetInViewNotified = false;
+                    setSearchModeActive(true);
+
+                    if (searchArrowView != null) {
+                        searchArrowView.setTarget(searchTargetRa, searchTargetDec,
+                                searchTargetName, null);
+                        searchArrowView.setVisibility(View.VISIBLE);
+                        searchArrowView.setOnClickListener(v -> clearSearchTarget());
+                        updateSearchArrow();
+                    }
+
+                    Toast.makeText(this,
+                            getString(R.string.search_navigating_to, searchTargetName),
+                            Toast.LENGTH_SHORT).show();
+                });
+                fragment.show(getSupportFragmentManager(), "tonights_highlights");
+            });
+        }).start();
     }
 
     /**
@@ -2331,6 +2567,29 @@ public class SkyMapActivity extends AppCompatActivity {
         }
     }
 
+    @Nullable
+    private String getConstellationDisplayName(@NonNull String constellationId) {
+        if (constellationRepository != null) {
+            ConstellationData constellation = constellationRepository.getConstellationById(constellationId);
+            if (constellation != null) {
+                return constellation.getName();
+            }
+        }
+        String cleaned = constellationId.replace('_', ' ').trim();
+        if (cleaned.isEmpty()) return null;
+        String[] parts = cleaned.split("\\s+");
+        StringBuilder builder = new StringBuilder();
+        for (String part : parts) {
+            if (part.isEmpty()) continue;
+            if (builder.length() > 0) builder.append(" ");
+            builder.append(Character.toUpperCase(part.charAt(0)));
+            if (part.length() > 1) {
+                builder.append(part.substring(1).toLowerCase(Locale.ROOT));
+            }
+        }
+        return builder.toString();
+    }
+
     /**
      * Opens the detail view for a selected object.
      *
@@ -2577,6 +2836,17 @@ public class SkyMapActivity extends AppCompatActivity {
             sensorController.start();
         }
 
+        // Re-read manual scroll preference (may have changed in SettingsActivity)
+        android.content.SharedPreferences prefs = getSharedPreferences(SettingsViewModel.PREFS_NAME, MODE_PRIVATE);
+        boolean manualScrollEnabled = prefs.getBoolean(SettingsViewModel.KEY_ENABLE_MANUAL_SCROLL, false);
+        if (skyCanvasView != null) {
+            skyCanvasView.setManualScrollEnabled(manualScrollEnabled);
+        }
+        // If manual mode is active, pause sensors (they were just started above)
+        if (manualScrollEnabled && sensorController != null) {
+            sensorController.pause();
+        }
+
         // Start GPS location updates if permission is granted
         if (locationController != null && hasLocationPermission()) {
             locationController.start();
@@ -2622,6 +2892,96 @@ public class SkyMapActivity extends AppCompatActivity {
         if (cameraManager != null) {
             cameraManager.stopCamera();
         }
+    }
+
+    /**
+     * Show the interactive tooltip tutorial on first launch.
+     */
+    private void showTooltipTutorialIfNeeded() {
+        // Check if user has already completed the tutorial
+        if (com.astro.app.ui.onboarding.TooltipManager.hasCompletedTutorial(this)) {
+            return;
+        }
+
+        // Post to ensure all views are laid out
+        findViewById(android.R.id.content).post(() -> {
+            // Find anchor views for tooltips
+            View btnConstellations = findViewById(R.id.btnConstellations);
+            View btnTimeTravel = findViewById(R.id.btnTimeTravel);
+            View fabSearch = findViewById(R.id.fabSearch);
+            View fabDetect = findViewById(R.id.fabDetect);
+
+            // Build tooltip sequence (6 tooltips)
+            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
+                new com.astro.app.ui.onboarding.TooltipManager(this);
+
+            // Tooltip 1: Welcome (center)
+            tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                null,
+                "Welcome to Astro! Point your phone at the sky to see constellations, planets, and stars in real-time.",
+                com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
+                false
+            ));
+
+            // Tooltip 2: Drag to explore (center)
+            tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                null,
+                "Enable Manual Scroll in Settings to freely explore the sky by dragging. Pinch to zoom in/out.",
+                com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
+                false
+            ));
+
+            // Tooltip 3: Constellations toggle (highlight)
+            if (btnConstellations != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnConstellations,
+                    "Toggle constellation lines and labels here.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    true
+                ));
+            }
+
+            // Tooltip 4: Time Travel (highlight)
+            if (btnTimeTravel != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnTimeTravel,
+                    "Use Time Travel to see how the sky looked in the past or will look in the future.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    true
+                ));
+            }
+
+            // Tooltip 5: Search (highlight)
+            if (fabSearch != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    fabSearch,
+                    "Search for any celestial object. An arrow will guide you to point your phone at it.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
+                    true
+                ));
+            }
+
+            // Tooltip 6: Star Detection (highlight)
+            if (fabDetect != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    fabDetect,
+                    "Take a photo to detect constellations using advanced plate-solving algorithms.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
+                    true
+                ));
+            }
+
+            // Start the tutorial
+            tooltipManager.start();
+        });
+    }
+
+    /**
+     * Replay the tooltip tutorial (called from Settings).
+     */
+    public void replayTooltipTutorial() {
+        com.astro.app.ui.onboarding.TooltipManager.resetTutorial(this);
+        showTooltipTutorialIfNeeded();
     }
 
     @Override

@@ -412,6 +412,8 @@
     <string name="cd_fab_search">Search sky objects</string>
     <string name="cd_fab_detect">Detect stars in camera view</string>
     <string name="cd_fab_chatbot">Open AstroBot chat</string>
+    <string name="fab_stack">Stack</string>
+    <string name="cd_fab_stack">Image Stacking</string>
 </resources>
 
 
