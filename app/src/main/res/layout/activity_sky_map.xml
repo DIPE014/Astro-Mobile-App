@@ -7,6 +7,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_dark"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     tools:context=".ui.skymap.SkyMapActivity">
 
     <!-- Camera Preview Layer -->
@@ -454,6 +456,8 @@
         android:layout_height="350dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:layoutDescription="@xml/fab_menu_scene">
 
         <androidx.constraintlayout.utils.widget.ImageFilterView

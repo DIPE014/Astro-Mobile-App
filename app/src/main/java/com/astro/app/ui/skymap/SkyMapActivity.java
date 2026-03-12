@@ -60,6 +60,7 @@ import com.astro.app.data.repository.StarRepository;
 import com.astro.app.ui.highlights.TonightsHighlightsFragment;
 import com.astro.app.ui.education.EducationDetailActivity;
 import com.astro.app.ui.platesolve.PlateSolveActivity;
+import com.astro.app.ui.stacking.ImageStackingActivity;
 import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
@@ -932,7 +933,7 @@ public class SkyMapActivity extends AppCompatActivity {
         View fabStack = findViewById(R.id.fabStack);
         if (fabStack != null) {
             fabStack.setOnClickListener(v -> {
-                Intent intent = new Intent(SkyMapActivity.this, PlateSolveActivity.class);
+                Intent intent = new Intent(SkyMapActivity.this, ImageStackingActivity.class);
                 startActivity(intent);
             });
         }
@@ -2487,11 +2488,22 @@ public class SkyMapActivity extends AppCompatActivity {
                             fabMotionLayout.transitionToStart();
                         }
                     } else {
-                        // Clamp to screen bounds
+                        // Clamp to screen bounds based on current layout position
                         int screenWidth = getResources().getDisplayMetrics().widthPixels;
                         int screenHeight = getResources().getDisplayMetrics().heightPixels;
-                        float clampedX = Math.max(-screenWidth / 2f, Math.min(screenWidth / 2f, fabMotionLayout.getTranslationX()));
-                        float clampedY = Math.max(-screenHeight / 2f, Math.min(screenHeight / 2f, fabMotionLayout.getTranslationY()));
+                        int[] loc = new int[2];
+                        fabMotionLayout.getLocationOnScreen(loc);
+                        float curTransX = fabMotionLayout.getTranslationX();
+                        float curTransY = fabMotionLayout.getTranslationY();
+                        int mlWidth = fabMotionLayout.getWidth();
+                        int mlHeight = fabMotionLayout.getHeight();
+                        // Keep at least half the MotionLayout on screen
+                        float minX = curTransX - loc[0] - mlWidth / 2f;
+                        float maxX = curTransX + (screenWidth - loc[0] - mlWidth / 2f);
+                        float minY = curTransY - loc[1] - mlHeight / 2f;
+                        float maxY = curTransY + (screenHeight - loc[1] - mlHeight / 2f);
+                        float clampedX = Math.max(minX, Math.min(maxX, curTransX));
+                        float clampedY = Math.max(minY, Math.min(maxY, curTransY));
                         fabMotionLayout.setTranslationX(clampedX);
                         fabMotionLayout.setTranslationY(clampedY);
 

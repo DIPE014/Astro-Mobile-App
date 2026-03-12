@@ -8,7 +8,6 @@
         motion:duration="500"
         motion:motionInterpolator="overshoot"
         motion:staggered="0.4">
-        <OnClick motion:targetId="@+id/fabMain" />
     </Transition>
 
     <ConstraintSet android:id="@+id/start">
