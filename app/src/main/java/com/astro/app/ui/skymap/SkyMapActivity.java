@@ -2685,11 +2685,6 @@ public class SkyMapActivity extends AppCompatActivity {
     private void showStarInfo(@NonNull StarData star) {
         selectedStar = star;
 
-        // Only show fallback toast for stars outside the top-100 set.
-        if (skyCanvasView != null && skyCanvasView.isTopStar(star.getId())) {
-            return;
-        }
-
         // Per current UX requirement: star tap shows toast only (no info panel).
         if (infoPanel != null) {
             infoPanel.setVisibility(View.GONE);
