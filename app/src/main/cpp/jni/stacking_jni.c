@@ -522,6 +522,18 @@ Java_com_astro_app_native_1_StackingNative_initStackingNative(
 {
     LOGI("initStackingNative: %dx%d, color=%d", width, height, isColor);
 
+    if (width <= 0 || height <= 0) {
+        LOGE("Invalid dimensions: %dx%d", width, height);
+        return 0;
+    }
+
+    size_t npix = (size_t)width * (size_t)height;
+    // Check for overflow
+    if (npix / (size_t)width != (size_t)height) {
+        LOGE("Dimension overflow: %dx%d", width, height);
+        return 0;
+    }
+
     stacking_context_t* ctx = (stacking_context_t*)calloc(1, sizeof(stacking_context_t));
     if (!ctx) {
         LOGE("Failed to allocate context");
@@ -536,8 +548,6 @@ Java_com_astro_app_native_1_StackingNative_initStackingNative(
     ctx->height = height;
     ctx->is_color = isColor;
     ctx->frame_count = 0;
-
-    int npix = width * height;
 
     // Allocate accumulator (grayscale only for now)
     ctx->sum_r = (float*)calloc(npix, sizeof(float));
@@ -572,6 +582,18 @@ Java_com_astro_app_native_1_StackingNative_addFrameNative(
     stacking_context_t* ctx = (stacking_context_t*)(intptr_t)handle;
     if (!ctx) {
         LOGE("Invalid context handle");
+        return NULL;
+    }
+
+    // Validate array lengths
+    jsize imageLen = (*env)->GetArrayLength(env, imageData);
+    if (imageLen < (jsize)((size_t)ctx->width * ctx->height)) {
+        LOGE("imageData too short: %d < %dx%d", imageLen, ctx->width, ctx->height);
+        return NULL;
+    }
+    jsize starsLen = (*env)->GetArrayLength(env, stars);
+    if (starsLen % 3 != 0) {
+        LOGE("stars array length not multiple of 3: %d", starsLen);
         return NULL;
     }
 

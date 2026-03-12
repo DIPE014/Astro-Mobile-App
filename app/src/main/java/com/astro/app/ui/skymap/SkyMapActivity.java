@@ -2058,6 +2058,8 @@ public class SkyMapActivity extends AppCompatActivity {
                 intent.putExtra(StarInfoActivity.EXTRA_STAR_DEC, star.getDec());
                 intent.putExtra(StarInfoActivity.EXTRA_STAR_MAGNITUDE, star.getMagnitude());
                 startActivity(intent);
+            } else {
+                Log.w(TAG, "Star not found for id: " + obj.id);
             }
         }
         // Clear highlight after opening details

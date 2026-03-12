@@ -32,7 +32,7 @@ public class StackingNative {
      * @param isColor True for RGB, false for grayscale (currently only grayscale supported)
      * @return Native handle (jlong), or 0 on failure
      */
-    public static native long initStackingNative(int width, int height, boolean isColor);
+    private static native long initStackingNative(int width, int height, boolean isColor);
 
     /**
      * Add frame to stack.
@@ -42,7 +42,7 @@ public class StackingNative {
      * @param refStars Reference stars (null for first frame, or previous refStars for subsequent)
      * @return Array [success, inliers, rmsError, frameCount], or null on failure
      */
-    public static native double[] addFrameNative(long handle, byte[] imageData,
+    private static native double[] addFrameNative(long handle, byte[] imageData,
                                                   float[] stars, float[] refStars);
 
     /**
@@ -50,20 +50,20 @@ public class StackingNative {
      * @param handle Native stacking context handle
      * @return Averaged grayscale byte array, or null on failure
      */
-    public static native byte[] getStackedImageNative(long handle);
+    private static native byte[] getStackedImageNative(long handle);
 
     /**
      * Get current frame count.
      * @param handle Native stacking context handle
      * @return Number of frames successfully stacked
      */
-    public static native int getFrameCountNative(long handle);
+    private static native int getFrameCountNative(long handle);
 
     /**
      * Release native stacking context and free memory.
      * @param handle Native stacking context handle
      */
-    public static native void releaseNative(long handle);
+    private static native void releaseNative(long handle);
 
     /**
      * Result of frame alignment operation.
