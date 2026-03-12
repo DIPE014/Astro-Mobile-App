@@ -2,32 +2,30 @@
 
 An Android augmented reality astronomy app that helps you explore the night sky. Point your phone at the sky and see stars, planets, and constellations overlaid on your camera view in real-time.
 
-## 📢 Latest Release — Week 7: AstroBot, Sky Brightness & 3D Rendering (February 23, 2026)
+## 📢 Latest Release — Week 8: UI Polish, Image Stacking & Splash Overhaul (March 12, 2026)
 
-Two major new features plus rendering and code-quality improvements across the board.
+Major UI polish release with a new programmatic starfield splash, image stacking, radial FAB menu, and comprehensive onboarding.
 
 **New Features:**
-- 🤖 **AstroBot AI Assistant** — ChatGPT-powered astronomy chatbot accessible via a FAB on the sky map. Context-aware: knows your location, time, and what you're looking at. Offers dynamic suggestion chips, follow-up questions, a typing indicator, and a retry button on errors. API key stored with encrypted SharedPreferences.
-- 🌃 **Sky Brightness Meter** — Analyse any photo to estimate your sky's Bortle dark-sky class (1–9). Combines EXIF exposure metadata with pixel luminance statistics. Includes a custom colour-coded Bortle gauge, a result dialog in the Plate Solve screen, and a new onboarding page explaining light pollution.
-- 🔒 **Planet Trajectory Lock** — Long-press a planet to lock its trajectory overlay on screen even while panning away. Covers the full orbital period. An unlock button returns to normal mode.
-- 🧭 **3D Compass Tilt** — Compass now tilts in 3D based on device pitch for a more spatially accurate orientation display.
-- ↕️ **Smooth Zenith Panning** — Eliminated the singularity snap when pointing straight up.
+- ✨ **Programmatic Starfield Splash** — Replaced the blurry GIF intro with a custom `StarFieldView` rendering 220+ twinkling stars, shooting meteors (6–8 concurrent), and radial glow effects at 60 fps. Tap anywhere to trigger a 3-second warp tunnel transition (stars streak outward, shift bluer, white flash) before entering the sky map.
+- 📷 **Image Stacking** — Combine multiple short-exposure sky photos to reveal fainter stars and nebulae. Native C pipeline using triangle asterism matching (rotation/scale/translation-invariant), RANSAC affine estimation, bilinear warp, and mean accumulation. Accessible via the new FAB menu.
+- 🎯 **Radial FAB Menu** — MotionLayout-powered floating action button with four radial items: Search, Detect, Chat, and Stack. Overshoot animation with staggered reveal.
+- 🗺️ **Constellation Boundary Resolver** — Tap anywhere on the sky to see which constellation that region belongs to, using IAU official boundary data.
+- 📖 **Comprehensive Onboarding** — Expanded from 7 to 12 pages covering every feature. In-app tooltip tutorial expanded from 6 to 10 steps covering all controls.
 
-**Bug Fixes & Code Quality (PR #17 — 12 issues resolved):**
-- 🔧 Upgraded `security-crypto` to stable `1.1.0` (was alpha)
-- 🔧 API errors now correctly surface as retryable errors in chat (were silently swallowed)
-- 🔧 Fixed streaming fallback routing errors to `onError` callback
-- 🔧 Disabled `response_format: json_object` for streaming to prevent raw JSON fragments in UI
-- 🔧 Planet ephemeris computation moved off the UI thread in chat chips
-- 🔧 Fixed data race on chat message list between main thread and executor
-- 🔧 Replaced hardcoded error strings with `strings.xml` resources
-- 🔧 Fixed three `InputStream` leaks (try-with-resources) across `PlateSolveActivity` and `SkyBrightnessActivity`
-- 🔧 Scoped `FileProvider` external-cache-path from root to `captures/` subdirectory
-- 🔧 Removed machine-specific `org.gradle.java.home` from `gradle.properties`
+**UI Improvements:**
+- FAB menu repositioned higher (100dp margin) to avoid bottom navigation overlap
+- "Tap anywhere to explore" hint with fade-in pulse animation on splash screen
+- Exo font family (18 weights) for consistent typography
+- Education detail screen redesigned with new section icons
 
 See [CHANGELOG.md](CHANGELOG.md) for the full historical changelog.
 
 ---
+
+### Week 7: AstroBot, Sky Brightness & 3D Rendering (February 23, 2026)
+
+AstroBot AI assistant (ChatGPT-powered, context-aware), sky brightness meter (Bortle 1–9), planet trajectory lock-on, 3D compass tilt, smooth zenith panning, and 12 code-quality fixes.
 
 ### Week 6: Onboarding, Compass & Bug Fixes (February 15, 2026)
 
@@ -92,6 +90,12 @@ Point your camera at the sky to see celestial objects rendered in augmented real
 - Load a sky photo in the Plate Solve screen and tap Sky Quality
 - Estimates your Bortle dark-sky class (1 = pristine, 9 = inner-city) using EXIF exposure data and pixel luminance analysis
 - Colour-coded Bortle scale gauge with class label and description
+
+### Image Stacking
+- Combine multiple short-exposure photos of the same sky region to reveal fainter objects
+- Native C pipeline: triangle asterism matching (rotation/scale/translation-invariant alignment), RANSAC affine estimation, bilinear warp, and mean accumulation
+- SNR improves by sqrt(N) for N frames — reveals stars and nebulosity invisible in single exposures
+- Accessible via the Stack button in the FAB menu
 
 ### Additional Features
 - **Night Mode** - Red theme to preserve dark adaptation

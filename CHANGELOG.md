@@ -7,6 +7,118 @@ Releases are grouped by weekly sprint. Most recent release appears first.
 
 ---
 
+## [Week 8] — 2026-03-12
+
+### Summary
+Major UI polish release with a new programmatic starfield splash screen, image stacking pipeline, radial FAB menu, expanded onboarding, constellation boundary detection, and numerous visual refinements.
+
+---
+
+### Added
+
+#### Programmatic Starfield Splash Screen
+- Replaced blurry GIF intro with a custom **StarFieldView** rendering 220+ twinkling stars via Canvas at 60 fps
+- Stars have per-instance twinkle animation (sin wave with random phase/frequency) and radial gradient glow on brighter stars
+- **Shooting stars / meteors**: pool of 6–8 concurrent meteors spawning every 0.3–0.8 seconds with fading tails
+- **Tap-to-enter warp tunnel transition**: tapping the splash triggers a 3-second star warp effect (stars streak outward from center, accelerating with ease-in curve, shifting bluer) ending with a white flash and smooth fade to the sky map
+- "Tap anywhere to explore" hint fades in after 1.5 seconds with a subtle alpha pulse animation
+
+**New files:**
+| File | Description |
+|------|-------------|
+| `ui/intro/StarFieldView.java` | Custom View: starfield rendering, meteor pool, warp tunnel animation, `OnWarpCompleteListener` callback |
+| `res/anim/fade_in_pulse.xml` | Fade-in + infinite alpha pulse animation for the tap hint |
+
+---
+
+#### Image Stacking Pipeline
+- **Native C stacking engine** (`stacking_jni.c`) with triangle asterism matching, RANSAC affine estimation, bilinear warp, and mean accumulator — all via JNI
+- Triangle matching is rotation/scale/translation-invariant, superior to FFT phase correlation (translation-only) for handheld phone captures
+- Reuses existing star detection (simplexy) and libkd (k-d tree) from the astrometry integration
+- **ImageStackingActivity** with live camera preview, frame capture, alignment progress, and stacked result display
+- **ImageStackingManager** orchestrates the pipeline: grayscale conversion → star detection → triangle match → RANSAC → warp → accumulate
+
+**New files:**
+| File | Description |
+|------|-------------|
+| `cpp/jni/stacking_jni.c` | Native C: triangle match, RANSAC affine, bilinear warp, mean accumulator, JNI bridge |
+| `native_/StackingNative.java` | JNI interface for stacking functions |
+| `native_/ImageStackingManager.java` | Java orchestration layer |
+| `ui/stacking/ImageStackingActivity.java` | UI activity with camera, thumbnails, and result |
+| `res/layout/activity_image_stacking.xml` | Stacking screen layout |
+| `res/layout/item_stacking_thumbnail.xml` | Frame thumbnail item |
+
+---
+
+#### Radial FAB Menu (MotionLayout)
+- **Floating action button menu** with radial expansion animation using MotionLayout
+- Four actions: **Search**, **Detect** (plate solving), **Chat** (AstroBot), and **Stack** (image stacking)
+- FAB positioned 100dp from bottom to avoid overlap with bottom navigation bar
+- Overshoot interpolator with staggered reveal for a polished feel
+- Semi-transparent circular background scrim behind expanded items
+
+**New files:**
+| File | Description |
+|------|-------------|
+| `res/xml/fab_menu_scene.xml` | MotionLayout scene: start/end ConstraintSets, radial positioning, staggered animation |
+| `res/xml/fab_menu_visible.xml` | Supplementary visibility scene |
+
+---
+
+#### Constellation Boundary Detection
+- **ConstellationBoundaryResolver** determines which constellation a given RA/Dec point falls in using the IAU official boundary data
+- Used to label tapped sky regions and enhance star information panels
+
+**New files:**
+| File | Description |
+|------|-------------|
+| `ui/skymap/ConstellationBoundaryResolver.java` | RA/Dec → constellation name resolver using IAU boundaries |
+
+---
+
+#### Expanded Onboarding & Tutorials
+- **Onboarding expanded from 7 to 12 pages** covering: Welcome, Real-Time Sky Map, Constellations & Grid, Time Travel, Planets & DSOs, Pinch & Drag, Tap to Identify, Search & Navigate, Star Detection (Plate Solving), Image Stacking, AI Sky Assistant, and Start Exploring
+- **In-app tooltip tutorial expanded from 6 to 10 steps** covering: Welcome, Drag & Zoom, Constellations, Grid, Time Travel, Planets, Deep Sky Objects, Search FAB, Detect FAB, and Main FAB menu
+- Every feature in the app now has a dedicated onboarding page and tooltip
+
+---
+
+### Changed
+
+| File | Change |
+|------|--------|
+| `IntroSplashActivity.java` | Replaced Glide GIF loading with StarFieldView; removed auto-advance timer; added tap-to-warp handler |
+| `activity_intro_splash.xml` | Replaced ImageView with StarFieldView; added tap hint TextView |
+| `SkyCanvasView.java` | Added constellation boundary label rendering, improved rendering pipeline |
+| `SkyMapActivity.java` | Wired FAB menu (Search, Detect, Chat, Stack); expanded tooltip tutorial to 10 steps |
+| `OnboardingActivity.java` | Expanded from 7 to 12 pages with comprehensive descriptions |
+| `fab_menu_scene.xml` | FAB marginBottom increased from 64dp to 100dp to clear bottom nav |
+| `activity_sky_map.xml` | Integrated MotionLayout FAB menu, layout restructuring |
+| `AndroidManifest.xml` | Declared ImageStackingActivity and IntroSplashActivity |
+| `CMakeLists.txt` | Added `stacking_jni.c` to native build |
+| `app/build.gradle` | Added Glide + CameraX dependencies |
+| `strings.xml` | +37 new strings for onboarding, stacking, splash, and FAB labels |
+| `colors.xml` | Added intro/gradient colours |
+| `styles.xml` / `themes.xml` | Added intro splash theme and education detail styles |
+
+---
+
+### New Resource Summary
+
+| Type | Count | Description |
+|------|-------|-------------|
+| Java source files | 6 | StarFieldView, stacking (3), ConstellationBoundaryResolver, IntroSplashActivity |
+| C source files | 1 | stacking_jni.c (829 lines) |
+| XML layouts | 4 | Splash, stacking activity, stacking thumbnail, education detail update |
+| Animations | 3 | fade_in_pulse, intro_fade_in, intro_fade_out, title_zoom_exit |
+| Drawables | 9 | Gradient, education icons (8) |
+| Fonts | 18 | Exo font family (9 weights × regular + italic) |
+| MotionLayout scenes | 2 | FAB menu scene + visibility |
+
+---
+
+---
+
 ## [Week 7] — 2026-02-23
 
 ### Summary
