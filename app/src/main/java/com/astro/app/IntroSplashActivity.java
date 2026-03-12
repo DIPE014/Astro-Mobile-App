@@ -7,49 +7,62 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-
+import com.astro.app.ui.intro.StarFieldView;
 import com.astro.app.ui.skymap.SkyMapActivity;
 
-/**
- * An example full-screen activity that shows and hides the system UI (i.e.
- * status bar and navigation/system bar) with user interaction.
- */
 public class IntroSplashActivity extends AppCompatActivity {
     private final Handler splashHandler = new Handler(Looper.getMainLooper());
+    private StarFieldView starFieldView;
+    private boolean warpStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_intro_splash);
 
-        ImageView gifBackground = findViewById(R.id.introScreen);
+        starFieldView = findViewById(R.id.starFieldView);
         ConstraintLayout centerContent = findViewById(R.id.centerContent);
+        View rootView = findViewById(R.id.rootSplash);
+        TextView tvTapHint = findViewById(R.id.tvTapHint);
 
-        Animation titleZoom = AnimationUtils.loadAnimation(this, R.anim.title_zoom_exit);
-
-        Glide.with(this)
-                .asGif()
-                .load(R.drawable.intro_star) // your gif filename here
-                .into(gifBackground);
-
+        // Fade in the "Tap to explore" hint after 1.5s
         splashHandler.postDelayed(() -> {
-            centerContent.startAnimation(titleZoom);
+            Animation fadeInPulse = AnimationUtils.loadAnimation(this, R.anim.fade_in_pulse);
+            tvTapHint.setAlpha(1f);
+            tvTapHint.startAnimation(fadeInPulse);
+        }, 1500);
 
-            // Wait a split second for the zoom to start, then switch screens
-            splashHandler.postDelayed(() -> {
+        // Tap anywhere to start warp transition
+        rootView.setOnClickListener(v -> {
+            if (warpStarted) return;
+            warpStarted = true;
+
+            // Phase 1: Zoom out center content + fade hint
+            centerContent.animate()
+                    .scaleX(3f).scaleY(3f)
+                    .alpha(0f)
+                    .setDuration(500)
+                    .start();
+
+            tvTapHint.clearAnimation();
+            tvTapHint.animate().alpha(0f).setDuration(300).start();
+
+            // Phase 2: Start warp tunnel
+            starFieldView.setOnWarpCompleteListener(() -> {
+                // Phase 3: Transition to SkyMapActivity
                 Intent i = new Intent(IntroSplashActivity.this, SkyMapActivity.class);
                 startActivity(i);
-                // Keep the smooth fade between activities
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                 finish();
-            }, 800); // Wait 800ms after zoom starts to switch
-        }, 2000); // Start the whole sequence after 2 seconds
+            });
+
+            splashHandler.postDelayed(() -> starFieldView.startWarpMode(), 300);
+        });
     }
 
     @Override

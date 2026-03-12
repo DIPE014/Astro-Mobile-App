@@ -67,34 +67,66 @@ public class OnboardingActivity extends AppCompatActivity {
      */
     private void setupPages() {
         pages = new ArrayList<>();
+        // 1. Welcome
         pages.add(new OnboardingPagerAdapter.OnboardingPage(
                 android.R.drawable.btn_star_big_on,
                 R.string.onboarding_welcome_title,
                 R.string.onboarding_welcome_description));
+        // 2. Real-Time Sky Map
         pages.add(new OnboardingPagerAdapter.OnboardingPage(
                 android.R.drawable.ic_menu_compass,
                 R.string.onboarding_sky_map_title,
                 R.string.onboarding_sky_map_description));
+        // 3. Constellations & Grid
         pages.add(new OnboardingPagerAdapter.OnboardingPage(
-                android.R.drawable.ic_menu_manage,
+                android.R.drawable.ic_menu_view,
                 R.string.onboarding_controls_title,
                 R.string.onboarding_controls_description));
+        // 4. Time Travel
         pages.add(new OnboardingPagerAdapter.OnboardingPage(
-                android.R.drawable.ic_menu_camera,
-                R.string.onboarding_star_detection_title,
-                R.string.onboarding_star_detection_description));
+                android.R.drawable.ic_menu_recent_history,
+                R.string.onboarding_time_travel_title,
+                R.string.onboarding_time_travel_description));
+        // 5. Planets & Deep Sky Objects
+        pages.add(new OnboardingPagerAdapter.OnboardingPage(
+                android.R.drawable.ic_menu_myplaces,
+                R.string.onboarding_planets_title,
+                R.string.onboarding_planets_description));
+        // 6. Pinch & Drag
         pages.add(new OnboardingPagerAdapter.OnboardingPage(
                 android.R.drawable.ic_menu_zoom,
                 R.string.onboarding_drag_zoom_title,
                 R.string.onboarding_drag_zoom_description));
+        // 7. Tap to Identify
+        pages.add(new OnboardingPagerAdapter.OnboardingPage(
+                android.R.drawable.ic_menu_info_details,
+                R.string.onboarding_tap_identify_title,
+                R.string.onboarding_tap_identify_description));
+        // 8. Search & Navigate
         pages.add(new OnboardingPagerAdapter.OnboardingPage(
                 android.R.drawable.ic_menu_search,
                 R.string.onboarding_search_title,
                 R.string.onboarding_search_description));
+        // 9. Star Detection (Plate Solving)
         pages.add(new OnboardingPagerAdapter.OnboardingPage(
-                android.R.drawable.ic_menu_slideshow,
-                R.string.onboarding_sky_quality_title,
-                R.string.onboarding_sky_quality_description));
+                android.R.drawable.ic_menu_camera,
+                R.string.onboarding_star_detection_title,
+                R.string.onboarding_star_detection_description));
+        // 10. Image Stacking
+        pages.add(new OnboardingPagerAdapter.OnboardingPage(
+                android.R.drawable.ic_menu_sort_by_size,
+                R.string.onboarding_stacking_title,
+                R.string.onboarding_stacking_description));
+        // 11. AI Sky Assistant
+        pages.add(new OnboardingPagerAdapter.OnboardingPage(
+                android.R.drawable.ic_menu_send,
+                R.string.onboarding_chat_title,
+                R.string.onboarding_chat_description));
+        // 12. Start Exploring!
+        pages.add(new OnboardingPagerAdapter.OnboardingPage(
+                android.R.drawable.btn_star_big_on,
+                R.string.onboarding_start_exploring_title,
+                R.string.onboarding_start_exploring_description));
     }
 
     /**

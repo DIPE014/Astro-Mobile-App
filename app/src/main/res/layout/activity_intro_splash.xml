@@ -3,19 +3,16 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootSplash"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    tools:context=".MainActivity">
+    android:background="#000005"
+    tools:context=".IntroSplashActivity">
 
-    <ImageView
-        android:id="@+id/introScreen"
+    <com.astro.app.ui.intro.StarFieldView
+        android:id="@+id/starFieldView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:src="@drawable/intro_star"
-        android:scaleType="centerCrop"/>
-
-    <!-- Settings Icon Button - Top Right -->
+        android:layout_height="match_parent" />
 
     <!-- Centered Content Container -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -50,7 +47,6 @@
 
         </FrameLayout>
 
-
         <!-- App Name -->
         <TextView
             android:id="@+id/tvAppName"
@@ -79,6 +75,21 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvAppName" />
+
+        <!-- Tap to Explore Hint -->
+        <TextView
+            android:id="@+id/tvTapHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:alpha="0"
+            android:fontFamily="@font/exo_bold"
+            android:text="@string/tap_to_explore"
+            android:textColor="@color/text_tertiary"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvTagline" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
