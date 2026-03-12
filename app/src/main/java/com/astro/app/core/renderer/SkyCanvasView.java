@@ -852,8 +852,8 @@ public class SkyCanvasView extends View {
      */
     private float[] altAzToScreen(double altitude, double azimuth) {
         // Calculate angular distance from view center
-        double viewAz = azimuthOffset;
-        double viewAlt = altitudeOffset;
+        double viewAz = getViewAzimuth();
+        double viewAlt = getViewAltitude();
 
         // Convert to radians
         double viewAzRad = Math.toRadians(viewAz);
@@ -2529,8 +2529,9 @@ public class SkyCanvasView extends View {
                         trajectoryCurrentIndex = closest;
                         invalidate();
                     }
+                    return true;
                 }
-                return true;
+                // Not dragging trajectory — fall through so sky pan works normally
             }
             if (event.getAction() == MotionEvent.ACTION_UP) {
                 isDraggingTrajectory = false;

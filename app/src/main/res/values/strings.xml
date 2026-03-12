@@ -414,6 +414,12 @@
     <string name="cd_fab_chatbot">Open AstroBot chat</string>
     <string name="fab_stack">Stack</string>
     <string name="cd_fab_stack">Image Stacking</string>
+
+    <!-- Image Stacking -->
+    <string name="image_stacking">Image Stacking</string>
+    <string name="capture_frame">Capture Frame</string>
+    <string name="processing_frame">Processing frame…</string>
+    <string name="finish">Finish</string>
 </resources>
 
 

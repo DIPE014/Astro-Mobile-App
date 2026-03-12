@@ -52,6 +52,7 @@ import com.astro.app.core.layers.GridLayer;
 import com.astro.app.core.layers.StarsLayer;
 import com.astro.app.core.math.LatLong;
 import com.astro.app.core.renderer.SkyCanvasView;
+import com.astro.app.ui.stacking.ImageStackingActivity;
 import com.astro.app.core.renderer.SkyGLSurfaceView;
 import com.astro.app.core.renderer.SkyRenderer;
 import com.astro.app.core.math.Vector3;
@@ -1005,6 +1006,15 @@ public class SkyMapActivity extends AppCompatActivity {
                 if (selectedStar != null) {
                     openStarDetails(selectedStar);
                 }
+            });
+        }
+
+        // Image Stacking FAB
+        View fabStack = findViewById(R.id.fabStack);
+        if (fabStack != null) {
+            fabStack.setOnClickListener(v -> {
+                Intent intent = new Intent(SkyMapActivity.this, ImageStackingActivity.class);
+                startActivity(intent);
             });
         }
 
@@ -2702,7 +2712,9 @@ public class SkyMapActivity extends AppCompatActivity {
      * Hides the info panel.
      */
     private void hideInfoPanel() {
-        infoPanel.setVisibility(View.GONE);
+        if (infoPanel != null) {
+            infoPanel.setVisibility(View.GONE);
+        }
         selectedStar = null;
     }
 
