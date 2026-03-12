@@ -2,6 +2,7 @@ package com.astro.app.ui.skymap;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -24,6 +25,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.motion.widget.MotionLayout;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -45,7 +47,6 @@ import com.astro.app.core.layers.GridLayer;
 import com.astro.app.core.layers.StarsLayer;
 import com.astro.app.core.math.LatLong;
 import com.astro.app.core.renderer.SkyCanvasView;
-import com.astro.app.ui.stacking.ImageStackingActivity;
 import com.astro.app.core.renderer.SkyGLSurfaceView;
 import com.astro.app.core.renderer.SkyRenderer;
 import com.astro.app.core.math.Vector3;
@@ -201,6 +202,12 @@ public class SkyMapActivity extends AppCompatActivity {
     private boolean isDSOEnabled = false;
     @Nullable
     private StarData selectedStar;
+
+    // FAB dragging state
+    private float fabDragStartX, fabDragStartY;
+    private float fabTransStartX, fabTransStartY;
+    private boolean isDragging = false;
+    private static final float DRAG_THRESHOLD_DP = 10f;
 
     // GPS state
     private boolean isGpsEnabled = false;
@@ -877,15 +884,6 @@ public class SkyMapActivity extends AppCompatActivity {
             });
         }
 
-        // Star Detection FAB
-        View fabDetect = findViewById(R.id.fabDetect);
-        if (fabDetect != null) {
-            fabDetect.setOnClickListener(v -> {
-                Intent intent = new Intent(this, PlateSolveActivity.class);
-                startActivity(intent);
-            });
-        }
-
         // Chat FAB
         View fabChat = findViewById(R.id.fabChat);
         if (fabChat != null) {
@@ -930,14 +928,17 @@ public class SkyMapActivity extends AppCompatActivity {
             });
         }
 
-        // Image Stacking FAB
+        // Detect FAB (star detection & stacking)
         View fabStack = findViewById(R.id.fabStack);
         if (fabStack != null) {
             fabStack.setOnClickListener(v -> {
-                Intent intent = new Intent(SkyMapActivity.this, ImageStackingActivity.class);
+                Intent intent = new Intent(SkyMapActivity.this, PlateSolveActivity.class);
                 startActivity(intent);
             });
         }
+
+        // Make FAB menu draggable
+        setupDraggableFab();
 
         setupInfoPanelGestures();
 
@@ -2340,10 +2341,9 @@ public class SkyMapActivity extends AppCompatActivity {
             View btnPlanets = findViewById(R.id.btnPlanets);
             View btnDSO = findViewById(R.id.btnDSO);
             View fabSearch = findViewById(R.id.fabSearch);
-            View fabDetect = findViewById(R.id.fabDetect);
             View fabMain = findViewById(R.id.fabMain);
 
-            // Build tooltip sequence (10 tooltips)
+            // Build tooltip sequence (9 tooltips)
             com.astro.app.ui.onboarding.TooltipManager tooltipManager =
                 new com.astro.app.ui.onboarding.TooltipManager(this);
 
@@ -2423,21 +2423,11 @@ public class SkyMapActivity extends AppCompatActivity {
                 ));
             }
 
-            // Tooltip 9: Detect FAB
-            if (fabDetect != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    fabDetect,
-                    "Take a photo to identify constellations using star pattern matching (plate solving).",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
-                    true
-                ));
-            }
-
-            // Tooltip 10: Main FAB menu
+            // Tooltip 9: Main FAB menu
             if (fabMain != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     fabMain,
-                    "This menu also has Chat (AI assistant) and Stack (image stacking) \u2014 tap to explore!",
+                    "This menu also has Detect (star detection & stacking), Chat (AI assistant), and Search \u2014 tap to explore!",
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
                     true
                 ));
@@ -2454,6 +2444,74 @@ public class SkyMapActivity extends AppCompatActivity {
     public void replayTooltipTutorial() {
         com.astro.app.ui.onboarding.TooltipManager.resetTutorial(this);
         showTooltipTutorialIfNeeded();
+    }
+
+    /**
+     * Sets up the FAB MotionLayout as draggable so users can reposition it.
+     * Distinguishes between taps (toggle menu) and drags (reposition).
+     * Persists position across sessions via SharedPreferences.
+     */
+    @SuppressWarnings("ClickableViewAccessibility")
+    private void setupDraggableFab() {
+        MotionLayout fabMotionLayout = findViewById(R.id.motionLayout);
+        View fabMain = findViewById(R.id.fabMain);
+        if (fabMotionLayout == null || fabMain == null) return;
+
+        fabMain.setOnTouchListener((v, event) -> {
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    fabDragStartX = event.getRawX();
+                    fabDragStartY = event.getRawY();
+                    fabTransStartX = fabMotionLayout.getTranslationX();
+                    fabTransStartY = fabMotionLayout.getTranslationY();
+                    isDragging = false;
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    float dx = event.getRawX() - fabDragStartX;
+                    float dy = event.getRawY() - fabDragStartY;
+                    float threshold = DRAG_THRESHOLD_DP * getResources().getDisplayMetrics().density;
+                    if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
+                        isDragging = true;
+                    }
+                    if (isDragging) {
+                        fabMotionLayout.setTranslationX(fabTransStartX + dx);
+                        fabMotionLayout.setTranslationY(fabTransStartY + dy);
+                    }
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    if (!isDragging) {
+                        // It was a tap - toggle the MotionLayout
+                        if (fabMotionLayout.getCurrentState() == fabMotionLayout.getStartState()) {
+                            fabMotionLayout.transitionToEnd();
+                        } else {
+                            fabMotionLayout.transitionToStart();
+                        }
+                    } else {
+                        // Clamp to screen bounds
+                        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+                        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+                        float clampedX = Math.max(-screenWidth / 2f, Math.min(screenWidth / 2f, fabMotionLayout.getTranslationX()));
+                        float clampedY = Math.max(-screenHeight / 2f, Math.min(screenHeight / 2f, fabMotionLayout.getTranslationY()));
+                        fabMotionLayout.setTranslationX(clampedX);
+                        fabMotionLayout.setTranslationY(clampedY);
+
+                        // Save position
+                        getSharedPreferences("fab_prefs", MODE_PRIVATE).edit()
+                            .putFloat("fab_position_x", clampedX)
+                            .putFloat("fab_position_y", clampedY)
+                            .apply();
+                    }
+                    return true;
+            }
+            return false;
+        });
+
+        // Restore saved position
+        SharedPreferences fabPrefs = getSharedPreferences("fab_prefs", MODE_PRIVATE);
+        float savedX = fabPrefs.getFloat("fab_position_x", 0f);
+        float savedY = fabPrefs.getFloat("fab_position_y", 0f);
+        fabMotionLayout.setTranslationX(savedX);
+        fabMotionLayout.setTranslationY(savedY);
     }
 
     @Override

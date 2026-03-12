@@ -344,10 +344,8 @@
     <string name="onboarding_tap_identify_description">Tap any star or planet on the map to see its details — name, magnitude, constellation, and coordinates. The info panel slides up with all the essential data about the object you tapped.</string>
     <string name="onboarding_search_title">Search &amp; Navigate</string>
     <string name="onboarding_search_description">Tap the Search button in the menu to find any celestial object by name. An arrow will guide you to point your phone in the right direction until the object appears on screen.</string>
-    <string name="onboarding_star_detection_title">Star Detection (Plate Solving)</string>
-    <string name="onboarding_star_detection_description">Tap Detect in the menu to take a photo of the night sky. Our astrometry engine analyzes the star patterns and identifies exactly which part of the sky you photographed — matching real astronomical databases.</string>
-    <string name="onboarding_stacking_title">Image Stacking</string>
-    <string name="onboarding_stacking_description">Tap Stack in the menu to combine multiple photos of the same sky region. Stacking aligns and averages the frames, revealing fainter stars and nebulae invisible in a single exposure.</string>
+    <string name="onboarding_detect_title">Star Detection &amp; Image Stacking</string>
+    <string name="onboarding_detect_description">Tap Detect in the menu to take a photo of the night sky. Our astrometry engine identifies exactly which part of the sky you photographed. You can also stack multiple photos to reveal fainter stars and nebulae invisible in a single exposure.</string>
     <string name="onboarding_chat_title">AI Sky Assistant</string>
     <string name="onboarding_chat_description">Tap Chat to ask our AI assistant anything about astronomy. Get help identifying objects, understanding celestial events, or learning about what you\'re observing.</string>
     <string name="onboarding_start_exploring_title">Start Exploring!</string>
@@ -418,14 +416,13 @@
 
     <!-- FAB menu labels and content descriptions -->
     <string name="fab_search">Search</string>
-    <string name="fab_detect">Detect</string>
+    <string name="fab_detect_stack">Detect</string>
     <string name="fab_chatbot">ChatBot</string>
     <string name="cd_fab_main">Open actions menu</string>
     <string name="cd_fab_search">Search sky objects</string>
-    <string name="cd_fab_detect">Detect stars in camera view</string>
     <string name="cd_fab_chatbot">Open AstroBot chat</string>
-    <string name="fab_stack">Stack</string>
-    <string name="cd_fab_stack">Image Stacking</string>
+    <string name="fab_stack">Detect</string>
+    <string name="cd_fab_stack">Star detection and image stacking</string>
 
     <!-- Image Stacking -->
     <string name="image_stacking">Image Stacking</string>

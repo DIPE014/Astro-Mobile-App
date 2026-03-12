@@ -450,8 +450,10 @@
 
     <androidx.constraintlayout.motion.widget.MotionLayout
         android:id="@+id/motionLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="350dp"
+        android:layout_height="350dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layoutDescription="@xml/fab_menu_scene">
 
         <androidx.constraintlayout.utils.widget.ImageFilterView
@@ -479,19 +481,6 @@
             app:layout_constraintCircleRadius="180dp" />
 
         <Button
-            android:id="@+id/fabDetect"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="#0000"
-            android:contentDescription="@string/cd_fab_detect"
-            android:drawableTop="@android:drawable/ic_menu_camera"
-            android:text="@string/fab_detect"
-            android:textAllCaps="false"
-            app:layout_constraintCircle="@id/background"
-            app:layout_constraintCircleAngle="330"
-            app:layout_constraintCircleRadius="200dp" />
-
-        <Button
             android:id="@+id/fabChat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -510,8 +499,8 @@
             android:layout_height="wrap_content"
             android:background="#0000"
             android:contentDescription="@string/cd_fab_stack"
-            android:drawableTop="@drawable/ic_layers"
-            android:text="@string/fab_stack"
+            android:drawableTop="@android:drawable/ic_menu_camera"
+            android:text="@string/fab_detect_stack"
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="240"
@@ -522,7 +511,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="15dp"
-            android:layout_marginBottom="200dp"
+            android:layout_marginBottom="140dp"
             android:contentDescription="@string/cd_fab_main"
             android:rotation="0"
             android:scaleX="2"
@@ -575,6 +564,7 @@
         android:layout_height="@dimen/sky_map_compass_size"
         android:layout_marginStart="@dimen/sky_map_compass_margin"
         android:layout_marginBottom="@dimen/margin_medium"
+        android:elevation="4dp"
         android:contentDescription="@string/direction_north"
         app:layout_constraintBottom_toTopOf="@id/bottomControls"
         app:layout_constraintStart_toStartOf="parent" />
