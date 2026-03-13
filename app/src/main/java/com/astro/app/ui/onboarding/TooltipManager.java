@@ -25,13 +25,24 @@ import java.util.List;
  * - Highlights anchor views with circular punch-through
  * - Next/Skip buttons for navigation
  * - Saves completion state to SharedPreferences
+ * - Per-tutorial preference keys for multiple screens
+ * - Interactive mode for toggle buttons
+ * - Extra highlight views for grouped controls
  */
 public class TooltipManager {
     private static final String TAG = "TooltipManager";
     private static final String PREFS_NAME = "onboarding";
-    private static final String KEY_TOOLTIP_COMPLETED = "tooltip_tutorial_completed";
+
+    // Per-tutorial keys
+    public static final String KEY_SKYMAP_TUTORIAL = "tooltip_tutorial_completed"; // backward compat
+    public static final String KEY_SETTINGS_TUTORIAL = "settings_tooltip_completed";
+    public static final String KEY_SEARCH_TUTORIAL = "search_tooltip_completed";
+    public static final String KEY_CHAT_TUTORIAL = "chat_tooltip_completed";
+    public static final String KEY_DETECT_TUTORIAL = "detect_tooltip_completed";
 
     private final Activity activity;
+    private final String tutorialKey;
+    private final ViewGroup rootView;
     private final List<TooltipConfig> tooltips;
     private int currentTooltipIndex = 0;
 
@@ -43,7 +54,17 @@ public class TooltipManager {
     }
 
     public TooltipManager(Activity activity) {
+        this(activity, KEY_SKYMAP_TUTORIAL);
+    }
+
+    public TooltipManager(Activity activity, String tutorialKey) {
+        this(activity, tutorialKey, null);
+    }
+
+    public TooltipManager(Activity activity, String tutorialKey, ViewGroup rootView) {
         this.activity = activity;
+        this.tutorialKey = tutorialKey;
+        this.rootView = rootView;
         this.tooltips = new ArrayList<>();
     }
 
@@ -64,11 +85,18 @@ public class TooltipManager {
     }
 
     /**
-     * Check if the user has already completed the tutorial.
+     * Check if the user has already completed the tutorial (default skymap key).
      */
     public static boolean hasCompletedTutorial(Context context) {
+        return hasCompletedTutorial(context, KEY_SKYMAP_TUTORIAL);
+    }
+
+    /**
+     * Check if the user has already completed a specific tutorial.
+     */
+    public static boolean hasCompletedTutorial(Context context, String key) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        return prefs.getBoolean(KEY_TOOLTIP_COMPLETED, false);
+        return prefs.getBoolean(key, false);
     }
 
     /**
@@ -76,15 +104,36 @@ public class TooltipManager {
      */
     private void markTutorialCompleted() {
         SharedPreferences prefs = activity.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().putBoolean(KEY_TOOLTIP_COMPLETED, true).apply();
+        prefs.edit().putBoolean(tutorialKey, true).apply();
     }
 
     /**
-     * Reset tutorial completion state (for "Replay Tutorial" feature).
+     * Reset tutorial completion state (default skymap key).
      */
     public static void resetTutorial(Context context) {
+        resetTutorial(context, KEY_SKYMAP_TUTORIAL);
+    }
+
+    /**
+     * Reset a specific tutorial's completion state.
+     */
+    public static void resetTutorial(Context context, String key) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().putBoolean(KEY_TOOLTIP_COMPLETED, false).apply();
+        prefs.edit().putBoolean(key, false).apply();
+    }
+
+    /**
+     * Reset all tutorial completion states.
+     */
+    public static void resetAllTutorials(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit()
+            .putBoolean(KEY_SKYMAP_TUTORIAL, false)
+            .putBoolean(KEY_SETTINGS_TUTORIAL, false)
+            .putBoolean(KEY_SEARCH_TUTORIAL, false)
+            .putBoolean(KEY_CHAT_TUTORIAL, false)
+            .putBoolean(KEY_DETECT_TUTORIAL, false)
+            .apply();
     }
 
     /**
@@ -110,6 +159,12 @@ public class TooltipManager {
         dismiss();
 
         TooltipConfig config = tooltips.get(index);
+
+        // Execute onShowAction if present
+        Runnable onShowAction = config.getOnShowAction();
+        if (onShowAction != null) {
+            onShowAction.run();
+        }
 
         // Create tooltip view
         currentTooltipView = new TooltipView(activity);
@@ -169,7 +224,20 @@ public class TooltipManager {
             ? getViewRect(config.getAnchorView())
             : null;
 
-        currentTooltipView.configure(bubbleRect, anchorRect, config.getPosition());
+        // Compute extra highlight rects
+        List<RectF> extraHighlightRects = null;
+        List<View> extraViews = config.getExtraHighlightViews();
+        if (extraViews != null && !extraViews.isEmpty()) {
+            extraHighlightRects = new ArrayList<>();
+            for (View v : extraViews) {
+                if (v != null && v.getVisibility() == View.VISIBLE) {
+                    extraHighlightRects.add(getViewRect(v));
+                }
+            }
+        }
+
+        currentTooltipView.configure(bubbleRect, anchorRect, config.getPosition(),
+            extraHighlightRects, config.isInteractive(), config.getAnchorView());
 
         // Position message text inside bubble
         FrameLayout.LayoutParams textParams = new FrameLayout.LayoutParams(
@@ -190,9 +258,10 @@ public class TooltipManager {
         bubbleButtonParams.topMargin = (int) bubbleRect.bottom - dpToPx(48);
         currentTooltipView.addView(buttonContainer, bubbleButtonParams);
 
-        // Add to activity root
-        ViewGroup rootView = (ViewGroup) activity.findViewById(android.R.id.content);
-        rootView.addView(currentTooltipView);
+        // Add to root view (custom or activity default)
+        ViewGroup target = rootView != null ? rootView
+            : (ViewGroup) activity.findViewById(android.R.id.content);
+        target.addView(currentTooltipView);
     }
 
     private RectF calculateBubbleRect(TooltipConfig config) {
