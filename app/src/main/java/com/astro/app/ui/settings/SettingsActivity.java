@@ -63,6 +63,7 @@ public class SettingsActivity extends AppCompatActivity {
         initializeViews();
         setupClickListeners();
         observeViewModel();
+        showSettingsTooltipIfNeeded();
     }
 
     /**
@@ -177,6 +178,7 @@ public class SettingsActivity extends AppCompatActivity {
                         SettingsViewModel.PREFS_NAME, MODE_PRIVATE);
                 prefs.edit().putBoolean(
                         OnboardingActivity.KEY_HAS_COMPLETED_ONBOARDING, false).apply();
+                com.astro.app.ui.onboarding.TooltipManager.resetAllTutorials(this);
                 Toast.makeText(this, R.string.settings_replay_tutorial_toast,
                         Toast.LENGTH_SHORT).show();
             });
@@ -300,6 +302,58 @@ public class SettingsActivity extends AppCompatActivity {
                 switchManualScroll.setChecked(enabled);
             }
             isUpdatingUI = false;
+        });
+    }
+
+    private void showSettingsTooltipIfNeeded() {
+        if (com.astro.app.ui.onboarding.TooltipManager.hasCompletedTutorial(
+                this, com.astro.app.ui.onboarding.TooltipManager.KEY_SETTINGS_TUTORIAL)) {
+            return;
+        }
+
+        findViewById(android.R.id.content).post(() -> {
+            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
+                new com.astro.app.ui.onboarding.TooltipManager(this,
+                    com.astro.app.ui.onboarding.TooltipManager.KEY_SETTINGS_TUTORIAL);
+
+            if (sliderBrightness != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    sliderBrightness,
+                    "Adjust star brightness \u2014 higher values make stars more visible.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
+                    true
+                ));
+            }
+
+            if (sliderMagnitude != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    sliderMagnitude,
+                    "Set the magnitude limit \u2014 higher values show fainter stars.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
+                    true
+                ));
+            }
+
+            if (switchNightMode != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    switchNightMode,
+                    "Enable night mode to preserve dark adaptation with a red tint.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
+                    true
+                ));
+            }
+
+            android.widget.EditText etApiKey = findViewById(R.id.etApiKey);
+            if (etApiKey != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    etApiKey,
+                    "Enter your OpenAI API key to enable the AstroBot chat assistant.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    true
+                ));
+            }
+
+            tooltipManager.start();
         });
     }
 }
