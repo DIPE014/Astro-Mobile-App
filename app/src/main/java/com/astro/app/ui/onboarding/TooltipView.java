@@ -38,6 +38,7 @@ public class TooltipView extends FrameLayout {
     private Path arrowPath;
     private TooltipConfig.TooltipPosition position;
     private List<RectF> extraHighlights;
+    private List<View> extraHighlightViews;
     private boolean interactive;
     private View anchorView;
 
@@ -82,11 +83,13 @@ public class TooltipView extends FrameLayout {
     public void configure(RectF bubbleRect, RectF anchorRect,
                           TooltipConfig.TooltipPosition position,
                           List<RectF> extraHighlights,
+                          List<View> extraHighlightViews,
                           boolean interactive, View anchorView) {
         this.bubbleRect = bubbleRect;
         this.anchorHighlight = anchorRect;
         this.position = position;
         this.extraHighlights = extraHighlights;
+        this.extraHighlightViews = extraHighlightViews;
         this.interactive = interactive;
         this.anchorView = anchorView;
 
@@ -102,7 +105,7 @@ public class TooltipView extends FrameLayout {
 
     /** Backward-compatible configure without extra features. */
     public void configure(RectF bubbleRect, RectF anchorRect, TooltipConfig.TooltipPosition position) {
-        configure(bubbleRect, anchorRect, position, null, false, null);
+        configure(bubbleRect, anchorRect, position, null, null, false, null);
     }
 
     @Override
@@ -121,13 +124,14 @@ public class TooltipView extends FrameLayout {
             }
 
             // Also check extra highlights for interactive passthrough
-            if (extraHighlights != null) {
-                for (RectF rect : extraHighlights) {
+            if (extraHighlights != null && extraHighlightViews != null) {
+                for (int i = 0; i < extraHighlights.size() && i < extraHighlightViews.size(); i++) {
+                    RectF rect = extraHighlights.get(i);
                     float er = Math.max(rect.width(), rect.height()) / 2f + highlightPadding;
                     float edx = x - rect.centerX();
                     float edy = y - rect.centerY();
                     if (edx * edx + edy * edy <= er * er) {
-                        // Touch is inside an extra highlight — consume but don't advance
+                        extraHighlightViews.get(i).performClick();
                         return true;
                     }
                 }

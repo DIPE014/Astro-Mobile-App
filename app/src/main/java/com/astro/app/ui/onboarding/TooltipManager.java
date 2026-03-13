@@ -160,11 +160,30 @@ public class TooltipManager {
 
         TooltipConfig config = tooltips.get(index);
 
-        // Execute onShowAction if present
+        // Execute onShowAction if present (e.g., expand FAB menu)
         Runnable onShowAction = config.getOnShowAction();
+        boolean needsAnimationDelay = onShowAction != null
+            && config.getExtraHighlightViews() != null
+            && !config.getExtraHighlightViews().isEmpty();
+
         if (onShowAction != null) {
             onShowAction.run();
         }
+
+        // If onShowAction triggers an animation that moves extra highlight views,
+        // delay tooltip layout to let the animation settle (e.g., MotionLayout ~500ms)
+        if (needsAnimationDelay) {
+            ViewGroup target = rootView != null ? rootView
+                : (ViewGroup) activity.findViewById(android.R.id.content);
+            target.postDelayed(() -> buildAndShowTooltipView(index, config), 600);
+        } else {
+            buildAndShowTooltipView(index, config);
+        }
+    }
+
+    private void buildAndShowTooltipView(int index, TooltipConfig config) {
+        // Guard against activity finishing during delay
+        if (activity.isFinishing() || activity.isDestroyed()) return;
 
         // Create tooltip view
         currentTooltipView = new TooltipView(activity);
@@ -224,20 +243,24 @@ public class TooltipManager {
             ? getViewRect(config.getAnchorView())
             : null;
 
-        // Compute extra highlight rects
+        // Compute extra highlight rects and collect view references for interactive passthrough
         List<RectF> extraHighlightRects = null;
+        List<View> visibleExtraViews = null;
         List<View> extraViews = config.getExtraHighlightViews();
         if (extraViews != null && !extraViews.isEmpty()) {
             extraHighlightRects = new ArrayList<>();
+            visibleExtraViews = new ArrayList<>();
             for (View v : extraViews) {
                 if (v != null && v.getVisibility() == View.VISIBLE) {
                     extraHighlightRects.add(getViewRect(v));
+                    visibleExtraViews.add(v);
                 }
             }
         }
 
         currentTooltipView.configure(bubbleRect, anchorRect, config.getPosition(),
-            extraHighlightRects, config.isInteractive(), config.getAnchorView());
+            extraHighlightRects, visibleExtraViews,
+            config.isInteractive(), config.getAnchorView());
 
         // Position message text inside bubble
         FrameLayout.LayoutParams textParams = new FrameLayout.LayoutParams(
@@ -337,7 +360,11 @@ public class TooltipManager {
         showTooltip(currentTooltipIndex);
     }
 
-    private void dismiss() {
+    /**
+     * Dismiss the current tooltip and clean up. Call from onDestroy/onDestroyView
+     * to prevent leaks if the tutorial is interrupted.
+     */
+    public void dismiss() {
         if (currentTooltipView != null && currentTooltipView.getParent() != null) {
             ((ViewGroup) currentTooltipView.getParent()).removeView(currentTooltipView);
             currentTooltipView = null;
