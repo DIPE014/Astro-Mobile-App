@@ -119,6 +119,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         initializeViews();
         initializeSearchIndex();
         setupListeners();
+        showSearchTooltipIfNeeded();
     }
 
     /**
@@ -416,5 +417,36 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
             outputStream.write(buffer, 0, read);
         }
         return outputStream.toString(java.nio.charset.StandardCharsets.UTF_8.name());
+    }
+
+    private void showSearchTooltipIfNeeded() {
+        if (com.astro.app.ui.onboarding.TooltipManager.hasCompletedTutorial(
+                this, com.astro.app.ui.onboarding.TooltipManager.KEY_SEARCH_TUTORIAL)) {
+            return;
+        }
+
+        findViewById(android.R.id.content).post(() -> {
+            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
+                new com.astro.app.ui.onboarding.TooltipManager(this,
+                    com.astro.app.ui.onboarding.TooltipManager.KEY_SEARCH_TUTORIAL);
+
+            if (etSearch != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    etSearch,
+                    "Type a star, planet, or constellation name. Results appear as you type.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
+                    true
+                ));
+            }
+
+            tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                null,
+                "Tap a result to navigate to it on the sky map. An arrow will guide you.",
+                com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
+                false
+            ));
+
+            tooltipManager.start();
+        });
     }
 }

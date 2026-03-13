@@ -187,6 +187,7 @@ public class ImageStackingActivity extends AppCompatActivity {
         }
 
         setupClickListeners();
+        showDetectTooltipIfNeeded();
     }
 
     private void initializeViews() {
@@ -854,5 +855,47 @@ public class ImageStackingActivity extends AppCompatActivity {
         if (stackingManager != null) {
             stackingManager.release();
         }
+    }
+
+    private void showDetectTooltipIfNeeded() {
+        if (com.astro.app.ui.onboarding.TooltipManager.hasCompletedTutorial(
+                this, com.astro.app.ui.onboarding.TooltipManager.KEY_DETECT_TUTORIAL)) {
+            return;
+        }
+
+        findViewById(android.R.id.content).post(() -> {
+            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
+                new com.astro.app.ui.onboarding.TooltipManager(this,
+                    com.astro.app.ui.onboarding.TooltipManager.KEY_DETECT_TUTORIAL);
+
+            if (btnCapture != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnCapture,
+                    "Capture a photo of the night sky, or pick one from your gallery.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    true
+                ));
+            }
+
+            if (switchStacking != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    switchStacking,
+                    "Enable stacking to combine multiple frames for a brighter, cleaner image.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
+                    true
+                ));
+            }
+
+            if (btnPickImages != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnPickImages,
+                    "You can also select existing photos from your gallery.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    true
+                ));
+            }
+
+            tooltipManager.start();
+        });
     }
 }

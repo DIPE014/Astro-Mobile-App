@@ -157,6 +157,8 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
             btnSend.setEnabled(!isLoading);
             btnSend.setAlpha(isLoading ? 0.5f : 1.0f);
         });
+
+        showChatTooltipIfNeeded(view);
     }
 
     @NonNull
@@ -423,5 +425,46 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
             // Do not fall back to unencrypted storage — return null to protect the key
             return null;
         }
+    }
+
+    private void showChatTooltipIfNeeded(View fragmentRoot) {
+        if (com.astro.app.ui.onboarding.TooltipManager.hasCompletedTutorial(
+                requireContext(), com.astro.app.ui.onboarding.TooltipManager.KEY_CHAT_TUTORIAL)) {
+            return;
+        }
+
+        fragmentRoot.post(() -> {
+            if (!isAdded() || getDialog() == null || getDialog().getWindow() == null) return;
+
+            // Use the dialog's decor view as root so the overlay covers the bottom sheet
+            android.view.ViewGroup dialogRoot = (android.view.ViewGroup)
+                getDialog().getWindow().getDecorView().findViewById(android.R.id.content);
+
+            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
+                new com.astro.app.ui.onboarding.TooltipManager(
+                    requireActivity(),
+                    com.astro.app.ui.onboarding.TooltipManager.KEY_CHAT_TUTORIAL,
+                    dialogRoot);
+
+            if (chipScrollView != null && chipScrollView.getVisibility() == View.VISIBLE) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    chipScrollView,
+                    "Tap a suggestion or type your own question about the night sky.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
+                    true
+                ));
+            }
+
+            if (btnSend != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnSend,
+                    "AstroBot knows what you're looking at and can answer astronomy questions.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
+                    true
+                ));
+            }
+
+            tooltipManager.start();
+        });
     }
 }
