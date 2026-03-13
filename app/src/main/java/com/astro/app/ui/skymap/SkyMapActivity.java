@@ -2341,17 +2341,21 @@ public class SkyMapActivity extends AppCompatActivity {
             View btnTimeTravel = findViewById(R.id.btnTimeTravel);
             View btnPlanets = findViewById(R.id.btnPlanets);
             View btnDSO = findViewById(R.id.btnDSO);
-            View fabSearch = findViewById(R.id.fabSearch);
+            View btnSettings = findViewById(R.id.btnSettings);
             View fabMain = findViewById(R.id.fabMain);
+            View fabSearch = findViewById(R.id.fabSearch);
+            View fabChat = findViewById(R.id.fabChat);
+            View fabStack = findViewById(R.id.fabStack);
+            MotionLayout motionLayout = findViewById(R.id.motionLayout);
 
-            // Build tooltip sequence (9 tooltips)
+            // Build tooltip sequence (7 tooltips)
             com.astro.app.ui.onboarding.TooltipManager tooltipManager =
                 new com.astro.app.ui.onboarding.TooltipManager(this);
 
             // Tooltip 1: Welcome (center)
             tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                 null,
-                "Welcome! Point your phone at the sky. Stars, constellations, and planets will appear in real-time.",
+                "Welcome! Point your phone at the sky to see stars and constellations in real-time.",
                 com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
                 false
             ));
@@ -2359,32 +2363,29 @@ public class SkyMapActivity extends AppCompatActivity {
             // Tooltip 2: Drag & zoom (center)
             tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                 null,
-                "Drag with one finger to pan the sky manually. Pinch with two fingers to zoom in and out.",
+                "Drag to pan the sky. Pinch to zoom in and out.",
                 com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
                 false
             ));
 
-            // Tooltip 3: Constellations toggle
+            // Tooltip 3: Toggle buttons — interactive, with extra highlights
             if (btnConstellations != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    btnConstellations,
-                    "Toggle constellation lines and names. Tap to show or hide them.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
-                    true
-                ));
+                java.util.List<View> extraToggles = new java.util.ArrayList<>();
+                if (btnGrid != null) extraToggles.add(btnGrid);
+                if (btnPlanets != null) extraToggles.add(btnPlanets);
+                if (btnDSO != null) extraToggles.add(btnDSO);
+
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig.Builder(
+                    "These buttons toggle sky layers. Try tapping them to see the effect!")
+                    .anchorView(btnConstellations)
+                    .position(com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE)
+                    .highlightAnchor(true)
+                    .interactive(true)
+                    .extraHighlightViews(extraToggles)
+                    .build());
             }
 
-            // Tooltip 4: Grid toggle
-            if (btnGrid != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    btnGrid,
-                    "Toggle the coordinate grid overlay \u2014 shows RA/Dec lines on the sky.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
-                    true
-                ));
-            }
-
-            // Tooltip 5: Time Travel
+            // Tooltip 4: Time Travel
             if (btnTimeTravel != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     btnTimeTravel,
@@ -2394,45 +2395,45 @@ public class SkyMapActivity extends AppCompatActivity {
                 ));
             }
 
-            // Tooltip 6: Planets
-            if (btnPlanets != null) {
+            // Tooltip 5: Settings
+            if (btnSettings != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    btnPlanets,
-                    "Toggle planet labels. Long-press a planet to see its trajectory path.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    btnSettings,
+                    "Customize display settings like star brightness, magnitude limit, and night mode.",
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
                     true
                 ));
             }
 
-            // Tooltip 7: DSO
-            if (btnDSO != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    btnDSO,
-                    "Toggle Deep Sky Objects \u2014 galaxies, nebulae, and star clusters from the Messier catalog.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
-                    true
-                ));
+            // Tooltip 6: FAB toolbox — expand menu, highlight sub-buttons
+            if (fabMain != null && motionLayout != null) {
+                java.util.List<View> subFabs = new java.util.ArrayList<>();
+                if (fabSearch != null) subFabs.add(fabSearch);
+                if (fabChat != null) subFabs.add(fabChat);
+                if (fabStack != null) subFabs.add(fabStack);
+
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig.Builder(
+                    "Your toolbox \u2014 Search for objects, Chat with AstroBot, or Detect & Stack astrophotos.")
+                    .anchorView(fabMain)
+                    .position(com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT)
+                    .highlightAnchor(true)
+                    .onShowAction(() -> {
+                        motionLayout.transitionToEnd();
+                    })
+                    .extraHighlightViews(subFabs)
+                    .build());
             }
 
-            // Tooltip 8: Search FAB
-            if (fabSearch != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    fabSearch,
-                    "Search for any star, constellation, or planet. An arrow guides you to it.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
-                    true
-                ));
-            }
-
-            // Tooltip 9: Main FAB menu
-            if (fabMain != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    fabMain,
-                    "This menu also has Detect (star detection & stacking), Chat (AI assistant), and Search \u2014 tap to explore!",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
-                    true
-                ));
-            }
+            // Tooltip 7: Closing — collapse FAB
+            tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig.Builder(
+                "You're all set! Tap any object on the sky for details.")
+                .position(com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER)
+                .onShowAction(() -> {
+                    if (motionLayout != null) {
+                        motionLayout.transitionToStart();
+                    }
+                })
+                .build());
 
             // Start the tutorial
             tooltipManager.start();
@@ -2443,7 +2444,7 @@ public class SkyMapActivity extends AppCompatActivity {
      * Replay the tooltip tutorial (called from Settings).
      */
     public void replayTooltipTutorial() {
-        com.astro.app.ui.onboarding.TooltipManager.resetTutorial(this);
+        com.astro.app.ui.onboarding.TooltipManager.resetAllTutorials(this);
         showTooltipTutorialIfNeeded();
     }
 
