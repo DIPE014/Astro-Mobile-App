@@ -87,8 +87,11 @@ Java_com_astro_app_native_1_AstrometryNative_detectStarsNative(
 
     // Adaptive plim retry: if too few stars detected, retry with lower threshold.
     // plim=8 is conservative; astrometry.net's u8 default is plim=4.
-    float plim_values[] = {plim, 6.0f, 4.0f};
-    int num_plim = 3;
+    float plim_values[3];
+    int num_plim = 0;
+    plim_values[num_plim++] = plim;
+    if (6.0f < plim) plim_values[num_plim++] = 6.0f;
+    if (4.0f < plim) plim_values[num_plim++] = 4.0f;
     int MIN_STARS_RETRY = 30;
 
     float* current_image = image_f;  // Track current image buffer for cleanup
@@ -98,8 +101,7 @@ Java_com_astro_app_native_1_AstrometryNative_detectStarsNative(
         if (attempt > 0) {
             prev_npeaks = params.npeaks;
             // Re-copy float image since simplexy modifies it internally
-            simplexy_free_contents(&params);
-            free(current_image);  // Free previous image buffer
+            simplexy_free_contents(&params);  // Also frees params.image (== current_image)
             memset(&params, 0, sizeof(simplexy_t));
             simplexy_fill_in_defaults(&params);
             float* image_f2 = (float*)malloc(npix * sizeof(float));

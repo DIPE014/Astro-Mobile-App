@@ -535,7 +535,13 @@ public class ImageStackingActivity extends AppCompatActivity {
                 Log.e(TAG, "Processing failed", e);
             }
 
-            final Bitmap finalResult = isCancelled ? null : resultBitmap;
+            final Bitmap finalResult;
+            if (isCancelled) {
+                if (resultBitmap != null) resultBitmap.recycle();
+                finalResult = null;
+            } else {
+                finalResult = resultBitmap;
+            }
             final boolean wasCancelled = isCancelled;
             runOnUiThread(() -> {
                 if (isDestroyed) return;
