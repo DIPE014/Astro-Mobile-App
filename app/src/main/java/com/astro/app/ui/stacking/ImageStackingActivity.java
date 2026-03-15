@@ -935,7 +935,7 @@ public class ImageStackingActivity extends AppCompatActivity {
             if (btnCapture != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     btnCapture,
-                    "Capture a photo of the night sky, or pick one from your gallery.",
+                    getString(R.string.tooltip_detect_capture),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
                     true
                 ));
@@ -944,7 +944,7 @@ public class ImageStackingActivity extends AppCompatActivity {
             if (switchStacking != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     switchStacking,
-                    "Enable stacking to combine multiple frames for a brighter, cleaner image.",
+                    getString(R.string.tooltip_detect_stacking),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
                     true
                 ));
@@ -953,7 +953,7 @@ public class ImageStackingActivity extends AppCompatActivity {
             if (btnPickImages != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     btnPickImages,
-                    "You can also select existing photos from your gallery.",
+                    getString(R.string.tooltip_detect_gallery),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
                     true
                 ));

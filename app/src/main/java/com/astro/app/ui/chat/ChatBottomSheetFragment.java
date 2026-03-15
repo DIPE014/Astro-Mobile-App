@@ -450,7 +450,7 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
             if (chipScrollView != null && chipScrollView.getVisibility() == View.VISIBLE) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     chipScrollView,
-                    "Tap a suggestion or type your own question about the night sky.",
+                    requireContext().getString(R.string.tooltip_chat_suggestion),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
                     true
                 ));
@@ -459,7 +459,7 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
             if (btnSend != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     btnSend,
-                    "AstroBot knows what you're looking at and can answer astronomy questions.",
+                    requireContext().getString(R.string.tooltip_chat_send),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
                     true
                 ));

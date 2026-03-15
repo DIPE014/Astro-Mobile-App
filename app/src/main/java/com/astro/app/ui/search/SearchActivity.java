@@ -434,7 +434,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
             if (etSearch != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     etSearch,
-                    "Type a star, planet, or constellation name. Results appear as you type.",
+                    getString(R.string.tooltip_search_input),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
                     true
                 ));
@@ -442,7 +442,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 
             tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                 null,
-                "Tap a result to navigate to it on the sky map. An arrow will guide you.",
+                getString(R.string.tooltip_search_result),
                 com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
                 false
             ));

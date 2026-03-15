@@ -291,7 +291,7 @@ public class TooltipManager {
 
         // Step indicator text
         TextView stepIndicator = new TextView(activity);
-        stepIndicator.setText((index + 1) + " of " + tooltips.size());
+        stepIndicator.setText(activity.getString(R.string.tooltip_step_format, index + 1, tooltips.size()));
         stepIndicator.setTextSize(12);
         stepIndicator.setTextColor(activity.getResources().getColor(R.color.text_secondary));
 
@@ -301,7 +301,9 @@ public class TooltipManager {
         // Next button — Material filled style
         MaterialButton btnNext = new MaterialButton(activity, null,
             com.google.android.material.R.attr.materialButtonStyle);
-        btnNext.setText(index == tooltips.size() - 1 ? "Got it" : "Next");
+        btnNext.setText(index == tooltips.size() - 1
+            ? activity.getString(R.string.tooltip_btn_got_it)
+            : activity.getString(R.string.tooltip_btn_next));
         btnNext.setOnClickListener(v -> showNext());
         btnNext.setAllCaps(false);
         btnNext.setTextSize(14);
@@ -319,7 +321,7 @@ public class TooltipManager {
         // Skip button — text-only style
         MaterialButton btnSkip = new MaterialButton(activity, null,
             com.google.android.material.R.attr.borderlessButtonStyle);
-        btnSkip.setText("Skip");
+        btnSkip.setText(activity.getString(R.string.tooltip_btn_skip));
         btnSkip.setOnClickListener(v -> finish());
         btnSkip.setAllCaps(false);
         btnSkip.setTextSize(14);

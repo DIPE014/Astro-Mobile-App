@@ -2457,7 +2457,7 @@ public class SkyMapActivity extends AppCompatActivity {
             // Tooltip 1: Welcome (center)
             tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                 null,
-                "Welcome! Point your phone at the sky to see stars and constellations in real-time.",
+                getString(R.string.tooltip_skymap_welcome),
                 com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
                 false
             ));
@@ -2465,7 +2465,7 @@ public class SkyMapActivity extends AppCompatActivity {
             // Tooltip 2: Drag & zoom (center)
             tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                 null,
-                "Drag to pan the sky. Pinch to zoom in and out.",
+                getString(R.string.tooltip_skymap_drag_zoom),
                 com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
                 false
             ));
@@ -2478,7 +2478,7 @@ public class SkyMapActivity extends AppCompatActivity {
                 if (btnDSO != null) extraToggles.add(btnDSO);
 
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig.Builder(
-                    "These buttons toggle sky layers. Try tapping them to see the effect!")
+                    getString(R.string.tooltip_skymap_toggles))
                     .anchorView(btnConstellations)
                     .position(com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE)
                     .highlightAnchor(true)
@@ -2491,7 +2491,7 @@ public class SkyMapActivity extends AppCompatActivity {
             if (btnTimeTravel != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     btnTimeTravel,
-                    "Time Travel \u2014 slide to any date to see past or future skies.",
+                    getString(R.string.tooltip_skymap_time_travel),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
                     true
                 ));
@@ -2501,7 +2501,7 @@ public class SkyMapActivity extends AppCompatActivity {
             if (btnSettings != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     btnSettings,
-                    "Customize display settings like star brightness, magnitude limit, and night mode.",
+                    getString(R.string.tooltip_skymap_settings),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
                     true
                 ));
@@ -2515,7 +2515,7 @@ public class SkyMapActivity extends AppCompatActivity {
                 if (fabStack != null) subFabs.add(fabStack);
 
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig.Builder(
-                    "Your toolbox \u2014 Search for objects, Chat with AstroBot, or Detect & Stack astrophotos.")
+                    getString(R.string.tooltip_skymap_toolbox))
                     .anchorView(fabMain)
                     .position(com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT)
                     .highlightAnchor(true)
@@ -2528,7 +2528,7 @@ public class SkyMapActivity extends AppCompatActivity {
 
             // Tooltip 7: Closing — collapse FAB
             tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig.Builder(
-                "You're all set! Tap any object on the sky for details.")
+                getString(R.string.tooltip_skymap_closing))
                 .position(com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER)
                 .onShowAction(() -> {
                     if (motionLayout != null) {

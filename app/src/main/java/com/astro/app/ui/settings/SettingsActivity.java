@@ -320,7 +320,7 @@ public class SettingsActivity extends AppCompatActivity {
             if (sliderBrightness != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     sliderBrightness,
-                    "Adjust star brightness \u2014 higher values make stars more visible.",
+                    getString(R.string.tooltip_settings_brightness),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
                     true
                 ));
@@ -329,7 +329,7 @@ public class SettingsActivity extends AppCompatActivity {
             if (sliderMagnitude != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     sliderMagnitude,
-                    "Set the magnitude limit \u2014 higher values show fainter stars.",
+                    getString(R.string.tooltip_settings_magnitude),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
                     true
                 ));
@@ -338,7 +338,7 @@ public class SettingsActivity extends AppCompatActivity {
             if (switchNightMode != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     switchNightMode,
-                    "Enable night mode to preserve dark adaptation with a red tint.",
+                    getString(R.string.tooltip_settings_night_mode),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
                     true
                 ));
@@ -348,7 +348,7 @@ public class SettingsActivity extends AppCompatActivity {
             if (etApiKey != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     etApiKey,
-                    "Enter your OpenAI API key to enable the AstroBot chat assistant.",
+                    getString(R.string.tooltip_settings_api_key),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
                     true
                 ));
