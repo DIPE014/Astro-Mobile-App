@@ -168,7 +168,9 @@ Java_com_astro_app_native_1_AstrometryNative_detectStarsNative(
 
         // Compute median flux via partial sort (selection algorithm)
         float* flux_copy = malloc(N_raw * sizeof(float));
-        if (flux_copy) {
+        if (!flux_copy) {
+            LOGE("flux_copy malloc failed (%d floats), skipping edge/hot-pixel filter", N_raw);
+        } else {
             memcpy(flux_copy, params.flux, N_raw * sizeof(float));
             qsort(flux_copy, N_raw, sizeof(float), compare_floats);
             float median_flux = flux_copy[N_raw / 2];
