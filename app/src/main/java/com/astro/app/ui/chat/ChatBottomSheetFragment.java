@@ -434,12 +434,16 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
             return;
         }
 
-        fragmentRoot.post(() -> {
+        fragmentRoot.postDelayed(() -> {
             if (!isAdded() || getDialog() == null || getDialog().getWindow() == null) return;
 
             // Use the dialog's decor view as root so the overlay covers the bottom sheet
             android.view.ViewGroup dialogRoot = (android.view.ViewGroup)
                 getDialog().getWindow().getDecorView().findViewById(android.R.id.content);
+            if (dialogRoot == null) {
+                dialogRoot = (android.view.ViewGroup) fragmentRoot.getParent();
+            }
+            if (dialogRoot == null) return;
 
             tooltipManager =
                 new com.astro.app.ui.onboarding.TooltipManager(
@@ -447,7 +451,8 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
                     com.astro.app.ui.onboarding.TooltipManager.KEY_CHAT_TUTORIAL,
                     dialogRoot);
 
-            if (chipScrollView != null && chipScrollView.getVisibility() == View.VISIBLE) {
+            if (chipScrollView != null && chipScrollView.getVisibility() == View.VISIBLE
+                    && chipGroupSuggestions != null && chipGroupSuggestions.getChildCount() > 0) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     chipScrollView,
                     requireContext().getString(R.string.tooltip_chat_suggestion),
@@ -466,7 +471,7 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
             }
 
             tooltipManager.start();
-        });
+        }, 300);
     }
 
     @Override
