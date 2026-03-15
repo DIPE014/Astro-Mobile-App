@@ -290,10 +290,12 @@ public class TooltipManager {
         messageText.setPadding(textPaddingH, 0, textPaddingH, 0);
 
         // Step indicator text
+        String stepText = activity.getString(R.string.tooltip_step_format, index + 1, tooltips.size());
         TextView stepIndicator = new TextView(activity);
-        stepIndicator.setText(activity.getString(R.string.tooltip_step_format, index + 1, tooltips.size()));
+        stepIndicator.setText(stepText);
         stepIndicator.setTextSize(12);
         stepIndicator.setTextColor(activity.getResources().getColor(R.color.text_secondary));
+        stepIndicator.setContentDescription(stepText);
 
         // Button container
         FrameLayout buttonContainer = new FrameLayout(activity);
@@ -393,14 +395,19 @@ public class TooltipManager {
 
         // Start invisible for fade-in
         currentTooltipView.setAlpha(0f);
+        currentTooltipView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
 
         // Add to root view (custom or activity default)
         ViewGroup target = rootView != null ? rootView
             : (ViewGroup) activity.findViewById(android.R.id.content);
         target.addView(currentTooltipView);
 
-        // Fade in
-        currentTooltipView.animate().alpha(1f).setDuration(200).start();
+        // Fade in, then announce for screen readers
+        currentTooltipView.animate().alpha(1f).setDuration(200).withEndAction(() -> {
+            if (currentTooltipView != null) {
+                currentTooltipView.announceForAccessibility(config.getMessage());
+            }
+        }).start();
     }
 
     private RectF calculateBubbleRect(TooltipConfig config, float bubbleHeight) {
