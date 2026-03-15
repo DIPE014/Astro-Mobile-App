@@ -47,6 +47,9 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
         implements ChatMessageAdapter.ChatActionListener {
 
     public static final String TAG = "ChatBottomSheetFragment";
+    private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
+    private Runnable chatTooltipRunnable;
+    private View chatTooltipRoot;
 
     private static final String ENCRYPTED_PREFS_NAME = "astro_secure_prefs";
     private static final String KEY_OPENAI_API_KEY = "openai_api_key";
@@ -157,6 +160,8 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
             btnSend.setEnabled(!isLoading);
             btnSend.setAlpha(isLoading ? 0.5f : 1.0f);
         });
+
+        showChatTooltipIfNeeded(view);
     }
 
     @NonNull
@@ -422,6 +427,65 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
         } catch (GeneralSecurityException | IOException e) {
             // Do not fall back to unencrypted storage — return null to protect the key
             return null;
+        }
+    }
+
+    private void showChatTooltipIfNeeded(View fragmentRoot) {
+        if (com.astro.app.ui.onboarding.TooltipManager.hasCompletedTutorial(
+                requireContext(), com.astro.app.ui.onboarding.TooltipManager.KEY_CHAT_TUTORIAL)) {
+            return;
+        }
+
+        chatTooltipRoot = fragmentRoot;
+        chatTooltipRunnable = () -> {
+            if (!isAdded() || getDialog() == null || getDialog().getWindow() == null) return;
+
+            // Use the dialog's decor view as root so the overlay covers the bottom sheet
+            android.view.ViewGroup dialogRoot = (android.view.ViewGroup)
+                getDialog().getWindow().getDecorView().findViewById(android.R.id.content);
+            if (dialogRoot == null) {
+                dialogRoot = (android.view.ViewGroup) fragmentRoot.getParent();
+            }
+            if (dialogRoot == null) return;
+
+            tooltipManager =
+                new com.astro.app.ui.onboarding.TooltipManager(
+                    requireActivity(),
+                    com.astro.app.ui.onboarding.TooltipManager.KEY_CHAT_TUTORIAL,
+                    dialogRoot);
+
+            if (chipScrollView != null && chipScrollView.getVisibility() == View.VISIBLE
+                    && chipGroupSuggestions != null && chipGroupSuggestions.getChildCount() > 0) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    chipScrollView,
+                    requireContext().getString(R.string.tooltip_chat_suggestion),
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
+                    true
+                ));
+            }
+
+            if (btnSend != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnSend,
+                    requireContext().getString(R.string.tooltip_chat_send),
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
+                    true
+                ));
+            }
+
+            tooltipManager.start();
+        };
+        fragmentRoot.postDelayed(chatTooltipRunnable, 300);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (chatTooltipRoot != null) {
+            chatTooltipRoot.removeCallbacks(chatTooltipRunnable);
+        }
+        if (tooltipManager != null) {
+            tooltipManager.dismiss();
         }
     }
 }

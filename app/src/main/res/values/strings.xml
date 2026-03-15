@@ -344,10 +344,8 @@
     <string name="onboarding_tap_identify_description">Tap any star or planet on the map to see its details — name, magnitude, constellation, and coordinates. The info panel slides up with all the essential data about the object you tapped.</string>
     <string name="onboarding_search_title">Search &amp; Navigate</string>
     <string name="onboarding_search_description">Tap the Search button in the menu to find any celestial object by name. An arrow will guide you to point your phone in the right direction until the object appears on screen.</string>
-    <string name="onboarding_star_detection_title">Star Detection (Plate Solving)</string>
-    <string name="onboarding_star_detection_description">Tap Detect in the menu to take a photo of the night sky. Our astrometry engine analyzes the star patterns and identifies exactly which part of the sky you photographed — matching real astronomical databases.</string>
-    <string name="onboarding_stacking_title">Image Stacking</string>
-    <string name="onboarding_stacking_description">Tap Stack in the menu to combine multiple photos of the same sky region. Stacking aligns and averages the frames, revealing fainter stars and nebulae invisible in a single exposure.</string>
+    <string name="onboarding_detect_title">Star Detection &amp; Image Stacking</string>
+    <string name="onboarding_detect_description">Tap Detect in the menu to take a photo of the night sky. Our astrometry engine identifies exactly which part of the sky you photographed. You can also stack multiple photos to reveal fainter stars and nebulae invisible in a single exposure.</string>
     <string name="onboarding_chat_title">AI Sky Assistant</string>
     <string name="onboarding_chat_description">Tap Chat to ask our AI assistant anything about astronomy. Get help identifying objects, understanding celestial events, or learning about what you\'re observing.</string>
     <string name="onboarding_start_exploring_title">Start Exploring!</string>
@@ -418,20 +416,66 @@
 
     <!-- FAB menu labels and content descriptions -->
     <string name="fab_search">Search</string>
-    <string name="fab_detect">Detect</string>
+    <string name="fab_detect_stack">Detect</string>
     <string name="fab_chatbot">ChatBot</string>
     <string name="cd_fab_main">Open actions menu</string>
     <string name="cd_fab_search">Search sky objects</string>
-    <string name="cd_fab_detect">Detect stars in camera view</string>
     <string name="cd_fab_chatbot">Open AstroBot chat</string>
-    <string name="fab_stack">Stack</string>
-    <string name="cd_fab_stack">Image Stacking</string>
+    <string name="fab_stack">Detect</string>
+    <string name="cd_fab_stack">Star detection and image stacking</string>
 
     <!-- Image Stacking -->
     <string name="image_stacking">Image Stacking</string>
     <string name="capture_frame">Capture Frame</string>
     <string name="processing_frame">Processing frame…</string>
     <string name="finish">Finish</string>
+
+    <!-- Tooltip buttons & step indicator -->
+    <string name="tooltip_btn_next">Next</string>
+    <string name="tooltip_btn_skip">Skip</string>
+    <string name="tooltip_btn_got_it">Got it</string>
+    <string name="tooltip_step_format">%1$d of %2$d</string>
+
+    <!-- SkyMap tooltips -->
+    <string name="tooltip_skymap_welcome">Welcome! Point your phone at the sky to see stars and constellations in real-time.</string>
+    <string name="tooltip_skymap_drag_zoom">Drag to pan the sky. Pinch to zoom in and out.</string>
+    <string name="tooltip_skymap_toggles">These buttons toggle sky layers. Try tapping them to see the effect!</string>
+    <string name="tooltip_skymap_time_travel">Time Travel \u2014 slide to any date to see past or future skies.</string>
+    <string name="tooltip_skymap_settings">Customize display settings like star brightness, magnitude limit, and night mode.</string>
+    <string name="tooltip_skymap_toolbox">Your toolbox \u2014 Search for objects, Chat with AstroBot, or Detect &amp; Stack astrophotos.</string>
+    <string name="tooltip_skymap_closing">You\'re all set! Tap any object on the sky for details.</string>
+
+    <string name="tooltip_skymap_night_mode">Toggle night mode to preserve your dark adaptation with a red-tinted display.</string>
+    <string name="tooltip_skymap_tonight">See tonight\'s highlights \u2014 visible planets, meteor showers, and celestial events.</string>
+
+    <!-- Settings tooltips -->
+    <string name="tooltip_settings_brightness">Adjust star brightness \u2014 higher values make stars more visible.</string>
+    <string name="tooltip_settings_magnitude">Set the magnitude limit \u2014 higher values show fainter stars.</string>
+    <string name="tooltip_settings_night_mode">Enable night mode to preserve dark adaptation with a red tint.</string>
+    <string name="tooltip_settings_api_key">Enter your OpenAI API key to enable the AstroBot chat assistant.</string>
+
+    <!-- Search tooltips -->
+    <string name="tooltip_search_input">Type a star, planet, or constellation name. Results appear as you type.</string>
+    <string name="tooltip_search_result">Tap a result to navigate to it on the sky map. An arrow will guide you.</string>
+
+    <!-- Chat tooltips -->
+    <string name="tooltip_chat_suggestion">Tap a suggestion or type your own question about the night sky.</string>
+    <string name="tooltip_chat_send">AstroBot knows what you\'re looking at and can answer astronomy questions.</string>
+
+    <!-- Detect/Stack tooltips -->
+    <string name="tooltip_detect_capture">Capture a photo of the night sky, or pick one from your gallery.</string>
+    <string name="tooltip_detect_stacking">Enable stacking to combine multiple frames for a brighter, cleaner image.</string>
+    <string name="tooltip_detect_gallery">You can also select existing photos from your gallery.</string>
+
+    <!-- Detect/Stack UI -->
+    <string name="photography_tips">Photography tips</string>
+    <string name="view_example_capture">View Example Capture</string>
+
+    <!-- Example capture dialog -->
+    <string name="example_capture_title">Example Capture</string>
+    <string name="example_capture_cd">Example night sky capture showing the Orion region</string>
+    <string name="example_capture_caption">Orion region captured with a phone camera. Aim for a similar field of view with visible stars.</string>
+    <string name="example_capture_close">Close</string>
 </resources>
 
 

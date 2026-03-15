@@ -42,9 +42,14 @@
             android:textAppearance="@style/TextAppearance.AstroApp.TitleMedium"
             android:textColor="@color/text_primary" />
 
-        <View
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnInfo"
+            style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="48dp"
-            android:layout_height="48dp" />
+            android:layout_height="48dp"
+            android:contentDescription="@string/photography_tips"
+            app:icon="@android:drawable/ic_menu_info_details"
+            app:iconTint="@color/icon_primary" />
     </LinearLayout>
 
     <!-- Stacking Mode Toggle Row -->
@@ -83,10 +88,24 @@
         android:layout_height="0dp"
         android:padding="8dp"
         android:clipToPadding="false"
-        app:layout_constraintBottom_toTopOf="@id/statusCard"
+        app:layout_constraintBottom_toTopOf="@id/btnViewExample"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/stackingToggleRow" />
+
+    <!-- Example Capture Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnViewExample"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/view_example_capture"
+        android:textAllCaps="false"
+        app:icon="@android:drawable/ic_menu_gallery"
+        app:layout_constraintBottom_toTopOf="@id/statusCard"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Status Card -->
     <com.google.android.material.card.MaterialCardView

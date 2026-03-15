@@ -9,8 +9,11 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
+
+import java.util.List;
 
 /**
  * Custom view for displaying a tooltip bubble with optional anchor highlighting.
@@ -20,6 +23,8 @@ import android.widget.FrameLayout;
  * - Circular highlight punch-through for anchor view
  * - Speech bubble with rounded corners
  * - Arrow pointing to anchor (triangle)
+ * - Multi-highlight support for extra views
+ * - Interactive mode for touch passthrough to anchor
  */
 public class TooltipView extends FrameLayout {
     private static final String TAG = "TooltipView";
@@ -32,6 +37,10 @@ public class TooltipView extends FrameLayout {
     private RectF bubbleRect;
     private Path arrowPath;
     private TooltipConfig.TooltipPosition position;
+    private List<RectF> extraHighlights;
+    private List<View> extraHighlightViews;
+    private boolean interactive;
+    private View anchorView;
 
     public TooltipView(Context context) {
         super(context);
@@ -47,9 +56,9 @@ public class TooltipView extends FrameLayout {
         setWillNotDraw(false);
         setLayerType(LAYER_TYPE_SOFTWARE, null);
 
-        // Semi-transparent dark overlay
+        // Semi-transparent dark overlay — 50% opacity to match app convention (#80000000)
         scrimPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        scrimPaint.setColor(Color.argb(200, 0, 0, 0));  // 78% opacity black
+        scrimPaint.setColor(Color.argb(128, 0, 0, 0));
 
         // White rounded speech bubble
         bubblePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -64,14 +73,25 @@ public class TooltipView extends FrameLayout {
     /**
      * Configure the tooltip display.
      *
-     * @param bubbleRect    Bounds of the speech bubble
-     * @param anchorRect    Bounds of the anchor view (for highlight), or null
-     * @param position      Position of tooltip relative to anchor
+     * @param bubbleRect      Bounds of the speech bubble
+     * @param anchorRect      Bounds of the anchor view (for highlight), or null
+     * @param position        Position of tooltip relative to anchor
+     * @param extraHighlights Additional highlight rects to punch through scrim
+     * @param interactive     If true, taps on anchor pass through
+     * @param anchorView      The anchor view for interactive mode
      */
-    public void configure(RectF bubbleRect, RectF anchorRect, TooltipConfig.TooltipPosition position) {
+    public void configure(RectF bubbleRect, RectF anchorRect,
+                          TooltipConfig.TooltipPosition position,
+                          List<RectF> extraHighlights,
+                          List<View> extraHighlightViews,
+                          boolean interactive, View anchorView) {
         this.bubbleRect = bubbleRect;
         this.anchorHighlight = anchorRect;
         this.position = position;
+        this.extraHighlights = extraHighlights;
+        this.extraHighlightViews = extraHighlightViews;
+        this.interactive = interactive;
+        this.anchorView = anchorView;
 
         // Build arrow path (triangle pointing to anchor)
         if (anchorRect != null && position != TooltipConfig.TooltipPosition.CENTER) {
@@ -81,6 +101,58 @@ public class TooltipView extends FrameLayout {
         }
 
         invalidate();
+    }
+
+    /** Backward-compatible configure without extra features. */
+    public void configure(RectF bubbleRect, RectF anchorRect, TooltipConfig.TooltipPosition position) {
+        configure(bubbleRect, anchorRect, position, null, null, false, null);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (!interactive) {
+            return super.onTouchEvent(event);
+        }
+
+        int action = event.getAction();
+
+        if (action == MotionEvent.ACTION_DOWN) {
+            // Claim the gesture so we receive ACTION_UP
+            return true;
+        }
+
+        if (action == MotionEvent.ACTION_UP) {
+            float x = event.getX();
+            float y = event.getY();
+            float highlightPadding = 16f * getResources().getDisplayMetrics().density;
+
+            // Check primary highlight
+            if (anchorHighlight != null && anchorView != null) {
+                float radius = Math.max(anchorHighlight.width(), anchorHighlight.height()) / 2f + highlightPadding;
+                float dx = x - anchorHighlight.centerX();
+                float dy = y - anchorHighlight.centerY();
+                if (dx * dx + dy * dy <= radius * radius) {
+                    anchorView.performClick();
+                    return true;
+                }
+            }
+
+            // Check extra highlights independently
+            if (extraHighlights != null && extraHighlightViews != null) {
+                for (int i = 0; i < extraHighlights.size() && i < extraHighlightViews.size(); i++) {
+                    RectF rect = extraHighlights.get(i);
+                    float er = Math.max(rect.width(), rect.height()) / 2f + highlightPadding;
+                    float edx = x - rect.centerX();
+                    float edy = y - rect.centerY();
+                    if (edx * edx + edy * edy <= er * er) {
+                        extraHighlightViews.get(i).performClick();
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return super.onTouchEvent(event);
     }
 
     private void buildArrowPath() {
@@ -141,15 +213,28 @@ public class TooltipView extends FrameLayout {
         // Draw scrim (dark overlay)
         canvas.drawRect(0, 0, getWidth(), getHeight(), scrimPaint);
 
+        float highlightPadding = 16f * getResources().getDisplayMetrics().density;
+
         // Punch through scrim to highlight anchor (if specified)
         if (anchorHighlight != null) {
-            float highlightPadding = 16f * getResources().getDisplayMetrics().density;
             canvas.drawCircle(
                 anchorHighlight.centerX(),
                 anchorHighlight.centerY(),
                 Math.max(anchorHighlight.width(), anchorHighlight.height()) / 2f + highlightPadding,
                 clearPaint
             );
+        }
+
+        // Punch through scrim for extra highlighted views
+        if (extraHighlights != null) {
+            for (RectF rect : extraHighlights) {
+                canvas.drawCircle(
+                    rect.centerX(),
+                    rect.centerY(),
+                    Math.max(rect.width(), rect.height()) / 2f + highlightPadding,
+                    clearPaint
+                );
+            }
         }
 
         // Draw speech bubble

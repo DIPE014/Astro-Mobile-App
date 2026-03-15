@@ -45,7 +45,7 @@ public class NativePlateSolver {
     // Detection parameters
     private float plim = 8.0f;          // Detection threshold
     private float dpsf = 1.0f;          // PSF sigma
-    private int downsample = 2;          // Downsample factor
+    private int downsample = -1;         // -1 = auto (computed from image resolution)
 
     // Solver parameters
     private double scaleLow = 10.0;      // Lower pixel scale bound (arcsec/pixel) - matches solve-field --scale-low 10
@@ -106,10 +106,19 @@ public class NativePlateSolver {
     /**
      * Sets the downsample factor for detection.
      * Higher values speed up detection but may miss small stars.
-     * @param downsample Downsample factor (default: 2)
+     * Use -1 for automatic selection based on image resolution.
+     * @param downsample Downsample factor (-1 = auto, default)
      */
     public void setDownsample(int downsample) {
+        if (downsample != -1 && downsample < 1) {
+            throw new IllegalArgumentException(
+                    "downsample must be -1 (auto) or >= 1, got " + downsample);
+        }
         this.downsample = downsample;
+    }
+
+    private int resolveDownsample(int width, int height) {
+        return downsample == -1 ? AstrometryNative.computeDownsample(width, height) : downsample;
     }
 
     /**
@@ -220,9 +229,10 @@ public class NativePlateSolver {
         }
 
         // Step 1: Detect stars
-        callback.onProgress("Detecting stars...");
+        int ds = resolveDownsample(bitmap.getWidth(), bitmap.getHeight());
+        callback.onProgress("Detecting stars (downsample=" + ds + ")...");
         List<AstrometryNative.NativeStar> stars = AstrometryNative.detectStars(
-                bitmap, plim, dpsf, downsample);
+                bitmap, plim, dpsf, ds);
 
         if (stars == null || stars.isEmpty()) {
             callback.onFailure("No stars detected in image");
@@ -272,8 +282,9 @@ public class NativePlateSolver {
         }
 
         // Detect stars
+        int ds = resolveDownsample(bitmap.getWidth(), bitmap.getHeight());
         List<AstrometryNative.NativeStar> stars = AstrometryNative.detectStars(
-                bitmap, plim, dpsf, downsample);
+                bitmap, plim, dpsf, ds);
 
         if (stars == null || stars.isEmpty()) {
             Log.e(TAG, "No stars detected");
@@ -307,6 +318,7 @@ public class NativePlateSolver {
      * @return List of detected stars or null
      */
     public List<AstrometryNative.NativeStar> detectStars(Bitmap bitmap) {
-        return AstrometryNative.detectStars(bitmap, plim, dpsf, downsample);
+        int ds = resolveDownsample(bitmap.getWidth(), bitmap.getHeight());
+        return AstrometryNative.detectStars(bitmap, plim, dpsf, ds);
     }
 }

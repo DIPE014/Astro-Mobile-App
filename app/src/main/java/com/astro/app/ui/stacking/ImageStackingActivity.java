@@ -64,11 +64,18 @@ import java.util.concurrent.TimeUnit;
 public class ImageStackingActivity extends AppCompatActivity {
     private static final String TAG = "ImageStackingActivity";
     private static final int MAX_FRAMES = 10;
+    private static final int MAX_PROCESSING_DIMENSION = 4096;
+    private static final String PREFS_NAME = "astro_settings";
+    private static final String KEY_HAS_SEEN_CAMERA_TIPS = "has_seen_camera_tips_stacking";
+
+    // Tooltip tutorial
+    private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
 
     // ---- Capture mode views ----
     private View topControls;
     private View stackingToggleRow;
     private MaterialCardView statusCard;
+    private View btnViewExample;
     private View bottomControls;
     private View loadingOverlay;
     private CircularProgressIndicator progressIndicator;
@@ -102,6 +109,7 @@ public class ImageStackingActivity extends AppCompatActivity {
     // ---- Stacking ----
     private ImageStackingManager stackingManager;
     private volatile boolean isDestroyed = false;
+    private volatile boolean isCancelled = false;
 
     // ---- Plate solving ----
     private NativePlateSolver solver;
@@ -185,6 +193,7 @@ public class ImageStackingActivity extends AppCompatActivity {
         }
 
         setupClickListeners();
+        showCameraTipsIfNeeded();
     }
 
     private void initializeViews() {
@@ -192,6 +201,10 @@ public class ImageStackingActivity extends AppCompatActivity {
         topControls = findViewById(R.id.topControls);
         stackingToggleRow = findViewById(R.id.stackingToggleRow);
         statusCard = findViewById(R.id.statusCard);
+        btnViewExample = findViewById(R.id.btnViewExample);
+        if (btnViewExample != null) {
+            btnViewExample.setOnClickListener(v -> showExampleImageDialog());
+        }
         bottomControls = findViewById(R.id.bottomControls);
         loadingOverlay = findViewById(R.id.loadingOverlay);
         progressIndicator = findViewById(R.id.progressIndicator);
@@ -232,6 +245,12 @@ public class ImageStackingActivity extends AppCompatActivity {
 
     private void setupClickListeners() {
         btnBack.setOnClickListener(v -> finish());
+
+        MaterialButton btnInfo = findViewById(R.id.btnInfo);
+        if (btnInfo != null) {
+            btnInfo.setOnClickListener(v -> showCameraTipsDialog());
+        }
+
         btnCapture.setOnClickListener(v -> captureFrame());
         btnFinish.setOnClickListener(v -> finishStacking());
         btnPickImages.setOnClickListener(v -> openGalleryPicker());
@@ -239,6 +258,12 @@ public class ImageStackingActivity extends AppCompatActivity {
         switchStacking.setOnCheckedChangeListener((buttonView, isChecked) -> {
             resetSession();
             updateModeUI();
+        });
+
+        // Cancel stacking by tapping the loading overlay
+        loadingOverlay.setOnClickListener(v -> {
+            isCancelled = true;
+            tvStatus.setText("Cancelling...");
         });
 
         // Result mode listeners
@@ -288,6 +313,7 @@ public class ImageStackingActivity extends AppCompatActivity {
         stackingToggleRow.setVisibility(View.GONE);
         thumbnailGrid.setVisibility(View.GONE);
         statusCard.setVisibility(View.GONE);
+        if (btnViewExample != null) btnViewExample.setVisibility(View.GONE);
         bottomControls.setVisibility(View.GONE);
 
         // Show result views
@@ -323,6 +349,12 @@ public class ImageStackingActivity extends AppCompatActivity {
         // Reset state
         resetSession();
         updateModeUI();
+        updateCollectionUI();
+
+        // Show example card again
+        if (btnViewExample != null) {
+            btnViewExample.setVisibility(View.VISIBLE);
+        }
 
         // Clear bitmaps to free memory
         originalBitmap = null;
@@ -350,6 +382,12 @@ public class ImageStackingActivity extends AppCompatActivity {
         }
         collectedUris.add(uri);
         thumbnailAdapter.notifyItemInserted(collectedUris.size() - 1);
+
+        // Hide example card once user starts adding images
+        if (btnViewExample != null) {
+            btnViewExample.setVisibility(View.GONE);
+        }
+
         updateCollectionUI();
 
         // If stacking OFF, auto-trigger processing
@@ -403,16 +441,45 @@ public class ImageStackingActivity extends AppCompatActivity {
         }
     }
 
-    private Bitmap loadBitmapFromUri(Uri uri) {
-        try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
-            if (inputStream == null) return null;
-            BitmapFactory.Options opts = new BitmapFactory.Options();
-            opts.inScaled = false;
-            return BitmapFactory.decodeStream(inputStream, null, opts);
+    /**
+     * Load a bitmap from URI with optional max dimension clamping.
+     * @param uri        image URI
+     * @param maxDimension  max width/height (0 = no limit, full resolution)
+     */
+    private Bitmap loadBitmapFromUri(Uri uri, int maxDimension) {
+        try {
+            int sampleSize = 1;
+            if (maxDimension > 0) {
+                // First pass: decode bounds only to determine dimensions
+                try (InputStream boundsStream = getContentResolver().openInputStream(uri)) {
+                    if (boundsStream == null) return null;
+                    BitmapFactory.Options boundsOpts = new BitmapFactory.Options();
+                    boundsOpts.inJustDecodeBounds = true;
+                    BitmapFactory.decodeStream(boundsStream, null, boundsOpts);
+
+                    int maxDim = Math.max(boundsOpts.outWidth, boundsOpts.outHeight);
+                    while (maxDim / sampleSize > maxDimension) {
+                        sampleSize *= 2;
+                    }
+                }
+            }
+
+            // Decode at target resolution
+            try (InputStream imageStream = getContentResolver().openInputStream(uri)) {
+                if (imageStream == null) return null;
+                BitmapFactory.Options opts = new BitmapFactory.Options();
+                opts.inScaled = false;
+                opts.inSampleSize = sampleSize;
+                return BitmapFactory.decodeStream(imageStream, null, opts);
+            }
         } catch (Exception e) {
             Log.e(TAG, "Failed to decode bitmap from URI", e);
             return null;
         }
+    }
+
+    private Bitmap loadBitmapFromUri(Uri uri) {
+        return loadBitmapFromUri(uri, 0);
     }
 
     // =========================================================================
@@ -454,6 +521,7 @@ public class ImageStackingActivity extends AppCompatActivity {
 
         final List<Uri> uris = new ArrayList<>(collectedUris);
         final boolean stacking = switchStacking.isChecked();
+        isCancelled = false;
 
         backgroundExecutor.execute(() -> {
             Bitmap resultBitmap = null;
@@ -461,18 +529,30 @@ public class ImageStackingActivity extends AppCompatActivity {
                 if (stacking && uris.size() > 1) {
                     resultBitmap = stackAllFrames(uris);
                 } else {
-                    resultBitmap = loadBitmapFromUri(uris.get(0));
+                    resultBitmap = loadBitmapFromUri(uris.get(0), MAX_PROCESSING_DIMENSION);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Processing failed", e);
             }
 
-            final Bitmap finalResult = resultBitmap;
+            final Bitmap finalResult;
+            if (isCancelled) {
+                if (resultBitmap != null) resultBitmap.recycle();
+                finalResult = null;
+            } else {
+                finalResult = resultBitmap;
+            }
+            final boolean wasCancelled = isCancelled;
             runOnUiThread(() -> {
                 if (isDestroyed) return;
                 showLoading(false);
                 switchStacking.setEnabled(true);
-                if (finalResult != null) {
+                if (wasCancelled) {
+                    // User cancelled — silently return to capture mode
+                    btnCapture.setEnabled(true);
+                    btnPickImages.setEnabled(true);
+                    if (stacking) btnFinish.setEnabled(!collectedUris.isEmpty());
+                } else if (finalResult != null) {
                     showResultMode(finalResult);
                     solvePlate(finalResult);
                     analyzeSkyBrightness(finalResult);
@@ -491,12 +571,18 @@ public class ImageStackingActivity extends AppCompatActivity {
         boolean sessionOk = false;
 
         for (int i = 0; i < uris.size(); i++) {
-            if (isDestroyed) return null;
+            if (isDestroyed || isCancelled) {
+                if (isCancelled) {
+                    stackingManager.release();
+                    runOnUiThread(() -> tvStatus.setText("Stacking cancelled."));
+                }
+                return null;
+            }
 
             final int idx = i;
             runOnUiThread(() -> tvStatus.setText("Processing frame " + (idx + 1) + " / " + uris.size() + "..."));
 
-            Bitmap bitmap = loadBitmapFromUri(uris.get(i));
+            Bitmap bitmap = loadBitmapFromUri(uris.get(i), MAX_PROCESSING_DIMENSION);
             if (bitmap == null) {
                 Log.w(TAG, "Failed to load frame " + i);
                 continue;
@@ -520,6 +606,8 @@ public class ImageStackingActivity extends AppCompatActivity {
                 ok = stackingManager.addFrame(bitmap);
             }
             bitmap.recycle();
+            bitmap = null;
+            System.gc(); // Hint to reclaim bitmap memory before next frame
 
             if (!ok) {
                 Log.w(TAG, "Stacking failed for frame " + i);
@@ -527,7 +615,9 @@ public class ImageStackingActivity extends AppCompatActivity {
         }
 
         if (sessionOk && stackingManager.getFrameCount() > 0) {
-            return stackingManager.getResult();
+            Bitmap result = stackingManager.getResult();
+            stackingManager.release(); // Free native accumulator memory promptly
+            return result;
         }
         return null;
     }
@@ -806,5 +896,102 @@ public class ImageStackingActivity extends AppCompatActivity {
         if (stackingManager != null) {
             stackingManager.release();
         }
+
+        if (tooltipManager != null) {
+            tooltipManager.dismiss();
+        }
+    }
+
+    private void showCameraTipsIfNeeded() {
+        android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        if (prefs.getBoolean(KEY_HAS_SEEN_CAMERA_TIPS, false)) {
+            showDetectTooltipIfNeeded();
+            return;
+        }
+        showCameraTipsDialog();
+    }
+
+    private void showCameraTipsDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_plate_solve_tips, null);
+
+        CheckBox cbDontShowAgain = dialogView.findViewById(R.id.cbDontShowAgain);
+        com.google.android.material.button.MaterialButton btnGotIt = dialogView.findViewById(R.id.btnGotIt);
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(
+                this, R.style.Theme_AstroApp_AlertDialog)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        btnGotIt.setOnClickListener(v -> {
+            if (cbDontShowAgain.isChecked()) {
+                android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+                prefs.edit().putBoolean(KEY_HAS_SEEN_CAMERA_TIPS, true).apply();
+            }
+            dialog.dismiss();
+            showDetectTooltipIfNeeded();
+        });
+
+        dialog.setOnCancelListener(d -> showDetectTooltipIfNeeded());
+
+        dialog.show();
+    }
+
+    private void showExampleImageDialog() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_example_capture, null);
+
+        com.google.android.material.button.MaterialButton btnGotIt = dialogView.findViewById(R.id.btnGotIt);
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(
+                this, R.style.Theme_AstroApp_AlertDialog)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        btnGotIt.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+    }
+
+    private void showDetectTooltipIfNeeded() {
+        if (com.astro.app.ui.onboarding.TooltipManager.hasCompletedTutorial(
+                this, com.astro.app.ui.onboarding.TooltipManager.KEY_DETECT_TUTORIAL)) {
+            return;
+        }
+
+        findViewById(android.R.id.content).post(() -> {
+            tooltipManager =
+                new com.astro.app.ui.onboarding.TooltipManager(this,
+                    com.astro.app.ui.onboarding.TooltipManager.KEY_DETECT_TUTORIAL);
+
+            if (btnCapture != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnCapture,
+                    getString(R.string.tooltip_detect_capture),
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    true
+                ));
+            }
+
+            if (switchStacking != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    switchStacking,
+                    getString(R.string.tooltip_detect_stacking),
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
+                    true
+                ));
+            }
+
+            if (btnPickImages != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnPickImages,
+                    getString(R.string.tooltip_detect_gallery),
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    true
+                ));
+            }
+
+            tooltipManager.start();
+        });
     }
 }
