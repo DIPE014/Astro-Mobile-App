@@ -3,16 +3,21 @@ package com.astro.app.ui.onboarding;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.core.widget.NestedScrollView;
+
 import com.astro.app.R;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -155,10 +160,18 @@ public class TooltipManager {
             return;
         }
 
-        // Dismiss previous tooltip
-        dismiss();
-
         TooltipConfig config = tooltips.get(index);
+
+        // Fade out previous tooltip before showing next
+        if (currentTooltipView != null && currentTooltipView.getParent() != null) {
+            final TooltipView oldView = currentTooltipView;
+            currentTooltipView = null;
+            oldView.animate().alpha(0f).setDuration(150).withEndAction(() -> {
+                if (oldView.getParent() != null) {
+                    ((ViewGroup) oldView.getParent()).removeView(oldView);
+                }
+            }).start();
+        }
 
         // Execute onShowAction if present (e.g., expand FAB menu)
         Runnable onShowAction = config.getOnShowAction();
@@ -185,6 +198,47 @@ public class TooltipManager {
         // Guard against activity finishing during delay
         if (activity.isFinishing() || activity.isDestroyed()) return;
 
+        // Scroll anchor into view if it's inside a ScrollView/NestedScrollView
+        View anchor = config.getAnchorView();
+        if (anchor != null) {
+            scrollAnchorIntoView(anchor);
+            // Post to let the scroll settle before measuring positions
+            anchor.post(() -> buildTooltipAfterScroll(index, config));
+        } else {
+            buildTooltipAfterScroll(index, config);
+        }
+    }
+
+    private void scrollAnchorIntoView(View anchor) {
+        // Try requestRectangleOnScreen first
+        anchor.requestRectangleOnScreen(
+            new Rect(0, 0, anchor.getWidth(), anchor.getHeight()), false);
+
+        // Also manually scroll parent ScrollView/NestedScrollView as fallback
+        View parent = (View) anchor.getParent();
+        while (parent != null) {
+            if (parent instanceof NestedScrollView) {
+                NestedScrollView scrollView = (NestedScrollView) parent;
+                int scrollTarget = anchor.getTop() - scrollView.getHeight() / 2 + anchor.getHeight() / 2;
+                scrollView.smoothScrollTo(0, Math.max(0, scrollTarget));
+                break;
+            } else if (parent instanceof ScrollView) {
+                ScrollView scrollView = (ScrollView) parent;
+                int scrollTarget = anchor.getTop() - scrollView.getHeight() / 2 + anchor.getHeight() / 2;
+                scrollView.smoothScrollTo(0, Math.max(0, scrollTarget));
+                break;
+            }
+            if (parent.getParent() instanceof View) {
+                parent = (View) parent.getParent();
+            } else {
+                break;
+            }
+        }
+    }
+
+    private void buildTooltipAfterScroll(int index, TooltipConfig config) {
+        if (activity.isFinishing() || activity.isDestroyed()) return;
+
         // Create tooltip view
         currentTooltipView = new TooltipView(activity);
         currentTooltipView.setLayoutParams(new FrameLayout.LayoutParams(
@@ -192,53 +246,84 @@ public class TooltipManager {
             ViewGroup.LayoutParams.MATCH_PARENT
         ));
 
-        // Add message text
+        // Measure message text to compute dynamic bubble height
+        int bubbleWidth = dpToPx(280);
+        int textPaddingH = dpToPx(16);
+        int textMaxWidth = bubbleWidth - 2 * textPaddingH;
+
         TextView messageText = new TextView(activity);
         messageText.setText(config.getMessage());
         messageText.setTextColor(activity.getResources().getColor(R.color.text_on_light));
-        messageText.setTextSize(16);  // 16sp
-        messageText.setPadding(
-            dpToPx(16),
-            dpToPx(16),
-            dpToPx(16),
-            dpToPx(48)  // Extra bottom padding for buttons
-        );
+        messageText.setTextSize(16);
+
+        // Measure text at the constrained width
+        int widthSpec = View.MeasureSpec.makeMeasureSpec(textMaxWidth, View.MeasureSpec.EXACTLY);
+        int heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+        messageText.measure(widthSpec, heightSpec);
+        int measuredTextHeight = messageText.getMeasuredHeight();
+
+        // Dynamic bubble height: top padding + text + spacing + step indicator + buttons + bottom padding
+        int topPadding = dpToPx(12);
+        int stepIndicatorHeight = dpToPx(18); // 12sp text + margins
+        int spacing = dpToPx(8);
+        int buttonHeight = dpToPx(40);
+        int bottomPadding = dpToPx(8);
+        float dynamicBubbleHeight = topPadding + stepIndicatorHeight + spacing
+            + measuredTextHeight + spacing + buttonHeight + bottomPadding;
+
+        // Set text padding (no extra bottom — buttons are positioned separately)
+        messageText.setPadding(textPaddingH, 0, textPaddingH, 0);
+
+        // Step indicator text
+        TextView stepIndicator = new TextView(activity);
+        stepIndicator.setText((index + 1) + " of " + tooltips.size());
+        stepIndicator.setTextSize(12);
+        stepIndicator.setTextColor(activity.getResources().getColor(R.color.text_secondary));
 
         // Button container
         FrameLayout buttonContainer = new FrameLayout(activity);
-        FrameLayout.LayoutParams buttonContainerParams = new FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        );
-        buttonContainerParams.gravity = Gravity.BOTTOM;
 
-        // Next button
-        Button btnNext = new Button(activity);
+        // Next button — Material filled style
+        MaterialButton btnNext = new MaterialButton(activity, null,
+            com.google.android.material.R.attr.materialButtonStyle);
         btnNext.setText(index == tooltips.size() - 1 ? "Got it" : "Next");
         btnNext.setOnClickListener(v -> showNext());
+        btnNext.setAllCaps(false);
+        btnNext.setTextSize(14);
+        btnNext.setCornerRadius(dpToPx(8));
+        btnNext.setMinHeight(0);
+        btnNext.setMinimumHeight(0);
+        btnNext.setPadding(dpToPx(16), dpToPx(8), dpToPx(16), dpToPx(8));
         FrameLayout.LayoutParams nextParams = new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
         nextParams.gravity = Gravity.END | Gravity.BOTTOM;
-        nextParams.setMargins(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
+        nextParams.setMargins(dpToPx(4), 0, dpToPx(8), 0);
 
-        // Skip button
-        Button btnSkip = new Button(activity);
+        // Skip button — text-only style
+        MaterialButton btnSkip = new MaterialButton(activity, null,
+            com.google.android.material.R.attr.borderlessButtonStyle);
         btnSkip.setText("Skip");
         btnSkip.setOnClickListener(v -> finish());
+        btnSkip.setAllCaps(false);
+        btnSkip.setTextSize(14);
+        btnSkip.setMinHeight(0);
+        btnSkip.setMinimumHeight(0);
+        btnSkip.setPadding(dpToPx(16), dpToPx(8), dpToPx(16), dpToPx(8));
+        btnSkip.setBackgroundColor(Color.TRANSPARENT);
         FrameLayout.LayoutParams skipParams = new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
         skipParams.gravity = Gravity.START | Gravity.BOTTOM;
-        skipParams.setMargins(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
+        skipParams.setMargins(dpToPx(8), 0, dpToPx(4), 0);
 
         buttonContainer.addView(btnSkip, skipParams);
         buttonContainer.addView(btnNext, nextParams);
 
-        // Calculate tooltip bubble position
-        RectF bubbleRect = calculateBubbleRect(config);
+        // Calculate tooltip bubble position with dynamic height
+        RectF bubbleRect = calculateBubbleRect(config, dynamicBubbleHeight);
         RectF anchorRect = config.shouldHighlightAnchor() && config.getAnchorView() != null
             ? getViewRect(config.getAnchorView())
             : null;
@@ -262,38 +347,51 @@ public class TooltipManager {
             extraHighlightRects, visibleExtraViews,
             config.isInteractive(), config.getAnchorView());
 
-        // Position message text inside bubble
+        // Position step indicator at top-right of bubble
+        FrameLayout.LayoutParams stepParams = new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        stepParams.leftMargin = (int) bubbleRect.left + (int) bubbleRect.width() - dpToPx(60);
+        stepParams.topMargin = (int) bubbleRect.top + dpToPx(8);
+        currentTooltipView.addView(stepIndicator, stepParams);
+
+        // Position message text inside bubble (below step indicator)
         FrameLayout.LayoutParams textParams = new FrameLayout.LayoutParams(
             (int) bubbleRect.width(),
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
         textParams.leftMargin = (int) bubbleRect.left;
-        textParams.topMargin = (int) bubbleRect.top;
-
+        textParams.topMargin = (int) bubbleRect.top + topPadding + stepIndicatorHeight + spacing;
         currentTooltipView.addView(messageText, textParams);
 
-        // Position buttons inside the bubble (not at screen bottom)
+        // Position buttons at bottom of bubble
         FrameLayout.LayoutParams bubbleButtonParams = new FrameLayout.LayoutParams(
             (int) bubbleRect.width(),
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
         bubbleButtonParams.leftMargin = (int) bubbleRect.left;
-        bubbleButtonParams.topMargin = (int) bubbleRect.bottom - dpToPx(48);
+        bubbleButtonParams.topMargin = (int) bubbleRect.bottom - buttonHeight - bottomPadding;
         currentTooltipView.addView(buttonContainer, bubbleButtonParams);
+
+        // Start invisible for fade-in
+        currentTooltipView.setAlpha(0f);
 
         // Add to root view (custom or activity default)
         ViewGroup target = rootView != null ? rootView
             : (ViewGroup) activity.findViewById(android.R.id.content);
         target.addView(currentTooltipView);
+
+        // Fade in
+        currentTooltipView.animate().alpha(1f).setDuration(200).start();
     }
 
-    private RectF calculateBubbleRect(TooltipConfig config) {
+    private RectF calculateBubbleRect(TooltipConfig config, float bubbleHeight) {
         DisplayMetrics metrics = activity.getResources().getDisplayMetrics();
         int screenWidth = metrics.widthPixels;
         int screenHeight = metrics.heightPixels;
 
         float bubbleWidth = dpToPx(280);
-        float bubbleHeight = dpToPx(140);
         float margin = dpToPx(16);
 
         if (config.getPosition() == TooltipConfig.TooltipPosition.CENTER || config.getAnchorView() == null) {

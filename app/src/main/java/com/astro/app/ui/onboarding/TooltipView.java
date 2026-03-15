@@ -56,9 +56,9 @@ public class TooltipView extends FrameLayout {
         setWillNotDraw(false);
         setLayerType(LAYER_TYPE_SOFTWARE, null);
 
-        // Semi-transparent dark overlay — 40% opacity for lighter scrim
+        // Semi-transparent dark overlay — 50% opacity to match app convention (#80000000)
         scrimPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        scrimPaint.setColor(Color.argb(100, 0, 0, 0));
+        scrimPaint.setColor(Color.argb(128, 0, 0, 0));
 
         // White rounded speech bubble
         bubblePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
