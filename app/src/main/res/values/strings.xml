@@ -445,6 +445,9 @@
     <string name="tooltip_skymap_toolbox">Your toolbox \u2014 Search for objects, Chat with AstroBot, or Detect &amp; Stack astrophotos.</string>
     <string name="tooltip_skymap_closing">You\'re all set! Tap any object on the sky for details.</string>
 
+    <string name="tooltip_skymap_night_mode">Toggle night mode to preserve your dark adaptation with a red-tinted display.</string>
+    <string name="tooltip_skymap_tonight">See tonight\'s highlights \u2014 visible planets, meteor showers, and celestial events.</string>
+
     <!-- Settings tooltips -->
     <string name="tooltip_settings_brightness">Adjust star brightness \u2014 higher values make stars more visible.</string>
     <string name="tooltip_settings_magnitude">Set the magnitude limit \u2014 higher values show fainter stars.</string>

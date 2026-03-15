@@ -2457,7 +2457,29 @@ public class SkyMapActivity extends AppCompatActivity {
                 ));
             }
 
-            // Tooltip 5: Settings
+            // Tooltip 5: Night Mode
+            View btnNightMode = findViewById(R.id.btnNightMode);
+            if (btnNightMode != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnNightMode,
+                    getString(R.string.tooltip_skymap_night_mode),
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
+                    true
+                ));
+            }
+
+            // Tooltip 6: Tonight's Highlights
+            View btnTonight = findViewById(R.id.btnTonight);
+            if (btnTonight != null) {
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+                    btnTonight,
+                    getString(R.string.tooltip_skymap_tonight),
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
+                    true
+                ));
+            }
+
+            // Tooltip 7: Settings
             if (btnSettings != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     btnSettings,
