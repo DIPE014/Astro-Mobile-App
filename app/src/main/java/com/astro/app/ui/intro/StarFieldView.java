@@ -189,7 +189,7 @@ public class StarFieldView extends View implements Runnable {
                 warpProgress = 1f;
                 if (!warpCompleteNotified) {
                     warpCompleteNotified = true;
-                    if (warpCompleteListener != null) {
+                    if (isAttachedToWindow() && warpCompleteListener != null) {
                         warpCompleteListener.onWarpComplete();
                     }
                 }
@@ -440,6 +440,7 @@ public class StarFieldView extends View implements Runnable {
     @Override
     protected void onDetachedFromWindow() {
         animating = false;
+        warpCompleteListener = null;
         super.onDetachedFromWindow();
     }
 

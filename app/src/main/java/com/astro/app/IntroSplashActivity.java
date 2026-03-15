@@ -54,6 +54,7 @@ public class IntroSplashActivity extends AppCompatActivity {
 
             // Phase 2: Start warp tunnel
             starFieldView.setOnWarpCompleteListener(() -> {
+                if (isFinishing() || isDestroyed()) return;
                 // Phase 3: Transition to SkyMapActivity with no system animation
                 Intent i = new Intent(IntroSplashActivity.this, SkyMapActivity.class);
                 i.putExtra("from_splash", true);
