@@ -1021,6 +1021,11 @@ public class SkyMapActivity extends AppCompatActivity {
      * Data loading runs on a background thread for a smooth transition.
      */
     private void initializeSkyMap() {
+        // Hide sky overlay until circular reveal if coming from splash
+        if (getIntent().getBooleanExtra("from_splash", false) && skyOverlayContainer != null) {
+            skyOverlayContainer.setVisibility(View.INVISIBLE);
+        }
+
         showLoading(true);
 
         // Initialize layers on UI thread (creates renderers)
@@ -1044,14 +1049,13 @@ public class SkyMapActivity extends AppCompatActivity {
 
             showLoading(false);
 
-            // Circular reveal if coming from splash
+            // Circular reveal if coming from splash, defer tooltips until after
             if (getIntent().getBooleanExtra("from_splash", false)) {
                 getIntent().removeExtra("from_splash");
-                performCircularReveal();
+                performCircularReveal(() -> showTooltipTutorialIfNeeded());
+            } else {
+                showTooltipTutorialIfNeeded();
             }
-
-            // Show tooltip tutorial if first time
-            showTooltipTutorialIfNeeded();
         });
     }
 
@@ -1060,6 +1064,11 @@ public class SkyMapActivity extends AppCompatActivity {
      * Data loading runs on a background thread.
      */
     private void initializeSkyMapOnly() {
+        // Hide sky overlay until circular reveal if coming from splash
+        if (getIntent().getBooleanExtra("from_splash", false) && skyOverlayContainer != null) {
+            skyOverlayContainer.setVisibility(View.INVISIBLE);
+        }
+
         showLoading(true);
 
         // Initialize layers on UI thread
@@ -1076,14 +1085,13 @@ public class SkyMapActivity extends AppCompatActivity {
 
             showLoading(false);
 
-            // Circular reveal if coming from splash
+            // Circular reveal if coming from splash, defer tooltips until after
             if (getIntent().getBooleanExtra("from_splash", false)) {
                 getIntent().removeExtra("from_splash");
-                performCircularReveal();
+                performCircularReveal(() -> showTooltipTutorialIfNeeded());
+            } else {
+                showTooltipTutorialIfNeeded();
             }
-
-            // Show tooltip tutorial if first time
-            showTooltipTutorialIfNeeded();
         });
     }
 
@@ -1140,13 +1148,19 @@ public class SkyMapActivity extends AppCompatActivity {
      * Performs a circular reveal animation from the center of the screen.
      * Used for the splash -> sky map transition.
      */
-    private void performCircularReveal() {
+    private void performCircularReveal(Runnable onComplete) {
         View root = skyOverlayContainer != null ? skyOverlayContainer
             : findViewById(android.R.id.content);
-        if (root == null) return;
+        if (root == null) {
+            if (onComplete != null) onComplete.run();
+            return;
+        }
 
         root.post(() -> {
-            if (isFinishing()) return;
+            if (isFinishing()) {
+                if (onComplete != null) onComplete.run();
+                return;
+            }
             int cx = root.getWidth() / 2;
             int cy = root.getHeight() / 2;
             float finalRadius = (float) Math.hypot(cx, cy);
@@ -1155,11 +1169,18 @@ public class SkyMapActivity extends AppCompatActivity {
                 Animator anim = ViewAnimationUtils.createCircularReveal(root, cx, cy, 0f, finalRadius);
                 anim.setDuration(800);
                 anim.setInterpolator(new AccelerateDecelerateInterpolator());
+                anim.addListener(new android.animation.AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        if (onComplete != null) onComplete.run();
+                    }
+                });
                 root.setVisibility(View.VISIBLE);
                 anim.start();
             } catch (IllegalStateException e) {
                 // View not attached — just make it visible
                 root.setVisibility(View.VISIBLE);
+                if (onComplete != null) onComplete.run();
             }
         });
     }
