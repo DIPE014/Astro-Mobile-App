@@ -19,7 +19,6 @@ public class ImageStackingManager {
     // Star detection parameters (match plate solving defaults)
     private static final float PLIM = 8.0f;
     private static final float DPSF = 1.0f;
-    private static final int DOWNSAMPLE = 2;
     private static final int MIN_STARS = 20;  // Minimum stars needed for alignment
 
     // Reasonable image size limits
@@ -103,7 +102,8 @@ public class ImageStackingManager {
         // Detect stars
         float[] stars;
         try {
-            stars = AstrometryNative.detectStarsNative(grayData, w, h, PLIM, DPSF, DOWNSAMPLE);
+            int ds = AstrometryNative.computeDownsample(w, h);
+            stars = AstrometryNative.detectStarsNative(grayData, w, h, PLIM, DPSF, ds);
         } catch (Exception | Error e) {
             Log.e(TAG, "startSession failed: star detection crashed", e);
             if (callback != null) {
@@ -214,7 +214,8 @@ public class ImageStackingManager {
         // Detect stars
         float[] stars;
         try {
-            stars = AstrometryNative.detectStarsNative(grayData, w, h, PLIM, DPSF, DOWNSAMPLE);
+            int ds = AstrometryNative.computeDownsample(w, h);
+            stars = AstrometryNative.detectStarsNative(grayData, w, h, PLIM, DPSF, ds);
         } catch (Exception | Error e) {
             Log.e(TAG, "addFrame failed: star detection crashed", e);
             if (callback != null) {

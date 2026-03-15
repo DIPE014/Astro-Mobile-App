@@ -64,6 +64,17 @@ public class AstrometryNative {
     );
 
     /**
+     * Compute downsample factor based on image resolution.
+     * &lt;2M pixels: 1, 2M-8M: 2, &gt;8M: 4.
+     */
+    public static int computeDownsample(int width, int height) {
+        long pixels = (long) width * height;
+        if (pixels > 8_000_000) return 4;
+        if (pixels >= 2_000_000) return 2;
+        return 1;
+    }
+
+    /**
      * Represents a detected star with position and flux.
      */
     public static class NativeStar {
