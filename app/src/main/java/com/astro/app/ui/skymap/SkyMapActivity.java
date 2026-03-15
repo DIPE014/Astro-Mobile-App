@@ -1,6 +1,7 @@
 package com.astro.app.ui.skymap;
 
 import android.Manifest;
+import android.animation.Animator;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -13,8 +14,10 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -73,6 +76,7 @@ import com.google.android.material.card.MaterialCardView;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.Locale;
 
 import javax.inject.Inject;
@@ -1028,63 +1032,153 @@ public class SkyMapActivity extends AppCompatActivity {
 
     /**
      * Initializes the sky map with all features.
+     * Data loading runs on a background thread for a smooth transition.
      */
     private void initializeSkyMap() {
         showLoading(true);
 
-        // Initialize layers
+        // Initialize layers on UI thread (creates renderers)
         initializeLayers();
 
-        // Load real star data into Canvas view
-        loadStarDataForCanvas();
+        // Load data on background thread, then configure views on UI thread
+        loadStarDataAsync(() -> {
+            // Calibrate AR overlay
+            arOverlayManager.calibrate(
+                    cameraManager.getHorizontalFov(),
+                    cameraManager.getVerticalFov()
+            );
 
-        // Calibrate AR overlay
-        arOverlayManager.calibrate(
-                cameraManager.getHorizontalFov(),
-                cameraManager.getVerticalFov()
-        );
+            // Start camera if in AR mode, otherwise set up map-only mode
+            if (isARModeEnabled) {
+                startCameraPreview();
+            } else {
+                arOverlayManager.setARModeEnabled(false);
+                cameraPreviewContainer.setVisibility(View.GONE);
+            }
 
-        // Start camera if in AR mode, otherwise set up map-only mode
-        if (isARModeEnabled) {
-            startCameraPreview();
-        } else {
-            arOverlayManager.setARModeEnabled(false);
-            // Hide camera preview container for map-only mode
-            cameraPreviewContainer.setVisibility(View.GONE);
-        }
+            // Update AR toggle button to reflect current state
+            updateARToggleButton();
 
-        // Update AR toggle button to reflect current state
-        updateARToggleButton();
+            showLoading(false);
 
-        showLoading(false);
+            // Circular reveal if coming from splash
+            if (getIntent().getBooleanExtra("from_splash", false)) {
+                getIntent().removeExtra("from_splash");
+                performCircularReveal();
+            }
 
-        // Show tooltip tutorial if first time
-        showTooltipTutorialIfNeeded();
+            // Show tooltip tutorial if first time
+            showTooltipTutorialIfNeeded();
+        });
     }
 
     /**
      * Initializes the sky map without camera (map-only mode).
+     * Data loading runs on a background thread.
      */
     private void initializeSkyMapOnly() {
         showLoading(true);
 
-        // Initialize layers
+        // Initialize layers on UI thread
         initializeLayers();
 
-        // Load real star data into Canvas view
-        loadStarDataForCanvas();
+        // Load data on background thread
+        loadStarDataAsync(() -> {
+            // Set map-only mode
+            arOverlayManager.setARModeEnabled(false);
+            arOverlayManager.calibrateDefault();
 
-        // Set map-only mode
-        arOverlayManager.setARModeEnabled(false);
-        arOverlayManager.calibrateDefault();
+            // Hide camera preview
+            cameraPreviewContainer.setVisibility(View.GONE);
 
-        // Hide camera preview
-        cameraPreviewContainer.setVisibility(View.GONE);
+            showLoading(false);
 
-        showLoading(false);
+            // Circular reveal if coming from splash
+            if (getIntent().getBooleanExtra("from_splash", false)) {
+                getIntent().removeExtra("from_splash");
+                performCircularReveal();
+            }
 
-        // Show tooltip tutorial if first time
-        showTooltipTutorialIfNeeded();
+            // Show tooltip tutorial if first time
+            showTooltipTutorialIfNeeded();
+        });
+    }
+
+    /**
+     * Loads star, constellation, and DSO data on a background thread,
+     * then sets it on the canvas view on the UI thread.
+     */
+    private void loadStarDataAsync(Runnable onComplete) {
+        if (skyCanvasView == null || starRepository == null) {
+            Log.e(TAG, "STARS: Cannot load - skyCanvasView or starRepository is null");
+            if (onComplete != null) onComplete.run();
+            return;
+        }
+
+        Float magnitudeLimit = settingsViewModel.getMagnitudeLimit().getValue();
+        final float magLimit = magnitudeLimit != null ? magnitudeLimit : 6.5f;
+
+        Executors.newSingleThreadExecutor().execute(() -> {
+            // Background: heavy data loading (protobuf parsing)
+            final List<StarData> stars = starRepository.getStarsByMagnitude(magLimit);
+            Log.d(TAG, "STARS: Loaded " + stars.size() + " stars (bg thread)");
+
+            final List<ConstellationData> constellations = constellationRepository != null
+                ? constellationRepository.getAllConstellations() : null;
+
+            final List<MessierObjectData> dsos = messierRepository != null
+                ? messierRepository.getAllObjects() : null;
+
+            // UI thread: set data on views
+            runOnUiThread(() -> {
+                if (isFinishing()) return;
+
+                skyCanvasView.setStarData(stars);
+
+                if (constellations != null) {
+                    skyCanvasView.setConstellationData(constellations);
+                    skyCanvasView.setConstellationsVisible(isConstellationsEnabled);
+                }
+
+                if (dsos != null) {
+                    skyCanvasView.setDSOData(dsos);
+                    skyCanvasView.setDSOsVisible(isDSOEnabled);
+                }
+
+                skyCanvasView.setObserverLocation(currentLatitude, currentLongitude);
+                skyCanvasView.setOrientation(0f, 45f);
+
+                if (onComplete != null) onComplete.run();
+            });
+        });
+    }
+
+    /**
+     * Performs a circular reveal animation from the center of the screen.
+     * Used for the splash -> sky map transition.
+     */
+    private void performCircularReveal() {
+        View root = skyOverlayContainer != null ? skyOverlayContainer
+            : findViewById(android.R.id.content);
+        if (root == null) return;
+
+        root.post(() -> {
+            if (isFinishing()) return;
+            int cx = root.getWidth() / 2;
+            int cy = root.getHeight() / 2;
+            float finalRadius = (float) Math.hypot(cx, cy);
+
+            try {
+                Animator anim = ViewAnimationUtils.createCircularReveal(root, cx, cy, 0f, finalRadius);
+                anim.setDuration(800);
+                anim.setInterpolator(new AccelerateDecelerateInterpolator());
+                root.setVisibility(View.VISIBLE);
+                anim.start();
+            } catch (IllegalStateException e) {
+                // View not attached — just make it visible
+                root.setVisibility(View.VISIBLE);
+            }
+        });
     }
 
     /**

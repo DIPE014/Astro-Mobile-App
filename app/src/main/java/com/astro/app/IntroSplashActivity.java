@@ -54,10 +54,11 @@ public class IntroSplashActivity extends AppCompatActivity {
 
             // Phase 2: Start warp tunnel
             starFieldView.setOnWarpCompleteListener(() -> {
-                // Phase 3: Transition to SkyMapActivity
+                // Phase 3: Transition to SkyMapActivity with no system animation
                 Intent i = new Intent(IntroSplashActivity.this, SkyMapActivity.class);
+                i.putExtra("from_splash", true);
                 startActivity(i);
-                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                overridePendingTransition(0, 0);  // suppress system fade for seamless reveal
                 finish();
             });
 
