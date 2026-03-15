@@ -521,6 +521,7 @@ public class ImageStackingActivity extends AppCompatActivity {
 
         final List<Uri> uris = new ArrayList<>(collectedUris);
         final boolean stacking = switchStacking.isChecked();
+        isCancelled = false;
 
         backgroundExecutor.execute(() -> {
             Bitmap resultBitmap = null;
@@ -562,7 +563,6 @@ public class ImageStackingActivity extends AppCompatActivity {
     private Bitmap stackAllFrames(List<Uri> uris) {
         int targetW = 0, targetH = 0;
         boolean sessionOk = false;
-        isCancelled = false;
 
         for (int i = 0; i < uris.size(); i++) {
             if (isDestroyed || isCancelled) {
