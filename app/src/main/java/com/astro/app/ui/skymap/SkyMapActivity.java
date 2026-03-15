@@ -114,6 +114,9 @@ public class SkyMapActivity extends AppCompatActivity {
     private SkyMapViewModel viewModel;
     private SettingsViewModel settingsViewModel;
 
+    // Tooltip tutorial
+    private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
+
     // Injected dependencies
     @Inject
     StarRepository starRepository;
@@ -2416,6 +2419,11 @@ public class SkyMapActivity extends AppCompatActivity {
         if (cameraManager != null) {
             cameraManager.stopCamera();
         }
+
+        // Dismiss tooltip to prevent leak if tutorial is mid-sequence
+        if (tooltipManager != null) {
+            tooltipManager.dismiss();
+        }
     }
 
     /**
@@ -2443,7 +2451,7 @@ public class SkyMapActivity extends AppCompatActivity {
             MotionLayout motionLayout = findViewById(R.id.motionLayout);
 
             // Build tooltip sequence (7 tooltips)
-            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
+            tooltipManager =
                 new com.astro.app.ui.onboarding.TooltipManager(this);
 
             // Tooltip 1: Welcome (center)
@@ -2538,6 +2546,9 @@ public class SkyMapActivity extends AppCompatActivity {
      * Replay the tooltip tutorial (called from Settings).
      */
     public void replayTooltipTutorial() {
+        if (tooltipManager != null) {
+            tooltipManager.dismiss();
+        }
         com.astro.app.ui.onboarding.TooltipManager.resetAllTutorials(this);
         showTooltipTutorialIfNeeded();
     }

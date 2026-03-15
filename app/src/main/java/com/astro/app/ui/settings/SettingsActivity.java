@@ -35,6 +35,7 @@ import com.google.android.material.textfield.TextInputEditText;
 public class SettingsActivity extends AppCompatActivity {
 
     private SettingsViewModel viewModel;
+    private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
 
     // Display settings views
     private Slider sliderBrightness;
@@ -312,7 +313,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         findViewById(android.R.id.content).post(() -> {
-            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
+            tooltipManager =
                 new com.astro.app.ui.onboarding.TooltipManager(this,
                     com.astro.app.ui.onboarding.TooltipManager.KEY_SETTINGS_TUTORIAL);
 
@@ -355,5 +356,13 @@ public class SettingsActivity extends AppCompatActivity {
 
             tooltipManager.start();
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (tooltipManager != null) {
+            tooltipManager.dismiss();
+        }
     }
 }

@@ -188,7 +188,10 @@ public class TooltipManager {
         if (needsAnimationDelay) {
             ViewGroup target = rootView != null ? rootView
                 : (ViewGroup) activity.findViewById(android.R.id.content);
-            target.postDelayed(() -> buildAndShowTooltipView(index, config), 600);
+            target.postDelayed(() -> {
+                if (activity.isFinishing() || activity.isDestroyed()) return;
+                buildAndShowTooltipView(index, config);
+            }, 600);
         } else {
             buildAndShowTooltipView(index, config);
         }

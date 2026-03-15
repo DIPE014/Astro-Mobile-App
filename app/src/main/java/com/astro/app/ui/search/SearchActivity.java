@@ -54,6 +54,7 @@ import javax.inject.Inject;
 public class SearchActivity extends AppCompatActivity implements SearchResultAdapter.OnResultClickListener {
 
     private static final String TAG = "SearchActivity";
+    private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
 
     /** Extra key for the selected result name */
     public static final String EXTRA_RESULT_NAME = "result_name";
@@ -426,7 +427,7 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
         }
 
         findViewById(android.R.id.content).post(() -> {
-            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
+            tooltipManager =
                 new com.astro.app.ui.onboarding.TooltipManager(this,
                     com.astro.app.ui.onboarding.TooltipManager.KEY_SEARCH_TUTORIAL);
 
@@ -448,5 +449,13 @@ public class SearchActivity extends AppCompatActivity implements SearchResultAda
 
             tooltipManager.start();
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (tooltipManager != null) {
+            tooltipManager.dismiss();
+        }
     }
 }

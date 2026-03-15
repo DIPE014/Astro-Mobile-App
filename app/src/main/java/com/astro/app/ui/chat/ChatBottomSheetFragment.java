@@ -47,6 +47,7 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
         implements ChatMessageAdapter.ChatActionListener {
 
     public static final String TAG = "ChatBottomSheetFragment";
+    private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
 
     private static final String ENCRYPTED_PREFS_NAME = "astro_secure_prefs";
     private static final String KEY_OPENAI_API_KEY = "openai_api_key";
@@ -440,7 +441,7 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
             android.view.ViewGroup dialogRoot = (android.view.ViewGroup)
                 getDialog().getWindow().getDecorView().findViewById(android.R.id.content);
 
-            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
+            tooltipManager =
                 new com.astro.app.ui.onboarding.TooltipManager(
                     requireActivity(),
                     com.astro.app.ui.onboarding.TooltipManager.KEY_CHAT_TUTORIAL,
@@ -466,5 +467,13 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
 
             tooltipManager.start();
         });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (tooltipManager != null) {
+            tooltipManager.dismiss();
+        }
     }
 }

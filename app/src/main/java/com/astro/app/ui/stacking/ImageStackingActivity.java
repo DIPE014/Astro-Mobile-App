@@ -68,6 +68,9 @@ public class ImageStackingActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "astro_settings";
     private static final String KEY_HAS_SEEN_CAMERA_TIPS = "has_seen_camera_tips_stacking";
 
+    // Tooltip tutorial
+    private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
+
     // ---- Capture mode views ----
     private View topControls;
     private View stackingToggleRow;
@@ -877,6 +880,10 @@ public class ImageStackingActivity extends AppCompatActivity {
         if (stackingManager != null) {
             stackingManager.release();
         }
+
+        if (tooltipManager != null) {
+            tooltipManager.dismiss();
+        }
     }
 
     private void showCameraTipsIfNeeded() {
@@ -921,7 +928,7 @@ public class ImageStackingActivity extends AppCompatActivity {
         }
 
         findViewById(android.R.id.content).post(() -> {
-            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
+            tooltipManager =
                 new com.astro.app.ui.onboarding.TooltipManager(this,
                     com.astro.app.ui.onboarding.TooltipManager.KEY_DETECT_TUTORIAL);
 
