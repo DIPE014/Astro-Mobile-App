@@ -471,7 +471,7 @@
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="270"
-            app:layout_constraintCircleRadius="70dp" />
+            app:layout_constraintCircleRadius="100dp" />
 
         <Button
             android:id="@+id/fabChat"
@@ -484,7 +484,7 @@
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="300"
-            app:layout_constraintCircleRadius="70dp" />
+            app:layout_constraintCircleRadius="100dp" />
 
         <Button
             android:id="@+id/fabStack"
@@ -497,7 +497,7 @@
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="240"
-            app:layout_constraintCircleRadius="70dp" />
+            app:layout_constraintCircleRadius="100dp" />
 
         <androidx.constraintlayout.utils.widget.ImageFilterButton
             android:id="@+id/fabMain"

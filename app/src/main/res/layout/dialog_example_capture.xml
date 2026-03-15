@@ -38,24 +38,13 @@
             android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
             android:textColor="@color/text_secondary" />
 
-        <!-- Don't show again checkbox -->
-        <CheckBox
-            android:id="@+id/cbDontShowAgain"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/plate_solve_tips_dont_show_again"
-            android:textColor="@color/text_secondary"
-            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
-            android:buttonTint="@color/primary"
-            android:layout_marginTop="@dimen/margin_small" />
-
-        <!-- Got it button -->
+        <!-- Close button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGotIt"
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/plate_solve_tips_got_it"
+            android:text="Close"
             android:textAllCaps="false"
             android:layout_marginTop="@dimen/margin_medium" />
 

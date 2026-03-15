@@ -88,49 +88,24 @@
         android:layout_height="0dp"
         android:padding="8dp"
         android:clipToPadding="false"
-        app:layout_constraintBottom_toTopOf="@id/exampleCard"
+        app:layout_constraintBottom_toTopOf="@id/btnViewExample"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/stackingToggleRow" />
 
-    <!-- Example Capture Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/exampleCard"
-        android:layout_width="0dp"
+    <!-- Example Capture Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnViewExample"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
-        app:cardBackgroundColor="#CC1E1E2E"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="2dp"
+        android:text="View Example Capture"
+        android:textAllCaps="false"
+        app:icon="@android:drawable/ic_menu_gallery"
         app:layout_constraintBottom_toTopOf="@id/statusCard"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="12dp">
-
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                android:contentDescription="Example night sky capture"
-                android:scaleType="fitCenter"
-                android:src="@drawable/example_capture" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="8dp"
-                android:text="Example: Orion region captured with a phone camera"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- Status Card -->
     <com.google.android.material.card.MaterialCardView

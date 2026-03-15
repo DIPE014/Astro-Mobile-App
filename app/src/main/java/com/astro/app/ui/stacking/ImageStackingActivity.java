@@ -67,7 +67,6 @@ public class ImageStackingActivity extends AppCompatActivity {
     private static final int MAX_PROCESSING_DIMENSION = 4096;
     private static final String PREFS_NAME = "astro_settings";
     private static final String KEY_HAS_SEEN_CAMERA_TIPS = "has_seen_camera_tips_stacking";
-    private static final String KEY_HAS_SEEN_EXAMPLE = "has_seen_example_capture";
 
     // Tooltip tutorial
     private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
@@ -76,7 +75,7 @@ public class ImageStackingActivity extends AppCompatActivity {
     private View topControls;
     private View stackingToggleRow;
     private MaterialCardView statusCard;
-    private MaterialCardView exampleCard;
+    private View btnViewExample;
     private View bottomControls;
     private View loadingOverlay;
     private CircularProgressIndicator progressIndicator;
@@ -202,7 +201,10 @@ public class ImageStackingActivity extends AppCompatActivity {
         topControls = findViewById(R.id.topControls);
         stackingToggleRow = findViewById(R.id.stackingToggleRow);
         statusCard = findViewById(R.id.statusCard);
-        exampleCard = findViewById(R.id.exampleCard);
+        btnViewExample = findViewById(R.id.btnViewExample);
+        if (btnViewExample != null) {
+            btnViewExample.setOnClickListener(v -> showExampleImageDialog());
+        }
         bottomControls = findViewById(R.id.bottomControls);
         loadingOverlay = findViewById(R.id.loadingOverlay);
         progressIndicator = findViewById(R.id.progressIndicator);
@@ -311,7 +313,7 @@ public class ImageStackingActivity extends AppCompatActivity {
         stackingToggleRow.setVisibility(View.GONE);
         thumbnailGrid.setVisibility(View.GONE);
         statusCard.setVisibility(View.GONE);
-        if (exampleCard != null) exampleCard.setVisibility(View.GONE);
+        if (btnViewExample != null) btnViewExample.setVisibility(View.GONE);
         bottomControls.setVisibility(View.GONE);
 
         // Show result views
@@ -350,8 +352,8 @@ public class ImageStackingActivity extends AppCompatActivity {
         updateCollectionUI();
 
         // Show example card again
-        if (exampleCard != null) {
-            exampleCard.setVisibility(View.VISIBLE);
+        if (btnViewExample != null) {
+            btnViewExample.setVisibility(View.VISIBLE);
         }
 
         // Clear bitmaps to free memory
@@ -382,8 +384,8 @@ public class ImageStackingActivity extends AppCompatActivity {
         thumbnailAdapter.notifyItemInserted(collectedUris.size() - 1);
 
         // Hide example card once user starts adding images
-        if (exampleCard != null) {
-            exampleCard.setVisibility(View.GONE);
+        if (btnViewExample != null) {
+            btnViewExample.setVisibility(View.GONE);
         }
 
         updateCollectionUI();
@@ -915,24 +917,17 @@ public class ImageStackingActivity extends AppCompatActivity {
                 prefs.edit().putBoolean(KEY_HAS_SEEN_CAMERA_TIPS, true).apply();
             }
             dialog.dismiss();
-            showExampleImageDialog();
+            showDetectTooltipIfNeeded();
         });
 
-        dialog.setOnCancelListener(d -> showExampleImageDialog());
+        dialog.setOnCancelListener(d -> showDetectTooltipIfNeeded());
 
         dialog.show();
     }
 
     private void showExampleImageDialog() {
-        android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        if (prefs.getBoolean(KEY_HAS_SEEN_EXAMPLE, false)) {
-            showDetectTooltipIfNeeded();
-            return;
-        }
-
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_example_capture, null);
 
-        CheckBox cbDontShowAgain = dialogView.findViewById(R.id.cbDontShowAgain);
         com.google.android.material.button.MaterialButton btnGotIt = dialogView.findViewById(R.id.btnGotIt);
 
         androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(
@@ -941,15 +936,7 @@ public class ImageStackingActivity extends AppCompatActivity {
                 .setCancelable(true)
                 .create();
 
-        btnGotIt.setOnClickListener(v -> {
-            if (cbDontShowAgain.isChecked()) {
-                prefs.edit().putBoolean(KEY_HAS_SEEN_EXAMPLE, true).apply();
-            }
-            dialog.dismiss();
-            showDetectTooltipIfNeeded();
-        });
-
-        dialog.setOnCancelListener(d -> showDetectTooltipIfNeeded());
+        btnGotIt.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
     }
