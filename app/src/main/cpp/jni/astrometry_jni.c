@@ -77,16 +77,73 @@ Java_com_astro_app_native_1_AstrometryNative_detectStarsNative(
     LOGI("Running image2xy on %dx%d image (float), downsample=%d, plim=%.1f, dpsf=%.1f",
          width, height, downsample, plim, dpsf);
 
-    // Run detection with downsampling
-    int result = image2xy_run(&params, downsample, 0);
+    // Adaptive plim retry: if too few stars detected, retry with lower threshold.
+    // plim=8 is conservative; astrometry.net's u8 default is plim=4.
+    float plim_values[] = {plim, 6.0f, 4.0f};
+    int num_plim = 3;
+    int MIN_STARS_RETRY = 30;
 
-    if (result != 0 || params.npeaks == 0) {
-        LOGE("Star detection failed (result=%d) or no stars found (npeaks=%d)", result, params.npeaks);
+    for (int attempt = 0; attempt < num_plim; attempt++) {
+        if (attempt > 0) {
+            // Re-copy float image since simplexy modifies it internally
+            simplexy_free_contents(&params);
+            memset(&params, 0, sizeof(simplexy_t));
+            simplexy_fill_in_defaults(&params);
+            float* image_f2 = (float*)malloc(npix * sizeof(float));
+            if (!image_f2) {
+                LOGE("Failed to allocate float image for retry");
+                return NULL;
+            }
+            // Re-read from original — but we already released pixels above.
+            // We still have image_f from the first allocation, but simplexy
+            // may have modified it. We need a fresh copy.
+            // Actually, image_f was passed as params.image and simplexy modifies
+            // it in place. So we need to re-convert from the original data.
+            // But we released the JNI byte array. So we must re-acquire it.
+            jbyte* pixels2 = (*env)->GetByteArrayElements(env, imageData, NULL);
+            if (!pixels2) {
+                free(image_f2);
+                LOGE("Failed to re-get image data for retry");
+                return NULL;
+            }
+            for (int i = 0; i < npix; i++) {
+                image_f2[i] = (float)((unsigned char)pixels2[i]);
+            }
+            (*env)->ReleaseByteArrayElements(env, imageData, pixels2, JNI_ABORT);
+            params.image = image_f2;
+            params.nx = width;
+            params.ny = height;
+            params.dpsf = dpsf;
+            params.plim = plim_values[attempt];
+            params.dlim = 1.0;
+            params.saddle = 5.0;
+            params.maxper = 1000;
+            params.maxnpeaks = 100000;
+            params.maxsize = 2000;
+            params.halfbox = 100;
+            LOGI("Retry %d: plim=%.1f (previous had %d stars < %d)",
+                 attempt, plim_values[attempt], params.npeaks, MIN_STARS_RETRY);
+        }
+
+        int result = image2xy_run(&params, downsample, 0);
+        if (result != 0) {
+            LOGE("Star detection failed (result=%d)", result);
+            simplexy_free_contents(&params);
+            return NULL;
+        }
+
+        if (params.npeaks >= MIN_STARS_RETRY || attempt == num_plim - 1) {
+            break;
+        }
+    }
+
+    if (params.npeaks == 0) {
+        LOGE("No stars found after all plim attempts");
         simplexy_free_contents(&params);
         return NULL;
     }
 
-    LOGI("Detected %d stars", params.npeaks);
+    LOGI("Detected %d stars (plim=%.1f)", params.npeaks, params.plim);
 
     int N = params.npeaks;
 
