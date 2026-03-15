@@ -153,7 +153,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private PreviewView cameraPreview;
     private SkyGLSurfaceView skyGLSurfaceView;
     private SkyCanvasView skyCanvasView;
-    private MaterialButton btnArToggle;
+    // btnArToggle removed
     private MaterialCardView infoPanel;
     private TextView tvInfoPanelName;
     private TextView tvInfoPanelType;
@@ -603,7 +603,6 @@ public class SkyMapActivity extends AppCompatActivity {
         infoPanelQuickInfo = findViewById(R.id.infoPanelQuickInfo);
         btnInfoPanelDetails = findViewById(R.id.btnInfoPanelDetails);
         loadingOverlay = findViewById(R.id.loadingOverlay);
-        btnArToggle = findViewById(R.id.btnArToggle);
         btnSearchDetails = findViewById(R.id.btnSearchDetails);
         btnUnlockPlanet = findViewById(R.id.btnUnlockPlanet);
 
@@ -637,10 +636,6 @@ public class SkyMapActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT));
         skyCanvasView.setEnabled(true);
         skyCanvasView.setOnManualModeListener(isManual -> {
-            if (btnArToggle != null) {
-                btnArToggle.setIconTint(ColorStateList.valueOf(
-                    ContextCompat.getColor(this, isManual ? R.color.icon_primary : R.color.icon_inactive)));
-            }
             if (isManual) {
                 if (sensorController != null) sensorController.pause();
             } else {
@@ -813,18 +808,6 @@ public class SkyMapActivity extends AppCompatActivity {
         MaterialButton btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
-        }
-
-        // AR toggle button
-        if (btnArToggle != null) {
-            btnArToggle.setOnClickListener(v -> {
-                if (skyCanvasView != null && skyCanvasView.isManualMode()) {
-                    skyCanvasView.exitManualMode();
-                    updateARToggleButton();
-                } else {
-                    toggleARMode();
-                }
-            });
         }
 
         // Settings button
@@ -1058,9 +1041,6 @@ public class SkyMapActivity extends AppCompatActivity {
                 arOverlayManager.setARModeEnabled(false);
                 cameraPreviewContainer.setVisibility(View.GONE);
             }
-
-            // Update AR toggle button to reflect current state
-            updateARToggleButton();
 
             showLoading(false);
 
@@ -1400,26 +1380,6 @@ public class SkyMapActivity extends AppCompatActivity {
             arOverlayManager.setARModeEnabled(false);
         }
 
-        updateARToggleButton();
-    }
-
-    /**
-     * Updates the AR toggle button appearance.
-     */
-    private void updateARToggleButton() {
-        if (btnArToggle != null) {
-            boolean isManual = skyCanvasView != null && skyCanvasView.isManualMode();
-            if (isManual) {
-                btnArToggle.setIconResource(android.R.drawable.ic_menu_compass);
-                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
-            } else if (isARModeEnabled) {
-                btnArToggle.setIconResource(android.R.drawable.ic_menu_camera);
-                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
-            } else {
-                btnArToggle.setIconResource(android.R.drawable.ic_menu_gallery);
-                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_inactive));
-            }
-        }
     }
 
     /**

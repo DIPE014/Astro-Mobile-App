@@ -57,17 +57,6 @@
             app:iconTint="@color/icon_primary"
             app:rippleColor="@color/ripple" />
 
-        <!-- AR Mode Toggle Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnArToggle"
-            style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
-            android:contentDescription="@string/cd_ar_toggle"
-            app:icon="@android:drawable/ic_menu_camera"
-            app:iconTint="@color/icon_primary"
-            app:rippleColor="@color/ripple" />
-
         <!-- Spacer -->
         <View
             android:layout_width="0dp"
@@ -482,7 +471,7 @@
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="270"
-            app:layout_constraintCircleRadius="180dp" />
+            app:layout_constraintCircleRadius="70dp" />
 
         <Button
             android:id="@+id/fabChat"
@@ -495,7 +484,7 @@
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="300"
-            app:layout_constraintCircleRadius="200dp" />
+            app:layout_constraintCircleRadius="70dp" />
 
         <Button
             android:id="@+id/fabStack"
@@ -508,7 +497,7 @@
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="240"
-            app:layout_constraintCircleRadius="200dp" />
+            app:layout_constraintCircleRadius="70dp" />
 
         <androidx.constraintlayout.utils.widget.ImageFilterButton
             android:id="@+id/fabMain"
