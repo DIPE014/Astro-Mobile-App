@@ -427,32 +427,60 @@ public class TooltipManager {
 
         RectF anchorRect = getViewRect(config.getAnchorView());
 
+        float gap = dpToPx(30);
+
         switch (config.getPosition()) {
-            case ABOVE:
-                // Position above anchor
+            case ABOVE: {
+                // Position above anchor, fall back to below if off-screen top
                 float aboveLeft = Math.max(margin, anchorRect.centerX() - bubbleWidth / 2f);
                 aboveLeft = Math.min(aboveLeft, screenWidth - bubbleWidth - margin);
-                float aboveTop = anchorRect.top - bubbleHeight - dpToPx(30);
+                float aboveTop = anchorRect.top - bubbleHeight - gap;
+                if (aboveTop < margin) {
+                    // Fall back to BELOW
+                    aboveTop = anchorRect.bottom + gap;
+                }
+                // Final clamp
+                aboveTop = Math.max(margin, Math.min(aboveTop, screenHeight - bubbleHeight - margin));
                 return new RectF(aboveLeft, aboveTop, aboveLeft + bubbleWidth, aboveTop + bubbleHeight);
+            }
 
-            case BELOW:
-                // Position below anchor
+            case BELOW: {
+                // Position below anchor, fall back to above if off-screen bottom
                 float belowLeft = Math.max(margin, anchorRect.centerX() - bubbleWidth / 2f);
                 belowLeft = Math.min(belowLeft, screenWidth - bubbleWidth - margin);
-                float belowTop = anchorRect.bottom + dpToPx(30);
+                float belowTop = anchorRect.bottom + gap;
+                if (belowTop + bubbleHeight > screenHeight - margin) {
+                    // Fall back to ABOVE
+                    belowTop = anchorRect.top - bubbleHeight - gap;
+                }
+                // Final clamp
+                belowTop = Math.max(margin, Math.min(belowTop, screenHeight - bubbleHeight - margin));
                 return new RectF(belowLeft, belowTop, belowLeft + bubbleWidth, belowTop + bubbleHeight);
+            }
 
-            case LEFT:
-                // Position to the left of anchor
-                float leftLeft = anchorRect.left - bubbleWidth - dpToPx(30);
+            case LEFT: {
+                // Position to the left of anchor, fall back to right if off-screen
+                float leftLeft = anchorRect.left - bubbleWidth - gap;
+                if (leftLeft < margin) {
+                    leftLeft = anchorRect.right + gap;
+                }
+                leftLeft = Math.max(margin, Math.min(leftLeft, screenWidth - bubbleWidth - margin));
                 float leftTop = Math.max(margin, anchorRect.centerY() - bubbleHeight / 2f);
+                leftTop = Math.min(leftTop, screenHeight - bubbleHeight - margin);
                 return new RectF(leftLeft, leftTop, leftLeft + bubbleWidth, leftTop + bubbleHeight);
+            }
 
-            case RIGHT:
-                // Position to the right of anchor
-                float rightLeft = anchorRect.right + dpToPx(30);
+            case RIGHT: {
+                // Position to the right of anchor, fall back to left if off-screen
+                float rightLeft = anchorRect.right + gap;
+                if (rightLeft + bubbleWidth > screenWidth - margin) {
+                    rightLeft = anchorRect.left - bubbleWidth - gap;
+                }
+                rightLeft = Math.max(margin, Math.min(rightLeft, screenWidth - bubbleWidth - margin));
                 float rightTop = Math.max(margin, anchorRect.centerY() - bubbleHeight / 2f);
+                rightTop = Math.min(rightTop, screenHeight - bubbleHeight - margin);
                 return new RectF(rightLeft, rightTop, rightLeft + bubbleWidth, rightTop + bubbleHeight);
+            }
 
             default:
                 // Fallback to center
