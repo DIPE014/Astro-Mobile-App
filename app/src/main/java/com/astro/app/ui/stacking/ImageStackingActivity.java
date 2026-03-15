@@ -67,6 +67,7 @@ public class ImageStackingActivity extends AppCompatActivity {
     private static final int MAX_PROCESSING_DIMENSION = 4096;
     private static final String PREFS_NAME = "astro_settings";
     private static final String KEY_HAS_SEEN_CAMERA_TIPS = "has_seen_camera_tips_stacking";
+    private static final String KEY_HAS_SEEN_EXAMPLE = "has_seen_example_capture";
 
     // Tooltip tutorial
     private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
@@ -912,6 +913,37 @@ public class ImageStackingActivity extends AppCompatActivity {
             if (cbDontShowAgain.isChecked()) {
                 android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
                 prefs.edit().putBoolean(KEY_HAS_SEEN_CAMERA_TIPS, true).apply();
+            }
+            dialog.dismiss();
+            showExampleImageDialog();
+        });
+
+        dialog.setOnCancelListener(d -> showExampleImageDialog());
+
+        dialog.show();
+    }
+
+    private void showExampleImageDialog() {
+        android.content.SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        if (prefs.getBoolean(KEY_HAS_SEEN_EXAMPLE, false)) {
+            showDetectTooltipIfNeeded();
+            return;
+        }
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_example_capture, null);
+
+        CheckBox cbDontShowAgain = dialogView.findViewById(R.id.cbDontShowAgain);
+        com.google.android.material.button.MaterialButton btnGotIt = dialogView.findViewById(R.id.btnGotIt);
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(
+                this, R.style.Theme_AstroApp_AlertDialog)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        btnGotIt.setOnClickListener(v -> {
+            if (cbDontShowAgain.isChecked()) {
+                prefs.edit().putBoolean(KEY_HAS_SEEN_EXAMPLE, true).apply();
             }
             dialog.dismiss();
             showDetectTooltipIfNeeded();

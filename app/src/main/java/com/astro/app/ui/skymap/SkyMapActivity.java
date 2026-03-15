@@ -1339,7 +1339,6 @@ public class SkyMapActivity extends AppCompatActivity {
                 Log.d(TAG, "Camera started successfully");
                 cameraPreviewContainer.setVisibility(View.VISIBLE);
                 arOverlayManager.setARModeEnabled(true);
-                updateARToggleButton();
             }
 
             @Override

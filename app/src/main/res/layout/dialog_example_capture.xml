@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/surface_variant"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_large">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Example Capture"
+            android:textAppearance="@style/TextAppearance.AstroApp.TitleLarge"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="@dimen/margin_medium" />
+
+        <!-- Full-size example image -->
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:contentDescription="Example night sky capture showing the Orion region"
+            android:scaleType="fitCenter"
+            android:src="@drawable/example_capture" />
+
+        <!-- Caption -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/margin_medium"
+            android:text="Orion region captured with a phone camera. Aim for a similar field of view with visible stars."
+            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+            android:textColor="@color/text_secondary" />
+
+        <!-- Don't show again checkbox -->
+        <CheckBox
+            android:id="@+id/cbDontShowAgain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/plate_solve_tips_dont_show_again"
+            android:textColor="@color/text_secondary"
+            android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
+            android:buttonTint="@color/primary"
+            android:layout_marginTop="@dimen/margin_small" />
+
+        <!-- Got it button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGotIt"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/plate_solve_tips_got_it"
+            android:textAllCaps="false"
+            android:layout_marginTop="@dimen/margin_medium" />
+
+    </LinearLayout>
+</ScrollView>
