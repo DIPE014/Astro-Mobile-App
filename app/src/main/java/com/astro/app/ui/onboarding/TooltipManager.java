@@ -217,17 +217,29 @@ public class TooltipManager {
         anchor.requestRectangleOnScreen(
             new Rect(0, 0, anchor.getWidth(), anchor.getHeight()), false);
 
-        // Also manually scroll parent ScrollView/NestedScrollView as fallback
+        // Also manually scroll parent ScrollView/NestedScrollView as fallback.
+        // Use screen coordinates to handle nested containers correctly —
+        // anchor.getTop() is relative to immediate parent, not the ScrollView.
         View parent = (View) anchor.getParent();
         while (parent != null) {
             if (parent instanceof NestedScrollView) {
                 NestedScrollView scrollView = (NestedScrollView) parent;
-                int scrollTarget = anchor.getTop() - scrollView.getHeight() / 2 + anchor.getHeight() / 2;
+                int[] anchorLoc = new int[2];
+                int[] scrollLoc = new int[2];
+                anchor.getLocationOnScreen(anchorLoc);
+                scrollView.getLocationOnScreen(scrollLoc);
+                int relativeTop = anchorLoc[1] - scrollLoc[1] + scrollView.getScrollY();
+                int scrollTarget = relativeTop - scrollView.getHeight() / 2 + anchor.getHeight() / 2;
                 scrollView.smoothScrollTo(0, Math.max(0, scrollTarget));
                 break;
             } else if (parent instanceof ScrollView) {
                 ScrollView scrollView = (ScrollView) parent;
-                int scrollTarget = anchor.getTop() - scrollView.getHeight() / 2 + anchor.getHeight() / 2;
+                int[] anchorLoc = new int[2];
+                int[] scrollLoc = new int[2];
+                anchor.getLocationOnScreen(anchorLoc);
+                scrollView.getLocationOnScreen(scrollLoc);
+                int relativeTop = anchorLoc[1] - scrollLoc[1] + scrollView.getScrollY();
+                int scrollTarget = relativeTop - scrollView.getHeight() / 2 + anchor.getHeight() / 2;
                 scrollView.smoothScrollTo(0, Math.max(0, scrollTarget));
                 break;
             }
