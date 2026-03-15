@@ -147,13 +147,15 @@ public class SkyMapActivity extends AppCompatActivity {
     private CameraPermissionHandler permissionHandler;
     private AROverlayManager arOverlayManager;
 
+    // Background executor for star data loading
+    private java.util.concurrent.ExecutorService starDataExecutor;
+
     // Views
     private FrameLayout cameraPreviewContainer;
     private FrameLayout skyOverlayContainer;
     private PreviewView cameraPreview;
     private SkyGLSurfaceView skyGLSurfaceView;
     private SkyCanvasView skyCanvasView;
-    // btnArToggle removed
     private MaterialCardView infoPanel;
     private TextView tvInfoPanelName;
     private TextView tvInfoPanelType;
@@ -1109,38 +1111,48 @@ public class SkyMapActivity extends AppCompatActivity {
         Float magnitudeLimit = settingsViewModel.getMagnitudeLimit().getValue();
         final float magLimit = magnitudeLimit != null ? magnitudeLimit : 6.5f;
 
-        Executors.newSingleThreadExecutor().execute(() -> {
-            // Background: heavy data loading (protobuf parsing)
-            final List<StarData> stars = starRepository.getStarsByMagnitude(magLimit);
-            Log.d(TAG, "STARS: Loaded " + stars.size() + " stars (bg thread)");
+        if (starDataExecutor == null || starDataExecutor.isShutdown()) {
+            starDataExecutor = Executors.newSingleThreadExecutor();
+        }
+        starDataExecutor.execute(() -> {
+            try {
+                // Background: heavy data loading (protobuf parsing)
+                final List<StarData> stars = starRepository.getStarsByMagnitude(magLimit);
+                Log.d(TAG, "STARS: Loaded " + stars.size() + " stars (bg thread)");
 
-            final List<ConstellationData> constellations = constellationRepository != null
-                ? constellationRepository.getAllConstellations() : null;
+                final List<ConstellationData> constellations = constellationRepository != null
+                    ? constellationRepository.getAllConstellations() : null;
 
-            final List<MessierObjectData> dsos = messierRepository != null
-                ? messierRepository.getAllObjects() : null;
+                final List<MessierObjectData> dsos = messierRepository != null
+                    ? messierRepository.getAllObjects() : null;
 
-            // UI thread: set data on views
-            runOnUiThread(() -> {
-                if (isFinishing()) return;
+                // UI thread: set data on views
+                runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) return;
 
-                skyCanvasView.setStarData(stars);
+                    skyCanvasView.setStarData(stars);
 
-                if (constellations != null) {
-                    skyCanvasView.setConstellationData(constellations);
-                    skyCanvasView.setConstellationsVisible(isConstellationsEnabled);
-                }
+                    if (constellations != null) {
+                        skyCanvasView.setConstellationData(constellations);
+                        skyCanvasView.setConstellationsVisible(isConstellationsEnabled);
+                    }
 
-                if (dsos != null) {
-                    skyCanvasView.setDSOData(dsos);
-                    skyCanvasView.setDSOsVisible(isDSOEnabled);
-                }
+                    if (dsos != null) {
+                        skyCanvasView.setDSOData(dsos);
+                        skyCanvasView.setDSOsVisible(isDSOEnabled);
+                    }
 
-                skyCanvasView.setObserverLocation(currentLatitude, currentLongitude);
-                skyCanvasView.setOrientation(0f, 45f);
+                    skyCanvasView.setObserverLocation(currentLatitude, currentLongitude);
+                    skyCanvasView.setOrientation(0f, 45f);
 
-                if (onComplete != null) onComplete.run();
-            });
+                    if (onComplete != null) onComplete.run();
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "STARS: Failed to load star data", e);
+                runOnUiThread(() -> {
+                    if (onComplete != null) onComplete.run();
+                });
+            }
         });
     }
 
@@ -2566,6 +2578,14 @@ public class SkyMapActivity extends AppCompatActivity {
         View fabMain = findViewById(R.id.fabMain);
         if (fabMotionLayout == null || fabMain == null) return;
 
+        fabMain.setOnClickListener(v -> {
+            if (fabMotionLayout.getCurrentState() == fabMotionLayout.getStartState()) {
+                fabMotionLayout.transitionToEnd();
+            } else {
+                fabMotionLayout.transitionToStart();
+            }
+        });
+
         fabMain.setOnTouchListener((v, event) -> {
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
@@ -2589,12 +2609,8 @@ public class SkyMapActivity extends AppCompatActivity {
                     return true;
                 case MotionEvent.ACTION_UP:
                     if (!isDragging) {
-                        // It was a tap - toggle the MotionLayout
-                        if (fabMotionLayout.getCurrentState() == fabMotionLayout.getStartState()) {
-                            fabMotionLayout.transitionToEnd();
-                        } else {
-                            fabMotionLayout.transitionToStart();
-                        }
+                        // It was a tap - toggle via performClick for accessibility
+                        v.performClick();
                     } else {
                         // Clamp to screen bounds based on current layout position
                         int screenWidth = getResources().getDisplayMetrics().widthPixels;
@@ -2626,17 +2642,37 @@ public class SkyMapActivity extends AppCompatActivity {
             return false;
         });
 
-        // Restore saved position
+        // Restore saved position after layout so we can clamp to current bounds
         SharedPreferences fabPrefs = getSharedPreferences("fab_prefs", MODE_PRIVATE);
         float savedX = fabPrefs.getFloat("fab_position_x", 0f);
         float savedY = fabPrefs.getFloat("fab_position_y", 0f);
-        fabMotionLayout.setTranslationX(savedX);
-        fabMotionLayout.setTranslationY(savedY);
+        if (savedX != 0f || savedY != 0f) {
+            fabMotionLayout.post(() -> {
+                int screenWidth = getResources().getDisplayMetrics().widthPixels;
+                int screenHeight = getResources().getDisplayMetrics().heightPixels;
+                int[] loc = new int[2];
+                fabMotionLayout.getLocationOnScreen(loc);
+                int mlWidth = fabMotionLayout.getWidth();
+                int mlHeight = fabMotionLayout.getHeight();
+                float minX = -loc[0] - mlWidth / 2f;
+                float maxX = screenWidth - loc[0] - mlWidth / 2f;
+                float minY = -loc[1] - mlHeight / 2f;
+                float maxY = screenHeight - loc[1] - mlHeight / 2f;
+                fabMotionLayout.setTranslationX(Math.max(minX, Math.min(maxX, savedX)));
+                fabMotionLayout.setTranslationY(Math.max(minY, Math.min(maxY, savedY)));
+            });
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        // Shut down star data executor
+        if (starDataExecutor != null) {
+            starDataExecutor.shutdownNow();
+            starDataExecutor = null;
+        }
 
         // Release camera resources
         if (cameraManager != null) {

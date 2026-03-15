@@ -362,6 +362,27 @@ public class TooltipManager {
             }
         }
 
+        // If the overlay is attached to a rootView that is not at (0,0) in the window
+        // (e.g. nested in a dialog or fragment container), all window-absolute coordinates
+        // must be adjusted to rootView-relative coordinates.
+        ViewGroup target = rootView != null ? rootView
+            : (ViewGroup) activity.findViewById(android.R.id.content);
+        int[] rootLoc = new int[2];
+        target.getLocationInWindow(rootLoc);
+        float offsetX = rootLoc[0];
+        float offsetY = rootLoc[1];
+        if (offsetX != 0 || offsetY != 0) {
+            bubbleRect.offset(-offsetX, -offsetY);
+            if (anchorRect != null) {
+                anchorRect.offset(-offsetX, -offsetY);
+            }
+            if (extraHighlightRects != null) {
+                for (RectF r : extraHighlightRects) {
+                    r.offset(-offsetX, -offsetY);
+                }
+            }
+        }
+
         currentTooltipView.configure(bubbleRect, anchorRect, config.getPosition(),
             extraHighlightRects, visibleExtraViews,
             config.isInteractive(), config.getAnchorView());
@@ -398,8 +419,6 @@ public class TooltipManager {
         currentTooltipView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
 
         // Add to root view (custom or activity default)
-        ViewGroup target = rootView != null ? rootView
-            : (ViewGroup) activity.findViewById(android.R.id.content);
         target.addView(currentTooltipView);
 
         // Fade in, then announce for screen readers

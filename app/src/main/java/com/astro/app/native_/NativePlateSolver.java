@@ -110,11 +110,15 @@ public class NativePlateSolver {
      * @param downsample Downsample factor (-1 = auto, default)
      */
     public void setDownsample(int downsample) {
+        if (downsample != -1 && downsample < 1) {
+            throw new IllegalArgumentException(
+                    "downsample must be -1 (auto) or >= 1, got " + downsample);
+        }
         this.downsample = downsample;
     }
 
     private int resolveDownsample(int width, int height) {
-        return downsample > 0 ? downsample : AstrometryNative.computeDownsample(width, height);
+        return downsample == -1 ? AstrometryNative.computeDownsample(width, height) : downsample;
     }
 
     /**

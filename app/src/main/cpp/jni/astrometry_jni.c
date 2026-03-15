@@ -18,6 +18,14 @@
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
+static int compare_floats(const void *a, const void *b) {
+    float fa = *(const float *)a;
+    float fb = *(const float *)b;
+    if (fa < fb) return -1;
+    if (fa > fb) return 1;
+    return 0;
+}
+
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     log_init(LOG_MSG);
     LOGI("Astrometry native library loaded");
@@ -160,20 +168,8 @@ Java_com_astro_app_native_1_AstrometryNative_detectStarsNative(
         float* flux_copy = malloc(N_raw * sizeof(float));
         if (flux_copy) {
             memcpy(flux_copy, params.flux, N_raw * sizeof(float));
-            // Simple nth_element: partition around median index
-            int mid = N_raw / 2;
-            for (int i = 0; i <= mid; i++) {
-                int min_idx = i;
-                for (int j = i + 1; j < N_raw; j++) {
-                    if (flux_copy[j] < flux_copy[min_idx]) min_idx = j;
-                }
-                if (min_idx != i) {
-                    float tmp = flux_copy[i];
-                    flux_copy[i] = flux_copy[min_idx];
-                    flux_copy[min_idx] = tmp;
-                }
-            }
-            float median_flux = flux_copy[mid];
+            qsort(flux_copy, N_raw, sizeof(float), compare_floats);
+            float median_flux = flux_copy[N_raw / 2];
             float hot_threshold = 50.0f * median_flux;
             free(flux_copy);
 

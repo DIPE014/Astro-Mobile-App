@@ -110,20 +110,34 @@ public class TooltipView extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (interactive && anchorHighlight != null && anchorView != null
-                && event.getAction() == MotionEvent.ACTION_UP) {
+        if (!interactive) {
+            return super.onTouchEvent(event);
+        }
+
+        int action = event.getAction();
+
+        if (action == MotionEvent.ACTION_DOWN) {
+            // Claim the gesture so we receive ACTION_UP
+            return true;
+        }
+
+        if (action == MotionEvent.ACTION_UP) {
             float x = event.getX();
             float y = event.getY();
             float highlightPadding = 16f * getResources().getDisplayMetrics().density;
-            float radius = Math.max(anchorHighlight.width(), anchorHighlight.height()) / 2f + highlightPadding;
-            float dx = x - anchorHighlight.centerX();
-            float dy = y - anchorHighlight.centerY();
-            if (dx * dx + dy * dy <= radius * radius) {
-                anchorView.performClick();
-                return true;
+
+            // Check primary highlight
+            if (anchorHighlight != null && anchorView != null) {
+                float radius = Math.max(anchorHighlight.width(), anchorHighlight.height()) / 2f + highlightPadding;
+                float dx = x - anchorHighlight.centerX();
+                float dy = y - anchorHighlight.centerY();
+                if (dx * dx + dy * dy <= radius * radius) {
+                    anchorView.performClick();
+                    return true;
+                }
             }
 
-            // Also check extra highlights for interactive passthrough
+            // Check extra highlights independently
             if (extraHighlights != null && extraHighlightViews != null) {
                 for (int i = 0; i < extraHighlights.size() && i < extraHighlightViews.size(); i++) {
                     RectF rect = extraHighlights.get(i);
@@ -137,6 +151,7 @@ public class TooltipView extends FrameLayout {
                 }
             }
         }
+
         return super.onTouchEvent(event);
     }
 

@@ -48,6 +48,8 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
 
     public static final String TAG = "ChatBottomSheetFragment";
     private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
+    private Runnable chatTooltipRunnable;
+    private View chatTooltipRoot;
 
     private static final String ENCRYPTED_PREFS_NAME = "astro_secure_prefs";
     private static final String KEY_OPENAI_API_KEY = "openai_api_key";
@@ -434,7 +436,8 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
             return;
         }
 
-        fragmentRoot.postDelayed(() -> {
+        chatTooltipRoot = fragmentRoot;
+        chatTooltipRunnable = () -> {
             if (!isAdded() || getDialog() == null || getDialog().getWindow() == null) return;
 
             // Use the dialog's decor view as root so the overlay covers the bottom sheet
@@ -471,12 +474,16 @@ public class ChatBottomSheetFragment extends BottomSheetDialogFragment
             }
 
             tooltipManager.start();
-        }, 300);
+        };
+        fragmentRoot.postDelayed(chatTooltipRunnable, 300);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (chatTooltipRoot != null) {
+            chatTooltipRoot.removeCallbacks(chatTooltipRunnable);
+        }
         if (tooltipManager != null) {
             tooltipManager.dismiss();
         }

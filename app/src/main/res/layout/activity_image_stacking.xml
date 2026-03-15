@@ -47,7 +47,7 @@
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:contentDescription="Photography tips"
+            android:contentDescription="@string/photography_tips"
             app:icon="@android:drawable/ic_menu_info_details"
             app:iconTint="@color/icon_primary" />
     </LinearLayout>
@@ -100,7 +100,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:text="View Example Capture"
+        android:text="@string/view_example_capture"
         android:textAllCaps="false"
         app:icon="@android:drawable/ic_menu_gallery"
         app:layout_constraintBottom_toTopOf="@id/statusCard"

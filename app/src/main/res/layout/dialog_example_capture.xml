@@ -15,7 +15,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Example Capture"
+            android:text="@string/example_capture_title"
             android:textAppearance="@style/TextAppearance.AstroApp.TitleLarge"
             android:textColor="@color/text_primary"
             android:layout_marginBottom="@dimen/margin_medium" />
@@ -25,7 +25,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:adjustViewBounds="true"
-            android:contentDescription="Example night sky capture showing the Orion region"
+            android:contentDescription="@string/example_capture_cd"
             android:scaleType="fitCenter"
             android:src="@drawable/example_capture" />
 
@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="@dimen/margin_medium"
-            android:text="Orion region captured with a phone camera. Aim for a similar field of view with visible stars."
+            android:text="@string/example_capture_caption"
             android:textAppearance="@style/TextAppearance.AstroApp.BodyMedium"
             android:textColor="@color/text_secondary" />
 
@@ -44,7 +44,7 @@
             style="@style/Widget.Material3.Button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Close"
+            android:text="@string/example_capture_close"
             android:textAllCaps="false"
             android:layout_marginTop="@dimen/margin_medium" />
 

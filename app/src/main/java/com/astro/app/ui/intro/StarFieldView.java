@@ -66,6 +66,7 @@ public class StarFieldView extends View implements Runnable {
     private boolean warpMode;
     private float warpProgress;
     private boolean warpCompleteNotified;
+    private boolean pendingWarpComplete = false;
     private OnWarpCompleteListener warpCompleteListener;
 
     private int viewWidth;
@@ -188,9 +189,11 @@ public class StarFieldView extends View implements Runnable {
             if (warpProgress >= 1f) {
                 warpProgress = 1f;
                 if (!warpCompleteNotified) {
-                    warpCompleteNotified = true;
                     if (isAttachedToWindow() && warpCompleteListener != null) {
+                        warpCompleteNotified = true;
                         warpCompleteListener.onWarpComplete();
+                    } else {
+                        pendingWarpComplete = true;
                     }
                 }
             }
@@ -430,6 +433,13 @@ public class StarFieldView extends View implements Runnable {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
+        if (pendingWarpComplete) {
+            pendingWarpComplete = false;
+            warpCompleteNotified = true;
+            if (warpCompleteListener != null) {
+                warpCompleteListener.onWarpComplete();
+            }
+        }
         if (initialized && !animating) {
             animating = true;
             lastNanoTime = System.nanoTime();
@@ -440,7 +450,6 @@ public class StarFieldView extends View implements Runnable {
     @Override
     protected void onDetachedFromWindow() {
         animating = false;
-        warpCompleteListener = null;
         super.onDetachedFromWindow();
     }
 

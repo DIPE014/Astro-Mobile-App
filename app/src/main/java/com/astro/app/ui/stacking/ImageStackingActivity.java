@@ -528,18 +528,24 @@ public class ImageStackingActivity extends AppCompatActivity {
                 if (stacking && uris.size() > 1) {
                     resultBitmap = stackAllFrames(uris);
                 } else {
-                    resultBitmap = loadBitmapFromUri(uris.get(0));
+                    resultBitmap = loadBitmapFromUri(uris.get(0), MAX_PROCESSING_DIMENSION);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Processing failed", e);
             }
 
-            final Bitmap finalResult = resultBitmap;
+            final Bitmap finalResult = isCancelled ? null : resultBitmap;
+            final boolean wasCancelled = isCancelled;
             runOnUiThread(() -> {
                 if (isDestroyed) return;
                 showLoading(false);
                 switchStacking.setEnabled(true);
-                if (finalResult != null) {
+                if (wasCancelled) {
+                    // User cancelled — silently return to capture mode
+                    btnCapture.setEnabled(true);
+                    btnPickImages.setEnabled(true);
+                    if (stacking) btnFinish.setEnabled(!collectedUris.isEmpty());
+                } else if (finalResult != null) {
                     showResultMode(finalResult);
                     solvePlate(finalResult);
                     analyzeSkyBrightness(finalResult);

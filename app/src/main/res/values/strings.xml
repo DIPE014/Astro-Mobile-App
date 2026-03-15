@@ -466,6 +466,16 @@
     <string name="tooltip_detect_capture">Capture a photo of the night sky, or pick one from your gallery.</string>
     <string name="tooltip_detect_stacking">Enable stacking to combine multiple frames for a brighter, cleaner image.</string>
     <string name="tooltip_detect_gallery">You can also select existing photos from your gallery.</string>
+
+    <!-- Detect/Stack UI -->
+    <string name="photography_tips">Photography tips</string>
+    <string name="view_example_capture">View Example Capture</string>
+
+    <!-- Example capture dialog -->
+    <string name="example_capture_title">Example Capture</string>
+    <string name="example_capture_cd">Example night sky capture showing the Orion region</string>
+    <string name="example_capture_caption">Orion region captured with a phone camera. Aim for a similar field of view with visible stars.</string>
+    <string name="example_capture_close">Close</string>
 </resources>
 
 
