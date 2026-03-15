@@ -64,7 +64,7 @@ import java.util.concurrent.TimeUnit;
 public class ImageStackingActivity extends AppCompatActivity {
     private static final String TAG = "ImageStackingActivity";
     private static final int MAX_FRAMES = 10;
-    private static final int MAX_PROCESSING_DIMENSION = 1920;
+    private static final int MAX_PROCESSING_DIMENSION = 4096;
     private static final String PREFS_NAME = "astro_settings";
     private static final String KEY_HAS_SEEN_CAMERA_TIPS = "has_seen_camera_tips_stacking";
 
@@ -346,6 +346,7 @@ public class ImageStackingActivity extends AppCompatActivity {
         // Reset state
         resetSession();
         updateModeUI();
+        updateCollectionUI();
 
         // Show example card again
         if (exampleCard != null) {
