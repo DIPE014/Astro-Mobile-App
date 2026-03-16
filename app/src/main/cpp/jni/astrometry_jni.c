@@ -18,6 +18,14 @@
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
+static int compare_floats(const void *a, const void *b) {
+    float fa = *(const float *)a;
+    float fb = *(const float *)b;
+    if (fa < fb) return -1;
+    if (fa > fb) return 1;
+    return 0;
+}
+
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     log_init(LOG_MSG);
     LOGI("Astrometry native library loaded");
@@ -77,16 +85,140 @@ Java_com_astro_app_native_1_AstrometryNative_detectStarsNative(
     LOGI("Running image2xy on %dx%d image (float), downsample=%d, plim=%.1f, dpsf=%.1f",
          width, height, downsample, plim, dpsf);
 
-    // Run detection with downsampling
-    int result = image2xy_run(&params, downsample, 0);
+    // Adaptive plim retry: if too few stars detected, retry with lower threshold.
+    // plim=8 is conservative; astrometry.net's u8 default is plim=4.
+    float plim_values[3];
+    int num_plim = 0;
+    plim_values[num_plim++] = plim;
+    if (6.0f < plim) plim_values[num_plim++] = 6.0f;
+    if (4.0f < plim) plim_values[num_plim++] = 4.0f;
+    int MIN_STARS_RETRY = 30;
 
-    if (result != 0 || params.npeaks == 0) {
-        LOGE("Star detection failed (result=%d) or no stars found (npeaks=%d)", result, params.npeaks);
+    float* current_image = image_f;  // Track current image buffer for cleanup
+    int prev_npeaks = 0;
+
+    for (int attempt = 0; attempt < num_plim; attempt++) {
+        if (attempt > 0) {
+            prev_npeaks = params.npeaks;
+            // Re-copy float image since simplexy modifies it internally
+            simplexy_free_contents(&params);  // Also frees params.image (== current_image)
+            memset(&params, 0, sizeof(simplexy_t));
+            simplexy_fill_in_defaults(&params);
+            float* image_f2 = (float*)malloc(npix * sizeof(float));
+            if (!image_f2) {
+                LOGE("Failed to allocate float image for retry");
+                return NULL;
+            }
+            jbyte* pixels2 = (*env)->GetByteArrayElements(env, imageData, NULL);
+            if (!pixels2) {
+                free(image_f2);
+                LOGE("Failed to re-get image data for retry");
+                return NULL;
+            }
+            for (int i = 0; i < npix; i++) {
+                image_f2[i] = (float)((unsigned char)pixels2[i]);
+            }
+            (*env)->ReleaseByteArrayElements(env, imageData, pixels2, JNI_ABORT);
+            current_image = image_f2;
+            params.image = image_f2;
+            params.nx = width;
+            params.ny = height;
+            params.dpsf = dpsf;
+            params.plim = plim_values[attempt];
+            params.dlim = 1.0;
+            params.saddle = 5.0;
+            params.maxper = 1000;
+            params.maxnpeaks = 100000;
+            params.maxsize = 2000;
+            params.halfbox = 100;
+            LOGI("Retry %d: plim=%.1f (previous had %d stars < %d)",
+                 attempt, plim_values[attempt], prev_npeaks, MIN_STARS_RETRY);
+        }
+
+        int result = image2xy_run(&params, downsample, 0);
+        if (result != 0) {
+            LOGE("Star detection failed (result=%d)", result);
+            simplexy_free_contents(&params);
+            return NULL;
+        }
+
+        if (params.npeaks >= MIN_STARS_RETRY || attempt == num_plim - 1) {
+            break;
+        }
+    }
+
+    if (params.npeaks == 0) {
+        LOGE("No stars found after all plim attempts");
         simplexy_free_contents(&params);
         return NULL;
     }
 
-    LOGI("Detected %d stars", params.npeaks);
+    LOGI("Detected %d stars (plim=%.1f)", params.npeaks, params.plim);
+
+    // Filter detections: reject edge stars and hot pixels
+    {
+        int N_raw = params.npeaks;
+        int MIN_REMAIN = 30;
+
+        // Edge margin: max(10px, 1% of dimension)
+        float margin_x = width * 0.01f;
+        if (margin_x < 10.0f) margin_x = 10.0f;
+        float margin_y = height * 0.01f;
+        if (margin_y < 10.0f) margin_y = 10.0f;
+
+        // Compute median flux via partial sort (selection algorithm)
+        float* flux_copy = malloc(N_raw * sizeof(float));
+        if (!flux_copy) {
+            LOGE("flux_copy malloc failed (%d floats), skipping edge/hot-pixel filter", N_raw);
+        } else {
+            memcpy(flux_copy, params.flux, N_raw * sizeof(float));
+            qsort(flux_copy, N_raw, sizeof(float), compare_floats);
+            float median_flux = flux_copy[N_raw / 2];
+            float hot_threshold = 50.0f * median_flux;
+            free(flux_copy);
+
+            // Single-pass filter with array compaction
+            int kept = 0;
+            for (int i = 0; i < N_raw; i++) {
+                // Edge check
+                if (params.x[i] < margin_x || params.x[i] > width - margin_x ||
+                    params.y[i] < margin_y || params.y[i] > height - margin_y) {
+                    continue;
+                }
+                // Hot pixel check
+                if (median_flux > 0 && params.flux[i] > hot_threshold) {
+                    continue;
+                }
+                // Safety floor: stop filtering if we'd go below minimum
+                // (count remaining unfiltered stars)
+                if (kept < MIN_REMAIN && (N_raw - i + kept) <= MIN_REMAIN) {
+                    // Keep all remaining to avoid going below floor
+                    for (int j = i; j < N_raw && kept < N_raw; j++) {
+                        if (j != kept) {
+                            params.x[kept] = params.x[j];
+                            params.y[kept] = params.y[j];
+                            params.flux[kept] = params.flux[j];
+                            if (params.background) params.background[kept] = params.background[j];
+                        }
+                        kept++;
+                    }
+                    break;
+                }
+                if (i != kept) {
+                    params.x[kept] = params.x[i];
+                    params.y[kept] = params.y[i];
+                    params.flux[kept] = params.flux[i];
+                    if (params.background) params.background[kept] = params.background[i];
+                }
+                kept++;
+            }
+            int filtered = N_raw - kept;
+            if (filtered > 0) {
+                LOGI("Filtered %d detections (edge/hot pixel), %d remaining", filtered, kept);
+                params.npeaks = kept;
+            }
+        }
+    }
 
     int N = params.npeaks;
 

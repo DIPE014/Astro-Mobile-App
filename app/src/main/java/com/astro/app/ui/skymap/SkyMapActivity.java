@@ -1,7 +1,9 @@
 package com.astro.app.ui.skymap;
 
 import android.Manifest;
+import android.animation.Animator;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -12,8 +14,10 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -24,6 +28,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.motion.widget.MotionLayout;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -45,7 +50,6 @@ import com.astro.app.core.layers.GridLayer;
 import com.astro.app.core.layers.StarsLayer;
 import com.astro.app.core.math.LatLong;
 import com.astro.app.core.renderer.SkyCanvasView;
-import com.astro.app.ui.stacking.ImageStackingActivity;
 import com.astro.app.core.renderer.SkyGLSurfaceView;
 import com.astro.app.core.renderer.SkyRenderer;
 import com.astro.app.core.math.Vector3;
@@ -59,6 +63,7 @@ import com.astro.app.data.repository.StarRepository;
 import com.astro.app.ui.highlights.TonightsHighlightsFragment;
 import com.astro.app.ui.education.EducationDetailActivity;
 import com.astro.app.ui.platesolve.PlateSolveActivity;
+import com.astro.app.ui.stacking.ImageStackingActivity;
 import com.astro.app.ui.search.SearchActivity;
 import com.astro.app.ui.settings.SettingsActivity;
 import com.astro.app.ui.settings.SettingsViewModel;
@@ -71,6 +76,7 @@ import com.google.android.material.card.MaterialCardView;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.Locale;
 
 import javax.inject.Inject;
@@ -108,6 +114,9 @@ public class SkyMapActivity extends AppCompatActivity {
     private SkyMapViewModel viewModel;
     private SettingsViewModel settingsViewModel;
 
+    // Tooltip tutorial
+    private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
+
     // Injected dependencies
     @Inject
     StarRepository starRepository;
@@ -138,13 +147,15 @@ public class SkyMapActivity extends AppCompatActivity {
     private CameraPermissionHandler permissionHandler;
     private AROverlayManager arOverlayManager;
 
+    // Background executor for star data loading
+    private java.util.concurrent.ExecutorService starDataExecutor;
+
     // Views
     private FrameLayout cameraPreviewContainer;
     private FrameLayout skyOverlayContainer;
     private PreviewView cameraPreview;
     private SkyGLSurfaceView skyGLSurfaceView;
     private SkyCanvasView skyCanvasView;
-    private MaterialButton btnArToggle;
     private MaterialCardView infoPanel;
     private TextView tvInfoPanelName;
     private TextView tvInfoPanelType;
@@ -201,6 +212,12 @@ public class SkyMapActivity extends AppCompatActivity {
     private boolean isDSOEnabled = false;
     @Nullable
     private StarData selectedStar;
+
+    // FAB dragging state
+    private float fabDragStartX, fabDragStartY;
+    private float fabTransStartX, fabTransStartY;
+    private boolean isDragging = false;
+    private static final float DRAG_THRESHOLD_DP = 10f;
 
     // GPS state
     private boolean isGpsEnabled = false;
@@ -588,7 +605,6 @@ public class SkyMapActivity extends AppCompatActivity {
         infoPanelQuickInfo = findViewById(R.id.infoPanelQuickInfo);
         btnInfoPanelDetails = findViewById(R.id.btnInfoPanelDetails);
         loadingOverlay = findViewById(R.id.loadingOverlay);
-        btnArToggle = findViewById(R.id.btnArToggle);
         btnSearchDetails = findViewById(R.id.btnSearchDetails);
         btnUnlockPlanet = findViewById(R.id.btnUnlockPlanet);
 
@@ -622,10 +638,6 @@ public class SkyMapActivity extends AppCompatActivity {
                 FrameLayout.LayoutParams.MATCH_PARENT));
         skyCanvasView.setEnabled(true);
         skyCanvasView.setOnManualModeListener(isManual -> {
-            if (btnArToggle != null) {
-                btnArToggle.setIconTint(ColorStateList.valueOf(
-                    ContextCompat.getColor(this, isManual ? R.color.icon_primary : R.color.icon_inactive)));
-            }
             if (isManual) {
                 if (sensorController != null) sensorController.pause();
             } else {
@@ -800,18 +812,6 @@ public class SkyMapActivity extends AppCompatActivity {
             btnBack.setOnClickListener(v -> finish());
         }
 
-        // AR toggle button
-        if (btnArToggle != null) {
-            btnArToggle.setOnClickListener(v -> {
-                if (skyCanvasView != null && skyCanvasView.isManualMode()) {
-                    skyCanvasView.exitManualMode();
-                    updateARToggleButton();
-                } else {
-                    toggleARMode();
-                }
-            });
-        }
-
         // Settings button
         View btnSettings = findViewById(R.id.btnSettings);
         if (btnSettings != null) {
@@ -877,15 +877,6 @@ public class SkyMapActivity extends AppCompatActivity {
             });
         }
 
-        // Star Detection FAB
-        View fabDetect = findViewById(R.id.fabDetect);
-        if (fabDetect != null) {
-            fabDetect.setOnClickListener(v -> {
-                Intent intent = new Intent(this, PlateSolveActivity.class);
-                startActivity(intent);
-            });
-        }
-
         // Chat FAB
         View fabChat = findViewById(R.id.fabChat);
         if (fabChat != null) {
@@ -930,7 +921,7 @@ public class SkyMapActivity extends AppCompatActivity {
             });
         }
 
-        // Image Stacking FAB
+        // Detect FAB (star detection & stacking)
         View fabStack = findViewById(R.id.fabStack);
         if (fabStack != null) {
             fabStack.setOnClickListener(v -> {
@@ -938,6 +929,9 @@ public class SkyMapActivity extends AppCompatActivity {
                 startActivity(intent);
             });
         }
+
+        // Make FAB menu draggable
+        setupDraggableFab();
 
         setupInfoPanelGestures();
 
@@ -1026,63 +1020,181 @@ public class SkyMapActivity extends AppCompatActivity {
 
     /**
      * Initializes the sky map with all features.
+     * Data loading runs on a background thread for a smooth transition.
      */
     private void initializeSkyMap() {
-        showLoading(true);
-
-        // Initialize layers
-        initializeLayers();
-
-        // Load real star data into Canvas view
-        loadStarDataForCanvas();
-
-        // Calibrate AR overlay
-        arOverlayManager.calibrate(
-                cameraManager.getHorizontalFov(),
-                cameraManager.getVerticalFov()
-        );
-
-        // Start camera if in AR mode, otherwise set up map-only mode
-        if (isARModeEnabled) {
-            startCameraPreview();
-        } else {
-            arOverlayManager.setARModeEnabled(false);
-            // Hide camera preview container for map-only mode
-            cameraPreviewContainer.setVisibility(View.GONE);
+        // Hide sky overlay until circular reveal if coming from splash
+        if (getIntent().getBooleanExtra("from_splash", false) && skyOverlayContainer != null) {
+            skyOverlayContainer.setVisibility(View.INVISIBLE);
         }
 
-        // Update AR toggle button to reflect current state
-        updateARToggleButton();
+        showLoading(true);
 
-        showLoading(false);
+        // Initialize layers on UI thread (creates renderers)
+        initializeLayers();
 
-        // Show tooltip tutorial if first time
-        showTooltipTutorialIfNeeded();
+        // Load data on background thread, then configure views on UI thread
+        loadStarDataAsync(() -> {
+            // Calibrate AR overlay
+            arOverlayManager.calibrate(
+                    cameraManager.getHorizontalFov(),
+                    cameraManager.getVerticalFov()
+            );
+
+            // Start camera if in AR mode, otherwise set up map-only mode
+            if (isARModeEnabled) {
+                startCameraPreview();
+            } else {
+                arOverlayManager.setARModeEnabled(false);
+                cameraPreviewContainer.setVisibility(View.GONE);
+            }
+
+            showLoading(false);
+
+            // Circular reveal if coming from splash, defer tooltips until after
+            if (getIntent().getBooleanExtra("from_splash", false)) {
+                getIntent().removeExtra("from_splash");
+                performCircularReveal(() -> showTooltipTutorialIfNeeded());
+            } else {
+                showTooltipTutorialIfNeeded();
+            }
+        });
     }
 
     /**
      * Initializes the sky map without camera (map-only mode).
+     * Data loading runs on a background thread.
      */
     private void initializeSkyMapOnly() {
+        // Hide sky overlay until circular reveal if coming from splash
+        if (getIntent().getBooleanExtra("from_splash", false) && skyOverlayContainer != null) {
+            skyOverlayContainer.setVisibility(View.INVISIBLE);
+        }
+
         showLoading(true);
 
-        // Initialize layers
+        // Initialize layers on UI thread
         initializeLayers();
 
-        // Load real star data into Canvas view
-        loadStarDataForCanvas();
+        // Load data on background thread
+        loadStarDataAsync(() -> {
+            // Set map-only mode
+            arOverlayManager.setARModeEnabled(false);
+            arOverlayManager.calibrateDefault();
 
-        // Set map-only mode
-        arOverlayManager.setARModeEnabled(false);
-        arOverlayManager.calibrateDefault();
+            // Hide camera preview
+            cameraPreviewContainer.setVisibility(View.GONE);
 
-        // Hide camera preview
-        cameraPreviewContainer.setVisibility(View.GONE);
+            showLoading(false);
 
-        showLoading(false);
+            // Circular reveal if coming from splash, defer tooltips until after
+            if (getIntent().getBooleanExtra("from_splash", false)) {
+                getIntent().removeExtra("from_splash");
+                performCircularReveal(() -> showTooltipTutorialIfNeeded());
+            } else {
+                showTooltipTutorialIfNeeded();
+            }
+        });
+    }
 
-        // Show tooltip tutorial if first time
-        showTooltipTutorialIfNeeded();
+    /**
+     * Loads star, constellation, and DSO data on a background thread,
+     * then sets it on the canvas view on the UI thread.
+     */
+    private void loadStarDataAsync(Runnable onComplete) {
+        if (skyCanvasView == null || starRepository == null) {
+            Log.e(TAG, "STARS: Cannot load - skyCanvasView or starRepository is null");
+            if (onComplete != null) onComplete.run();
+            return;
+        }
+
+        Float magnitudeLimit = settingsViewModel.getMagnitudeLimit().getValue();
+        final float magLimit = magnitudeLimit != null ? magnitudeLimit : 6.5f;
+
+        if (starDataExecutor == null || starDataExecutor.isShutdown()) {
+            starDataExecutor = Executors.newSingleThreadExecutor();
+        }
+        starDataExecutor.execute(() -> {
+            try {
+                // Background: heavy data loading (protobuf parsing)
+                final List<StarData> stars = starRepository.getStarsByMagnitude(magLimit);
+                Log.d(TAG, "STARS: Loaded " + stars.size() + " stars (bg thread)");
+
+                final List<ConstellationData> constellations = constellationRepository != null
+                    ? constellationRepository.getAllConstellations() : null;
+
+                final List<MessierObjectData> dsos = messierRepository != null
+                    ? messierRepository.getAllObjects() : null;
+
+                // UI thread: set data on views
+                runOnUiThread(() -> {
+                    if (isFinishing() || isDestroyed()) return;
+
+                    skyCanvasView.setStarData(stars);
+
+                    if (constellations != null) {
+                        skyCanvasView.setConstellationData(constellations);
+                        skyCanvasView.setConstellationsVisible(isConstellationsEnabled);
+                    }
+
+                    if (dsos != null) {
+                        skyCanvasView.setDSOData(dsos);
+                        skyCanvasView.setDSOsVisible(isDSOEnabled);
+                    }
+
+                    skyCanvasView.setObserverLocation(currentLatitude, currentLongitude);
+                    skyCanvasView.setOrientation(0f, 45f);
+
+                    if (onComplete != null) onComplete.run();
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "STARS: Failed to load star data", e);
+                runOnUiThread(() -> {
+                    if (onComplete != null) onComplete.run();
+                });
+            }
+        });
+    }
+
+    /**
+     * Performs a circular reveal animation from the center of the screen.
+     * Used for the splash -> sky map transition.
+     */
+    private void performCircularReveal(Runnable onComplete) {
+        View root = skyOverlayContainer != null ? skyOverlayContainer
+            : findViewById(android.R.id.content);
+        if (root == null) {
+            if (onComplete != null) onComplete.run();
+            return;
+        }
+
+        root.post(() -> {
+            if (isFinishing()) {
+                if (onComplete != null) onComplete.run();
+                return;
+            }
+            int cx = root.getWidth() / 2;
+            int cy = root.getHeight() / 2;
+            float finalRadius = (float) Math.hypot(cx, cy);
+
+            try {
+                Animator anim = ViewAnimationUtils.createCircularReveal(root, cx, cy, 0f, finalRadius);
+                anim.setDuration(800);
+                anim.setInterpolator(new AccelerateDecelerateInterpolator());
+                anim.addListener(new android.animation.AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        if (onComplete != null) onComplete.run();
+                    }
+                });
+                root.setVisibility(View.VISIBLE);
+                anim.start();
+            } catch (IllegalStateException e) {
+                // View not attached — just make it visible
+                root.setVisibility(View.VISIBLE);
+                if (onComplete != null) onComplete.run();
+            }
+        });
     }
 
     /**
@@ -1239,7 +1351,6 @@ public class SkyMapActivity extends AppCompatActivity {
                 Log.d(TAG, "Camera started successfully");
                 cameraPreviewContainer.setVisibility(View.VISIBLE);
                 arOverlayManager.setARModeEnabled(true);
-                updateARToggleButton();
             }
 
             @Override
@@ -1301,26 +1412,6 @@ public class SkyMapActivity extends AppCompatActivity {
             arOverlayManager.setARModeEnabled(false);
         }
 
-        updateARToggleButton();
-    }
-
-    /**
-     * Updates the AR toggle button appearance.
-     */
-    private void updateARToggleButton() {
-        if (btnArToggle != null) {
-            boolean isManual = skyCanvasView != null && skyCanvasView.isManualMode();
-            if (isManual) {
-                btnArToggle.setIconResource(android.R.drawable.ic_menu_compass);
-                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
-            } else if (isARModeEnabled) {
-                btnArToggle.setIconResource(android.R.drawable.ic_menu_camera);
-                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_primary));
-            } else {
-                btnArToggle.setIconResource(android.R.drawable.ic_menu_gallery);
-                btnArToggle.setIconTint(ContextCompat.getColorStateList(this, R.color.icon_inactive));
-            }
-        }
     }
 
     /**
@@ -2320,6 +2411,11 @@ public class SkyMapActivity extends AppCompatActivity {
         if (cameraManager != null) {
             cameraManager.stopCamera();
         }
+
+        // Dismiss tooltip to prevent leak if tutorial is mid-sequence
+        if (tooltipManager != null) {
+            tooltipManager.dismiss();
+        }
     }
 
     /**
@@ -2339,18 +2435,21 @@ public class SkyMapActivity extends AppCompatActivity {
             View btnTimeTravel = findViewById(R.id.btnTimeTravel);
             View btnPlanets = findViewById(R.id.btnPlanets);
             View btnDSO = findViewById(R.id.btnDSO);
-            View fabSearch = findViewById(R.id.fabSearch);
-            View fabDetect = findViewById(R.id.fabDetect);
+            View btnSettings = findViewById(R.id.btnSettings);
             View fabMain = findViewById(R.id.fabMain);
+            View fabSearch = findViewById(R.id.fabSearch);
+            View fabChat = findViewById(R.id.fabChat);
+            View fabStack = findViewById(R.id.fabStack);
+            MotionLayout motionLayout = findViewById(R.id.motionLayout);
 
-            // Build tooltip sequence (10 tooltips)
-            com.astro.app.ui.onboarding.TooltipManager tooltipManager =
+            // Build tooltip sequence (7 tooltips)
+            tooltipManager =
                 new com.astro.app.ui.onboarding.TooltipManager(this);
 
             // Tooltip 1: Welcome (center)
             tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                 null,
-                "Welcome! Point your phone at the sky. Stars, constellations, and planets will appear in real-time.",
+                getString(R.string.tooltip_skymap_welcome),
                 com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
                 false
             ));
@@ -2358,90 +2457,99 @@ public class SkyMapActivity extends AppCompatActivity {
             // Tooltip 2: Drag & zoom (center)
             tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                 null,
-                "Drag with one finger to pan the sky manually. Pinch with two fingers to zoom in and out.",
+                getString(R.string.tooltip_skymap_drag_zoom),
                 com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER,
                 false
             ));
 
-            // Tooltip 3: Constellations toggle
+            // Tooltip 3: Toggle buttons — interactive, with extra highlights
             if (btnConstellations != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    btnConstellations,
-                    "Toggle constellation lines and names. Tap to show or hide them.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
-                    true
-                ));
+                java.util.List<View> extraToggles = new java.util.ArrayList<>();
+                if (btnGrid != null) extraToggles.add(btnGrid);
+                if (btnPlanets != null) extraToggles.add(btnPlanets);
+                if (btnDSO != null) extraToggles.add(btnDSO);
+
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig.Builder(
+                    getString(R.string.tooltip_skymap_toggles))
+                    .anchorView(btnConstellations)
+                    .position(com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE)
+                    .highlightAnchor(true)
+                    .interactive(true)
+                    .extraHighlightViews(extraToggles)
+                    .build());
             }
 
-            // Tooltip 4: Grid toggle
-            if (btnGrid != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    btnGrid,
-                    "Toggle the coordinate grid overlay \u2014 shows RA/Dec lines on the sky.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
-                    true
-                ));
-            }
-
-            // Tooltip 5: Time Travel
+            // Tooltip 4: Time Travel
             if (btnTimeTravel != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
                     btnTimeTravel,
-                    "Time Travel \u2014 slide to any date to see past or future skies.",
+                    getString(R.string.tooltip_skymap_time_travel),
                     com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
                     true
                 ));
             }
 
-            // Tooltip 6: Planets
-            if (btnPlanets != null) {
+            // Tooltip 5: Night Mode
+            View btnNightMode = findViewById(R.id.btnNightMode);
+            if (btnNightMode != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    btnPlanets,
-                    "Toggle planet labels. Long-press a planet to see its trajectory path.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    btnNightMode,
+                    getString(R.string.tooltip_skymap_night_mode),
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
                     true
                 ));
             }
 
-            // Tooltip 7: DSO
-            if (btnDSO != null) {
+            // Tooltip 6: Tonight's Highlights
+            View btnTonight = findViewById(R.id.btnTonight);
+            if (btnTonight != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    btnDSO,
-                    "Toggle Deep Sky Objects \u2014 galaxies, nebulae, and star clusters from the Messier catalog.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.ABOVE,
+                    btnTonight,
+                    getString(R.string.tooltip_skymap_tonight),
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
                     true
                 ));
             }
 
-            // Tooltip 8: Search FAB
-            if (fabSearch != null) {
+            // Tooltip 7: Settings
+            if (btnSettings != null) {
                 tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    fabSearch,
-                    "Search for any star, constellation, or planet. An arrow guides you to it.",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
+                    btnSettings,
+                    getString(R.string.tooltip_skymap_settings),
+                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
                     true
                 ));
             }
 
-            // Tooltip 9: Detect FAB
-            if (fabDetect != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    fabDetect,
-                    "Take a photo to identify constellations using star pattern matching (plate solving).",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
-                    true
-                ));
+            // Tooltip 6: FAB toolbox — expand menu, highlight sub-buttons
+            if (fabMain != null && motionLayout != null) {
+                java.util.List<View> subFabs = new java.util.ArrayList<>();
+                if (fabSearch != null) subFabs.add(fabSearch);
+                if (fabChat != null) subFabs.add(fabChat);
+                if (fabStack != null) subFabs.add(fabStack);
+
+                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig.Builder(
+                    getString(R.string.tooltip_skymap_toolbox))
+                    .anchorView(fabMain)
+                    .position(com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT)
+                    .highlightAnchor(true)
+                    .onShowAction(() -> {
+                        motionLayout.transitionToEnd();
+                    })
+                    .extraHighlightViews(subFabs)
+                    .build());
             }
 
-            // Tooltip 10: Main FAB menu
-            if (fabMain != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    fabMain,
-                    "This menu also has Chat (AI assistant) and Stack (image stacking) \u2014 tap to explore!",
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.LEFT,
-                    true
-                ));
-            }
+            // Tooltip 7: Closing — collapse FAB
+            tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig.Builder(
+                getString(R.string.tooltip_skymap_closing))
+                .position(com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.CENTER)
+                .onShowAction(() -> {
+                    if (motionLayout != null) {
+                        motionLayout.transitionToStart();
+                    }
+                })
+                .build());
 
             // Start the tutorial
             tooltipManager.start();
@@ -2452,13 +2560,119 @@ public class SkyMapActivity extends AppCompatActivity {
      * Replay the tooltip tutorial (called from Settings).
      */
     public void replayTooltipTutorial() {
-        com.astro.app.ui.onboarding.TooltipManager.resetTutorial(this);
+        if (tooltipManager != null) {
+            tooltipManager.dismiss();
+        }
+        com.astro.app.ui.onboarding.TooltipManager.resetAllTutorials(this);
         showTooltipTutorialIfNeeded();
+    }
+
+    /**
+     * Sets up the FAB MotionLayout as draggable so users can reposition it.
+     * Distinguishes between taps (toggle menu) and drags (reposition).
+     * Persists position across sessions via SharedPreferences.
+     */
+    @SuppressWarnings("ClickableViewAccessibility")
+    private void setupDraggableFab() {
+        MotionLayout fabMotionLayout = findViewById(R.id.motionLayout);
+        View fabMain = findViewById(R.id.fabMain);
+        if (fabMotionLayout == null || fabMain == null) return;
+
+        fabMain.setOnClickListener(v -> {
+            if (fabMotionLayout.getCurrentState() == fabMotionLayout.getStartState()) {
+                fabMotionLayout.transitionToEnd();
+            } else {
+                fabMotionLayout.transitionToStart();
+            }
+        });
+
+        fabMain.setOnTouchListener((v, event) -> {
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    fabDragStartX = event.getRawX();
+                    fabDragStartY = event.getRawY();
+                    fabTransStartX = fabMotionLayout.getTranslationX();
+                    fabTransStartY = fabMotionLayout.getTranslationY();
+                    isDragging = false;
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    float dx = event.getRawX() - fabDragStartX;
+                    float dy = event.getRawY() - fabDragStartY;
+                    float threshold = DRAG_THRESHOLD_DP * getResources().getDisplayMetrics().density;
+                    if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
+                        isDragging = true;
+                    }
+                    if (isDragging) {
+                        fabMotionLayout.setTranslationX(fabTransStartX + dx);
+                        fabMotionLayout.setTranslationY(fabTransStartY + dy);
+                    }
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    if (!isDragging) {
+                        // It was a tap - toggle via performClick for accessibility
+                        v.performClick();
+                    } else {
+                        // Clamp to screen bounds based on current layout position
+                        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+                        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+                        int[] loc = new int[2];
+                        fabMotionLayout.getLocationOnScreen(loc);
+                        float curTransX = fabMotionLayout.getTranslationX();
+                        float curTransY = fabMotionLayout.getTranslationY();
+                        int mlWidth = fabMotionLayout.getWidth();
+                        int mlHeight = fabMotionLayout.getHeight();
+                        // Keep at least half the MotionLayout on screen
+                        float minX = curTransX - loc[0] - mlWidth / 2f;
+                        float maxX = curTransX + (screenWidth - loc[0] - mlWidth / 2f);
+                        float minY = curTransY - loc[1] - mlHeight / 2f;
+                        float maxY = curTransY + (screenHeight - loc[1] - mlHeight / 2f);
+                        float clampedX = Math.max(minX, Math.min(maxX, curTransX));
+                        float clampedY = Math.max(minY, Math.min(maxY, curTransY));
+                        fabMotionLayout.setTranslationX(clampedX);
+                        fabMotionLayout.setTranslationY(clampedY);
+
+                        // Save position
+                        getSharedPreferences("fab_prefs", MODE_PRIVATE).edit()
+                            .putFloat("fab_position_x", clampedX)
+                            .putFloat("fab_position_y", clampedY)
+                            .apply();
+                    }
+                    return true;
+            }
+            return false;
+        });
+
+        // Restore saved position after layout so we can clamp to current bounds
+        SharedPreferences fabPrefs = getSharedPreferences("fab_prefs", MODE_PRIVATE);
+        float savedX = fabPrefs.getFloat("fab_position_x", 0f);
+        float savedY = fabPrefs.getFloat("fab_position_y", 0f);
+        if (savedX != 0f || savedY != 0f) {
+            fabMotionLayout.post(() -> {
+                int screenWidth = getResources().getDisplayMetrics().widthPixels;
+                int screenHeight = getResources().getDisplayMetrics().heightPixels;
+                int[] loc = new int[2];
+                fabMotionLayout.getLocationOnScreen(loc);
+                int mlWidth = fabMotionLayout.getWidth();
+                int mlHeight = fabMotionLayout.getHeight();
+                float minX = -loc[0] - mlWidth / 2f;
+                float maxX = screenWidth - loc[0] - mlWidth / 2f;
+                float minY = -loc[1] - mlHeight / 2f;
+                float maxY = screenHeight - loc[1] - mlHeight / 2f;
+                fabMotionLayout.setTranslationX(Math.max(minX, Math.min(maxX, savedX)));
+                fabMotionLayout.setTranslationY(Math.max(minY, Math.min(maxY, savedY)));
+            });
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        // Shut down star data executor
+        if (starDataExecutor != null) {
+            starDataExecutor.shutdownNow();
+            starDataExecutor = null;
+        }
 
         // Release camera resources
         if (cameraManager != null) {

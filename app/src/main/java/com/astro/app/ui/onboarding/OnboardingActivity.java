@@ -107,22 +107,17 @@ public class OnboardingActivity extends AppCompatActivity {
                 android.R.drawable.ic_menu_search,
                 R.string.onboarding_search_title,
                 R.string.onboarding_search_description));
-        // 9. Star Detection (Plate Solving)
+        // 9. Star Detection & Image Stacking (merged)
         pages.add(new OnboardingPagerAdapter.OnboardingPage(
                 android.R.drawable.ic_menu_camera,
-                R.string.onboarding_star_detection_title,
-                R.string.onboarding_star_detection_description));
-        // 10. Image Stacking
-        pages.add(new OnboardingPagerAdapter.OnboardingPage(
-                android.R.drawable.ic_menu_sort_by_size,
-                R.string.onboarding_stacking_title,
-                R.string.onboarding_stacking_description));
-        // 11. AI Sky Assistant
+                R.string.onboarding_detect_title,
+                R.string.onboarding_detect_description));
+        // 10. AI Sky Assistant
         pages.add(new OnboardingPagerAdapter.OnboardingPage(
                 android.R.drawable.ic_menu_send,
                 R.string.onboarding_chat_title,
                 R.string.onboarding_chat_description));
-        // 12. Start Exploring!
+        // 11. Start Exploring!
         pages.add(new OnboardingPagerAdapter.OnboardingPage(
                 android.R.drawable.btn_star_big_on,
                 R.string.onboarding_start_exploring_title,

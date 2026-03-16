@@ -7,6 +7,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_dark"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     tools:context=".ui.skymap.SkyMapActivity">
 
     <!-- Camera Preview Layer -->
@@ -52,17 +54,6 @@
             android:layout_height="@dimen/touch_target_min"
             android:contentDescription="@string/cd_back_button"
             app:icon="@android:drawable/ic_menu_revert"
-            app:iconTint="@color/icon_primary"
-            app:rippleColor="@color/ripple" />
-
-        <!-- AR Mode Toggle Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnArToggle"
-            style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
-            android:contentDescription="@string/cd_ar_toggle"
-            app:icon="@android:drawable/ic_menu_camera"
             app:iconTint="@color/icon_primary"
             app:rippleColor="@color/ripple" />
 
@@ -450,8 +441,12 @@
 
     <androidx.constraintlayout.motion.widget.MotionLayout
         android:id="@+id/motionLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="350dp"
+        android:layout_height="350dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         app:layoutDescription="@xml/fab_menu_scene">
 
         <androidx.constraintlayout.utils.widget.ImageFilterView
@@ -476,20 +471,7 @@
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="270"
-            app:layout_constraintCircleRadius="180dp" />
-
-        <Button
-            android:id="@+id/fabDetect"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="#0000"
-            android:contentDescription="@string/cd_fab_detect"
-            android:drawableTop="@android:drawable/ic_menu_camera"
-            android:text="@string/fab_detect"
-            android:textAllCaps="false"
-            app:layout_constraintCircle="@id/background"
-            app:layout_constraintCircleAngle="330"
-            app:layout_constraintCircleRadius="200dp" />
+            app:layout_constraintCircleRadius="100dp" />
 
         <Button
             android:id="@+id/fabChat"
@@ -502,7 +484,7 @@
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="300"
-            app:layout_constraintCircleRadius="200dp" />
+            app:layout_constraintCircleRadius="100dp" />
 
         <Button
             android:id="@+id/fabStack"
@@ -510,19 +492,19 @@
             android:layout_height="wrap_content"
             android:background="#0000"
             android:contentDescription="@string/cd_fab_stack"
-            android:drawableTop="@drawable/ic_layers"
-            android:text="@string/fab_stack"
+            android:drawableTop="@android:drawable/ic_menu_camera"
+            android:text="@string/fab_detect_stack"
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="240"
-            app:layout_constraintCircleRadius="200dp" />
+            app:layout_constraintCircleRadius="100dp" />
 
         <androidx.constraintlayout.utils.widget.ImageFilterButton
             android:id="@+id/fabMain"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="15dp"
-            android:layout_marginBottom="200dp"
+            android:layout_marginBottom="140dp"
             android:contentDescription="@string/cd_fab_main"
             android:rotation="0"
             android:scaleX="2"
@@ -575,6 +557,7 @@
         android:layout_height="@dimen/sky_map_compass_size"
         android:layout_marginStart="@dimen/sky_map_compass_margin"
         android:layout_marginBottom="@dimen/margin_medium"
+        android:elevation="4dp"
         android:contentDescription="@string/direction_north"
         app:layout_constraintBottom_toTopOf="@id/bottomControls"
         app:layout_constraintStart_toStartOf="parent" />
