@@ -7,6 +7,101 @@ Releases are grouped by weekly sprint. Most recent release appears first.
 
 ---
 
+## [Week 9] — 2026-03-17
+
+### Summary
+Comprehensive onboarding overhaul, UI/UX bug fixes, and code quality improvements addressing 18 review issues. New interactive tooltip tutorial for all screens, draggable FAB, example capture dialog, and critical fixes for plate solving accuracy and native memory safety.
+
+---
+
+### Added
+
+#### Expanded Onboarding Tooltip System
+- **9 sky map tooltips** (was 7): added Night Mode and Tonight's Highlights tooltips between Time Travel and Settings in the tutorial sequence
+- **Tooltip auto-fallback positioning**: ABOVE↔BELOW and LEFT↔RIGHT automatic fallback when tooltips would go off-screen, with final clamp to screen margins
+- **Tooltip coordinate correction**: window-absolute coordinates now converted to rootView-relative, fixing positioning in dialogs and nested containers
+- **Chat onboarding fix**: `postDelayed(300ms)` replaces `post()` for BottomSheetDialog layout timing; null guard for `dialogRoot`; checks `chipGroupSuggestions` has children before showing chip tooltip
+- **Detect screen tooltips**: tips dialog → example dialog → detect tooltips chaining for first-time users
+
+#### Example Capture Dialog
+- "View Example Capture" outlined button replaces the inline full-screen image card
+- Tapping opens a dialog with full-size `fitCenter` image, caption, and Close button
+- User-initiated (no longer auto-chained from tips dialog)
+
+#### Draggable FAB Menu
+- FAB MotionLayout is now draggable with tap vs drag distinction (8dp threshold)
+- Position persisted across sessions via SharedPreferences (`fab_prefs`)
+- Restored position reclamped post-layout to handle screen rotation / split-screen
+- `OnClickListener` + `performClick()` for TalkBack accessibility
+
+#### Adaptive Star Detection
+- **Adaptive plim retry**: if too few stars detected (< 30), retries with lower thresholds (plim → 6.0 → 4.0), strictly non-increasing from initial value
+- **Post-detection filtering**: edge margin computation + hot pixel filtering via median flux threshold (50× median)
+- **Adaptive downsample**: `computeDownsample()` returns 4 for >8MP, 2 for >=2MP, else 1
+
+#### Splash Screen Improvements
+- `skyOverlayContainer` hidden (INVISIBLE) during data load when coming from splash
+- Tooltip tutorial deferred to circular reveal `onAnimationEnd` callback
+- `performCircularReveal()` now accepts a `Runnable` completion callback
+- Warp-complete event preserved across detach/attach cycles (`pendingWarpComplete` flag)
+
+---
+
+### Changed
+
+| File | Change |
+|------|--------|
+| `SkyMapActivity.java` | Removed btnArToggle (field, findViewById, click listener, updateARToggleButton); added `starDataExecutor` field with shutdown in onDestroy; FAB OnClickListener + performClick; post-layout FAB position reclamp; circular reveal completion callback; 9 tooltips |
+| `ImageStackingActivity.java` | `MAX_PROCESSING_DIMENSION` 1920→4096; `updateCollectionUI()` in showCaptureMode; single-image path uses MAX_PROCESSING_DIMENSION; cancel vs failure distinguished; bitmap recycled on cancel; `isCancelled` reset moved to processAllImages before executor submit |
+| `activity_sky_map.xml` | Removed btnArToggle element; FAB sub-button radii set to 100dp |
+| `fab_menu_scene.xml` | End-state radii 100dp; background 280dp×280dp |
+| `TooltipManager.java` | Auto-fallback positioning (ABOVE↔BELOW, LEFT↔RIGHT); final clamp to margins; rootView coordinate offset correction |
+| `TooltipView.java` | Claims ACTION_DOWN for interactive tooltips; separate primary/extra highlight hit checks |
+| `ChatBottomSheetFragment.java` | `chatTooltipRunnable` + `chatTooltipRoot` fields; `removeCallbacks()` in onDestroyView; postDelayed(300ms) |
+| `StarFieldView.java` | `pendingWarpComplete` flag; deliver on reattach; don't null listener on detach |
+| `NativePlateSolver.java` | `setDownsample()` validates -1 or >=1; `resolveDownsample()` only -1 triggers auto |
+| `astrometry_jni.c` | qsort replaces O(N²) median; plim retry strictly non-increasing; double-free fix (simplexy_free_contents frees params.image); LOGE on flux_copy malloc failure |
+| `activity_image_stacking.xml` | Inline image card replaced with "View Example Capture" button; constraint reference updated |
+| `dialog_example_capture.xml` | Removed "Don't show again" checkbox; Close button; all strings extracted to strings.xml |
+| `strings.xml` | +12 strings: night mode tooltip, tonight tooltip, photography_tips, view_example_capture, example_capture_title/cd/caption/close |
+
+---
+
+### Fixed
+
+#### PR Review — 18 Issues Resolved
+
+| # | Severity | File | Fix |
+|---|----------|------|-----|
+| 1 | Major | `astrometry_jni.c` | O(N²) median selection replaced with `qsort()` — prevents hang on noisy frames |
+| 2 | Major | `NativePlateSolver.java` | Only `-1` means auto downsample; `0` passes through as factor 1 |
+| 3 | Major | `ChatBottomSheetFragment.java` | Cancel `postDelayed` callback in `onDestroyView()` — prevents crash on quick dismiss |
+| 4 | Major | `StarFieldView.java` | Pending warp-complete delivered on reattach — prevents stuck onboarding |
+| 5 | Major | `TooltipManager.java` | Window-absolute coords converted to rootView-relative — fixes dialog tooltip offset |
+| 6 | Major | `TooltipView.java` | Claims ACTION_DOWN; separates primary/extra highlight checks — fixes touch passthrough |
+| 7 | Major | `SkyMapActivity.java` | Reusable `starDataExecutor` with try-catch — prevents leaked executors and stuck loading |
+| 8 | Major | `SkyMapActivity.java` | FAB `OnClickListener` + `performClick()` — TalkBack can now activate toggle |
+| 9 | Major | `SkyMapActivity.java` | Restored FAB position reclamped post-layout — prevents off-screen after rotation |
+| 10 | Major | `ImageStackingActivity.java` | Single-image path applies `MAX_PROCESSING_DIMENSION` — prevents OOM |
+| 11 | Minor | `ImageStackingActivity.java` | Cancel vs failure distinguished in `processAllImages()` |
+| 12 | Minor | XML layouts | Hardcoded strings extracted to `strings.xml` for localization |
+| 13 | Minor | `dialog_example_capture.xml` | Dialog strings moved to string resources |
+| 14 | Major | `astrometry_jni.c` | Memory leak: `current_image` tracked separately, freed by `simplexy_free_contents` |
+| 15 | Minor | `astrometry_jni.c` | `prev_npeaks` captured before `memset` for accurate retry log |
+| 16 | Minor | `ImageStackingActivity.java` | `isCancelled` reset moved before executor submit — race condition fix |
+| 17 | Minor | `ImageStackingActivity.java` | Bitmap recycled when cancelled |
+| 18 | Major | `astrometry_jni.c` | Plim retry ladder strictly non-increasing; removed double-free; LOGE on malloc failure |
+
+---
+
+### Removed
+- `btnArToggle` (AR toggle button) — non-functional, removed from XML and all Java references
+- `updateARToggleButton()` method and all call sites
+- Inline example capture card (replaced with button + dialog)
+- `KEY_HAS_SEEN_EXAMPLE` preference constant (dialog no longer auto-chained)
+
+---
+
 ## [Week 8] — 2026-03-12
 
 ### Summary

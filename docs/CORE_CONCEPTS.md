@@ -1,468 +1,449 @@
-# Core Concepts: How the Astronomy App Works
+# Core Concepts — Astro Mobile App
 
-This document explains the core math, star database, and time travel system in simple terms.
-
----
-
-## 1. Celestial Coordinate System (RA/Dec)
-
-Think of the sky as a giant sphere surrounding Earth. Every star has a fixed "address" on this sphere:
-
-### Right Ascension (RA)
-- Like **longitude** on Earth, but for the sky
-- Measured in degrees (0° to 360°) or hours (0h to 24h)
-- 1 hour = 15 degrees (because 360° ÷ 24h = 15°/h)
-- Measured **eastward** from a reference point (vernal equinox)
-
-### Declination (Dec)
-- Like **latitude** on Earth
-- Measured in degrees (-90° to +90°)
-- 0° = celestial equator (directly above Earth's equator)
-- +90° = north celestial pole (above Earth's north pole)
-- -90° = south celestial pole
-
-### Example: Sirius
-```
-RA  = 6h 45m 9s  = 101.29°
-Dec = -16° 43'   = -16.72°
-```
+Developer reference covering all major subsystems. Read this before modifying any feature.
 
 ---
 
-## 2. Converting Coordinates to 3D (Vector Math)
+## 1. Celestial Coordinates (RA/Dec)
 
-To do calculations, we convert RA/Dec to a 3D point on a unit sphere:
+Right Ascension (RA) and Declination (Dec) form the equatorial coordinate system tied to the celestial sphere — the standard reference frame for astronomy.
 
+**Right Ascension**
+- Range: 0° to 360° (equivalently 0h to 24h, where 1h = 15°)
+- Measured eastward along the celestial equator from the vernal equinox (the point where the Sun crosses the equator heading north each spring)
+- Analogous to longitude on Earth, but fixed to the sky, not the ground
+
+**Declination**
+- Range: −90° (south celestial pole) to +90° (north celestial pole)
+- Measured north/south from the celestial equator
+- Analogous to latitude on Earth
+
+**Key property:** Stars have fixed RA/Dec (barring proper motion over centuries). Planets, the Moon, and the Sun move through RA/Dec space over time and must be recalculated for each moment.
+
+**3D unit vector representation.** Any RA/Dec pair maps to a point on the unit sphere:
 ```
-x = cos(RA) × cos(Dec)
-y = sin(RA) × cos(Dec)
+x = cos(RA) · cos(Dec)
+y = sin(RA) · cos(Dec)
 z = sin(Dec)
 ```
-
-This gives us a point on a sphere with radius 1, which makes math easier.
-
-### To convert back:
-```
-RA  = atan2(y, x)
-Dec = asin(z)
-```
+All internal coordinate transforms operate on these unit vectors. See `Vector3.kt` and `RaDec.kt`.
 
 ---
 
-## 3. Why Stars Don't Move (Much)
+## 2. Coordinate Transformation Pipeline
 
-Stars are **so far away** that their positions appear fixed on the celestial sphere.
+The app continuously converts phone sensor readings into a sky-pointing direction, then projects that into screen pixels.
 
-- The closest star (Proxima Centauri) is 4.24 light-years away
-- Even over a human lifetime, star positions barely change
-- We store star positions as fixed RA/Dec coordinates
+```
+Phone IMU sensors
+    │
+    ▼
+Accelerometer  →  gravity vector (local "down")
+Magnetometer   →  north vector  (horizontal component)
+    │
+    ▼  cross-product + normalization
+3×3 Rotation Matrix  (phone body frame → world frame: East/North/Up)
+    │
+    ▼  SensorController.java
+AstronomerModelImpl.java
+    │  applies time + observer latitude/longitude
+    ▼  CoordinateManipulations.kt
+Phone pointing vector in Equatorial (RA/Dec) frame
+    │
+    ▼  SkyCanvasView.java
+Project RA/Dec → Alt/Az (see §4) → screen pixel
+```
 
-**What DOES change**: Which part of the sky you see, based on:
-- Your location on Earth
-- The time of day/year
-- Where you're pointing
+**Rotation matrix construction:**
+1. Accelerometer gives the gravity vector `g` (pointing down in world frame). Normalize to get the local "up" direction.
+2. Magnetometer gives a raw north vector `m`. Project out the vertical component: `north = m − (m·up)·up`, then normalize.
+3. East = north × up (cross product).
+4. These three orthonormal vectors form the columns of the world-to-phone rotation matrix.
+
+The matrix is maintained live as sensors fire. `AstronomerModelImpl.java` wraps it with time and location to produce the final equatorial pointing used for rendering.
 
 ---
 
-## 4. How We Know Where You're Looking
+## 3. Local Sidereal Time & Julian Date
 
-### The Problem
-Your phone has sensors, but they measure in "phone coordinates". We need to convert to "sky coordinates".
+**Julian Day Number (JD)**
 
-### The Solution: Transformation Matrix
+A continuous count of days since noon UT on 1 January 4713 BC (Julian proleptic calendar). Avoids the irregularities of the Gregorian calendar (leap years, month lengths, etc.) and makes day-difference calculations a single subtraction. The current JD is approximately 2,460,000.
 
-**Step 1: Get phone orientation from sensors**
-- Accelerometer → which way is "down" (gravity)
-- Magnetometer → which way is "north" (magnetic field)
-- Together → phone's orientation in space
-
-**Step 2: Calculate sky orientation from time + location**
-- Your latitude/longitude → where on Earth you are
-- Current time → Earth's rotation angle
-- Together → which RA/Dec is directly overhead (zenith)
-
-**Step 3: Build transformation matrix**
+Conversion from Unix epoch milliseconds (used in `TimeUtils.kt`):
 ```
-celestial_direction = TransformMatrix × phone_direction
+JD = (unix_ms / 86400000.0) + 2440587.5
 ```
 
-This 3×3 matrix converts any direction in phone coordinates to celestial coordinates.
+**Greenwich Mean Sidereal Time (GMST)**
+
+GMST is the hour angle of the vernal equinox at the Greenwich meridian. It advances ~4 minutes per solar day (one extra rotation per year relative to the Sun). Formula from Meeus, *Astronomical Algorithms*, Ch. 12:
+```
+T = (JD − 2451545.0) / 36525.0        // Julian centuries from J2000.0
+GMST (degrees) = 280.46061837
+               + 360.98564736629 · (JD − 2451545.0)
+               + 0.000387933 · T²
+               − T³ / 38710000
+```
+
+**Local Sidereal Time (LST)**
+```
+LST = GMST + observer_longitude_degrees
+```
+LST is the RA currently on the meridian. Any star with RA = LST is due south at its highest point for that observer at that moment.
+
+**Why this matters:** The conversion between equatorial (RA/Dec) and horizontal (Alt/Az) coordinates depends entirely on LST and observer latitude. Get either wrong and every object appears in the wrong position.
 
 ---
 
-## 5. Search Arrow Guidance (Navigation)
+## 4. Horizontal Coordinates (Alt/Az)
 
-When you select a planet or star from search, the app shows a guidance arrow. The arrow is **roll-aware** so it matches the screen orientation even if the phone is tilted.
+Alt/Az describes where in the local sky an object appears. Unlike RA/Dec it is observer- and time-dependent.
 
-### How the Arrow Direction is Computed
-1. **Line of sight vector**: where the phone is pointing (from sensor matrix math).
-2. **Perpendicular vector**: the "up" direction on screen (also from the sensor matrix).
-3. **Target vector**: RA/Dec converted into a 3D unit vector.
+- **Altitude (Alt):** 0° at the horizon, 90° at the zenith. Negative = below horizon.
+- **Azimuth (Az):** 0° = north, 90° = east, 180° = south, 270° = west. Measured clockwise when viewed from above.
 
-We project the target vector onto the view plane using the **right** and **up** axes, then convert that into a screen angle:
+**Conversion from RA/Dec:**
 
-```
-right = up × view
-screenRight = -dot(targetRel, right)
-screenUp = dot(targetRel, up)
-arrowAngle = atan2(screenUp, screenRight)
-```
+1. Compute the Hour Angle: `H = LST − RA`
+2. Then:
+   ```
+   sin(Alt) = sin(Dec)·sin(lat) + cos(Dec)·cos(lat)·cos(H)
 
-This avoids left/right mirroring and keeps the arrow stable regardless of roll.
+   cos(Az)·cos(Alt) = sin(Dec)·cos(lat) − cos(Dec)·sin(lat)·cos(H)
+   sin(Az)·cos(Alt) = −cos(Dec)·sin(H)
+   ```
 
-### When the Arrow Hides
-If the target is inside the camera field of view, we **hide only the arrow** (to reduce jitter) but keep search mode active. The highlight ring on the target remains visible so the user can finish visually.
+This transform is performed in `CoordinateManipulations.kt` and `Astronomy.kt`. The resulting Alt is used for visibility filtering (Alt > 0°), tonight's highlights ranking, and planet trajectory display.
 
 ---
 
-## 5. The Star Database
+## 5. Star Database & Rendering
 
-### Storage Format: Protocol Buffers (Protobuf)
+**Source:** Hipparcos catalog — ~118,000 stars, filtered to ~60,000 for the bundled `stars.binary` (Protocol Buffers format). Each entry contains: HIP number, RA, Dec, visual magnitude, spectral type (B−V color index), and a common name where applicable.
 
-Stars are stored in binary files for efficiency:
-- `stars.binary` - ~9000 individual stars
-- `constellations.binary` - 88 constellation definitions
-- `messier.binary` - Deep sky objects (galaxies, nebulae)
+**Magnitude limit:** User-configurable. Default 6.5 (naked-eye limit under dark skies). Stars fainter than the limit are culled before rendering. Brighter (lower magnitude) stars are drawn larger.
 
-### Star Data Structure
-```
-StarData {
-    id: "HIP12345"           // Catalog ID
-    name: "Sirius"           // Common name
-    ra: 101.29               // Right Ascension (degrees)
-    dec: -16.72              // Declination (degrees)
-    magnitude: -1.46         // Brightness (lower = brighter)
-    color: 0xFFCAD7FF        // Display color (ARGB)
-}
-```
+**Rendering pipeline (per frame):**
+1. `StarRepositoryImpl.java` parses `stars.binary` via `ProtobufParser.java` into `StarData` objects.
+2. `StarsLayer.java` passes visible stars to `PointRenderer.java`.
+3. Each star's RA/Dec is converted to Alt/Az then projected to a screen pixel via `SkyCanvasView.projectToScreen()`.
+4. Point size: `size = base_size × 10^(−0.4 × magnitude)` (inverse log scale matching photometric convention).
+5. Color from spectral type / B−V index: O/B = blue-white, A = white, F/G = yellow-white, K = orange, M = red.
 
-### Magnitude Scale
-- **Negative** = very bright (Sun = -26, Sirius = -1.46)
-- **0 to 1** = brightest stars visible (Vega = 0.03)
-- **2 to 4** = easily visible stars
-- **5 to 6** = faint, barely visible to naked eye
-- **> 6** = need telescope
+**Constellations:** `constellations.binary` stores line-segment pairs (star HIP IDs). `ConstellationsLayer.java` draws them via `LineRenderer.java` when the user's FOV is wide enough to make them useful.
 
-### Loading Flow
-```
-stars.binary (on disk)
-    ↓ parse protobuf
-List<PointElementProto>
-    ↓ convert to model
-List<StarData>
-    ↓ filter by magnitude
-Visible stars on screen
-```
+**IAU Boundaries:** `bound.json` and `bound_18.json` contain polygon vertices for all 88 IAU constellation regions. `ConstellationBoundaryResolver.java` performs point-in-polygon tests to identify which constellation a given RA/Dec falls within.
 
 ---
 
-## 6. Planet Calculations (Orbital Mechanics)
+## 6. Messier Deep Sky Objects
 
-Unlike stars, **planets move**! We calculate their positions using orbital mechanics.
+110 objects in `messier.binary`: galaxies, open clusters, globular clusters, emission nebulae, reflection nebulae, planetary nebulae, and supernova remnants.
 
-### The Six Orbital Elements
+**Shape-coded rendering:**
+- Galaxies: rotated diamonds (orientation from position angle)
+- Open clusters: dashed squares
+- Globular clusters: concentric circles
+- Nebulae (all types): soft ellipses with a glow effect
 
-Every planet's orbit is defined by 6 numbers:
+**Visibility:** Objects below 10° altitude are suppressed. `MessierRepositoryImpl.java` parses the binary; the layer checks Alt at draw time.
 
-| Element | Symbol | Meaning |
-|---------|--------|---------|
-| Semi-major axis | a | Size of orbit (AU) |
-| Eccentricity | e | How elliptical (0=circle, 1=parabola) |
-| Inclination | i | Tilt of orbit plane |
-| Ascending node | Ω | Where orbit crosses ecliptic going north |
-| Perihelion | ω | Where planet is closest to Sun |
-| Mean longitude | L | Position along orbit |
-
-### How Planet Position is Calculated
-
-**Step 1: Get orbital elements for the date**
-```kotlin
-// Elements change slowly over time
-a = 0.387 + 0.00000037 × t  // Mercury's semi-major axis
-```
-
-**Step 2: Calculate true anomaly (where in orbit)**
-```
-Mean Anomaly → Eccentric Anomaly → True Anomaly
-(Uses Newton-Raphson iteration)
-```
-
-**Step 3: Calculate heliocentric position (relative to Sun)**
-```
-r = a(1 - e²) / (1 + e×cos(anomaly))  // distance
-x, y, z = convert to 3D coordinates
-```
-
-**Step 4: Convert to geocentric (relative to Earth)**
-```
-planet_from_earth = planet_from_sun - earth_from_sun
-```
-
-**Step 5: Convert to RA/Dec**
-```
-Apply ecliptic-to-equatorial rotation (23.4° tilt)
-Convert 3D vector to RA/Dec
-```
+**Education content:** `education_content.json` provides descriptions, distance, apparent size, and discovery metadata linked by Messier number. Accessed via `EducationRepository.java`.
 
 ---
 
-## 7. Time Travel System
+## 7. Planet Orbital Mechanics
 
-### How It Works
+The app computes planet positions from first principles using Keplerian orbital elements. This avoids bundled ephemeris tables and works for any date within a few centuries of J2000.0.
 
-The app has a `TimeTravelClock` that can return:
+**Six Keplerian elements** (defined at J2000.0, with century rates):
 
-1. **Real time** - Actual current time
-2. **Frozen time** - A specific moment, doesn't advance
-3. **Offset time** - Running from a different starting point
+| Symbol | Name | Units |
+|--------|------|-------|
+| a | semi-major axis | AU |
+| e | eccentricity | dimensionless |
+| i | inclination | degrees |
+| Ω | longitude of ascending node | degrees |
+| ω | argument of perihelion | degrees |
+| L | mean longitude | degrees |
 
-```java
-public long getTime() {
-    if (!isTimeTravelActive) {
-        return System.currentTimeMillis();  // Real time
-    }
-    if (isFrozen) {
-        return frozenTimeMillis;  // Locked to specific moment
-    }
-    return System.currentTimeMillis() + offsetMillis;  // Offset time
-}
-```
+Elements and their century rates are defined in `OrbitalElements.kt` for each of the eight planets.
 
-### What Changes with Time
+**Position computation** (implemented in `SolarSystemObject.kt`):
 
-| Object | Time Effect |
-|--------|-------------|
-| Stars | None - fixed positions |
-| Planets | Position changes (orbital motion) |
-| Moon | Position changes rapidly |
-| Sun | Apparent position changes |
-| Sky rotation | Which stars are visible changes |
+1. Advance elements to target date: `element = element_J2000 + rate × T` where T is Julian centuries from J2000.0.
+2. Mean anomaly: `M = L − ω` (mod 360°).
+3. Eccentric anomaly E from Kepler's equation `M = E − e·sin(E)` — solved via Newton's method (5 iterations typically converge to < 10⁻⁶ rad error).
+4. True anomaly: `ν = 2·atan2(√(1+e)·sin(E/2), √(1−e)·cos(E/2))`
+5. Heliocentric distance: `r = a·(1 − e·cos(E))`
+6. Heliocentric ecliptic rectangular coordinates:
+   ```
+   x = r·[cos(Ω)·cos(ν+ω) − sin(Ω)·sin(ν+ω)·cos(i)]
+   y = r·[sin(Ω)·cos(ν+ω) + cos(Ω)·sin(ν+ω)·cos(i)]
+   z = r·[sin(ν+ω)·sin(i)]
+   ```
+7. Rotate ecliptic → equatorial (obliquity ε ≈ 23.439° at J2000.0).
+8. Compute Earth's heliocentric position by the same method.
+9. Subtract Earth's position → geocentric equatorial vector.
+10. Convert to RA/Dec via `atan2`.
 
-### Julian Day System
-
-Astronomers use "Julian Day" - a continuous day count since 4713 BC:
-
-```
-JD = 2451545.0  →  January 1, 2000, 12:00 UT (J2000 epoch)
-JD = 2460000.0  →  February 24, 2023
-```
-
-This makes date math easy: tomorrow = today + 1.0
-
-### Sidereal Time (Earth's Rotation)
-
-**Sidereal time** tells us which RA is overhead right now:
-
-```
-Local Sidereal Time = Global Sidereal Time + Your Longitude
-```
-
-- Earth rotates 360° in ~23h 56m (sidereal day)
-- This is why different stars are visible at different times
+`Universe.kt` is the top-level entry point: `getRaDec(body, date)` returns RA/Dec for any solar system body at any time.
 
 ---
 
-## 8. Putting It All Together
+## 8. Moon Calculation
 
-### When You Open the App
+The Moon's orbit is too perturbed by the Sun for simple two-body Keplerian elements to give useful accuracy. The app uses a simplified truncated Meeus series (accurate to ~0.5° for typical use, sufficient for naked-eye sky maps).
 
+**Key terms computed:**
+- Moon's mean longitude L′ and mean anomaly M′
+- Sun's mean anomaly M and equation of center
+- Argument of latitude F
+- Ecliptic longitude λ and latitude β from the dominant periodic terms (~15 largest from Meeus Chapter 47)
+- Ecliptic → equatorial coordinate rotation
+
+**Phase calculation:**
 ```
-1. Load star database (once)
-   stars.binary → List<StarData>
-
-2. Get current time
-   TimeTravelClock.getTime() → Date
-
-3. Get your location
-   GPS → latitude, longitude
-
-4. Calculate sky orientation
-   time + location → zenith RA/Dec
-
-5. Get phone orientation
-   sensors → transformation matrix
-
-6. For each star:
-   - Is it above horizon? (visibility check)
-   - Convert RA/Dec to screen position
-   - Draw if visible
-
-7. For each planet:
-   - Calculate current RA/Dec (from orbital elements + time)
-   - Convert to screen position
-   - Draw if visible
+elongation = Moon_longitude − Sun_longitude
+phase_fraction = (1 − cos(elongation)) / 2
 ```
-
-### When You Time Travel
-
-```
-1. User picks new date/time
-2. TimeTravelClock updates its offset
-3. All position calculations use new time
-4. Planets recalculate to new positions
-5. Sky rotation changes (different LST)
-6. Screen redraws with new sky
-```
+0 = new moon, 0.5 = quarter, 1.0 = full moon. Implemented in `Moon.kt` / `EarthOrbitingObject.kt`.
 
 ---
 
-## 9. Key Formulas Reference
+## 9. Planet Trajectories
 
-### Coordinate Conversion
-```
-// RA/Dec to 3D vector
-x = cos(RA) × cos(Dec)
-y = sin(RA) × cos(Dec)
-z = sin(Dec)
+Shows a planet's path across the sky over the next 60 days, allowing users to understand its motion over a season.
 
-// 3D vector to RA/Dec
-RA = atan2(y, x)
-Dec = asin(z)
-```
+**Algorithm (in `SkyCanvasView.java`):**
+1. Sample `Universe.getRaDec(body, date)` every 2 days → 30 points.
+2. For each point, convert RA/Dec → Alt/Az (using current observer location) → screen pixel via `projectToScreen()`.
+3. Draw a polyline connecting the projected points.
+4. Label points at 10-day intervals with a formatted date string.
 
-### Angular Distance (Haversine)
-```
-d = 2 × asin(√(sin²(Δdec/2) + cos(dec1)×cos(dec2)×sin²(Δra/2)))
-```
-
-### Sidereal Time
-```
-GST = 280.461° + 360.98564737° × (JD - 2451545.0)
-LST = GST + longitude
-```
-
-### Visibility Check
-```
-// Northern hemisphere observer at latitude φ
-Circumpolar (always visible): dec > 90° - φ
-Never visible: dec < φ - 90°
-```
+The trajectory updates whenever the time changes (time travel slider or real-time tick). Points below the horizon (Alt < 0°) still appear on the path but the connecting segment becomes dashed to indicate the planet is not visible at that time.
 
 ---
 
-## 10. Summary
+## 10. Tonight's Highlights
 
-| Concept | Key Idea |
-|---------|----------|
-| RA/Dec | Sky coordinates, like lat/long for stars |
-| Stars | Fixed positions, loaded from database |
-| Planets | Calculated from orbital mechanics + time |
-| Deep Sky Objects | Galaxies, clusters, nebulae from Messier catalog |
-| Transformation | Sensor data → screen via matrix math |
-| Time Travel | Change the "current time" for all calculations |
-| Sidereal Time | Earth's rotation determines visible sky |
-| Tonight's Highlights | Filter visible objects by altitude threshold |
-| Trajectories | Sample planet positions over time to show orbital path |
-| Gestures | Pinch-zoom, manual pan, long-press for trajectory |
+Summarizes what is worth observing on the current night for the user's location.
 
-The app essentially answers: **"Given my location, the time, and where I'm pointing, what celestial objects should I see?"**
+**Computation (`TonightsHighlights.java`):**
+1. Evaluate Alt at the current time for every planet, every star with magnitude < 2, every Messier object, and every constellation centroid.
+2. Apply visibility thresholds:
+   - Planets: Alt > 5°
+   - Bright stars: Alt > 5°
+   - Constellations: Alt > 20° (need sufficient area above horizon to be recognizable)
+   - Messier objects: Alt > 10°
+3. Moon: always included, with phase fraction and phase name (New / Waxing Crescent / First Quarter / etc.).
+4. Sort results by altitude descending — most overhead = easiest to observe, fewest atmospheric layers to look through.
+5. Return ranked list → `TonightsHighlightsFragment.java` renders as scrollable cards.
 
 ---
 
-## 11. Deep Sky Objects (Messier Catalog)
+## 11. Time Travel System
 
-### What Are DSOs?
+The time travel system lets the user explore the sky at any past or future moment without modifying system time.
 
-Deep Sky Objects are celestial objects beyond our solar system that aren't individual stars:
+**`TimeTravelClock.java`** wraps a base `Clock` with three modes:
 
-| Type | Examples | Shape Icon |
-|------|----------|------------|
-| **Galaxies** | M31 (Andromeda), M51 (Whirlpool) | Diamond |
-| **Star Clusters** | M45 (Pleiades), M13 (Hercules Cluster) | Square |
-| **Nebulae** | M42 (Orion Nebula), M1 (Crab Nebula) | Glowing circle |
+| Mode | Behavior |
+|------|----------|
+| `REAL_TIME` | Delegates to `System.currentTimeMillis()` |
+| `FROZEN` | Returns a fixed timestamp set by the user |
+| `OFFSET` | Returns `System.currentTimeMillis() + delta_ms` |
 
-### Data Source
+All celestial calculations (`AstronomerModelImpl`, `Universe`, `TonightsHighlights`, trajectory sampling) call `TimeTravelClock.getTimeInMillisSinceEpoch()` — never `System.currentTimeMillis()` directly. This is the single clock contract that makes time travel work transparently everywhere.
 
-DSOs are loaded from `messier.binary` (protobuf format), same pattern as stars and constellations:
-
-```
-messier.binary → ProtobufParser.parseMessierObjects()
-    → MessierRepositoryImpl (lazy cache)
-    → SkyCanvasView.drawDSOs()
-```
-
-Each object has: name, RA/Dec position, color, size, and shape type (galaxy/cluster/nebula).
-
-### Visibility Rendering
-
-DSOs are rendered between the star layer and planet layer, using shape-coded icons to distinguish types at a glance.
+**UI flow:** `TimeTravelDialogFragment.java` presents a date/time picker and a continuous slider. Moving the slider sets the offset; selecting a specific date/time sets frozen mode. Tapping "Reset" returns the clock to real-time mode and the sky instantly snaps back.
 
 ---
 
-## 12. Tonight's Highlights
+## 12. Gesture System (SkyCanvasView)
 
-### How It Works
+`SkyCanvasView.java` handles all touch input for the sky map.
 
-`TonightsHighlights.compute()` finds objects visible right now:
+**Pinch-to-zoom:**
+- `ScaleGestureDetector` fires `onScale()` with a scale factor.
+- `adjustFieldOfView(factor)` multiplies the current FOV by `1/factor`, clamped to [20°, 120°].
+- Smaller FOV = magnified view; larger FOV = wide-angle view.
+- The `setFieldOfView()` method is the internal hook that gesture code calls.
 
-1. **Get observer context** - latitude, longitude, current time
-2. **Calculate Local Sidereal Time** - determines which RA is overhead
-3. **For each object** - compute altitude using the Alt/Az formula
-4. **Filter by altitude threshold**:
-   - Planets: above 5°
-   - Bright stars (mag < 1.5): above 5°
-   - Constellations: above 20°
-   - Deep sky objects: above 10°
-5. **Sort** - planets first, then by altitude descending
+**Manual pan mode:**
+- Activated by a single-finger drag that exceeds an 8 dp movement threshold.
+- Drag delta is converted from screen pixels to angular offset using the current FOV and screen dimensions.
+- `adjustOrientation(deltaAz, deltaAlt)` updates the view direction.
+- Entering pan mode **disables sensor tracking** — the sky no longer follows where the phone points. A visual indicator appears.
+- Sensor tracking resumes when the user taps the "re-center" button or shakes the device.
 
-### Alt/Az from RA/Dec
-
-The same formula used everywhere in the app:
-
-```
-Hour Angle = LST - RA
-sin(Alt) = sin(Dec)sin(Lat) + cos(Dec)cos(Lat)cos(HA)
-cos(Az) = (sin(Dec) - sin(Lat)sin(Alt)) / (cos(Lat)cos(Alt))
-```
-
----
-
-## 13. Planet Trajectory Visualization
-
-When you long-press a planet, the app shows its path over 60 days (±30 from now):
-
-1. **Sample positions** - Call `Universe.getRaDec(body, date)` at 2-day intervals
-2. **Project to screen** - Convert each RA/Dec to screen coordinates via Alt/Az
-3. **Draw path** - Connect points with an orange line
-4. **Show markers** - Dots at each sample, with time labels for key positions
-5. **Highlight current** - Larger marker at today's position
-
-This helps users understand how planets move against the fixed star background (retrograde motion, conjunctions, etc.).
+**Smart selection on tap:**
+- A tap that stays below the 8 dp threshold triggers object selection, not pan.
+- `findNearestPlanet()` and equivalent hit-tests for stars and DSOs run within a touch radius that scales with current FOV.
+- Result dispatch:
+  - 0 objects in radius: dismiss any open sheet
+  - 1 object: open info bottom sheet directly
+  - 2–4 objects: show a horizontal chip strip for disambiguation
+  - 5+ objects: show a scrollable bottom-sheet list
 
 ---
 
-## 14. Gesture System
+## 13. Search System
 
-### Pinch-to-Zoom
+**`PrefixStore.java`** — a prefix trie built over all searchable names: star common names and Bayer/Flamsteed designations, constellation names and abbreviations, Messier designations (M1–M110), and planet names. Insert and lookup are O(k) where k is the key length.
 
-The `ScaleGestureDetector` adjusts field of view:
-- **Pinch in** → smaller FOV → more zoomed in (min 20°)
-- **Pinch out** → larger FOV → wider view (max 120°)
-- `pixelsPerDegree = screenSize / FOV` controls the projection scale
+**`SearchIndex.java`** — wraps `PrefixStore` with ranking:
+1. Exact match (query equals full name): rank 0
+2. Prefix match (name starts with query): rank 1
+3. Substring or fuzzy match: rank 2
 
-### Manual Pan
+`query(prefix)` returns a ranked `List<SearchResult>`.
 
-When the user drags, the view enters **manual mode**:
-- Sensor orientation is overridden
-- Drag updates `manualAzimuth` and `manualAltitude`
-- Double-tap exits manual mode and returns to sensor tracking
+**Navigation to a selected object:**
+1. User selects a result in `SearchActivity.java`.
+2. The target's RA/Dec is looked up from the relevant repository.
+3. `raDecToAltAz()` converts to local horizontal coordinates at the current time.
+4. `SearchArrowView` is activated: it draws a navigation arrow pointing toward the object.
 
-### Manual Scroll Mode
+**`SearchArrowView.java`** — roll-corrected overlay arrow:
+- Compute the great-circle bearing from the current pointing direction to the target.
+- Account for device roll (phone tilt about the pointing axis) using the cross product of the pointing vector with the "up" sensor direction.
+- Draw the arrow at the correct angle. If the target is already within the current FOV, switch from an arrow to a highlight ring drawn around the object.
 
-Optional setting for smoother drag-to-pan experience:
-- **Enable in Settings** → activates `GestureDetector.onScroll()` handler
-- **Smooth scrolling** → converts screen drag distance to azimuth/altitude deltas
-- **Tap suppression** → 300ms cooldown after scroll ends prevents accidental star info popups
-- **Auto-enter manual mode** → first scroll gesture activates manual pan automatically
-- **Scroll detection** → tracks `isCurrentlyScrolling` state from ACTION_DOWN to ACTION_UP/CANCEL
-- Formula: `azimuthDelta = distanceX / (screenSize / FOV)` (same for altitude)
+---
 
-This reduces UI clutter when exploring the sky map by hand, avoiding unintended taps on stars during pan gestures.
+## 14. Image Stacking Pipeline
 
-### Smart Selection
+Image stacking combines multiple short-exposure frames to improve SNR by √N for N frames. This makes faint nebulosity and dim stars visible that are buried in read noise in any single frame.
 
-Objects are detected using `getObjectsInReticle()`:
-- Checks stars, planets, constellations, and DSOs within the center reticle circle
-- **1 object** → show info panel directly
-- **2-4 objects** → horizontal chip strip at bottom
-- **5+ objects** → scrollable bottom sheet
+```
+For each frame i:
+
+1. Camera capture
+   → Bitmap via CameraX ImageCapture (JPEG from physical shutter)
+
+2. bitmapToGrayscale()  [AstrometryNative.java]
+   → Luminance weights: L = 0.299·R + 0.587·G + 0.114·B
+   → Output: byte[] (0–255 per pixel)
+
+3. detectStarsNative(plim=8.0, dpsf=1.0, downsample=auto)  [astrometry_jni.c]
+   → simplexy: background subtraction → threshold → centroid fitting
+   → Adaptive plim retry: 8.0 → 6.0 → 4.0
+       (strictly non-increasing; retries only if < 30 stars found)
+   → Edge margin filter: exclude stars within 5% of image edge
+   → Hot-pixel filter: exclude stars with flux > 50× median flux
+   → Resort: interleave flux-sorted and raw-signal-sorted permutations
+   → Uniformize: divide into 10×10 spatial grid,
+                 round-robin select from bins by descending star count
+
+4. Triangle asterism matching  (frame 0 is the reference frame)
+   → Build triangles from top-50 stars via 5 nearest neighbors (libkd k-d tree)
+   → Each triangle: scale-invariant ratios (s1/s0, s2/s0)
+       where s0 ≥ s1 ≥ s2 are sorted side lengths
+       (invariant to rotation, scale, translation)
+   → K-d tree lookup in ratio space to find matches between frames
+   → Produces a list of candidate star correspondences
+
+5. RANSAC affine estimation
+   → 100 iterations; each picks 3 random correspondences
+   → Solve 6-parameter affine system (2×3 matrix) via 6×6 linear system (GSL LU)
+   → Count inliers: transformed point within 3 px of reference counterpart
+   → Keep transform with maximum inlier count
+
+6. Bilinear warp
+   → Apply affine transform to map new frame pixels into the reference frame
+   → Bilinear interpolation for sub-pixel accuracy
+
+7. Mean accumulation
+   → float32 sum buffer (same dimensions as reference frame)
+   → Divide sum by N after all frames → 8-bit output bitmap
+```
+
+SNR improvement factor: √N. For 9 frames, expect ~3× improvement over a single frame.
+
+---
+
+## 15. Plate Solving Pipeline
+
+Plate solving determines the exact RA/Dec center coordinates, plate scale, and orientation of a captured image by matching detected star patterns against a reference catalog.
+
+```
+Input: grayscale bitmap (from camera or stacked result)
+         │
+         ▼
+detectStarsNative()
+  → Ordered star list (resort + uniformize, see §14 step 3)
+         │
+         ▼
+solveFieldNative(indexes, scaleLow=10, scaleHigh=180 arcsec/px)
+  → Load FITS index files (index-4115 to index-4119, from assets/indexes/)
+  → Form quads: sets of 4 nearby stars
+      (quad size 10%–100% of field diagonal)
+  → Hash each quad to a 4D code
+      (scale-invariant ratios of intra-quad distances)
+  → K-d tree search in code space against index
+  → Candidate match: apply transform image quad → sky quad, then verify
+      Count stars within verify_pix=1.0 of predicted positions
+      Accept if log-odds ratio > logratio_tokeep = 20.0
+  → Iterate solver depth (10, 20, 30, ..., 200 stars considered)
+  → On acceptance: refine with SIP polynomial distortion (order 2)
+         │
+         ▼
+Output: RA/Dec center + WCS transformation matrix
+  (plate scale arcsec/px, rotation angle, SIP distortion coefficients)
+```
+
+**Critical parameters:**
+
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| `verify_pix` | 1.0 | Match tolerance in pixels; matches solve-field default |
+| `distractor_ratio` | 0.25 | Fraction of stars assumed spurious (noise, hot pixels) |
+| `logratio_tokeep` | 20.0 | Log-odds acceptance threshold (~e²⁰ ≈ 5×10⁸ to 1 odds) |
+| `tweak_aborder` | 2 | SIP polynomial order; matches solve-field default |
+
+The resort + uniformize ordering from step 3 is critical for solver performance. Without it, the first 20 stars cluster in one bright region (e.g. Orion Nebula), the solver cannot form field-spanning quads, and solving fails at typical depths.
+
+---
+
+## 16. Tooltip System (Onboarding)
+
+The onboarding tooltip system walks new users through key UI elements with an interactive overlay that highlights and describes each control in sequence.
+
+**Components:**
+
+- `TooltipConfig.java` — data class holding: anchor view reference, tooltip text, preferred position (ABOVE/BELOW/LEFT/RIGHT), and optional extra-highlight views that should remain click-through while the tooltip is visible.
+- `TooltipManager.java` — owns the ordered list of `TooltipConfig` steps, tracks the current step index, and manages the overlay lifecycle (add/remove from root view).
+- `TooltipView.java` — custom View responsible for all drawing and touch interception.
+
+**Rendering:**
+- The overlay is added as a `FrameLayout` child of the root view, or of the dialog's decor view when used inside a `DialogFragment`.
+- A semi-transparent dimmed layer covers the entire screen.
+- A transparent punch-through circle (or rounded rect) is cut out around the anchor's bounding box — the user can see and interact with the highlighted control through the hole.
+- The tooltip bubble (rounded rect with an arrow tail) is drawn at the computed position, containing the explanation text.
+- A step counter ("2 of 5"), a Skip button, and a Next/Got-it button are rendered within the bubble.
+
+**Coordinate handling:**
+- `View.getLocationInWindow()` obtains the anchor's screen-absolute position.
+- The overlay's own window offset is subtracted → overlay-relative coordinates.
+- This approach works correctly for anchors inside `RecyclerView` cells, `DialogFragment` views, and `BottomSheetDialogFragment`.
+
+**Position auto-fallback:**
+- The preferred position comes from `TooltipConfig`.
+- If the tooltip bubble would be clipped off-screen after layout: ABOVE ↔ BELOW, LEFT ↔ RIGHT.
+- The final position is computed after a layout pass so actual bubble dimensions are known.
+
+**Interactive mode:**
+- The overlay intercepts `ACTION_DOWN` and `ACTION_UP` touch events.
+- On `ACTION_UP`, the touch point is hit-tested against the anchor rect and any extra-highlight rects.
+- If a hit is detected, `performClick()` is called on the matching view — the user can actually use the highlighted control while the tooltip is showing, without dismissing the overlay.
+
+**Completion persistence:**
+- Completion state is stored in `SharedPreferences`, keyed by a tutorial ID string.
+- On app launch, `TooltipManager` reads the preference and skips the sequence if already completed.
+- Settings screen exposes a "Replay Tutorial" option that clears the key.
+
+**Accessibility:**
+- On each step show, `View.announceForAccessibility()` is called with the tooltip text.
+- TalkBack users hear the tooltip content read aloud without needing to navigate to the overlay view.
