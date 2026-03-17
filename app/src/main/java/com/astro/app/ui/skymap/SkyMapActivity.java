@@ -43,6 +43,7 @@ import com.astro.app.core.control.SolarSystemBody;
 import com.astro.app.core.control.TimeTravelClock;
 import com.astro.app.core.control.space.Universe;
 import com.astro.app.core.math.RaDec;
+import com.astro.app.ui.settings.NightModeManager;
 import com.astro.app.ui.timetravel.TimeTravelDialogFragment;
 import com.astro.app.core.layers.ConstellationsLayer;
 import com.astro.app.core.layers.PlanetsLayer;
@@ -250,6 +251,9 @@ public class SkyMapActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.activity_sky_map);
+
+        // Apply night mode if enabled
+        NightModeManager.getInstance(this).applyToActivity(this);
 
         // Initialize ViewModels
         viewModel = new ViewModelProvider(this).get(SkyMapViewModel.class);
@@ -2353,6 +2357,9 @@ public class SkyMapActivity extends AppCompatActivity {
         super.onResume();
         skyGLSurfaceView.onResume();
         setSearchModeActive(searchTargetName != null);
+
+        // Re-apply in case returning from another activity
+        NightModeManager.getInstance(this).applyToActivity(this);
 
         // Start sensors
         if (sensorController != null) {

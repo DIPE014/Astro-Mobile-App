@@ -2,6 +2,7 @@ package com.astro.app.ui.settings;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,6 +51,10 @@ public class SettingsActivity extends AppCompatActivity {
     private MaterialSwitch switchConstellationNames;
     private MaterialSwitch switchManualScroll;
 
+    private MaterialSwitch switchAutoNightMode;
+
+    private MaterialSwitch switchAutoLocation;
+
     // Prevent recursive updates
     private boolean isUpdatingUI = false;
 
@@ -83,6 +88,8 @@ public class SettingsActivity extends AppCompatActivity {
         switchConstellationLines = findViewById(R.id.switchConstellationLines);
         switchConstellationNames = findViewById(R.id.switchConstellationNames);
         switchManualScroll = findViewById(R.id.switchManualScroll);
+        switchAutoLocation = findViewById(R.id.switchAutoLocation);
+        switchAutoNightMode = findViewById(R.id.switchAutoNightMode);
 
         // Configure Slider ranges (Sliders are configured via XML, but we can adjust programmatically if needed)
         if (sliderBrightness != null) {
@@ -126,14 +133,18 @@ public class SettingsActivity extends AppCompatActivity {
             });
         }
 
-        // Night Mode Switch
-        if (switchNightMode != null) {
-            switchNightMode.setOnCheckedChangeListener((button, isChecked) -> {
-                if (!isUpdatingUI) {
-                    viewModel.setNightMode(isChecked);
-                }
-            });
-        }
+        //Night Mode Switch
+        switchNightMode.setChecked(getSharedPreferences("app_prefs", MODE_PRIVATE)
+                .getBoolean("night_mode", false));
+
+        switchNightMode.setOnClickListener(v -> {
+            NightModeManager.getInstance(SettingsActivity.this).toggleNightMode(SettingsActivity.this);
+        });
+
+        View rowNightMode = findViewById(R.id.rowNightMode);
+        rowNightMode.setOnClickListener(v -> {
+            switchNightMode.performClick();
+        });
 
         // Star Labels Switch
         if (switchStarLabels != null) {
@@ -144,6 +155,11 @@ public class SettingsActivity extends AppCompatActivity {
             });
         }
 
+        View rowStarLabels = findViewById(R.id.rowStarLabels);
+        rowStarLabels.setOnClickListener(v -> {
+            switchStarLabels.performClick();
+        });
+
         // Constellation Lines Switch
         if (switchConstellationLines != null) {
             switchConstellationLines.setOnCheckedChangeListener((button, isChecked) -> {
@@ -152,6 +168,11 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
         }
+
+        View rowConstellationLines = findViewById(R.id.rowConstellationLines);
+        rowConstellationLines.setOnClickListener(v -> {
+            switchConstellationLines.performClick();
+        });
 
         // Constellation Names Switch
         if (switchConstellationNames != null) {
@@ -162,6 +183,11 @@ public class SettingsActivity extends AppCompatActivity {
             });
         }
 
+        View rowConstellationNames = findViewById(R.id.rowConstellationNames);
+        rowConstellationNames.setOnClickListener(v -> {
+            switchConstellationNames.performClick();
+        });
+
         // Manual Scroll Switch
         if (switchManualScroll != null) {
             switchManualScroll.setOnCheckedChangeListener((button, isChecked) -> {
@@ -170,6 +196,35 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
         }
+
+        View rowManualScroll = findViewById(R.id.rowManualScroll);
+        rowManualScroll.setOnClickListener(v -> {
+            switchManualScroll.performClick();
+        });
+
+        //Auto Night Mode Switch
+        if (switchAutoNightMode != null) {
+            switchAutoNightMode.setOnCheckedChangeListener((button, isChecked) -> {
+                //PLACEHOLDER
+            });
+        }
+
+        View rowAutoNightMode = findViewById(R.id.rowAutoNightMode);
+        rowAutoNightMode.setOnClickListener(v -> {
+            switchAutoNightMode.performClick();
+        });
+
+        //Auto Location Switch
+        if (switchAutoLocation != null) {
+            switchAutoLocation.setOnCheckedChangeListener((button, isChecked) -> {
+                //PLACEHOLDER
+            });
+        }
+
+        View rowAutoLocation = findViewById(R.id.rowAutoLocation);
+        rowAutoLocation.setOnClickListener(v -> {
+            rowAutoLocation.performClick();
+        });
 
         // Replay Tutorial Button
         MaterialButton btnReplayTutorial = findViewById(R.id.btnReplayTutorial);
@@ -240,7 +295,7 @@ public class SettingsActivity extends AppCompatActivity {
             isUpdatingUI = true;
             if (sliderBrightness != null && brightness != null) {
                 float value = (brightness - 0.5f) * 100;
-                sliderBrightness.setValue(Math.max(0f, Math.min(100f, value)));
+                sliderBrightness.setValue(Math.round(Math.max(0f, Math.min(100f, value))));
             }
             if (tvBrightnessValue != null && brightness != null) {
                 tvBrightnessValue.setText(String.format("%.1fx", brightness));
@@ -260,19 +315,10 @@ public class SettingsActivity extends AppCompatActivity {
             isUpdatingUI = false;
         });
 
-        // Night Mode
-        viewModel.getNightMode().observe(this, nightMode -> {
-            isUpdatingUI = true;
-            if (switchNightMode != null && nightMode != null) {
-                switchNightMode.setChecked(nightMode);
-            }
-            isUpdatingUI = false;
-        });
-
         // Star Labels
         viewModel.getShowStarLabels().observe(this, show -> {
             isUpdatingUI = true;
-            if (switchStarLabels != null && show != null) {
+            if (switchStarLabels != null && show != null ) {
                 switchStarLabels.setChecked(show);
             }
             isUpdatingUI = false;
@@ -335,14 +381,14 @@ public class SettingsActivity extends AppCompatActivity {
                 ));
             }
 
-            if (switchNightMode != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    switchNightMode,
-                    getString(R.string.tooltip_settings_night_mode),
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
-                    true
-                ));
-            }
+//            if (switchNightMode != null) {
+//                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+//                    switchNightMode,
+//                    getString(R.string.tooltip_settings_night_mode),
+//                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
+//                    true
+//                ));
+//            }
 
             android.widget.EditText etApiKey = findViewById(R.id.etApiKey);
             if (etApiKey != null) {
@@ -356,6 +402,13 @@ public class SettingsActivity extends AppCompatActivity {
 
             tooltipManager.start();
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Re-apply saved setting
+        NightModeManager.getInstance(this).applyToActivity(this);
     }
 
     @Override
