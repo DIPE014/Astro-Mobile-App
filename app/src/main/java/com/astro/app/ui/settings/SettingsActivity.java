@@ -295,7 +295,7 @@ public class SettingsActivity extends AppCompatActivity {
             isUpdatingUI = true;
             if (sliderBrightness != null && brightness != null) {
                 float value = (brightness - 0.5f) * 100;
-                sliderBrightness.setValue(Math.max(0f, Math.min(100f, value)));
+                sliderBrightness.setValue(Math.round(Math.max(0f, Math.min(100f, value))));
             }
             if (tvBrightnessValue != null && brightness != null) {
                 tvBrightnessValue.setText(String.format("%.1fx", brightness));

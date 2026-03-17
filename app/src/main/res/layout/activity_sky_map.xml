@@ -46,17 +46,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Back Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnBack"
-            style="@style/Widget.Material3.Button.IconButton"
-            android:layout_width="@dimen/touch_target_min"
-            android:layout_height="@dimen/touch_target_min"
-            android:contentDescription="@string/cd_back_button"
-            app:icon="@android:drawable/ic_menu_revert"
-            app:iconTint="@color/icon_primary"
-            app:rippleColor="@color/ripple" />
-
         <!-- Spacer -->
         <View
             android:layout_width="0dp"

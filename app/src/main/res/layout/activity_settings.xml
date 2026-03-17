@@ -24,6 +24,7 @@
             app:navigationIcon="@android:drawable/ic_menu_revert"
             app:navigationIconTint="@color/icon_primary"
             app:title="@string/settings"
+            android:fontFamily="@font/exo_extrabold"
             app:titleTextAppearance="@style/TextAppearance.AstroApp.TitleLarge"
             app:titleTextColor="@color/text_primary" />
 
@@ -50,6 +51,7 @@
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_display"
                 android:textSize="20dp"
+                android:fontFamily="@font/exo_extrabold"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
 
@@ -83,6 +85,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="@string/settings_brightness"
+                                android:fontFamily="@font/exo_bold"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                                 android:textColor="@color/text_primary" />
 
@@ -111,6 +114,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_small"
                             android:stepSize="5.0"
+                            android:scaleY="1.5"
+                            android:scaleX="1.5"
                             android:value="75"
                             android:valueFrom="0"
                             android:valueTo="100" />
@@ -141,6 +146,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="@string/settings_magnitude_limit"
+                                android:fontFamily="@font/exo_bold"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                                 android:textColor="@color/text_primary" />
 
@@ -169,6 +175,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_small"
                             android:stepSize="0.5"
+                            android:scaleY="1.5"
+                            android:scaleX="1.5"
                             android:value="6"
                             android:valueFrom="1"
                             android:valueTo="8" />
@@ -201,6 +209,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/settings_star_labels"
+                                android:fontFamily="@font/exo_bold"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                                 android:textColor="@color/text_primary" />
 
@@ -247,6 +256,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/show_constellation_lines"
+                                android:fontFamily="@font/exo_bold"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                                 android:textColor="@color/text_primary" />
 
@@ -293,6 +303,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/show_constellation_names"
+                                android:fontFamily="@font/exo_bold"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                                 android:textColor="@color/text_primary" />
 
@@ -339,6 +350,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/settings_manual_scroll"
+                                android:fontFamily="@font/exo_bold"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                                 android:textColor="@color/text_primary" />
 
@@ -378,6 +390,7 @@
                 android:paddingTop="@dimen/padding_large"
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_night_mode"
+                android:fontFamily="@font/exo_extrabold"
                 android:textSize="20dp"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
@@ -422,6 +435,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/night_mode"
+                                android:fontFamily="@font/exo_bold"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                                 android:textColor="@color/text_primary" />
 
@@ -473,6 +487,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Auto Night Mode"
+                                android:fontFamily="@font/exo_bold"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                                 android:textColor="@color/text_primary" />
 
@@ -505,6 +520,7 @@
                 android:paddingTop="@dimen/padding_large"
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_location"
+                android:fontFamily="@font/exo_extrabold"
                 android:textSize="20dp"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
@@ -549,6 +565,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/settings_location_auto"
+                                android:fontFamily="@font/exo_bold"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                                 android:textColor="@color/text_primary" />
 
@@ -600,6 +617,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/settings_location_manual"
+                                android:fontFamily="@font/exo_bold"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                                 android:textColor="@color/text_primary" />
 
@@ -634,6 +652,7 @@
                 android:paddingTop="@dimen/padding_large"
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_about"
+                android:fontFamily="@font/exo_extrabold"
                 android:textSize="20dp"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
@@ -671,6 +690,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/settings_version"
+                            android:fontFamily="@font/exo_bold"
                             android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                             android:textColor="@color/text_primary" />
 
@@ -710,6 +730,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/settings_privacy"
+                            android:fontFamily="@font/exo_bold"
                             android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                             android:textColor="@color/text_primary" />
 
@@ -748,6 +769,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/settings_terms"
+                            android:fontFamily="@font/exo_bold"
                             android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                             android:textColor="@color/text_primary" />
 
@@ -786,6 +808,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/settings_licenses"
+                            android:fontFamily="@font/exo_bold"
                             android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                             android:textColor="@color/text_primary" />
 
@@ -810,6 +833,8 @@
                 android:paddingTop="@dimen/padding_large"
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_ai"
+                android:textSize="20dp"
+                android:fontFamily="@font/exo_extrabold"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
 
@@ -831,6 +856,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/settings_api_key"
+                        android:fontFamily="@font/exo_bold"
                         android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                         android:textColor="@color/text_primary" />
 
@@ -857,6 +883,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="@string/settings_api_key_hint"
+                            android:fontFamily="@font/exo_italic"
                             android:inputType="textPassword"
                             android:maxLines="1" />
 
@@ -869,6 +896,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_medium"
                         android:text="@string/save"
+                        android:fontFamily="@font/exo_bold"
                         android:textAllCaps="false" />
 
                 </LinearLayout>
@@ -884,6 +912,7 @@
                 android:layout_marginHorizontal="@dimen/margin_medium"
                 android:layout_marginTop="@dimen/margin_large"
                 android:text="@string/settings_replay_tutorial"
+                android:fontFamily="@font/exo_bold"
                 android:textAllCaps="false"
                 app:cornerRadius="@dimen/button_corner_radius"
                 app:icon="@android:drawable/ic_menu_rotate"
