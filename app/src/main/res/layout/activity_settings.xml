@@ -49,6 +49,7 @@
                 android:paddingTop="@dimen/padding_large"
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_display"
+                android:textSize="20dp"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
 
@@ -94,6 +95,14 @@
                                 tools:text="75%" />
 
                         </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/margin_extra_small"
+                            android:text="Adjust screen brightness"
+                            android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+                            android:textColor="@color/text_tertiary" />
 
                         <com.google.android.material.slider.Slider
                             android:id="@+id/sliderBrightness"
@@ -290,7 +299,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Show constellation name labels"
+                                android:text="Display constellation names"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
                                 android:textColor="@color/text_secondary" />
 
@@ -336,7 +345,14 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/settings_manual_scroll_summary"
+                                android:text="- Drag to pan and pinch to zoom"
+                                android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
+                                android:textColor="@color/text_secondary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="- Disables sensor sky tracking"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
                                 android:textColor="@color/text_secondary" />
 
@@ -362,6 +378,7 @@
                 android:paddingTop="@dimen/padding_large"
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_night_mode"
+                android:textSize="20dp"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
 
@@ -488,6 +505,7 @@
                 android:paddingTop="@dimen/padding_large"
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_location"
+                android:textSize="20dp"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
 
@@ -616,6 +634,7 @@
                 android:paddingTop="@dimen/padding_large"
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_about"
+                android:textSize="20dp"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
 
