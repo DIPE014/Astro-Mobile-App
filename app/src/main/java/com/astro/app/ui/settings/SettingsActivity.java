@@ -126,14 +126,22 @@ public class SettingsActivity extends AppCompatActivity {
             });
         }
 
-        // Night Mode Switch
-        if (switchNightMode != null) {
-            switchNightMode.setOnCheckedChangeListener((button, isChecked) -> {
-                if (!isUpdatingUI) {
-                    viewModel.setNightMode(isChecked);
-                }
-            });
-        }
+//        // Night Mode Switch
+//        if (switchNightMode != null) {
+//            switchNightMode.setOnCheckedChangeListener((button, isChecked) -> {
+//                if (!isUpdatingUI) {
+//                    viewModel.setNightMode(isChecked);
+//                }
+//            });
+//        }
+
+
+        switchNightMode.setChecked(getSharedPreferences("app_prefs", MODE_PRIVATE)
+                .getBoolean("night_mode", false));
+
+        switchNightMode.setOnClickListener(v -> {
+            NightModeManager.getInstance(SettingsActivity.this).toggleNightMode(SettingsActivity.this);
+        });
 
         // Star Labels Switch
         if (switchStarLabels != null) {
@@ -260,14 +268,14 @@ public class SettingsActivity extends AppCompatActivity {
             isUpdatingUI = false;
         });
 
-        // Night Mode
-        viewModel.getNightMode().observe(this, nightMode -> {
-            isUpdatingUI = true;
-            if (switchNightMode != null && nightMode != null) {
-                switchNightMode.setChecked(nightMode);
-            }
-            isUpdatingUI = false;
-        });
+//        // Night Mode
+//        viewModel.getNightMode().observe(this, nightMode -> {
+//            isUpdatingUI = true;
+//            if (switchNightMode != null && nightMode != null) {
+//                switchNightMode.setChecked(nightMode);
+//            }
+//            isUpdatingUI = false;
+//        });
 
         // Star Labels
         viewModel.getShowStarLabels().observe(this, show -> {
@@ -335,14 +343,14 @@ public class SettingsActivity extends AppCompatActivity {
                 ));
             }
 
-            if (switchNightMode != null) {
-                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
-                    switchNightMode,
-                    getString(R.string.tooltip_settings_night_mode),
-                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
-                    true
-                ));
-            }
+//            if (switchNightMode != null) {
+//                tooltipManager.addTooltip(new com.astro.app.ui.onboarding.TooltipConfig(
+//                    switchNightMode,
+//                    getString(R.string.tooltip_settings_night_mode),
+//                    com.astro.app.ui.onboarding.TooltipConfig.TooltipPosition.BELOW,
+//                    true
+//                ));
+//            }
 
             android.widget.EditText etApiKey = findViewById(R.id.etApiKey);
             if (etApiKey != null) {
@@ -356,6 +364,13 @@ public class SettingsActivity extends AppCompatActivity {
 
             tooltipManager.start();
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Re-apply saved setting
+        NightModeManager.getInstance(this).applyToActivity(this);
     }
 
     @Override
