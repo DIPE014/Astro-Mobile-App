@@ -8,17 +8,22 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 public class NightModeManager {
-    private static NightModeManager instance;
+    private static volatile NightModeManager instance;
     private boolean isNightMode = false;
 
     private NightModeManager(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getApplicationContext()
+                .getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
         isNightMode = prefs.getBoolean("night_mode", false);
     }
 
     public static NightModeManager getInstance(Context context) {
         if (instance == null) {
-            instance = new NightModeManager(context);
+            synchronized (NightModeManager.class) {
+                if (instance == null) {
+                    instance = new NightModeManager(context.getApplicationContext());
+                }
+            }
         }
         return instance;
     }

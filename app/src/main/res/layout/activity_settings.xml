@@ -114,8 +114,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_small"
                             android:stepSize="5.0"
-                            android:scaleY="1.5"
-                            android:scaleX="1.5"
+                            app:trackHeight="8dp"
+                            app:thumbRadius="14dp"
                             android:value="75"
                             android:valueFrom="0"
                             android:valueTo="100" />
@@ -175,8 +175,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_small"
                             android:stepSize="0.5"
-                            android:scaleY="1.5"
-                            android:scaleX="1.5"
+                            app:trackHeight="8dp"
+                            app:thumbRadius="14dp"
                             android:value="6"
                             android:valueFrom="1"
                             android:valueTo="8" />
@@ -334,7 +334,7 @@
                     <LinearLayout
                         android:id="@+id/rowManualScroll"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/list_item_height_two_line"
+                        android:layout_height="wrap_content"
                         android:background="?attr/selectableItemBackground"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
