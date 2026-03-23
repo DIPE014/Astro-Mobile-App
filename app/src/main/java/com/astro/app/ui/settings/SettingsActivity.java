@@ -142,9 +142,11 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         View rowNightMode = findViewById(R.id.rowNightMode);
-        rowNightMode.setOnClickListener(v -> {
-            switchNightMode.performClick();
-        });
+        if (rowNightMode != null) {
+            rowNightMode.setOnClickListener(v -> {
+                switchNightMode.performClick();
+            });
+        }
 
         // Star Labels Switch
         if (switchStarLabels != null) {
@@ -156,9 +158,11 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         View rowStarLabels = findViewById(R.id.rowStarLabels);
-        rowStarLabels.setOnClickListener(v -> {
-            switchStarLabels.performClick();
-        });
+        if (rowStarLabels != null) {
+            rowStarLabels.setOnClickListener(v -> {
+                switchStarLabels.performClick();
+            });
+        }
 
         // Constellation Lines Switch
         if (switchConstellationLines != null) {
@@ -170,9 +174,11 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         View rowConstellationLines = findViewById(R.id.rowConstellationLines);
-        rowConstellationLines.setOnClickListener(v -> {
-            switchConstellationLines.performClick();
-        });
+        if (rowConstellationLines != null) {
+            rowConstellationLines.setOnClickListener(v -> {
+                switchConstellationLines.performClick();
+            });
+        }
 
         // Constellation Names Switch
         if (switchConstellationNames != null) {
@@ -184,9 +190,11 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         View rowConstellationNames = findViewById(R.id.rowConstellationNames);
-        rowConstellationNames.setOnClickListener(v -> {
-            switchConstellationNames.performClick();
-        });
+        if (rowConstellationNames != null) {
+            rowConstellationNames.setOnClickListener(v -> {
+                switchConstellationNames.performClick();
+            });
+        }
 
         // Manual Scroll Switch
         if (switchManualScroll != null) {
@@ -198,9 +206,11 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         View rowManualScroll = findViewById(R.id.rowManualScroll);
-        rowManualScroll.setOnClickListener(v -> {
-            switchManualScroll.performClick();
-        });
+        if (rowManualScroll != null) {
+            rowManualScroll.setOnClickListener(v -> {
+                switchManualScroll.performClick();
+            });
+        }
 
         //Auto Night Mode Switch
         if (switchAutoNightMode != null) {
@@ -210,9 +220,11 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         View rowAutoNightMode = findViewById(R.id.rowAutoNightMode);
-        rowAutoNightMode.setOnClickListener(v -> {
-            switchAutoNightMode.performClick();
-        });
+        if (rowAutoNightMode != null) {
+            rowAutoNightMode.setOnClickListener(v -> {
+                switchAutoNightMode.performClick();
+            });
+        }
 
         //Auto Location Switch
         if (switchAutoLocation != null) {
@@ -222,9 +234,11 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         View rowAutoLocation = findViewById(R.id.rowAutoLocation);
-        rowAutoLocation.setOnClickListener(v -> {
-            switchAutoLocation.performClick();
-        });
+        if (rowAutoLocation != null) {
+            rowAutoLocation.setOnClickListener(v -> {
+                switchAutoLocation.performClick();
+            });
+        }
 
         // Replay Tutorial Button
         MaterialButton btnReplayTutorial = findViewById(R.id.btnReplayTutorial);

@@ -103,7 +103,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_extra_small"
-                            android:text="Adjust screen brightness"
+                            android:text="@string/settings_brightness_description"
                             android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
                             android:textColor="@color/text_tertiary" />
 
@@ -164,7 +164,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/margin_extra_small"
-                            android:text="Show stars brighter than this magnitude"
+                            android:text="@string/settings_magnitude_description"
                             android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
                             android:textColor="@color/text_tertiary" />
 
@@ -263,7 +263,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Draw lines connecting constellation stars"
+                                android:text="@string/settings_constellation_lines_description"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
                                 android:textColor="@color/text_secondary" />
 
@@ -310,7 +310,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Display constellation names"
+                                android:text="@string/settings_constellation_names_description"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
                                 android:textColor="@color/text_secondary" />
 
@@ -357,14 +357,14 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="- Drag to pan and pinch to zoom"
+                                android:text="@string/settings_manual_scroll_pan"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
                                 android:textColor="@color/text_secondary" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="- Disables sensor sky tracking"
+                                android:text="@string/settings_manual_scroll_sensor"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
                                 android:textColor="@color/text_secondary" />
 
@@ -486,7 +486,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Auto Night Mode"
+                                android:text="@string/settings_auto_night_mode"
                                 android:fontFamily="@font/exo_bold"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodyLarge"
                                 android:textColor="@color/text_primary" />
@@ -494,7 +494,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Enable automatically after sunset"
+                                android:text="@string/settings_auto_night_mode_description"
                                 android:textAppearance="@style/TextAppearance.AstroApp.BodySmall"
                                 android:textColor="@color/text_secondary" />
 
