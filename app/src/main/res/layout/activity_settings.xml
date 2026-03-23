@@ -50,7 +50,7 @@
                 android:paddingTop="@dimen/padding_large"
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_display"
-                android:textSize="20dp"
+                android:textSize="20sp"
                 android:fontFamily="@font/exo_extrabold"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
@@ -391,7 +391,7 @@
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_night_mode"
                 android:fontFamily="@font/exo_extrabold"
-                android:textSize="20dp"
+                android:textSize="20sp"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
 
@@ -521,7 +521,7 @@
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_location"
                 android:fontFamily="@font/exo_extrabold"
-                android:textSize="20dp"
+                android:textSize="20sp"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
 
@@ -653,7 +653,7 @@
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_about"
                 android:fontFamily="@font/exo_extrabold"
-                android:textSize="20dp"
+                android:textSize="20sp"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />
 
@@ -833,7 +833,7 @@
                 android:paddingTop="@dimen/padding_large"
                 android:paddingBottom="@dimen/padding_small"
                 android:text="@string/settings_ai"
-                android:textSize="20dp"
+                android:textSize="20sp"
                 android:fontFamily="@font/exo_extrabold"
                 android:textAppearance="@style/TextAppearance.AstroApp.LabelLarge"
                 android:textColor="@color/primary" />

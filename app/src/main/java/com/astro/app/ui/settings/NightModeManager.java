@@ -10,7 +10,6 @@ import android.widget.FrameLayout;
 public class NightModeManager {
     private static NightModeManager instance;
     private boolean isNightMode = false;
-    private View redTintView;
 
     private NightModeManager(Context context) {
         SharedPreferences prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE);
@@ -40,34 +39,25 @@ public class NightModeManager {
     }
 
     public void applyToActivity(Activity activity) {
-        // Get root view
         ViewGroup rootView = (ViewGroup) activity.getWindow().getDecorView();
 
+        // Remove any existing overlay from this activity to avoid duplicates
+        View existing = rootView.findViewWithTag("night_mode_overlay");
+        if (existing != null) {
+            rootView.removeView(existing);
+        }
+
         if (isNightMode) {
-            // Add red tint overlay
-            if (redTintView == null) {
-                redTintView = new View(activity);
-                redTintView.setBackgroundColor(0x20800000); // Semi-transparent red
-                redTintView.setClickable(false); // Allow clicks to pass through
-            }
-
-            // Remove if already attached elsewhere
-            if (redTintView.getParent() != null) {
-                ((ViewGroup) redTintView.getParent()).removeView(redTintView);
-            }
-
-            // Add to current activity
+            // Create a fresh view scoped to this activity to avoid context leaks
+            View overlay = new View(activity);
+            overlay.setTag("night_mode_overlay");
+            overlay.setBackgroundColor(0x20800000); // Semi-transparent red
+            overlay.setClickable(false);
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.MATCH_PARENT
             );
-            rootView.addView(redTintView, params);
-
-        } else {
-            // Remove red tint
-            if (redTintView != null && redTintView.getParent() != null) {
-                ((ViewGroup) redTintView.getParent()).removeView(redTintView);
-            }
+            rootView.addView(overlay, params);
         }
     }
 }

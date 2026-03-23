@@ -223,7 +223,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         View rowAutoLocation = findViewById(R.id.rowAutoLocation);
         rowAutoLocation.setOnClickListener(v -> {
-            rowAutoLocation.performClick();
+            switchAutoLocation.performClick();
         });
 
         // Replay Tutorial Button
