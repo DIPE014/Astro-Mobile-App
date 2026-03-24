@@ -430,8 +430,8 @@
 
     <androidx.constraintlayout.motion.widget.MotionLayout
         android:id="@+id/motionLayout"
-        android:layout_width="350dp"
-        android:layout_height="350dp"
+        android:layout_width="320dp"
+        android:layout_height="320dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:clipChildren="false"
@@ -440,8 +440,8 @@
 
         <androidx.constraintlayout.utils.widget.ImageFilterView
             android:id="@+id/background"
-            android:layout_width="500dp"
-            android:layout_height="500dp"
+            android:layout_width="420dp"
+            android:layout_height="420dp"
             android:background="#3700B3"
             app:layout_constraintBottom_toBottomOf="@+id/fabMain"
             app:layout_constraintEnd_toEndOf="@+id/fabMain"
@@ -454,39 +454,57 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#0000"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="2dp"
             android:contentDescription="@string/cd_fab_search"
             android:drawableTop="@android:drawable/ic_menu_search"
+            android:drawablePadding="2dp"
             android:text="@string/fab_search"
+            android:textSize="@dimen/text_size_small"
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="270"
-            app:layout_constraintCircleRadius="100dp" />
+            app:layout_constraintCircleRadius="88dp" />
 
         <Button
             android:id="@+id/fabChat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#0000"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="2dp"
             android:contentDescription="@string/cd_fab_chatbot"
             android:drawableTop="@android:drawable/ic_menu_send"
             android:text="@string/fab_chatbot"
+            android:drawablePadding="2dp"
+            android:textSize="@dimen/text_size_small"
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="300"
-            app:layout_constraintCircleRadius="100dp" />
+            app:layout_constraintCircleRadius="88dp" />
 
         <Button
             android:id="@+id/fabStack"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#0000"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingHorizontal="4dp"
+            android:paddingVertical="2dp"
             android:contentDescription="@string/cd_fab_stack"
             android:drawableTop="@android:drawable/ic_menu_camera"
+            android:drawablePadding="2dp"
             android:text="@string/fab_detect_stack"
+            android:textSize="@dimen/text_size_small"
             android:textAllCaps="false"
             app:layout_constraintCircle="@id/background"
             app:layout_constraintCircleAngle="240"
-            app:layout_constraintCircleRadius="100dp" />
+            app:layout_constraintCircleRadius="88dp" />
 
         <androidx.constraintlayout.utils.widget.ImageFilterButton
             android:id="@+id/fabMain"
@@ -496,8 +514,8 @@
             android:layout_marginBottom="140dp"
             android:contentDescription="@string/cd_fab_main"
             android:rotation="0"
-            android:scaleX="2"
-            android:scaleY="2"
+            android:scaleX="1.7"
+            android:scaleY="1.7"
             android:src="@android:drawable/ic_menu_more"
             android:backgroundTint="#3700B3"
             android:background="@drawable/bg_circle_primary"
@@ -694,4 +712,3 @@
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

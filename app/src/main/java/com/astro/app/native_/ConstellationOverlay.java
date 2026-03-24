@@ -24,6 +24,12 @@ import java.util.Map;
  */
 public class ConstellationOverlay {
     private static final String TAG = "ConstellationOverlay";
+    private static final float MIN_LABEL_PX = 32f;
+    private static final float MAX_LABEL_PX = 120f;
+    private static final float LABEL_RATIO = 0.022f; // proportion of max(image width, height)
+    private static final float LINE_TO_LABEL_RATIO = 0.09f;
+    private static final float DOT_TO_LABEL_RATIO = 0.16f;
+    private static final float LABEL_OFFSET_TO_LABEL_RATIO = 0.28f;
 
     private double[][] stars;           // [i] = {ra, dec}
     private List<Constellation> constellations;
@@ -107,22 +113,27 @@ public class ConstellationOverlay {
         Canvas canvas = new Canvas(overlay);
         int w = overlay.getWidth();
         int h = overlay.getHeight();
+        float labelSizePx = computeLabelSizePx(w, h);
+        float lineWidthPx = Math.max(2.5f, labelSizePx * LINE_TO_LABEL_RATIO);
+        float dotRadiusPx = Math.max(4f, labelSizePx * DOT_TO_LABEL_RATIO);
+        float labelOffsetPx = Math.max(8f, labelSizePx * LABEL_OFFSET_TO_LABEL_RATIO);
 
         WcsProjection wcs = new WcsProjection(result);
 
         // Line paint
         Paint linePaint = new Paint();
         linePaint.setColor(Color.argb(180, 0, 220, 100)); // green, semi-transparent
-        linePaint.setStrokeWidth(3f);
+        linePaint.setStrokeWidth(lineWidthPx);
         linePaint.setAntiAlias(true);
         linePaint.setStyle(Paint.Style.STROKE);
 
         // Label paint
         Paint labelPaint = new Paint();
         labelPaint.setColor(Color.argb(220, 255, 255, 100)); // yellow
-        labelPaint.setTextSize(36f);
+        labelPaint.setTextSize(labelSizePx);
         labelPaint.setAntiAlias(true);
         labelPaint.setTypeface(Typeface.DEFAULT_BOLD);
+        labelPaint.setShadowLayer(Math.max(3f, labelSizePx * 0.08f), 0f, 0f, Color.argb(220, 0, 0, 0));
 
         // Star dot paint
         Paint dotPaint = new Paint();
@@ -163,13 +174,13 @@ public class ConstellationOverlay {
 
                 // Draw small dots at star positions
                 if (p1on) {
-                    canvas.drawCircle((float) p1[0], (float) p1[1], 5f, dotPaint);
+                    canvas.drawCircle((float) p1[0], (float) p1[1], dotRadiusPx, dotPaint);
                     sumX += p1[0];
                     sumY += p1[1];
                     visCount++;
                 }
                 if (p2on) {
-                    canvas.drawCircle((float) p2[0], (float) p2[1], 5f, dotPaint);
+                    canvas.drawCircle((float) p2[0], (float) p2[1], dotRadiusPx, dotPaint);
                     sumX += p2[0];
                     sumY += p2[1];
                     visCount++;
@@ -184,11 +195,16 @@ public class ConstellationOverlay {
                 if (cx >= 0 && cx < w && cy >= 0 && cy < h) {
                     String label = nameMap != null ?
                             nameMap.getOrDefault(c.name, c.name) : c.name;
-                    canvas.drawText(label, cx + 10, cy - 10, labelPaint);
+                    canvas.drawText(label, cx + labelOffsetPx, cy - labelOffsetPx, labelPaint);
                 }
             }
         }
 
         return overlay;
+    }
+
+    private float computeLabelSizePx(int width, int height) {
+        float base = Math.max(width, height) * LABEL_RATIO;
+        return Math.max(MIN_LABEL_PX, Math.min(MAX_LABEL_PX, base));
     }
 }

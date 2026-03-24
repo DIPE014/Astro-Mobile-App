@@ -1,6 +1,8 @@
 package com.astro.app.ui.stacking;
 
 import android.Manifest;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -67,6 +69,10 @@ public class ImageStackingActivity extends AppCompatActivity {
     private static final int MAX_PROCESSING_DIMENSION = 4096;
     private static final String PREFS_NAME = "astro_settings";
     private static final String KEY_HAS_SEEN_CAMERA_TIPS = "has_seen_camera_tips_stacking";
+    private static final String KEY_STACKING_ENABLED = "stacking_mode_enabled";
+    private static final String STATE_STACKING_MODE = "state_stacking_mode";
+    private static final String STATE_SESSION_STACKING_MODE = "state_session_stacking_mode";
+    private static final String STATE_PENDING_INPUT_MODE = "state_pending_input_mode";
 
     // Tooltip tutorial
     private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
@@ -125,6 +131,11 @@ public class ImageStackingActivity extends AppCompatActivity {
     // ---- Camera (native app via TakePicture contract) ----
     private Uri pendingCameraUri;
 
+    // Captured session mode to keep behavior stable even if Activity recreates
+    private Boolean sessionStackingMode = null;
+    private Boolean restoredStackingMode = null;
+    private Boolean pendingInputMode = null;
+
     // ---- Camera launcher ----
     private final ActivityResultLauncher<Uri> cameraLauncher =
         registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
@@ -169,6 +180,16 @@ public class ImageStackingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_stacking);
+
+        if (savedInstanceState != null && savedInstanceState.containsKey(STATE_STACKING_MODE)) {
+            restoredStackingMode = savedInstanceState.getBoolean(STATE_STACKING_MODE);
+        }
+        if (savedInstanceState != null && savedInstanceState.containsKey(STATE_SESSION_STACKING_MODE)) {
+            sessionStackingMode = savedInstanceState.getBoolean(STATE_SESSION_STACKING_MODE);
+        }
+        if (savedInstanceState != null && savedInstanceState.containsKey(STATE_PENDING_INPUT_MODE)) {
+            pendingInputMode = savedInstanceState.getBoolean(STATE_PENDING_INPUT_MODE);
+        }
 
         // Keep screen on
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -216,6 +237,10 @@ public class ImageStackingActivity extends AppCompatActivity {
         tvFrameCount = findViewById(R.id.tvFrameCount);
         tvStatus = findViewById(R.id.tvStatus);
         switchStacking = findViewById(R.id.switchStacking);
+        boolean initialStackingMode = restoredStackingMode != null
+                ? restoredStackingMode
+                : loadStackingModePreference();
+        switchStacking.setChecked(initialStackingMode);
 
         // Thumbnail grid
         thumbnailGrid = findViewById(R.id.thumbnailGrid);
@@ -239,6 +264,11 @@ public class ImageStackingActivity extends AppCompatActivity {
         btnFinish.setEnabled(false);
         tvFrameCount.setText("0 / 1 frames");
         tvStatus.setText("Tap Capture or pick an image.");
+        // No active batch at startup; avoid carrying stale session mode across recreation.
+        if (collectedUris.isEmpty()) {
+            sessionStackingMode = null;
+            pendingInputMode = null;
+        }
 
         updateModeUI();
     }
@@ -256,6 +286,7 @@ public class ImageStackingActivity extends AppCompatActivity {
         btnPickImages.setOnClickListener(v -> openGalleryPicker());
 
         switchStacking.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            saveStackingModePreference(isChecked);
             resetSession();
             updateModeUI();
         });
@@ -267,7 +298,7 @@ public class ImageStackingActivity extends AppCompatActivity {
         });
 
         // Result mode listeners
-        btnNewScan.setOnClickListener(v -> showCaptureMode());
+        btnNewScan.setOnClickListener(v -> startFreshScanSession());
 
         btnSkyQuality.setOnClickListener(v -> showSkyBrightnessDialog());
 
@@ -279,6 +310,16 @@ public class ImageStackingActivity extends AppCompatActivity {
                 resultImageView.setImageBitmap(originalBitmap);
             }
         });
+    }
+
+    private boolean loadStackingModePreference() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        return prefs.getBoolean(KEY_STACKING_ENABLED, false);
+    }
+
+    private void saveStackingModePreference(boolean enabled) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        prefs.edit().putBoolean(KEY_STACKING_ENABLED, enabled).apply();
     }
 
     // =========================================================================
@@ -348,6 +389,11 @@ public class ImageStackingActivity extends AppCompatActivity {
 
         // Reset state
         resetSession();
+        // Pin next batch mode to current toggle after New Scan.
+        if (switchStacking != null) {
+            sessionStackingMode = switchStacking.isChecked();
+            pendingInputMode = sessionStackingMode;
+        }
         updateModeUI();
         updateCollectionUI();
 
@@ -369,6 +415,8 @@ public class ImageStackingActivity extends AppCompatActivity {
         if (thumbnailAdapter != null) thumbnailAdapter.notifyDataSetChanged();
         stackingManager.release();
         stackingManager = new ImageStackingManager();
+        sessionStackingMode = null;
+        pendingInputMode = null;
     }
 
     // =========================================================================
@@ -380,6 +428,20 @@ public class ImageStackingActivity extends AppCompatActivity {
             Toast.makeText(this, "Maximum " + MAX_FRAMES + " images", Toast.LENGTH_SHORT).show();
             return;
         }
+        if (sessionStackingMode == null) {
+            // Freeze mode from the launch action so return-from-camera cannot flip behavior.
+            sessionStackingMode = pendingInputMode != null ? pendingInputMode : switchStacking.isChecked();
+        }
+
+        // Single-image mode must never accumulate a previous frame.
+        if (!sessionStackingMode) {
+            collectedUris.clear();
+            if (thumbnailAdapter != null) {
+                thumbnailAdapter.notifyDataSetChanged();
+            }
+        }
+        pendingInputMode = null;
+
         collectedUris.add(uri);
         thumbnailAdapter.notifyItemInserted(collectedUris.size() - 1);
 
@@ -391,7 +453,7 @@ public class ImageStackingActivity extends AppCompatActivity {
         updateCollectionUI();
 
         // If stacking OFF, auto-trigger processing
-        if (!switchStacking.isChecked()) {
+        if (!isStackingEnabledForSession()) {
             processAllImages();
         }
     }
@@ -406,7 +468,7 @@ public class ImageStackingActivity extends AppCompatActivity {
 
     private void updateCollectionUI() {
         int count = collectedUris.size();
-        boolean stacking = switchStacking.isChecked();
+        boolean stacking = isStackingEnabledForSession();
         tvFrameCount.setText(count + " / " + (stacking ? MAX_FRAMES : 1) + " frames");
 
         if (stacking) {
@@ -431,10 +493,14 @@ public class ImageStackingActivity extends AppCompatActivity {
     // =========================================================================
 
     private void openGalleryPicker() {
+        pendingInputMode = switchStacking.isChecked();
+        if (collectedUris.isEmpty()) {
+            sessionStackingMode = pendingInputMode;
+        }
         PickVisualMediaRequest request = new PickVisualMediaRequest.Builder()
                 .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                 .build();
-        if (switchStacking.isChecked()) {
+        if (isStackingEnabledForSession()) {
             galleryMultiLauncher.launch(request);
         } else {
             gallerySingleLauncher.launch(request);
@@ -487,6 +553,11 @@ public class ImageStackingActivity extends AppCompatActivity {
     // =========================================================================
 
     private void captureFrame() {
+        // Lock mode at the moment capture starts.
+        pendingInputMode = switchStacking.isChecked();
+        if (collectedUris.isEmpty()) {
+            sessionStackingMode = pendingInputMode;
+        }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
@@ -520,7 +591,7 @@ public class ImageStackingActivity extends AppCompatActivity {
         tvStatus.setText("Processing " + collectedUris.size() + " image(s)...");
 
         final List<Uri> uris = new ArrayList<>(collectedUris);
-        final boolean stacking = switchStacking.isChecked();
+        final boolean stacking = isStackingEnabledForSession();
         isCancelled = false;
 
         backgroundExecutor.execute(() -> {
@@ -786,6 +857,22 @@ public class ImageStackingActivity extends AppCompatActivity {
         progressIndicator.setVisibility(show ? View.VISIBLE : View.GONE);
     }
 
+    private void startFreshScanSession() {
+        Intent intent = new Intent(this, ImageStackingActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+        startActivity(intent);
+        finish();
+        overridePendingTransition(0, 0);
+    }
+
+    private boolean isStackingEnabledForSession() {
+        // Hard safety rule: user-facing toggle OFF must always force single-image mode.
+        if (switchStacking == null || !switchStacking.isChecked()) {
+            return false;
+        }
+        return sessionStackingMode != null ? sessionStackingMode : true;
+    }
+
     // =========================================================================
     // Back button
     // =========================================================================
@@ -899,6 +986,20 @@ public class ImageStackingActivity extends AppCompatActivity {
 
         if (tooltipManager != null) {
             tooltipManager.dismiss();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (switchStacking != null) {
+            outState.putBoolean(STATE_STACKING_MODE, switchStacking.isChecked());
+        }
+        if (sessionStackingMode != null) {
+            outState.putBoolean(STATE_SESSION_STACKING_MODE, sessionStackingMode);
+        }
+        if (pendingInputMode != null) {
+            outState.putBoolean(STATE_PENDING_INPUT_MODE, pendingInputMode);
         }
     }
 
