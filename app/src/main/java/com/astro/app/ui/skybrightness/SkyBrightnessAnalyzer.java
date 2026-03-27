@@ -13,7 +13,9 @@ import com.astro.app.native_.AstrometryNative;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Analyses a sky photograph to estimate sky surface brightness and Bortle class.
@@ -56,9 +58,9 @@ public class SkyBrightnessAnalyzer {
     /** Exclusion radius around detected stars for background measurement. */
     private static final int STAR_MASK_RADIUS = 10;
     /** Maximum catalogue magnitude for zero-point calibration. */
-    private static final double MAX_CAT_MAG = 6.0;
-    /** Matching tolerance in degrees for catalogue cross-match. */
-    private static final double MATCH_TOLERANCE_DEG = 0.15;
+    private static final double MAX_CAT_MAG = 4.0;
+    /** Pixel value threshold above which a star is considered saturated (0–1 linear). */
+    private static final float SATURATION_THRESHOLD = 0.97f;
     /** Residual scatter threshold for cloud warning (magnitudes). */
     private static final double CLOUD_SCATTER_THRESHOLD = 0.5;
     /** Minimum calibration stars required for a reliable zero-point. */
@@ -110,8 +112,10 @@ public class SkyBrightnessAnalyzer {
                 BrightStarCatalogue.findStarsInField(crvalRA, crvalDec, fieldRadiusDeg * 1.2);
 
         // --- Step 3: Match detected stars ↔ catalogue ---
+        // Adaptive tolerance: 3 pixels at the image's pixel scale
+        double matchTolDeg = 3.0 * pixelScale / 3600.0;
         List<double[]> matches = new ArrayList<>();  // {m_cat, m_instr}
-        double matchTolDeg = MATCH_TOLERANCE_DEG;
+        Set<String> usedCatKeys = new HashSet<>();
 
         for (AstrometryNative.NativeStar det : detectedStars) {
             // Pixel → intermediate world coordinates (TAN projection)
@@ -125,15 +129,19 @@ public class SkyBrightnessAnalyzer {
             double starRA = raDec[0];
             double starDec = raDec[1];
 
-            // Find nearest catalogue match
+            // Find nearest unmatched catalogue star within adaptive tolerance
             BrightStarCatalogue.CatStar bestMatch = null;
+            String bestKey = null;
             double bestSep = matchTolDeg;
             for (BrightStarCatalogue.CatStar cat : catStars) {
                 if (cat.vmag > MAX_CAT_MAG) continue;
+                String key = cat.ra + "," + cat.dec;
+                if (usedCatKeys.contains(key)) continue;  // already claimed
                 double sep = angularSeparation(starRA, starDec, cat.ra, cat.dec);
                 if (sep < bestSep) {
                     bestSep = sep;
                     bestMatch = cat;
+                    bestKey = key;
                 }
             }
 
@@ -144,6 +152,7 @@ public class SkyBrightnessAnalyzer {
                 if (instrFlux > 0) {
                     double mInstr = -2.5 * Math.log10(instrFlux);
                     matches.add(new double[]{bestMatch.vmag, mInstr});
+                    usedCatKeys.add(bestKey);
                 }
             }
         }
@@ -151,30 +160,53 @@ public class SkyBrightnessAnalyzer {
         Log.d(TAG, "Catalogue matches: " + matches.size() + " / " + catStars.size()
                 + " catalogue stars in field");
 
-        // --- Step 4: Compute zero-point ---
+        // --- Step 4: Iterative 2σ sigma-clipped zero-point ---
         if (matches.size() < MIN_CALIBRATION_STARS) {
             Log.w(TAG, "Too few calibration stars (" + matches.size()
                     + "), falling back to EXIF path");
             return analyze(bitmap, exif);
         }
 
-        double[] zpResiduals = new double[matches.size()];
-        double zpSum = 0;
+        double[] zpVals = new double[matches.size()];
         for (int i = 0; i < matches.size(); i++) {
-            double zp_i = matches.get(i)[0] - matches.get(i)[1];  // m_cat - m_instr
-            zpResiduals[i] = zp_i;
-            zpSum += zp_i;
+            zpVals[i] = matches.get(i)[0] - matches.get(i)[1];  // m_cat - m_instr
         }
-        double zeroPoint = zpSum / matches.size();
+        boolean[] accepted = new boolean[zpVals.length];
+        Arrays.fill(accepted, true);
+        double zeroPoint = 0;
+        for (int iter = 0; iter < 3; iter++) {
+            double sum = 0; int n = 0;
+            for (int i = 0; i < zpVals.length; i++) {
+                if (accepted[i]) { sum += zpVals[i]; n++; }
+            }
+            if (n == 0) break;
+            zeroPoint = sum / n;
+            double sq = 0;
+            for (int i = 0; i < zpVals.length; i++) {
+                if (accepted[i]) { double d = zpVals[i] - zeroPoint; sq += d * d; }
+            }
+            double sigma = Math.sqrt(sq / Math.max(1, n - 1));
+            boolean changed = false;
+            for (int i = 0; i < zpVals.length; i++) {
+                if (accepted[i] && Math.abs(zpVals[i] - zeroPoint) > 2.0 * sigma) {
+                    accepted[i] = false; changed = true;
+                }
+            }
+            if (!changed) break;
+        }
+        int finalMatchCount = 0;
+        for (boolean a : accepted) if (a) finalMatchCount++;
+        if (finalMatchCount < MIN_CALIBRATION_STARS) {
+            Log.w(TAG, "Too few stars after sigma-clipping, falling back");
+            return analyze(bitmap, exif);
+        }
 
-        // --- Step 5: Cloud detection via residual scatter ---
+        // --- Step 5: Cloud detection from clipped residual scatter ---
         double residualSumSq = 0;
-        for (double r : zpResiduals) {
-            double diff = r - zeroPoint;
-            residualSumSq += diff * diff;
+        for (int i = 0; i < zpVals.length; i++) {
+            if (accepted[i]) { double d = zpVals[i] - zeroPoint; residualSumSq += d * d; }
         }
-        // Sample std deviation (÷N-1) for unbiased estimate with few calibration stars
-        double residualStd = Math.sqrt(residualSumSq / Math.max(1, matches.size() - 1));
+        double residualStd = Math.sqrt(residualSumSq / Math.max(1, finalMatchCount - 1));
         boolean cloudWarning = residualStd > CLOUD_SCATTER_THRESHOLD;
         if (cloudWarning) {
             Log.w(TAG, "Cloud warning: ZP residual σ = " + residualStd);
@@ -201,7 +233,7 @@ public class SkyBrightnessAnalyzer {
         Log.d(TAG, String.format("Calibrated: ZP=%.2f, skyFlux=%.4f, pixScale=%.2f\"/px, "
                         + "SB=%.2f mag/arcsec², σ=%.3f, stars=%d",
                 zeroPoint, skyFlux, pixelScale, surfaceBrightness,
-                residualStd, matches.size()));
+                residualStd, finalMatchCount));
 
         // --- Step 10: Bortle class from mag/arcsec² ---
         int bortleClass = bortleFromSurfaceBrightness(surfaceBrightness);
@@ -224,7 +256,7 @@ public class SkyBrightnessAnalyzer {
         return SkyBrightnessResult.createCalibrated(
                 bortleClass, surfaceBrightness, medianPixel,
                 iso, exposureTime, fNumber, hasExif,
-                matches.size(), zeroPoint, cloudWarning);
+                finalMatchCount, zeroPoint, cloudWarning);
     }
 
     /**
@@ -458,7 +490,8 @@ public class SkyBrightnessAnalyzer {
 
         double apertureSum = 0;
         int apertureCount = 0;
-        double annulusSum = 0;
+        float[] annulusVals = new float[
+                (2 * SKY_ANNULUS_OUTER + 1) * (2 * SKY_ANNULUS_OUTER + 1)];
         int annulusCount = 0;
 
         int outerR = SKY_ANNULUS_OUTER;
@@ -468,23 +501,24 @@ public class SkyBrightnessAnalyzer {
                 int py = icy + dy;
                 if (px < 0 || px >= w || py < 0 || py >= h) continue;
 
-                double r2 = dx * dx + dy * dy;
-                double r = Math.sqrt(r2);
+                double r = Math.sqrt(dx * dx + dy * dy);
                 float val = gray[py * w + px];
 
                 if (r <= APERTURE_RADIUS) {
+                    if (val >= SATURATION_THRESHOLD) return -1;  // saturated — reject star
                     apertureSum += val;
                     apertureCount++;
                 } else if (r >= SKY_ANNULUS_INNER && r <= SKY_ANNULUS_OUTER) {
-                    annulusSum += val;
-                    annulusCount++;
+                    annulusVals[annulusCount++] = val;
                 }
             }
         }
 
         if (apertureCount == 0 || annulusCount == 0) return 0;
 
-        double skyPerPixel = annulusSum / annulusCount;
+        // Median sky — robust against a neighbouring star landing in the annulus
+        Arrays.sort(annulusVals, 0, annulusCount);
+        double skyPerPixel = annulusVals[annulusCount / 2];
         double netFlux = apertureSum - skyPerPixel * apertureCount;
         return Math.max(netFlux, 0);
     }
