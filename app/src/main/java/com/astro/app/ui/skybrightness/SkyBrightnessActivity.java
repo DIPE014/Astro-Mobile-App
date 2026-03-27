@@ -37,6 +37,10 @@ import java.util.concurrent.Executors;
 /**
  * Activity that lets the user take or pick a sky photo and estimates
  * the Bortle dark-sky class from image brightness and EXIF metadata.
+ *
+ * <p>When used standalone (without plate solving), uses the EXIF or raw
+ * fallback paths. When launched from PlateSolveActivity with WCS data,
+ * uses the calibrated path with star-based zero-point.</p>
  */
 public class SkyBrightnessActivity extends AppCompatActivity {
 
@@ -60,6 +64,11 @@ public class SkyBrightnessActivity extends AppCompatActivity {
     private TextView tvIso;
     private TextView tvExposureTime;
     private TextView tvFNumber;
+
+    private MaterialCardView cardSurfaceBrightness;
+    private TextView tvSurfaceBrightness;
+    private TextView tvCalibrationInfo;
+    private TextView tvCloudWarning;
 
     private TextView tvNormalizedBrightness;
 
@@ -145,6 +154,11 @@ public class SkyBrightnessActivity extends AppCompatActivity {
         tvExposureTime = findViewById(R.id.tvExposureTime);
         tvFNumber = findViewById(R.id.tvFNumber);
 
+        cardSurfaceBrightness = findViewById(R.id.cardSurfaceBrightness);
+        tvSurfaceBrightness = findViewById(R.id.tvSurfaceBrightness);
+        tvCalibrationInfo = findViewById(R.id.tvCalibrationInfo);
+        tvCloudWarning = findViewById(R.id.tvCloudWarning);
+
         tvNormalizedBrightness = findViewById(R.id.tvNormalizedBrightness);
 
         cardTip = findViewById(R.id.cardTip);
@@ -218,7 +232,7 @@ public class SkyBrightnessActivity extends AppCompatActivity {
                 // Extract EXIF
                 ExifInterface exif = loadExif(uri);
 
-                // Analyze
+                // Analyze (standalone mode — EXIF or raw fallback)
                 SkyBrightnessResult result = SkyBrightnessAnalyzer.analyze(bitmap, exif);
 
                 // Show on UI thread
@@ -309,19 +323,37 @@ public class SkyBrightnessActivity extends AppCompatActivity {
             cardExif.setVisibility(View.GONE);
         }
 
-        // Normalized brightness
-        String brightnessText;
-        if (result.hasExifData()) {
-            brightnessText = String.format(Locale.US,
-                    "Normalized brightness: %.6f  |  Median pixel: %.0f",
-                    result.getNormalizedBrightness(), result.getMedianPixelValue());
+        // Surface brightness (calibrated path)
+        if (result.hasCalibration()) {
+            tvSurfaceBrightness.setText(String.format(Locale.US,
+                    "%.2f mag/arcsec\u00B2", result.getSurfaceBrightness()));
+            tvCalibrationInfo.setText(String.format(Locale.US,
+                    "Calibrated from %d reference stars (ZP = %.2f)",
+                    result.getCalibrationStarCount(), result.getZeroPoint()));
+            if (result.hasCloudWarning()) {
+                tvCloudWarning.setText("Possible cloud or haze detected — result may be less accurate");
+                tvCloudWarning.setVisibility(View.VISIBLE);
+            } else {
+                tvCloudWarning.setVisibility(View.GONE);
+            }
+            cardSurfaceBrightness.setVisibility(View.VISIBLE);
+            tvNormalizedBrightness.setVisibility(View.GONE);
         } else {
-            brightnessText = String.format(Locale.US,
-                    "Median pixel: %.0f / 255  (no EXIF data -- estimate less accurate)",
-                    result.getMedianPixelValue());
+            cardSurfaceBrightness.setVisibility(View.GONE);
+            // Show fallback info
+            String brightnessText;
+            if (result.hasExifData()) {
+                brightnessText = String.format(Locale.US,
+                        "EV-normalised brightness: %.2e  |  Median pixel: %.0f",
+                        result.getNormalizedBrightness(), result.getMedianPixelValue());
+            } else {
+                brightnessText = String.format(Locale.US,
+                        "Median pixel: %.0f / 255  (no EXIF — estimate less accurate)",
+                        result.getMedianPixelValue());
+            }
+            tvNormalizedBrightness.setText(brightnessText);
+            tvNormalizedBrightness.setVisibility(View.VISIBLE);
         }
-        tvNormalizedBrightness.setText(brightnessText);
-        tvNormalizedBrightness.setVisibility(View.VISIBLE);
 
         // Tip
         tvTip.setText(result.getTip());
@@ -335,6 +367,7 @@ public class SkyBrightnessActivity extends AppCompatActivity {
         cardResult.setVisibility(View.GONE);
         bortleGauge.setVisibility(View.GONE);
         cardExif.setVisibility(View.GONE);
+        cardSurfaceBrightness.setVisibility(View.GONE);
         tvNormalizedBrightness.setVisibility(View.GONE);
         cardTip.setVisibility(View.GONE);
         tvDisclaimer.setVisibility(View.GONE);
@@ -352,12 +385,13 @@ public class SkyBrightnessActivity extends AppCompatActivity {
 
     /**
      * Returns a colour for the Bortle number text:
-     * green for 1-3, yellow for 4-5, orange for 6-7, red for 8-9.
+     * dark green 1-2, green 3, olive 4-5, amber 6-7, red 8-9.
      */
     private static int bortleColor(int bortle) {
+        if (bortle <= 2) return 0xFF2E7D32; // dark green
         if (bortle <= 3) return 0xFF4CAF50; // green
-        if (bortle <= 5) return 0xFFFFEB3B; // yellow
-        if (bortle <= 7) return 0xFFFF9800; // orange
+        if (bortle <= 5) return 0xFF9E9D24; // olive
+        if (bortle <= 7) return 0xFFFF9800; // amber
         return 0xFFF44336;                  // red
     }
 

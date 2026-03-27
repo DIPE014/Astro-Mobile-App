@@ -273,7 +273,63 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Normalized brightness -->
+            <!-- Surface brightness (calibrated) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSurfaceBrightness"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:visibility="gone"
+                app:cardCornerRadius="@dimen/corner_radius_medium"
+                app:cardBackgroundColor="@color/card_background"
+                app:cardElevation="@dimen/elevation_small">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/padding_medium"
+                    android:gravity="center_horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sky Surface Brightness"
+                        android:textColor="@color/text_primary"
+                        android:textSize="@dimen/text_size_medium"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvSurfaceBrightness"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/text_size_display_small"
+                        android:textStyle="bold"
+                        android:textColor="@color/md_theme_dark_primary"
+                        android:layout_marginTop="@dimen/margin_extra_small" />
+
+                    <TextView
+                        android:id="@+id/tvCalibrationInfo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/text_size_small"
+                        android:textColor="@color/text_tertiary"
+                        android:layout_marginTop="@dimen/margin_extra_small" />
+
+                    <TextView
+                        android:id="@+id/tvCloudWarning"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="@dimen/text_size_small"
+                        android:textColor="#FFFF9800"
+                        android:layout_marginTop="@dimen/margin_extra_small"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Normalized brightness (fallback display) -->
             <TextView
                 android:id="@+id/tvNormalizedBrightness"
                 android:layout_width="match_parent"
