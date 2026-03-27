@@ -173,7 +173,8 @@ public class SkyBrightnessAnalyzer {
             double diff = r - zeroPoint;
             residualSumSq += diff * diff;
         }
-        double residualStd = Math.sqrt(residualSumSq / matches.size());
+        // Sample std deviation (÷N-1) for unbiased estimate with few calibration stars
+        double residualStd = Math.sqrt(residualSumSq / Math.max(1, matches.size() - 1));
         boolean cloudWarning = residualStd > CLOUD_SCATTER_THRESHOLD;
         if (cloudWarning) {
             Log.w(TAG, "Cloud warning: ZP residual σ = " + residualStd);
@@ -422,9 +423,11 @@ public class SkyBrightnessAnalyzer {
 
         double denom = Math.cos(dec0) - eta * Math.sin(dec0);
         double ra = ra0 + Math.atan2(xi, denom);
+        // Use sqrt(xi²+denom²) in denominator — always positive, avoids circular
+        // dependency on ra and handles denom < 0 correctly (near-pole sources).
         double dec = Math.atan2(
-                (eta * Math.cos(dec0) + Math.sin(dec0)) * Math.cos(ra - ra0),
-                denom);
+                eta * Math.cos(dec0) + Math.sin(dec0),
+                Math.sqrt(xi * xi + denom * denom));
 
         return new double[]{Math.toDegrees(ra), Math.toDegrees(dec)};
     }
@@ -611,10 +614,14 @@ public class SkyBrightnessAnalyzer {
         for (int i = 0; i < sorted.length; i++) sorted[i] = bgPixels.get(i);
         Arrays.sort(sorted);
 
-        double median = sorted[sorted.length / 2];
+        int mid = sorted.length / 2;
+        double median = (sorted.length % 2 == 0)
+                ? (sorted[mid - 1] + sorted[mid]) / 2.0
+                : sorted[mid];
         double mean = sum / sorted.length;
         double mode = 3.0 * median - 2.0 * mean;
-        return Math.max(mode, 0);
+        // Clamp to median (not 0) so we never return a physically meaningless flux
+        return Math.max(mode, median);
     }
 
     // =================================================================
