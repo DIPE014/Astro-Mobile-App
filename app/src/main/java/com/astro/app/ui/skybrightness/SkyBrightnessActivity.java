@@ -302,7 +302,11 @@ public class SkyBrightnessActivity extends AppCompatActivity {
     private void displayResult(@NonNull SkyBrightnessResult result) {
         // Bortle number with colour
         int bortle = result.getBortleClass();
-        tvBortleNumber.setText(String.valueOf(bortle));
+        String bortleString = String.valueOf(bortle);
+        if(bortleString.equals("8")){
+            bortleString = "8-9";
+        }
+        tvBortleNumber.setText(bortleString);
         tvBortleNumber.setTextColor(bortleColor(bortle));
 
         tvBortleLabel.setText(result.getLabel());

@@ -318,7 +318,7 @@ public class SkyBrightnessAnalyzer {
         }
 
         if (iso > 0 && exposureTime > 0.0 && fNumber > 0.0) {
-            // --- EXIF path: proper EV normalisation (report §9.6) ---
+            // --- EXIF path: proper EV normalisation ---
             // Linearise (undo sRGB gamma)
             double modeNorm = mode / 255.0;
             double linearMode = srgbToLinear(modeNorm);
@@ -357,18 +357,17 @@ public class SkyBrightnessAnalyzer {
 
     /**
      * Maps calibrated surface brightness (mag/arcsec²) to Bortle class.
-     * Thresholds from Bortle (2001) refined by Cinzano et al.
+     * From Bortle J. 
      */
     static int bortleFromSurfaceBrightness(double sb) {
-        if (sb >= 21.99) return 1;
-        if (sb >= 21.89) return 2;
-        if (sb >= 21.69) return 3;
-        if (sb >= 21.25) return 4;
-        if (sb >= 20.49) return 5;
-        if (sb >= 19.50) return 6;
-        if (sb >= 18.94) return 7;
-        if (sb >= 18.38) return 8;
-        return 9;
+        if (sb >= 21.75) return 1;  // excellent dark-sky site
+        if (sb >= 21.60) return 2;  // typical a truly dark site
+        if (sb >= 21.30) return 3;  // rural sky
+        if (sb >= 20.30) return 4;  // brighter rural/suburban transition sky
+        if (sb >= 19.25) return 5;  // suburban sky
+        if (sb >= 18.50) return 6;  // bright suburban sky
+        if (sb >= 18.00) return 7;  // suburban/urban transition
+        return 8;   // 8 - city sky or 9 - inner-city sky
     }
 
     /**
