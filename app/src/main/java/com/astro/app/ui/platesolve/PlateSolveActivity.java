@@ -64,6 +64,8 @@ public class PlateSolveActivity extends AppCompatActivity {
     private Uri cameraPhotoUri;
     private SkyBrightnessResult skyResult;
     private Button btnSkyQuality;
+    private AstrometryNative.SolveResult lastSolveResult;
+    private java.util.List<AstrometryNative.NativeStar> lastDetectedStars;
 
     // Gallery picker
     private final ActivityResultLauncher<Intent> imagePickerLauncher =
@@ -187,6 +189,8 @@ public class PlateSolveActivity extends AppCompatActivity {
                 imageView.setImageBitmap(originalBitmap);
                 overlayBitmap = null;
                 skyResult = null;
+                lastSolveResult = null;
+                lastDetectedStars = null;
                 if (cbShowStars != null) {
                     cbShowStars.setChecked(false);
                     cbShowStars.setEnabled(false);
@@ -221,6 +225,10 @@ public class PlateSolveActivity extends AppCompatActivity {
         showStatus("Detecting constellations...");
 
         executor.execute(() -> {
+            // Detect stars first so we can store them for sky brightness
+            java.util.List<AstrometryNative.NativeStar> stars = solver.detectStars(originalBitmap);
+            lastDetectedStars = stars;
+
             solver.solve(originalBitmap, new NativePlateSolver.SolveCallback() {
                 @Override
                 public void onProgress(String message) {
@@ -229,6 +237,7 @@ public class PlateSolveActivity extends AppCompatActivity {
 
                 @Override
                 public void onSuccess(AstrometryNative.SolveResult result) {
+                    lastSolveResult = result;
                     overlayBitmap = constellationOverlay.drawOverlay(originalBitmap, result);
 
                     runOnUiThread(() -> {
@@ -243,6 +252,9 @@ public class PlateSolveActivity extends AppCompatActivity {
                             cbShowStars.setChecked(true);
                         }
                     });
+
+                    // Re-analyse sky brightness with calibrated path
+                    reanalyzeSkyBrightnessCalibrated();
                 }
 
                 @Override
@@ -282,8 +294,36 @@ public class PlateSolveActivity extends AppCompatActivity {
             } catch (Exception e) {
                 Log.w(TAG, "Could not read EXIF for sky analysis", e);
             }
-            SkyBrightnessResult result = SkyBrightnessAnalyzer.analyze(bitmapSnapshot, exif);
+            // Use calibrated path if plate solve succeeded
+            SkyBrightnessResult result;
+            if (lastSolveResult != null && lastSolveResult.solved
+                    && lastDetectedStars != null && !lastDetectedStars.isEmpty()) {
+                result = SkyBrightnessAnalyzer.analyze(
+                        bitmapSnapshot, exif, lastSolveResult, lastDetectedStars);
+            } else {
+                result = SkyBrightnessAnalyzer.analyze(bitmapSnapshot, exif);
+            }
             skyResult = result;
+            runOnUiThread(() -> {
+                if (btnSkyQuality != null) {
+                    btnSkyQuality.setVisibility(View.VISIBLE);
+                }
+            });
+        });
+    }
+
+    /**
+     * Re-runs sky brightness analysis using the calibrated path (WCS + detected stars).
+     * Called after plate solve succeeds.
+     */
+    private void reanalyzeSkyBrightnessCalibrated() {
+        if (originalBitmap == null || lastSolveResult == null || lastDetectedStars == null) return;
+        Bitmap bitmapSnapshot = originalBitmap;
+        executor.execute(() -> {
+            SkyBrightnessResult result = SkyBrightnessAnalyzer.analyze(
+                    bitmapSnapshot, null, lastSolveResult, lastDetectedStars);
+            skyResult = result;
+            Log.i(TAG, "Calibrated sky brightness: " + result);
             runOnUiThread(() -> {
                 if (btnSkyQuality != null) {
                     btnSkyQuality.setVisibility(View.VISIBLE);
@@ -307,7 +347,18 @@ public class PlateSolveActivity extends AppCompatActivity {
         tvBortleNumber.setText(String.valueOf(bortle));
         tvBortleNumber.setTextColor(bortleColor(bortle));
         tvBortleLabel.setText(skyResult.getLabel());
-        tvDescription.setText(skyResult.getDescription());
+
+        // Show calibrated surface brightness if available
+        if (skyResult.hasCalibration()) {
+            String desc = String.format(java.util.Locale.US,
+                    "%s\n%.2f mag/arcsec\u00B2 (%d cal. stars)",
+                    skyResult.getDescription(),
+                    skyResult.getSurfaceBrightness(),
+                    skyResult.getCalibrationStarCount());
+            tvDescription.setText(desc);
+        } else {
+            tvDescription.setText(skyResult.getDescription());
+        }
         bortleGauge.setBortleClass(bortle);
 
         AlertDialog dialog = new AlertDialog.Builder(this, R.style.Theme_AstroApp_AlertDialog)
