@@ -19,6 +19,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -227,6 +228,7 @@ public class SkyMapActivity extends AppCompatActivity {
     private static final float DEFAULT_LATITUDE = 40.7128f;
     private static final float DEFAULT_LONGITUDE = -74.0060f;
 
+    private boolean isMenuExpanded = true;
     // Permission launcher
     private final ActivityResultLauncher<String> cameraPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -252,6 +254,25 @@ public class SkyMapActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_sky_map);
 
+        // Initialize the views
+        ImageButton toggleArrow = findViewById(R.id.btnToggleMenu);
+        MaterialCardView bottomControls = findViewById(R.id.bottomControls);
+
+        // Set the click listener
+        toggleArrow.setOnClickListener(v -> {
+            if (bottomControls.getVisibility() == View.VISIBLE) {
+                // COLLAPSE: Hide the card and reset the arrow
+                bottomControls.setVisibility(View.GONE);
+                toggleArrow.animate().rotation(180f).setDuration(300).start();
+                isMenuExpanded = false;
+            } else {
+                // EXPAND: Show the card and flip the arrow
+                bottomControls.setVisibility(View.VISIBLE);
+                toggleArrow.animate().rotation(0f).setDuration(300).start();
+                isMenuExpanded = true;
+            }
+        });
+
         // Apply night mode if enabled
         NightModeManager.getInstance(this).applyToActivity(this);
 
@@ -275,6 +296,8 @@ public class SkyMapActivity extends AppCompatActivity {
         } else {
             requestPermissions();
         }
+
+
     }
 
     /**
