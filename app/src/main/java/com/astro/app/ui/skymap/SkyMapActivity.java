@@ -31,13 +31,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.motion.widget.MotionLayout;
 import androidx.camera.view.PreviewView;
-import androidx.constraintlayout.utils.widget.ImageFilterButton;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.transition.TransitionManager;
 
 import com.astro.app.AstroApplication;
 import com.astro.app.R;
@@ -262,61 +258,20 @@ public class SkyMapActivity extends AppCompatActivity {
         ImageButton toggleArrow = findViewById(R.id.btnToggleMenu);
         MaterialCardView bottomControls = findViewById(R.id.bottomControls);
 
-// Set the click listener
+        // Set the click listener
         toggleArrow.setOnClickListener(v -> {
             if (bottomControls.getVisibility() == View.VISIBLE) {
                 // COLLAPSE: Hide the card and reset the arrow
                 bottomControls.setVisibility(View.GONE);
                 toggleArrow.animate().rotation(180f).setDuration(300).start();
+                isMenuExpanded = false;
             } else {
                 // EXPAND: Show the card and flip the arrow
                 bottomControls.setVisibility(View.VISIBLE);
                 toggleArrow.animate().rotation(0f).setDuration(300).start();
+                isMenuExpanded = true;
             }
         });
-
-//        View bottomControls = findViewById(R.id.bottomControls);
-//        ImageButton toggleArrow = findViewById(R.id.btnToggleMenu);
-//        ConstraintLayout rootLayout = findViewById(R.id.rootLayout);
-//        ImageFilterButton fabMain = findViewById(R.id.fabMain);
-
-//        toggleArrow.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                isMenuExpanded = !isMenuExpanded; // Flip the state
-//
-//                // This line enables a smooth animation for the constraint changes
-//                TransitionManager.beginDelayedTransition(rootLayout);
-//
-//                if (isMenuExpanded) {
-//                    // --- APPLY EXPANDED CONSTRAINTS ---
-//                    fabMain.animate().alpha(0f).setDuration(200).withEndAction(() -> {
-//                        fabMain.setVisibility(View.INVISIBLE);
-//                    }).start();
-//                    bottomControls.setVisibility(View.VISIBLE);
-//                    toggleArrow.setRotation(180f); // Point arrow down
-//
-//                    ConstraintSet constraintSet = new ConstraintSet();
-//                    constraintSet.clone(rootLayout); // Copy current constraints
-//
-//                    constraintSet.applyTo(rootLayout);
-//
-//                } else {
-//                    fabMain.animate().alpha(1f).setDuration(100).withEndAction(() -> {
-//                        fabMain.setVisibility(View.VISIBLE);
-//                    }).start();
-//                    bottomControls.setVisibility(View.GONE);
-//                    toggleArrow.setRotation(0f); // Point arrow up
-//
-//                    ConstraintSet constraintSet = new ConstraintSet();
-//                    constraintSet.clone(rootLayout); // Copy current constraints
-//
-//                    constraintSet.applyTo(rootLayout);
-//                }
-//            }
-//        });
-
-//        // Diagnostic toast to verify activity is running (Commented out by Iz for new intro splash screen)
 
         // Apply night mode if enabled
         NightModeManager.getInstance(this).applyToActivity(this);

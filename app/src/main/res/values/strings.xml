@@ -483,6 +483,7 @@
     <string name="example_capture_cd">Example night sky capture showing the Orion region</string>
     <string name="example_capture_caption">Orion region captured with a phone camera. Aim for a similar field of view with visible stars.</string>
     <string name="example_capture_close">Close</string>
+    <string name="cd_toggle_bottom_controls">Toggle bottom controls</string>
 </resources>
 
 
