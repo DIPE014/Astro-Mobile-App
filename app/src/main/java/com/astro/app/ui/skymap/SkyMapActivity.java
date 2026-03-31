@@ -267,11 +267,11 @@ public class SkyMapActivity extends AppCompatActivity {
             if (bottomControls.getVisibility() == View.VISIBLE) {
                 // COLLAPSE: Hide the card and reset the arrow
                 bottomControls.setVisibility(View.GONE);
-                toggleArrow.animate().rotation(0f).setDuration(300).start();
+                toggleArrow.animate().rotation(180f).setDuration(300).start();
             } else {
                 // EXPAND: Show the card and flip the arrow
                 bottomControls.setVisibility(View.VISIBLE);
-                toggleArrow.animate().rotation(180f).setDuration(300).start();
+                toggleArrow.animate().rotation(0f).setDuration(300).start();
             }
         });
 
