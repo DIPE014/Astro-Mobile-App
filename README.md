@@ -145,16 +145,24 @@ An AI astronomy assistant powered by the OpenAI Chat Completions API, accessible
 
 ### 7. Sky Brightness Meter
 
-Estimates light pollution at your observing site from a sky photograph.
+Estimates light pollution at your observing site from a sky photograph, using calibrated photometry when plate-solve data is available.
 
-- Load any sky photo in the Plate Solve screen and tap **Sky Quality**
-- Two-pass analysis:
-  - **EXIF metadata** — reads ISO, shutter speed, and aperture to normalise for exposure
-  - **Pixel luminance statistics** — mean brightness, highlight clipping fraction, sky-region sampling
-- Classifies the result on the **Bortle dark-sky scale** (class 1 = pristine dark sky, class 9 = inner-city sky glow)
-- `BortleScaleView` renders a colour-coded 1–9 gauge (green through red) with an animated needle indicating your class
-- Result displayed with class number, label (e.g., "Class 4 — Rural/Suburban Transition"), and descriptive text
-- Result is cached per loaded image — reopening the dialog is instant
+**Calibrated path** (when plate-solve WCS is available):
+- Matches detected stars against an embedded catalogue of ~200 reference stars (V < 3.5 mag, Hipparcos J2000)
+- **Aperture photometry** — r = 5 px flux sum per calibration star with sky annulus background subtraction
+- **Background** estimated via the robust mode estimator `3×median − 2×mean`; calibration stars are masked (10 px radius) to avoid contamination
+- **Radial vignetting correction** — edge/centre background ratio model removes lens falloff before computing surface brightness
+- **Cloud/haze detection** — flags the result if zero-point residual scatter across calibration stars exceeds σ = 0.5 mag
+- **Output**: calibrated sky surface brightness in mag/arcsec² with photometric zero-point and calibration star count
+
+**Fallback path** (no plate-solve data):
+- **EXIF metadata** — reads ISO, shutter speed, and aperture; computes exposure value using the correct formula `EV = log₂(N²/t) + log₂(ISO/100)`
+- **Pixel luminance** — uses proper sRGB → linear conversion (IEC 61966-2-1 piecewise) before computing mean brightness
+
+**Classification:**
+- Bortle dark-sky class (1 = pristine dark sky, class 9 = inner-city sky glow) derived from standard mag/arcsec² thresholds (Bortle 2001)
+- `BortleScaleView` renders a colour-coded 1–9 gauge with an animated needle
+- Result displayed with class number, label, descriptive text, and calibration metadata
 
 ---
 
@@ -440,6 +448,7 @@ cmd.exe /c "cd /d D:\path\to\Astro-Mobile-App && gradlew.bat assembleDebug"
 3. Tap any object to open its information panel
 4. Pinch to zoom in (narrow FOV) or out (wide FOV)
 5. Tap the bottom bar toggles to show or hide constellation lines, planets, the coordinate grid, and deep sky objects
+6. Tap the **arrow button** above the bottom bar to collapse the controls panel for a cleaner view; tap again to expand
 
 ### FAB Menu
 
@@ -585,6 +594,8 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete week-by-week history.
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| Week 11 | 2026-04-01 | Collapsible bottom controls panel with animated toggle, accessibility improvements |
+| Week 10 | 2026-03-28 | Calibrated sky brightness (aperture photometry, mag/arcsec², cloud detection), Settings UX overhaul, NightModeManager |
 | Week 9 | 2026-03-17 | Onboarding overhaul, 9 sky map tooltips, draggable FAB, adaptive star detection, 18 bug fixes |
 | Week 8 | 2026-03-12 | Starfield splash, image stacking pipeline, radial FAB menu, constellation boundaries, 12-page onboarding |
 | Week 7 | 2026-02-23 | AstroBot AI chat, sky brightness meter, planet trajectory lock-on, 3D compass tilt |

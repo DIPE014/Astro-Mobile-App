@@ -7,7 +7,80 @@ Releases are grouped by weekly sprint. Most recent release appears first.
 
 ---
 
-## [Week 9] — 2026-03-17
+## [Week 11] — 2026-04-01
+
+### Summary
+Sky map UX improvement: collapsible bottom controls panel with animated toggle arrow, giving users a cleaner viewing area when controls are not needed. Accessibility improvements including content description and minimum touch target sizing.
+
+---
+
+### Added
+
+#### Collapsible Bottom Controls Panel
+- **Toggle button** (`btnToggleMenu`) above the bottom controls bar — tap to collapse or expand the panel
+- **Animated arrow icon** rotates 180° on collapse/expand via `View.animate()` with a 300 ms duration and `AccelerateDecelerateInterpolator`
+- **`ic_dropdown_menu` vector drawable** — 40dp circle icon with a downward chevron; provided as both `anydpi` vector and density-specific PNGs (mdpi, hdpi, xhdpi, xxhdpi)
+- **Accessibility**: `contentDescription` on the toggle button (`cd_toggle_bottom_controls` string resource); minimum 48dp touch target via `android:minWidth` / `android:minHeight`
+
+---
+
+### Changed
+
+| File | Change |
+|------|--------|
+| `SkyMapActivity.java` | Added toggle click listener; `isMenuExpanded` field kept in sync with actual visibility state |
+| `activity_sky_map.xml` | `ImageButton` for toggle inserted between the card and the bottom controls `MaterialCardView`; constrained to sit directly above `bottomControls` |
+| `strings.xml` | Added `cd_toggle_bottom_controls` string resource |
+
+---
+
+---
+
+## [Week 10] — 2026-03-28
+
+### Summary
+Two improvements merged this week: a Settings UI/UX overhaul making the settings screen more responsive and polished, and a full rewrite of the sky brightness analyser to use calibrated photometry rather than raw pixel statistics.
+
+---
+
+### Added
+
+#### Night Mode Manager
+- `NightModeManager.java` — singleton that persists the night mode preference and applies a red overlay to any activity; `NightModeManager.getInstance(context).applyToActivity(activity)` called on every `onResume` to keep theme consistent across navigation
+- Auto Night Mode and Auto Location toggle placeholders added to the Settings screen for future implementation
+
+#### Calibrated Sky Brightness Photometry
+- `BrightStarCatalogue.java` — embedded catalogue of ~200 reference stars (V < 3.5 mag, Hipparcos J2000 coordinates) used as photometric standards
+- **Aperture photometry** pipeline in `SkyBrightnessAnalyzer`:
+  - r = 5 px aperture sum per calibration star
+  - Sky annulus background subtraction (inner/outer annulus radii)
+  - Background level estimated using the robust mode estimator `3×median − 2×mean` to resist star contamination
+  - Star masking (10 px exclusion radius) so bright stars do not bias the background
+- **Radial vignetting correction** — models the edge-to-centre background ratio to correct for lens falloff before computing surface brightness
+- **Cloud / haze detection** — computes zero-point residual scatter across calibration stars; flags the result with a warning if σ > 0.5 mag
+- **Calibrated surface brightness** output in mag/arcsec² using the photometric zero-point derived from matched catalogue stars
+- **Correct sRGB → linear conversion** using the IEC 61966-2-1 piecewise transfer function (replaces approximate gamma)
+- **Corrected EXIF EV formula**: `EV = log₂(N²/t) + log₂(ISO/100)` (was incorrect in previous implementation)
+- **Bortle classification** now uses the standard mag/arcsec² thresholds from Bortle (2001) rather than raw luminance heuristics
+
+---
+
+### Changed
+
+| File | Change |
+|------|--------|
+| `SkyBrightnessAnalyzer.java` | Full rewrite: aperture photometry, vignetting correction, cloud detection, calibrated mag/arcsec² output; EXIF EV formula corrected |
+| `SkyBrightnessResult.java` | Added fields: `surfaceBrightness` (mag/arcsec²), `zeroPoint`, `calibrationStarCount`, `cloudWarning`; updated Bortle colour mapping |
+| `SkyBrightnessActivity.java` | UI updated to show mag/arcsec², calibration star count, zero-point value, and conditional cloud/haze warning banner |
+| `activity_sky_brightness.xml` | Added surface brightness card, calibration metadata row, and cloud warning view |
+| `PlateSolveActivity.java` | Passes WCS result and detected star list to `SkyBrightnessAnalyzer` to enable the calibrated analysis path |
+| `SettingsActivity.java` | Setting rows made fully tappable (ripple feedback + row tap forwards to switch); fonts and descriptions refined; brightness and magnitude controls enlarged; back button removed from sky map |
+| `activity_settings.xml` | Enlarged controls, improved typography, added Auto Night Mode and Auto Location rows |
+| `strings.xml` | +8 strings for settings and sky brightness UI |
+
+---
+
+### [Week 9] — 2026-03-17
 
 ### Summary
 Comprehensive onboarding overhaul, UI/UX bug fixes, and code quality improvements addressing 18 review issues. New interactive tooltip tutorial for all screens, draggable FAB, example capture dialog, and critical fixes for plate solving accuracy and native memory safety.
