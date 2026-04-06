@@ -7,6 +7,106 @@ Releases are grouped by weekly sprint. Most recent release appears first.
 
 ---
 
+## [Week 12] — 2026-04-06
+
+### Summary
+UI polish and personality pass. No new features — this week focused on removing leftover placeholder strings, making error and status messages more human, adding a hidden easter egg, and giving the splash screen a rotating astronomy quote on every launch.
+
+---
+
+### Added
+
+#### Easter Egg — Version Tap
+- Tapping the **Version row** in Settings → About 7 times within 3 seconds reveals a secret toast: *"You found the void. It was looking back."*
+- The version row is now clickable (ripple feedback) and displays the real app version number read from `PackageInfo` instead of the hardcoded `tools:text` placeholder
+
+#### Rotating Splash Tagline
+- The tagline beneath the app name on the splash screen now picks a random quote from a pool of 10 on every launch instead of always showing "Point your device at the sky"
+- Quotes include: *"We are made of star stuff"*, *"Not all who wander are lost — some are just stargazing"*, *"Somewhere, something incredible is waiting to be known"*, and 7 more
+
+#### New Chat Suggestions
+- Added 3 new AstroBot suggestion chips: *"Why do stars twinkle but planets don't?"*, *"Best time to see the ISS?"*, *"What's the difference between a meteor and a meteorite?"*
+
+---
+
+### Changed
+
+#### String Resources
+- Removed unused `dummy_button` and `dummy_content` strings
+- Fixed `title_activity_intro_splash` from raw class name `"IntroSplashActivity"` → `"sEEEstar"`
+- Renamed FAB label `"ChatBot"` → `"AstroBot"` for consistency with the rest of the app
+- Fixed missing period at end of `onboarding_sky_quality_description`
+- Extracted hardcoded cloud warning text in `SkyBrightnessActivity` to `sky_brightness_cloud_warning` string resource
+- Used `chat_thinking_base` string resource in thinking animation instead of hardcoded `"Thinking"`
+
+#### Plate Solve Progress Messages
+Replaced dry technical output with friendlier copy:
+
+| Before | After |
+|--------|-------|
+| `Detecting stars (downsample=2)…` | `Scanning the cosmos…` |
+| `Detected 667 stars` | `Found 667 stars hiding up there` |
+| `Solving field…` | `Consulting the star charts…` |
+| `No stars detected in image` | `No stars detected — too much light pollution, or too many clouds?` |
+| `Could not find astrometric solution` | `The stars aren't talking today. Try again with a clearer sky.` |
+
+#### Status & Empty State Messages
+
+| Location | Before | After |
+|----------|--------|-------|
+| Sky map loading | `Loading star data…` | `Loading star data… (there are a lot of them)` |
+| Sensor init | `Calibrating sensors…` | `Waking up the sensors…` |
+| GPS searching | `Searching…` | `Hunting for satellites…` |
+| GPS off | `GPS Disabled` | `GPS is napping` |
+| GPS fail | `GPS Unavailable` | `Satellites not cooperating` |
+| No results | `No results found` | `Never heard of it. Check the spelling?` |
+| Object found | `Found %1$s!` | `There it is — %1$s!` |
+| Object in view | `%1$s is in view` | `%1$s is right there — look up!` |
+| Below horizon | `%1$s is below the horizon right now.` | `%1$s is hiding below the horizon. Come back later!` |
+| Navigating to | `Navigating to %1$s` | `Follow the arrow to %1$s` |
+| Nothing in reticle | `No objects in the reticle area` | `Nothing here — try pointing somewhere else` |
+| Tonight empty | `No objects visible right now` | `Nothing visible right now — blame the clouds` |
+| Feature coming soon | `Feature coming soon!` | `Coming soon — even the universe wasn't built in a day` |
+| Empty search title | `Start searching` | `What are you looking for?` |
+| Empty search body | `Search for stars, planets, constellations, and more.` | `Stars, planets, galaxies, that constellation you can never remember — we know them all.` |
+| Favorites description | `Tap the star icon on any celestial object to add it to your favorites.` | `Tap the star icon on any object to bookmark your own corner of the cosmos.` |
+
+#### Image Stacking Messages
+
+| Before | After |
+|--------|-------|
+| `No images to process` | `Nothing to stack yet — capture some frames first!` |
+| `Processing failed` | `Processing blew up. Try again?` |
+| `Stacking cancelled.` | `Cancelled. The stars will wait.` |
+| `Alignment failed: X` | `Alignment failed (X) — the stars weren't cooperating` |
+| `Too few stars detected: N` | `Only N stars detected — they must be camera-shy` |
+| `Detecting constellations...` | `Reading the stars…` |
+| `Could not identify star field` | `Star field unrecognized — are you pointing at the sky?` |
+| `Plate solve failed` | `Even astronomers have bad nights. Try again.` |
+
+#### Chat Bubble Layout
+- `item_chat_message_bot.xml`: replaced hardcoded `"AstroBot"` and `"↩ Retry"` text with `@string/chat_title` and `@string/chat_retry` references
+
+---
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `SettingsActivity.java` | `setupVersionRow()`: reads real version from `PackageInfo`; 7-tap easter egg handler |
+| `IntroSplashActivity.java` | Picks random tagline from `R.array.splash_taglines` on each launch |
+| `NativePlateSolver.java` | All 5 progress/failure strings now use `R.string` resources |
+| `ImageStackingActivity.java` | 8 hardcoded status strings replaced with personality-filled copy |
+| `SkyBrightnessActivity.java` | Cloud warning uses `R.string.sky_brightness_cloud_warning` |
+| `ChatMessageAdapter.java` | Thinking animation base text uses `R.string.chat_thinking_base` |
+| `activity_settings.xml` | Version row gets `android:id="@+id/rowVersion"` and ripple background |
+| `item_chat_message_bot.xml` | AstroBot label and Retry text use string resources |
+| `strings.xml` | +16 strings added, 20+ existing strings updated |
+
+---
+
+---
+
 ## [Week 11] — 2026-04-01
 
 ### Summary

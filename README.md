@@ -594,6 +594,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the complete week-by-week history.
 
 | Version | Date | Highlights |
 |---------|------|-----------|
+| Week 12 | 2026-04-06 | UI polish & personality pass — rotating splash quotes, easter egg, friendlier messages throughout |
 | Week 11 | 2026-04-01 | Collapsible bottom controls panel with animated toggle, accessibility improvements |
 | Week 10 | 2026-03-28 | Calibrated sky brightness (aperture photometry, mag/arcsec², cloud detection), Settings UX overhaul, NightModeManager |
 | Week 9 | 2026-03-17 | Onboarding overhaul, 9 sky map tooltips, draggable FAB, adaptive star detection, 18 bug fixes |
