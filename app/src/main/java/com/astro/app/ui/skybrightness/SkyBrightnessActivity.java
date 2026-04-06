@@ -331,7 +331,7 @@ public class SkyBrightnessActivity extends AppCompatActivity {
                     "Calibrated from %d reference stars (ZP = %.2f)",
                     result.getCalibrationStarCount(), result.getZeroPoint()));
             if (result.hasCloudWarning()) {
-                tvCloudWarning.setText("Possible cloud or haze detected — result may be less accurate");
+                tvCloudWarning.setText(R.string.sky_brightness_cloud_warning);
                 tvCloudWarning.setVisibility(View.VISIBLE);
             } else {
                 tvCloudWarning.setVisibility(View.GONE);

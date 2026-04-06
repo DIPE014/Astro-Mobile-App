@@ -358,7 +358,7 @@
     <string name="onboarding_start_exploring_title">Start Exploring!</string>
     <string name="onboarding_start_exploring_description">You\'re ready to explore the universe. Head outside on a clear night, point your phone up, and discover what\'s above you. Swipe left for tips, or tap Done to begin.</string>
     <string name="onboarding_sky_quality_title">Sky Quality</string>
-    <string name="onboarding_sky_quality_description">After capturing a photo for star detection, tap Sky Quality to see your Bortle class — a measure of how dark your sky is for observing</string>
+    <string name="onboarding_sky_quality_description">After capturing a photo for star detection, tap Sky Quality to see your Bortle class — a measure of how dark your sky is for observing.</string>
     <string name="settings_replay_tutorial">Replay Tutorial</string>
     <string name="settings_replay_tutorial_summary">Watch the app introduction again</string>
     <string name="settings_replay_tutorial_toast">Tutorial will show on next app launch</string>
@@ -369,6 +369,7 @@
     <string name="chat_send">Send</string>
     <string name="chat_no_api_key">Please set your OpenAI API key in Settings first.</string>
     <string name="chat_thinking">Thinking…</string>
+    <string name="chat_thinking_base">Thinking</string>
     <string name="chat_error">Sorry, something went wrong. Please try again.</string>
     <string name="chat_suggestion_1">What\'s visible tonight?</string>
     <string name="chat_suggestion_2">How do I read celestial coordinates?</string>
@@ -376,6 +377,9 @@
     <string name="chat_suggestion_4">Tips for photographing the Milky Way</string>
     <string name="chat_suggestion_5">What constellation is Betelgeuse in?</string>
     <string name="chat_suggestion_6">How does plate solving work?</string>
+    <string name="chat_suggestion_7">Why do stars twinkle but planets don\'t?</string>
+    <string name="chat_suggestion_8">Best time to see the ISS?</string>
+    <string name="chat_suggestion_9">What\'s the difference between a meteor and a meteorite?</string>
     <string name="cd_chat_fab">Open AI assistant</string>
     <string name="cd_chat_send">Send message</string>
     <string name="cd_chat_close">Close chat</string>
@@ -404,6 +408,7 @@
     <string name="sky_brightness_exposure">Exposure: %1$.3fs</string>
     <string name="sky_brightness_fnumber">f/%1$.1f</string>
     <string name="sky_brightness_analyze_error">Failed to analyze image.</string>
+    <string name="sky_brightness_cloud_warning">Possible cloud or haze detected — result may be less accurate.</string>
     <string name="cd_sky_brightness">Sky quality meter</string>
 
     <!-- Bortle Scale Labels -->
@@ -416,15 +421,13 @@
     <string name="bortle_7">Suburban/Urban Transition</string>
     <string name="bortle_8">City Sky</string>
     <string name="bortle_9">Inner City</string>
-    <string name="title_activity_intro_splash">IntroSplashActivity</string>
+    <string name="title_activity_intro_splash">sEEEstar</string>
     <string name="tap_to_explore">Tap anywhere to explore</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
 
     <!-- FAB menu labels and content descriptions -->
     <string name="fab_search">Search</string>
     <string name="fab_detect_stack">Detect</string>
-    <string name="fab_chatbot">ChatBot</string>
+    <string name="fab_chatbot">AstroBot</string>
     <string name="cd_fab_main">Open actions menu</string>
     <string name="cd_fab_search">Search sky objects</string>
     <string name="cd_fab_chatbot">Open AstroBot chat</string>
