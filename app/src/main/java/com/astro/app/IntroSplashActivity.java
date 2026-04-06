@@ -15,6 +15,8 @@ import android.widget.TextView;
 import com.astro.app.ui.intro.StarFieldView;
 import com.astro.app.ui.skymap.SkyMapActivity;
 
+import java.util.Random;
+
 public class IntroSplashActivity extends AppCompatActivity {
     private final Handler splashHandler = new Handler(Looper.getMainLooper());
     private StarFieldView starFieldView;
@@ -29,6 +31,13 @@ public class IntroSplashActivity extends AppCompatActivity {
         ConstraintLayout centerContent = findViewById(R.id.centerContent);
         View rootView = findViewById(R.id.rootSplash);
         TextView tvTapHint = findViewById(R.id.tvTapHint);
+
+        // Rotate tagline randomly each launch
+        TextView tvTagline = findViewById(R.id.tvTagline);
+        if (tvTagline != null) {
+            String[] taglines = getResources().getStringArray(R.array.splash_taglines);
+            tvTagline.setText(taglines[new Random().nextInt(taglines.length)]);
+        }
 
         // Fade in the "Tap to explore" hint after 1.5s
         splashHandler.postDelayed(() -> {

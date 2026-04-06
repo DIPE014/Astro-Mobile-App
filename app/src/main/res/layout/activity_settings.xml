@@ -671,8 +671,10 @@
 
                     <!-- Version -->
                     <LinearLayout
+                        android:id="@+id/rowVersion"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/list_item_height"
+                        android:background="?attr/selectableItemBackground"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
                         android:paddingHorizontal="@dimen/padding_medium">

@@ -179,13 +179,13 @@ public class ChatMessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 @Override
                 public void run() {
                     dotCount = (dotCount % 3) + 1;
-                    StringBuilder dots = new StringBuilder("Thinking");
+                    StringBuilder dots = new StringBuilder(itemView.getContext().getString(R.string.chat_thinking_base));
                     for (int i = 0; i < dotCount; i++) dots.append('.');
                     tvBotMessage.setText(dots.toString());
                     handler.postDelayed(this, 500);
                 }
             };
-            tvBotMessage.setText("Thinking.");
+            tvBotMessage.setText(itemView.getContext().getString(R.string.chat_thinking_base) + ".");
             handler.postDelayed(animationRunnable, 500);
         }
 

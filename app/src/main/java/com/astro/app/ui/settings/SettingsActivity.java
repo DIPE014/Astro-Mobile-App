@@ -1,6 +1,8 @@
 package com.astro.app.ui.settings;
 
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -38,6 +40,10 @@ public class SettingsActivity extends AppCompatActivity {
     private SettingsViewModel viewModel;
     private com.astro.app.ui.onboarding.TooltipManager tooltipManager;
 
+    // Easter egg: tap version 7 times
+    private int versionTapCount = 0;
+    private long lastVersionTapTime = 0;
+
     // Display settings views
     private Slider sliderBrightness;
     private TextView tvBrightnessValue;
@@ -68,6 +74,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         initializeViews();
         setupClickListeners();
+        setupVersionRow();
         observeViewModel();
         showSettingsTooltipIfNeeded();
     }
@@ -364,6 +371,34 @@ public class SettingsActivity extends AppCompatActivity {
             }
             isUpdatingUI = false;
         });
+    }
+
+    private void setupVersionRow() {
+        TextView tvVersion = findViewById(R.id.tvVersion);
+        if (tvVersion != null) {
+            try {
+                PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+                tvVersion.setText(info.versionName);
+            } catch (PackageManager.NameNotFoundException e) {
+                tvVersion.setText(getString(R.string.settings_version));
+            }
+        }
+
+        View rowVersion = findViewById(R.id.rowVersion);
+        if (rowVersion != null) {
+            rowVersion.setOnClickListener(v -> {
+                long now = System.currentTimeMillis();
+                if (now - lastVersionTapTime > 3000) {
+                    versionTapCount = 0;
+                }
+                lastVersionTapTime = now;
+                versionTapCount++;
+                if (versionTapCount == 7) {
+                    versionTapCount = 0;
+                    Toast.makeText(this, getString(R.string.easter_egg_version_tap), Toast.LENGTH_LONG).show();
+                }
+            });
+        }
     }
 
     private void showSettingsTooltipIfNeeded() {

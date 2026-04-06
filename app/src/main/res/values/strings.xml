@@ -92,8 +92,8 @@
 
     <!-- Sky Map -->
     <string name="sky_map">Sky Map</string>
-    <string name="sky_map_loading">Loading star data…</string>
-    <string name="sky_map_calibrating">Calibrating sensors…</string>
+    <string name="sky_map_loading">Loading star data… (there are a lot of them)</string>
+    <string name="sky_map_calibrating">Waking up the sensors…</string>
     <string name="sky_map_point_device">Point your device at the sky</string>
     <string name="sky_map_no_data">No star data available</string>
     <string name="show_constellations">Show Constellations</string>
@@ -112,14 +112,14 @@
 
     <!-- Search -->
     <string name="search_hint">Search stars, constellations…</string>
-    <string name="search_no_results">No results found</string>
+    <string name="search_no_results">Never heard of it. Check the spelling?</string>
     <string name="search_results">Search Results</string>
     <string name="recent_searches">Recent Searches</string>
     <string name="clear_history">Clear History</string>
-    <string name="search_navigating_to">Navigating to %1$s</string>
-    <string name="search_target_found">Found %1$s!</string>
-    <string name="search_target_below_horizon">%1$s is below the horizon right now.</string>
-    <string name="search_target_in_view">%1$s is in view</string>
+    <string name="search_navigating_to">Follow the arrow to %1$s</string>
+    <string name="search_target_found">There it is — %1$s!</string>
+    <string name="search_target_below_horizon">%1$s is hiding below the horizon. Come back later!</string>
+    <string name="search_target_in_view">%1$s is right there — look up!</string>
     <string name="search_visibility_below_horizon">Below horizon</string>
     <string name="search_visibility_visible_now">Visible now</string>
     <string name="search_tap_to_exit">Tap anywhere to exit search</string>
@@ -219,10 +219,10 @@
     <string name="error_not_supported">This feature is not supported on your device.</string>
 
     <!-- GPS Status -->
-    <string name="gps_searching">Searching…</string>
+    <string name="gps_searching">Hunting for satellites…</string>
     <string name="gps_connected">GPS Connected</string>
-    <string name="gps_disabled">GPS Disabled</string>
-    <string name="gps_unavailable">GPS Unavailable</string>
+    <string name="gps_disabled">GPS is napping</string>
+    <string name="gps_unavailable">Satellites not cooperating</string>
     <string name="cd_gps_status">GPS status indicator</string>
 
     <!-- Time Travel Dialog -->
@@ -284,13 +284,13 @@
     <string name="notification_iss_pass">ISS Pass Visible</string>
 
     <!-- Feature Status -->
-    <string name="feature_coming_soon">Feature coming soon!</string>
+    <string name="feature_coming_soon">Coming soon — even the universe wasn\'t built in a day</string>
 
     <!-- Reticle Selection -->
     <string name="select">Select</string>
     <string name="select_object">Select Object</string>
     <string name="objects_in_reticle">Objects in view</string>
-    <string name="no_objects_in_reticle">No objects in the reticle area</string>
+    <string name="no_objects_in_reticle">Nothing here — try pointing somewhere else</string>
     <string name="confirm_selection">View Details</string>
     <string name="cd_select_button">Select objects in reticle</string>
     <string name="cd_reticle">Selection reticle</string>
@@ -307,14 +307,14 @@
     <string name="tonights_bright_stars">Bright Stars</string>
     <string name="tonights_constellations">Constellations</string>
     <string name="tonights_deep_sky">Deep Sky</string>
-    <string name="tonights_no_objects">No objects visible right now</string>
+    <string name="tonights_no_objects">Nothing visible right now — blame the clouds</string>
     <string name="tonights_altitude">Alt %1$.0f\u00b0</string>
 
     <!-- Empty States -->
     <string name="empty_favorites">No favorites yet</string>
-    <string name="empty_favorites_description">Tap the star icon on any celestial object to add it to your favorites.</string>
-    <string name="empty_search">Start searching</string>
-    <string name="empty_search_description">Search for stars, planets, constellations, and more.</string>
+    <string name="empty_favorites_description">Tap the star icon on any object to bookmark your own corner of the cosmos.</string>
+    <string name="empty_search">What are you looking for?</string>
+    <string name="empty_search_description">Stars, planets, galaxies, that constellation you can never remember — we know them all.</string>
 
     <!-- Plate Solve Tips -->
     <string name="plate_solve_tips_title">Tips for Best Results</string>
@@ -358,7 +358,7 @@
     <string name="onboarding_start_exploring_title">Start Exploring!</string>
     <string name="onboarding_start_exploring_description">You\'re ready to explore the universe. Head outside on a clear night, point your phone up, and discover what\'s above you. Swipe left for tips, or tap Done to begin.</string>
     <string name="onboarding_sky_quality_title">Sky Quality</string>
-    <string name="onboarding_sky_quality_description">After capturing a photo for star detection, tap Sky Quality to see your Bortle class — a measure of how dark your sky is for observing</string>
+    <string name="onboarding_sky_quality_description">After capturing a photo for star detection, tap Sky Quality to see your Bortle class — a measure of how dark your sky is for observing.</string>
     <string name="settings_replay_tutorial">Replay Tutorial</string>
     <string name="settings_replay_tutorial_summary">Watch the app introduction again</string>
     <string name="settings_replay_tutorial_toast">Tutorial will show on next app launch</string>
@@ -369,6 +369,7 @@
     <string name="chat_send">Send</string>
     <string name="chat_no_api_key">Please set your OpenAI API key in Settings first.</string>
     <string name="chat_thinking">Thinking…</string>
+    <string name="chat_thinking_base">Thinking</string>
     <string name="chat_error">Sorry, something went wrong. Please try again.</string>
     <string name="chat_suggestion_1">What\'s visible tonight?</string>
     <string name="chat_suggestion_2">How do I read celestial coordinates?</string>
@@ -376,6 +377,9 @@
     <string name="chat_suggestion_4">Tips for photographing the Milky Way</string>
     <string name="chat_suggestion_5">What constellation is Betelgeuse in?</string>
     <string name="chat_suggestion_6">How does plate solving work?</string>
+    <string name="chat_suggestion_7">Why do stars twinkle but planets don\'t?</string>
+    <string name="chat_suggestion_8">Best time to see the ISS?</string>
+    <string name="chat_suggestion_9">What\'s the difference between a meteor and a meteorite?</string>
     <string name="cd_chat_fab">Open AI assistant</string>
     <string name="cd_chat_send">Send message</string>
     <string name="cd_chat_close">Close chat</string>
@@ -404,6 +408,7 @@
     <string name="sky_brightness_exposure">Exposure: %1$.3fs</string>
     <string name="sky_brightness_fnumber">f/%1$.1f</string>
     <string name="sky_brightness_analyze_error">Failed to analyze image.</string>
+    <string name="sky_brightness_cloud_warning">Possible cloud or haze detected — result may be less accurate.</string>
     <string name="cd_sky_brightness">Sky quality meter</string>
 
     <!-- Bortle Scale Labels -->
@@ -416,15 +421,13 @@
     <string name="bortle_7">Suburban/Urban Transition</string>
     <string name="bortle_8">City Sky</string>
     <string name="bortle_9">Inner City</string>
-    <string name="title_activity_intro_splash">IntroSplashActivity</string>
+    <string name="title_activity_intro_splash">sEEEstar</string>
     <string name="tap_to_explore">Tap anywhere to explore</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
 
     <!-- FAB menu labels and content descriptions -->
     <string name="fab_search">Search</string>
     <string name="fab_detect_stack">Detect</string>
-    <string name="fab_chatbot">ChatBot</string>
+    <string name="fab_chatbot">AstroBot</string>
     <string name="cd_fab_main">Open actions menu</string>
     <string name="cd_fab_search">Search sky objects</string>
     <string name="cd_fab_chatbot">Open AstroBot chat</string>
@@ -477,6 +480,30 @@
     <!-- Detect/Stack UI -->
     <string name="photography_tips">Photography tips</string>
     <string name="view_example_capture">View Example Capture</string>
+
+    <!-- Easter egg -->
+    <string name="easter_egg_version_tap">You found the void. It was looking back.</string>
+
+    <!-- Splash screen rotating taglines -->
+    <string-array name="splash_taglines">
+        <item>Point your device at the sky</item>
+        <item>The universe is closer than you think</item>
+        <item>Every star has a story</item>
+        <item>We are made of star stuff</item>
+        <item>Look up more often</item>
+        <item>Space: it\'s dark out there</item>
+        <item>Find your place in the cosmos</item>
+        <item>Somewhere, something incredible is waiting to be known</item>
+        <item>The cosmos is within us</item>
+        <item>Not all who wander are lost — some are just stargazing</item>
+    </string-array>
+
+    <!-- Plate solve fun progress messages -->
+    <string name="solve_progress_scanning">Scanning the cosmos\u2026</string>
+    <string name="solve_progress_stars_found">Found %1$d stars hiding up there</string>
+    <string name="solve_progress_solving">Consulting the star charts\u2026</string>
+    <string name="solve_progress_no_stars">No stars detected — too much light pollution, or too many clouds?</string>
+    <string name="solve_progress_no_solution">The stars aren\'t talking today. Try again with a clearer sky.</string>
 
     <!-- Example capture dialog -->
     <string name="example_capture_title">Example Capture</string>
