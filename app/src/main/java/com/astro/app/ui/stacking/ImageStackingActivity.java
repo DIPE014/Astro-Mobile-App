@@ -508,7 +508,7 @@ public class ImageStackingActivity extends AppCompatActivity {
 
     private void processAllImages() {
         if (collectedUris.isEmpty()) {
-            Toast.makeText(this, "No images to process", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Nothing to stack yet — capture some frames first!", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -557,7 +557,7 @@ public class ImageStackingActivity extends AppCompatActivity {
                     solvePlate(finalResult);
                     analyzeSkyBrightness(finalResult);
                 } else {
-                    Toast.makeText(ImageStackingActivity.this, "Processing failed", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ImageStackingActivity.this, "Processing blew up. Try again?", Toast.LENGTH_SHORT).show();
                     btnCapture.setEnabled(true);
                     btnPickImages.setEnabled(true);
                     if (stacking) btnFinish.setEnabled(!collectedUris.isEmpty());
@@ -574,7 +574,7 @@ public class ImageStackingActivity extends AppCompatActivity {
             if (isDestroyed || isCancelled) {
                 if (isCancelled) {
                     stackingManager.release();
-                    runOnUiThread(() -> tvStatus.setText("Stacking cancelled."));
+                    runOnUiThread(() -> tvStatus.setText("Cancelled. The stars will wait."));
                 }
                 return null;
             }
@@ -640,7 +640,7 @@ public class ImageStackingActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (isDestroyed) return;
                     Log.w(TAG, "Frame " + frameNumber + " alignment failed: " + reason);
-                    tvStatus.setText("Alignment failed: " + reason);
+                    tvStatus.setText("Alignment failed (" + reason + ") — the stars weren't cooperating");
                 });
             }
 
@@ -649,7 +649,7 @@ public class ImageStackingActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (isDestroyed) return;
                     Log.w(TAG, "Frame " + frameNumber + " star detection failed: " + starCount);
-                    tvStatus.setText("Too few stars detected: " + starCount);
+                    tvStatus.setText("Only " + starCount + " stars detected — they must be camera-shy");
                 });
             }
         };
@@ -673,7 +673,7 @@ public class ImageStackingActivity extends AppCompatActivity {
 
         resultProgressBar.setVisibility(View.VISIBLE);
         resultStatus.setVisibility(View.VISIBLE);
-        resultStatus.setText("Detecting constellations...");
+        resultStatus.setText("Reading the stars…");
 
         backgroundExecutor.execute(() -> {
             try {
@@ -710,7 +710,7 @@ public class ImageStackingActivity extends AppCompatActivity {
                         runOnUiThread(() -> {
                             if (isDestroyed) return;
                             resultProgressBar.setVisibility(View.GONE);
-                            resultStatus.setText("Could not identify star field");
+                            resultStatus.setText("Star field unrecognized — are you pointing at the sky?");
                         });
                     }
                 });
@@ -719,7 +719,7 @@ public class ImageStackingActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (isDestroyed) return;
                     resultProgressBar.setVisibility(View.GONE);
-                    resultStatus.setText("Plate solve failed");
+                    resultStatus.setText("Even astronomers have bad nights. Try again.");
                 });
             }
         });

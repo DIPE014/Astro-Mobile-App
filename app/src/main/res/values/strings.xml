@@ -92,8 +92,8 @@
 
     <!-- Sky Map -->
     <string name="sky_map">Sky Map</string>
-    <string name="sky_map_loading">Loading star data…</string>
-    <string name="sky_map_calibrating">Calibrating sensors…</string>
+    <string name="sky_map_loading">Loading star data… (there are a lot of them)</string>
+    <string name="sky_map_calibrating">Waking up the sensors…</string>
     <string name="sky_map_point_device">Point your device at the sky</string>
     <string name="sky_map_no_data">No star data available</string>
     <string name="show_constellations">Show Constellations</string>
@@ -112,14 +112,14 @@
 
     <!-- Search -->
     <string name="search_hint">Search stars, constellations…</string>
-    <string name="search_no_results">No results found</string>
+    <string name="search_no_results">Never heard of it. Check the spelling?</string>
     <string name="search_results">Search Results</string>
     <string name="recent_searches">Recent Searches</string>
     <string name="clear_history">Clear History</string>
-    <string name="search_navigating_to">Navigating to %1$s</string>
-    <string name="search_target_found">Found %1$s!</string>
-    <string name="search_target_below_horizon">%1$s is below the horizon right now.</string>
-    <string name="search_target_in_view">%1$s is in view</string>
+    <string name="search_navigating_to">Follow the arrow to %1$s</string>
+    <string name="search_target_found">There it is — %1$s!</string>
+    <string name="search_target_below_horizon">%1$s is hiding below the horizon. Come back later!</string>
+    <string name="search_target_in_view">%1$s is right there — look up!</string>
     <string name="search_visibility_below_horizon">Below horizon</string>
     <string name="search_visibility_visible_now">Visible now</string>
     <string name="search_tap_to_exit">Tap anywhere to exit search</string>
@@ -219,10 +219,10 @@
     <string name="error_not_supported">This feature is not supported on your device.</string>
 
     <!-- GPS Status -->
-    <string name="gps_searching">Searching…</string>
+    <string name="gps_searching">Hunting for satellites…</string>
     <string name="gps_connected">GPS Connected</string>
-    <string name="gps_disabled">GPS Disabled</string>
-    <string name="gps_unavailable">GPS Unavailable</string>
+    <string name="gps_disabled">GPS is napping</string>
+    <string name="gps_unavailable">Satellites not cooperating</string>
     <string name="cd_gps_status">GPS status indicator</string>
 
     <!-- Time Travel Dialog -->
@@ -284,13 +284,13 @@
     <string name="notification_iss_pass">ISS Pass Visible</string>
 
     <!-- Feature Status -->
-    <string name="feature_coming_soon">Feature coming soon!</string>
+    <string name="feature_coming_soon">Coming soon — even the universe wasn\'t built in a day</string>
 
     <!-- Reticle Selection -->
     <string name="select">Select</string>
     <string name="select_object">Select Object</string>
     <string name="objects_in_reticle">Objects in view</string>
-    <string name="no_objects_in_reticle">No objects in the reticle area</string>
+    <string name="no_objects_in_reticle">Nothing here — try pointing somewhere else</string>
     <string name="confirm_selection">View Details</string>
     <string name="cd_select_button">Select objects in reticle</string>
     <string name="cd_reticle">Selection reticle</string>
@@ -307,14 +307,14 @@
     <string name="tonights_bright_stars">Bright Stars</string>
     <string name="tonights_constellations">Constellations</string>
     <string name="tonights_deep_sky">Deep Sky</string>
-    <string name="tonights_no_objects">No objects visible right now</string>
+    <string name="tonights_no_objects">Nothing visible right now — blame the clouds</string>
     <string name="tonights_altitude">Alt %1$.0f\u00b0</string>
 
     <!-- Empty States -->
     <string name="empty_favorites">No favorites yet</string>
-    <string name="empty_favorites_description">Tap the star icon on any celestial object to add it to your favorites.</string>
-    <string name="empty_search">Start searching</string>
-    <string name="empty_search_description">Search for stars, planets, constellations, and more.</string>
+    <string name="empty_favorites_description">Tap the star icon on any object to bookmark your own corner of the cosmos.</string>
+    <string name="empty_search">What are you looking for?</string>
+    <string name="empty_search_description">Stars, planets, galaxies, that constellation you can never remember — we know them all.</string>
 
     <!-- Plate Solve Tips -->
     <string name="plate_solve_tips_title">Tips for Best Results</string>
