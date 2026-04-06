@@ -4,6 +4,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.astro.app.R;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -230,20 +232,20 @@ public class NativePlateSolver {
 
         // Step 1: Detect stars
         int ds = resolveDownsample(bitmap.getWidth(), bitmap.getHeight());
-        callback.onProgress("Detecting stars (downsample=" + ds + ")...");
+        callback.onProgress(context.getString(R.string.solve_progress_scanning));
         List<AstrometryNative.NativeStar> stars = AstrometryNative.detectStars(
                 bitmap, plim, dpsf, ds);
 
         if (stars == null || stars.isEmpty()) {
-            callback.onFailure("No stars detected in image");
+            callback.onFailure(context.getString(R.string.solve_progress_no_stars));
             return;
         }
 
-        callback.onProgress("Detected " + stars.size() + " stars");
+        callback.onProgress(context.getString(R.string.solve_progress_stars_found, stars.size()));
         Log.i(TAG, "Detected " + stars.size() + " stars");
 
         // Step 2: Solve field
-        callback.onProgress("Solving field...");
+        callback.onProgress(context.getString(R.string.solve_progress_solving));
         String[] indexArray = indexPaths.toArray(new String[0]);
 
         AstrometryNative.SolveResult result = AstrometryNative.solveField(
@@ -256,10 +258,10 @@ public class NativePlateSolver {
         );
 
         if (result.solved) {
-            callback.onProgress("Solved!");
+            callback.onProgress(context.getString(R.string.solve_progress_solving));
             callback.onSuccess(result);
         } else {
-            callback.onFailure("Could not find astrometric solution");
+            callback.onFailure(context.getString(R.string.solve_progress_no_solution));
         }
     }
 

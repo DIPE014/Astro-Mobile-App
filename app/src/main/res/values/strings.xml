@@ -481,6 +481,30 @@
     <string name="photography_tips">Photography tips</string>
     <string name="view_example_capture">View Example Capture</string>
 
+    <!-- Easter egg -->
+    <string name="easter_egg_version_tap">You found the void. It was looking back.</string>
+
+    <!-- Splash screen rotating taglines -->
+    <string-array name="splash_taglines">
+        <item>Point your device at the sky</item>
+        <item>The universe is closer than you think</item>
+        <item>Every star has a story</item>
+        <item>We are made of star stuff</item>
+        <item>Look up more often</item>
+        <item>Space: it\'s dark out there</item>
+        <item>Find your place in the cosmos</item>
+        <item>Somewhere, something incredible is waiting to be known</item>
+        <item>The cosmos is within us</item>
+        <item>Not all who wander are lost — some are just stargazing</item>
+    </string-array>
+
+    <!-- Plate solve fun progress messages -->
+    <string name="solve_progress_scanning">Scanning the cosmos\u2026</string>
+    <string name="solve_progress_stars_found">Found %1$d stars hiding up there</string>
+    <string name="solve_progress_solving">Consulting the star charts\u2026</string>
+    <string name="solve_progress_no_stars">No stars detected — too much light pollution, or too many clouds?</string>
+    <string name="solve_progress_no_solution">The stars aren\'t talking today. Try again with a clearer sky.</string>
+
     <!-- Example capture dialog -->
     <string name="example_capture_title">Example Capture</string>
     <string name="example_capture_cd">Example night sky capture showing the Orion region</string>
